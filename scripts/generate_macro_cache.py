@@ -1,19 +1,21 @@
 """Generate a resilient macro-data cache for the Render app.
 
-FRED is fetched from GitHub Actions rather than from Render shared IPs, which can
-be slow or blocked. The web app serves the committed JSON without runtime calls.
-If one upstream series temporarily fails, the previous cached value is retained
-and explicitly marked stale instead of breaking the whole macro dashboard.
+The app never calls FRED at request time. GitHub Actions refreshes a committed
+JSON cache. Direct cloud-IP access to fred.stlouisfed.org is currently unreliable,
+so FRED's public CSV is read through the keyless Jina Reader proxy. The original
+FRED series URL and dates remain attached to every record.
 """
 from __future__ import annotations
 
 import json
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 import pandas as pd
 import requests
@@ -21,7 +23,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "static" / "data" / "macro_cache.json"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
-HEADERS = {"User-Agent": UA, "Accept": "text/csv,application/json,text/plain,*/*"}
+HEADERS = {"User-Agent": UA, "Accept": "text/plain,application/json,*/*"}
 
 INDICATORS: dict[str, dict[str, str]] = {
     "T10Y2Y": {"name": "장단기 금리차 (10Y-2Y)", "desc": "경기 침체 신호등. 0 이하(역전)로 내려갔다가 다시 올라올 때 침체가 시작되는 경향이 있습니다.", "link": "https://fred.stlouisfed.org/series/T10Y2Y", "source": "FRED"},
@@ -40,11 +42,11 @@ INDICATORS: dict[str, dict[str, str]] = {
 }
 
 
-def request_with_retry(url: str, *, params: dict[str, Any], attempts: int = 3) -> requests.Response:
+def request_with_retry(url: str, *, params: dict[str, Any] | None = None, attempts: int = 3, timeout: int = 25) -> requests.Response:
     last_error: Exception | None = None
     for attempt in range(1, attempts + 1):
         try:
-            response = requests.get(url, params=params, headers=HEADERS, timeout=25)
+            response = requests.get(url, params=params or {}, headers=HEADERS, timeout=timeout)
             response.raise_for_status()
             return response
         except Exception as exc:
@@ -54,13 +56,51 @@ def request_with_retry(url: str, *, params: dict[str, Any], attempts: int = 3) -
     raise RuntimeError(str(last_error) if last_error else "request failed")
 
 
+def extract_fred_csv(reader_text: str, symbol: str) -> str:
+    """Extract the CSV rows from Jina Reader's plain-text/Markdown response."""
+    lines = reader_text.replace("\ufeff", "").splitlines()
+    header_index = None
+    header_re = re.compile(rf"^(?:observation_date|DATE),\s*{re.escape(symbol)}\s*$", re.I)
+    for i, raw in enumerate(lines):
+        line = raw.strip().strip("`").strip()
+        if header_re.match(line):
+            header_index = i
+            break
+    if header_index is None:
+        # Some reader responses may pass the CSV through unchanged with a different
+        # first-column label. Accept any two-column header ending in the series id.
+        for i, raw in enumerate(lines):
+            line = raw.strip().strip("`").strip()
+            if line.upper().endswith("," + symbol.upper()) and "," in line:
+                header_index = i
+                break
+    if header_index is None:
+        raise RuntimeError(f"FRED CSV header not found for {symbol}")
+
+    header = lines[header_index].strip().strip("`").strip()
+    rows = [header]
+    row_re = re.compile(r"^\d{4}-\d{2}-\d{2},")
+    for raw in lines[header_index + 1:]:
+        line = raw.strip().strip("`").strip()
+        if row_re.match(line):
+            rows.append(line)
+        elif len(rows) > 1 and line and not line.startswith("```"):
+            break
+    if len(rows) < 2:
+        raise RuntimeError(f"FRED CSV observations not found for {symbol}")
+    return "\n".join(rows)
+
+
 def fetch_fred(symbol: str, meta: dict[str, str]) -> dict[str, Any]:
     start = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-    response = request_with_retry(
-        "https://fred.stlouisfed.org/graph/fredgraph.csv",
-        params={"id": symbol, "cosd": start},
+    source_url = (
+        "https://fred.stlouisfed.org/graph/fredgraph.csv"
+        f"?id={quote(symbol)}&cosd={quote(start)}"
     )
-    frame = pd.read_csv(StringIO(response.text))
+    reader_url = "https://r.jina.ai/" + source_url
+    response = request_with_retry(reader_url, attempts=2, timeout=35)
+    csv_text = extract_fred_csv(response.text, symbol)
+    frame = pd.read_csv(StringIO(csv_text))
     if frame.empty or len(frame.columns) < 2:
         raise RuntimeError(f"empty FRED series {symbol}")
 
@@ -87,7 +127,7 @@ def fetch_fred(symbol: str, meta: dict[str, str]) -> dict[str, Any]:
         "value": round(current, 4),
         "change": round(change, 2),
         "chart_data": rows,
-        "source": "FRED",
+        "source": "FRED (cached via Jina Reader)",
         "asOf": rows[-1]["time"],
         "stale": False,
     }
@@ -99,11 +139,12 @@ def fetch_vix(meta: dict[str, str]) -> dict[str, Any]:
     response = request_with_retry(
         "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX",
         params={"period1": period1, "period2": period2, "interval": "1d", "events": "history"},
+        attempts=2,
+        timeout=20,
     )
     result = (response.json().get("chart", {}).get("result") or [None])[0]
     if not result:
         raise RuntimeError("Yahoo VIX chart missing")
-
     timestamps = result.get("timestamp") or []
     closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
     rows = []
@@ -117,21 +158,13 @@ def fetch_vix(meta: dict[str, str]) -> dict[str, Any]:
     rows = rows[-100:]
     if not rows:
         raise RuntimeError("Yahoo VIX values missing")
-
     current = rows[-1]["value"]
     prev = rows[-2]["value"] if len(rows) > 1 else current
     return {
-        "original_symbol": "^VIX",
-        "symbol": "^VIX",
-        "name": meta["name"],
-        "desc": meta["desc"],
-        "link": meta["link"],
-        "value": round(current, 2),
+        "original_symbol": "^VIX", "symbol": "^VIX", "name": meta["name"],
+        "desc": meta["desc"], "link": meta["link"], "value": round(current, 2),
         "change": round((current - prev) / prev * 100 if prev else 0.0, 2),
-        "chart_data": rows,
-        "source": "Yahoo Chart",
-        "asOf": rows[-1]["time"],
-        "stale": False,
+        "chart_data": rows, "source": "Yahoo Chart", "asOf": rows[-1]["time"], "stale": False,
     }
 
 
@@ -141,11 +174,7 @@ def load_previous() -> dict[str, dict[str, Any]]:
     try:
         payload = json.loads(OUT.read_text(encoding="utf-8"))
         rows = payload.get("results") or []
-        return {
-            str(row.get("original_symbol") or row.get("symbol")): row
-            for row in rows
-            if isinstance(row, dict)
-        }
+        return {str(row.get("original_symbol") or row.get("symbol")): row for row in rows if isinstance(row, dict)}
     except Exception as exc:
         print("previous cache unreadable:", exc)
         return {}
@@ -160,7 +189,8 @@ def main() -> None:
         meta = INDICATORS[symbol]
         return fetch_vix(meta) if symbol == "^VIX" else fetch_fred(symbol, meta)
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    # Keep concurrency conservative because the free reader proxy is shared.
+    with ThreadPoolExecutor(max_workers=2) as pool:
         futures = {pool.submit(fetch_one, symbol): symbol for symbol in INDICATORS}
         for future in as_completed(futures):
             symbol = futures[future]
@@ -192,13 +222,9 @@ def main() -> None:
 
     payload = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "count": len(ordered),
-        "freshCount": len(fresh),
-        "staleCount": len(stale_symbols),
-        "staleSymbols": stale_symbols,
-        "results": ordered,
-        "errors": errors,
-        "source": "FRED + Yahoo Chart, precomputed by GitHub Actions",
+        "count": len(ordered), "freshCount": len(fresh), "staleCount": len(stale_symbols),
+        "staleSymbols": stale_symbols, "results": ordered, "errors": errors,
+        "source": "FRED via Jina Reader + Yahoo Chart, precomputed by GitHub Actions",
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
