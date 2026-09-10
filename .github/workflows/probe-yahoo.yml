@@ -1,0 +1,31 @@
+name: Probe Yahoo Valuation Endpoints
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/probe-yahoo.yml']
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public endpoints
+        run: |
+          python - <<'PY'
+          import requests, time, json
+          ua={'User-Agent':'Mozilla/5.0'}
+          urls=[
+            'https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1d&range=5d',
+            'https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/AAPL?symbol=AAPL&type=trailingMarketCap,trailingPeRatio,forwardPeRatio,priceToBookRatio,trailingEps,forwardEps&period1=0&period2='+str(int(time.time())),
+            'https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/AAPL?symbol=AAPL&type=trailingMarketCap,trailingPeRatio,forwardPeRatio,priceToBookRatio,trailingEps,forwardEps&period1=0&period2='+str(int(time.time())),
+          ]
+          for u in urls:
+              try:
+                  r=requests.get(u,headers=ua,timeout=15)
+                  print('\nURL',u[:100], 'STATUS',r.status_code)
+                  print(r.text[:3000])
+              except Exception as e:
+                  print('ERR',e)
+          PY
