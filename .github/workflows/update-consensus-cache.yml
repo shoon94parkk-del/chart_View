@@ -1,0 +1,54 @@
+name: Update Consensus Cache
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '40 23 * * 1-5'
+  push:
+    branches: [main]
+    paths:
+      - 'consensus_service.py'
+      - 'scripts/generate_consensus_cache.py'
+      - '.github/workflows/update-consensus-cache.yml'
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install requests
+        run: pip install requests
+      - name: Generate consensus snapshot
+        run: python scripts/generate_consensus_cache.py
+      - name: Validate major consensus rows
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('static/data/consensus_cache.json').read_text(encoding='utf-8'))
+          h=json.loads(Path('static/data/consensus_history.json').read_text(encoding='utf-8'))
+          for t in ('AAPL','NVDA','005930.KS','000660.KS'):
+              row=c['quotes'][t]
+              for p in ('0q','+1q','0y','+1y'):
+                  x=row['periods'][p]
+                  assert x['earnings']['avg'] is not None, (t,p,'eps')
+                  assert x['revenue']['avg'] is not None, (t,p,'revenue')
+              assert row['periods']['0y']['epsTrend']['90daysAgo'] is not None, (t,'90d')
+              assert h['history'][t]['0y'], (t,'history')
+          print('consensus cache OK',c.get('count'),'symbols')
+          PY
+      - name: Commit refreshed cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/consensus_cache.json static/data/consensus_history.json
+          if git diff --cached --quiet; then
+            echo "No consensus changes"
+          else
+            git commit -m "data: refresh analyst consensus snapshots"
+            git push origin HEAD:main
+          fi
