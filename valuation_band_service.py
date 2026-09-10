@@ -1,9 +1,10 @@
 """Historical PER/PBR band reconstruction from Yahoo public data.
 
 The service intentionally avoids applying today's EPS/BPS to old prices.
-Instead it combines historical close prices with contemporaneous trailing net
-income, shareholders' equity and shares outstanding. Financial observations are
-made effective 45 days after the reported period end to reduce look-ahead bias.
+It combines split-adjusted historical closes with the TTM diluted EPS and
+balance-sheet values that were available around each historical date.
+Financial observations are made effective 45 days after period end to reduce
+look-ahead bias.
 """
 from __future__ import annotations
 
@@ -25,7 +26,7 @@ _cache_lock = threading.Lock()
 _cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 TYPES = [
-    "trailingNetIncome",
+    "trailingDilutedEPS", "trailingPeRatio",
     "annualStockholdersEquity", "annualOrdinarySharesNumber",
     "quarterlyStockholdersEquity", "quarterlyOrdinarySharesNumber",
 ]
@@ -73,7 +74,10 @@ def _fundamental_series(symbol: str) -> dict[str, list[dict[str, Any]]]:
 
 def _price_history(symbol: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
-    payload = _json(url, {"range": "5y", "interval": "1d", "events": "splits", "includePrePost": "false"})
+    payload = _json(url, {
+        "range": "5y", "interval": "1d", "events": "splits",
+        "includePrePost": "false", "includeAdjustedClose": "true",
+    })
     result = (payload.get("chart", {}).get("result") or [None])[0]
     if not result:
         raise ValueError(f"Yahoo chart returned no data for {symbol}")
@@ -122,8 +126,8 @@ def _effective_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _merge_annual_quarterly(series: dict[str, list[dict[str, Any]]], stem: str) -> list[dict[str, Any]]:
-    # Annual history gives the long backfill; quarterly observations override the
-    # same period and give finer recent resolution.
+    # Annual observations provide the long backfill; quarterly values override
+    # equal period ends and add finer recent resolution.
     merged: dict[str, float] = {}
     for prefix in ("annual", "quarterly"):
         for row in series.get(f"{prefix}{stem}", []):
@@ -136,10 +140,11 @@ def _latest(records: list[dict[str, Any]], dates: list[str], date: str) -> dict[
     return records[i] if i >= 0 else None
 
 
-def _split_adjusted_shares(base: float, as_of: str, target: str, splits: list[dict[str, Any]]) -> float:
+def _split_normalized_shares(base: float, as_of: str, splits: list[dict[str, Any]]) -> float:
+    """Put historical share counts on Yahoo Chart's split-adjusted price basis."""
     shares = base
     for split in splits:
-        if as_of < split["date"] <= target:
+        if as_of < split["date"]:
             shares *= split["ratio"]
     return shares
 
@@ -195,6 +200,29 @@ def _summarize(points: list[dict[str, Any]], metric: str) -> dict[str, Any]:
     }
 
 
+def _ratio_check(points: list[dict[str, Any]], sparse_ratio: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Compare reconstructed PER with Yahoo's sparse historical ratio snapshots."""
+    if not points or not sparse_ratio:
+        return None
+    point_dates = [x["time"] for x in points]
+    diffs = []
+    samples = 0
+    for ref in sparse_ratio:
+        date = ref["date"]
+        i = bisect.bisect_right(point_dates, date) - 1
+        if i < 0:
+            continue
+        reconstructed = _num(points[i].get("value"))
+        reported = _num(ref.get("value"))
+        if not reconstructed or not reported or reported <= 0:
+            continue
+        diffs.append(abs(reconstructed - reported) / reported * 100)
+        samples += 1
+    if not diffs:
+        return None
+    return {"samples": samples, "medianAbsPctDiff": round(_percentile(diffs, 0.5) or 0.0, 1)}
+
+
 def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
     symbol = symbol.strip().upper()
     years = max(1, min(int(years or 3), 3))
@@ -207,11 +235,11 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
 
     prices, splits, meta = _price_history(symbol)
     fundamentals = _fundamental_series(symbol)
-    net_income = _effective_records(fundamentals.get("trailingNetIncome", []))
+    ttm_eps = _effective_records(fundamentals.get("trailingDilutedEPS", []))
     equity = _effective_records(_merge_annual_quarterly(fundamentals, "StockholdersEquity"))
     shares = _effective_records(_merge_annual_quarterly(fundamentals, "OrdinarySharesNumber"))
 
-    ni_dates = [x["effective"] for x in net_income]
+    eps_dates = [x["effective"] for x in ttm_eps]
     eq_dates = [x["effective"] for x in equity]
     sh_dates = [x["effective"] for x in shares]
     cutoff = (datetime.now(timezone.utc).date() - timedelta(days=366 * years)).isoformat()
@@ -223,27 +251,26 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
         if date < cutoff:
             continue
         price = row["value"]
-        sh = _latest(shares, sh_dates, date)
-        if not sh or sh["value"] <= 0:
-            continue
-        adjusted_shares = _split_adjusted_shares(sh["value"], sh["asOf"], date, splits)
-        market_cap = price * adjusted_shares
 
-        ni = _latest(net_income, ni_dates, date)
-        if ni and ni["value"] > 0:
-            per = market_cap / ni["value"]
+        eps = _latest(ttm_eps, eps_dates, date)
+        if eps and eps["value"] > 0:
+            # Yahoo historical Close is split-adjusted and Yahoo's reported EPS
+            # history is restated on the same per-share basis.
+            per = price / eps["value"]
             if 0.5 <= per <= 200:
                 per_daily.append({"time": date, "value": per})
 
+        sh = _latest(shares, sh_dates, date)
         eq = _latest(equity, eq_dates, date)
-        if eq and eq["value"] > 0:
+        if sh and eq and sh["value"] > 0 and eq["value"] > 0:
+            normalized_shares = _split_normalized_shares(sh["value"], sh["asOf"], splits)
+            market_cap = price * normalized_shares
             pbr = market_cap / eq["value"]
             if 0.05 <= pbr <= 100:
                 pbr_daily.append({"time": date, "value": pbr})
 
     def weekly(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        # Keep the last trading observation of each ISO week; enough resolution for
-        # a multi-year valuation band and much lighter on mobile.
+        # Last trading observation of each ISO week keeps the chart light on mobile.
         bucket: dict[str, dict[str, Any]] = {}
         for r in rows:
             d = datetime.strptime(r["time"], "%Y-%m-%d").date()
@@ -251,11 +278,14 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
             bucket[f"{y}-{w:02d}"] = {"time": r["time"], "value": round(float(r["value"]), 3)}
         return [bucket[k] for k in sorted(bucket)]
 
-    per = _summarize(weekly(per_daily), "PER")
-    pbr = _summarize(weekly(pbr_daily), "PBR")
+    per_points = weekly(per_daily)
+    pbr_points = weekly(pbr_daily)
+    per = _summarize(per_points, "PER")
+    pbr = _summarize(pbr_points, "PBR")
     if not per["points"] and not pbr["points"]:
         raise ValueError(f"Historical valuation inputs unavailable for {symbol}")
 
+    validation = _ratio_check(per_points, fundamentals.get("trailingPeRatio", []))
     result = {
         "ticker": symbol,
         "name": meta.get("shortName") or meta.get("longName") or symbol,
@@ -263,8 +293,9 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
         "per": per,
         "pbr": pbr,
         "source": "Yahoo Finance Chart + Fundamentals Timeseries",
-        "method": f"과거 종가 × 당시 주식수 ÷ TTM 순이익/자본 · 재무값 {FINANCIAL_LAG_DAYS}일 보수적 지연",
+        "method": f"PER=당시 종가/당시 TTM 희석EPS · PBR=당시 시가총액/당시 자본 · 재무값 {FINANCIAL_LAG_DAYS}일 보수적 지연",
         "financialLagDays": FINANCIAL_LAG_DAYS,
+        "perValidation": validation,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
     }
     with _cache_lock:
