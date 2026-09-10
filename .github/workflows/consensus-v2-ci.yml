@@ -1,0 +1,30 @@
+name: Consensus V2 CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'consensus_service.py'
+      - 'static/js/consensus_v2.js'
+      - 'scripts/generate_consensus_cache.py'
+      - 'tests/test_consensus_service.py'
+      - '.github/workflows/consensus-v2-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime dependency
+        run: pip install requests
+      - name: Python syntax
+        run: python -m py_compile consensus_service.py scripts/generate_consensus_cache.py tests/test_consensus_service.py
+      - name: JavaScript syntax
+        run: node --check static/js/consensus_v2.js
+      - name: Deterministic parser tests
+        run: python -m unittest tests.test_consensus_service -v
