@@ -1,0 +1,36 @@
+name: Apply Consensus V2
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_consensus_v2.py'
+      - '.github/workflows/apply-consensus-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply integration patch
+        run: python scripts/apply_consensus_v2.py
+      - name: Syntax checks
+        run: |
+          python -m py_compile main.py consensus_service.py scripts/apply_consensus_v2.py
+          node --check static/js/consensus_v2.js
+      - name: Commit integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py templates/index.html .github/workflows/live-smoke.yml
+          if git diff --cached --quiet; then
+            echo "No integration changes"
+          else
+            git commit -m "feat: integrate EPS revenue consensus trends"
+            git push origin HEAD:main
+          fi
