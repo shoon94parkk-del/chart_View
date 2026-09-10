@@ -2,7 +2,7 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
-    - cron: '10 7 * * 1-5'
+    - cron: '30 8 * * 1-5'
   workflow_dispatch:
   push:
     branches:
@@ -34,7 +34,7 @@ jobs:
           cache: pip
 
       - name: Install screener dependencies
-        run: pip install pykrx pandas requests lxml html5lib
+        run: pip install 'yfinance>=0.2.50' pandas requests lxml html5lib
 
       - name: Generate precomputed screener
         run: python scripts/generate_screener.py
