@@ -1,41 +1,29 @@
-// UX/performance patch: fast screener + instant Korean stock search.
+// UX/performance patch: fast screener + instant Korean stock search + mobile refinements.
 (() => {
   'use strict';
 
-  if (!document.querySelector('link[data-fast-screener]')) {
+  function ensureStyle(selector, href, datasetKey) {
+    if (document.querySelector(selector)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = '/static/css/screener.css?v=20260910v2';
-    link.dataset.fastScreener = '1';
+    link.href = href;
+    link.dataset[datasetKey] = '1';
     document.head.appendChild(link);
   }
-  if (!document.querySelector('script[data-fast-screener]')) {
+
+  function ensureScript(selector, src, datasetKey) {
+    if (document.querySelector(selector)) return;
     const script = document.createElement('script');
-    script.src = '/static/js/screener.js?v=20260910v2';
-    script.dataset.fastScreener = '1';
+    script.src = src;
+    script.dataset[datasetKey] = '1';
     document.head.appendChild(script);
   }
 
-  // Evidence-based ideas + field-level valuation provenance.
-  if (!document.querySelector('link[data-ideas-ui]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/static/css/ideas.css?v=20260910v1';
-    link.dataset.ideasUi = '1';
-    document.head.appendChild(link);
-  }
-  if (!document.querySelector('script[data-valuation-meta]')) {
-    const script = document.createElement('script');
-    script.src = '/static/js/valuation_meta.js?v=20260910v1';
-    script.dataset.valuationMeta = '1';
-    document.head.appendChild(script);
-  }
-  if (!document.querySelector('script[data-investment-ideas]')) {
-    const script = document.createElement('script');
-    script.src = '/static/js/ideas.js?v=20260910v1';
-    script.dataset.investmentIdeas = '1';
-    document.head.appendChild(script);
-  }
+  ensureStyle('link[data-fast-screener]', '/static/css/screener.css?v=20260911v1', 'fastScreener');
+  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260911v1', 'fastScreener');
+  ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
+  ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v1', 'valuationMeta');
+  ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
@@ -46,8 +34,10 @@
   let localTimer = null;
 
   const hasKorean = (text) => /[가-힣]/.test(text);
-  const isSixCharCode = (text) => /^[0-9A-Za-z]{6}$/.test(text);
-  const isTickerLike = (text) => /^[A-Z][A-Z0-9.-]{0,9}$/.test(text);
+  // Korean exchange codes are numeric six-digit strings. Treating any six
+  // alphanumeric characters as a KRX code swallowed valid overseas tickers.
+  const isSixCharCode = (text) => /^\d{6}$/.test(text);
+  const isTickerLike = (text) => /^[A-Z][A-Z0-9.^=-]{0,11}$/.test(text);
 
   function loadUniverse() {
     if (!universePromise) {
@@ -114,13 +104,11 @@
     rows.forEach((row) => {
       const item = document.createElement('div');
       item.className = 'search-result-item';
-      item.innerHTML = `<span class="name"></span><span class="symbol"></span>`;
+      item.innerHTML = '<span class="name"></span><span class="symbol"></span>';
       item.querySelector('.name').textContent = row.name || row.symbol;
       item.querySelector('.symbol').textContent = `${row.code || row.symbol} · ${row.market || 'KRX'}`;
       item.addEventListener('click', () => {
-        if (typeof window.selectSearchResult === 'function') {
-          window.selectSearchResult(row.symbol, row.name || row.symbol);
-        }
+        if (typeof window.selectSearchResult === 'function') window.selectSearchResult(row.symbol, row.name || row.symbol);
       });
       box.appendChild(item);
     });
@@ -136,21 +124,13 @@
     return false;
   }
 
-  // Add semantic labels to valuation cells. CSS uses data-label on mobile to
-  // convert a wide table into one readable card per stock without duplicating data.
   function enhanceValuationTable() {
     const table = document.querySelector('#per-table-container .per-table');
     if (!table) return;
-
     const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
     if (!headers.length) return;
-
     table.querySelectorAll('tbody tr').forEach((row) => {
-      const cells = Array.from(row.children);
-      cells.forEach((cell, index) => {
-        cell.dataset.label = headers[index] || '';
-      });
-
+      Array.from(row.children).forEach((cell, index) => { cell.dataset.label = headers[index] || ''; });
       const name = row.querySelector('.stock-name')?.textContent?.trim();
       const ticker = row.querySelector('.stock-ticker')?.textContent?.trim();
       if (name || ticker) row.setAttribute('aria-label', [name, ticker].filter(Boolean).join(' '));
@@ -160,27 +140,66 @@
   function watchValuationTable() {
     const container = document.getElementById('per-table-container');
     if (!container) return;
-
     enhanceValuationTable();
     const observer = new MutationObserver(() => enhanceValuationTable());
     observer.observe(container, { childList: true, subtree: true });
   }
 
+  function fitMainChart() {
+    const container = document.getElementById('chart-container');
+    if (!container) return;
+    const height = window.innerWidth <= 720 ? 300 : 340;
+    container.style.height = `${height}px`;
+    try {
+      if (typeof chart !== 'undefined' && chart) {
+        chart.resize(container.clientWidth, height);
+        chart.applyOptions({ handleScale: { mouseWheel: false, pinch: true } });
+      }
+    } catch (_) { }
+  }
+
+  function enhanceTabUX() {
+    const nav = document.querySelector('.tab-nav');
+    if (!nav) return;
+
+    if (typeof window.switchTab === 'function' && !window.__chartViewSwitchWrapped) {
+      const baseSwitch = window.switchTab;
+      window.switchTab = function (tabId) {
+        baseSwitch(tabId);
+        const globalFilter = document.getElementById('global-filter');
+        if (globalFilter) globalFilter.style.display = ['chart', 'fwdper', 'ideas'].includes(tabId) ? 'block' : 'none';
+        requestAnimationFrame(() => {
+          nav.querySelector(`[data-tab="${tabId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+      };
+      window.__chartViewSwitchWrapped = true;
+    }
+
+    nav.addEventListener('click', (event) => {
+      const button = event.target.closest('.tab-btn');
+      if (button) requestAnimationFrame(() => button.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }));
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    // Preload the ~2,600-stock universe once. All Korean autocomplete after this is browser-side.
     loadUniverse();
     watchValuationTable();
+    enhanceTabUX();
+    setTimeout(fitMainChart, 0);
+    window.addEventListener('resize', fitMainChart, { passive: true });
 
     const sector = document.querySelector('.sector-section');
     if (sector && !sector.querySelector('.ux-sector-toggle')) {
       const toggle = document.createElement('button');
       toggle.className = 'ux-sector-toggle';
       toggle.type = 'button';
+      toggle.setAttribute('aria-expanded', 'false');
       toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">펼치기 ↓</span>';
       sector.insertBefore(toggle, sector.firstChild);
       sector.classList.add('ux-collapsed');
       toggle.addEventListener('click', () => {
         const collapsed = sector.classList.toggle('ux-collapsed');
+        toggle.setAttribute('aria-expanded', String(!collapsed));
         toggle.querySelector('.ux-sector-arrow').textContent = collapsed ? '펼치기 ↓' : '접기 ↑';
       });
     }
@@ -189,7 +208,7 @@
     if (chartHeader && !document.querySelector('.ux-data-status')) {
       const status = document.createElement('div');
       status.className = 'ux-data-status';
-      status.textContent = '차트: Yahoo Finance · 한국 종목 검색/스크리너: 장 마감 배치 데이터 · 국내 시세는 지연될 수 있습니다.';
+      status.textContent = '차트: Yahoo Finance 실시간 요청 · 스크리너: 한국 장마감 배치 · 밸류에이션: 실시간 시세 + 일일 컨센서스 캐시';
       chartHeader.insertAdjacentElement('afterend', status);
     }
 
@@ -200,7 +219,6 @@
 
     input.setAttribute('aria-label', '종목명, 6자리 종목코드 또는 해외 티커 검색');
 
-    // Capture phase runs before the legacy server-search listener in chart.js.
     input.addEventListener('input', (event) => {
       const raw = input.value.trim();
       if (!wantsLocalSearch(raw)) return;
@@ -210,9 +228,7 @@
         box.classList.add('hidden');
         return;
       }
-      localTimer = setTimeout(async () => {
-        renderLocalResults(rankKorean(await loadUniverse(), raw), raw);
-      }, 60);
+      localTimer = setTimeout(async () => renderLocalResults(rankKorean(await loadUniverse(), raw), raw), 60);
     }, true);
 
     input.addEventListener('keypress', (event) => {
@@ -220,9 +236,7 @@
       if (event.key !== 'Enter' || !wantsLocalSearch(raw)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      addBestLocal(raw).then((added) => {
-        if (added) input.value = '';
-      });
+      addBestLocal(raw).then((added) => { if (added) input.value = ''; });
     }, true);
 
     if (addButton) {
@@ -231,13 +245,10 @@
         if (!wantsLocalSearch(raw)) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        addBestLocal(raw).then((added) => {
-          if (added) input.value = '';
-        });
+        addBestLocal(raw).then((added) => { if (added) input.value = ''; });
       }, true);
     }
 
-    // Upper-case ticker input (AAPL, NVDA...) does not need a Yahoo info lookup just to autocomplete.
     input.addEventListener('input', (event) => {
       const raw = input.value.trim();
       if (!isTickerLike(raw) || wantsLocalSearch(raw)) return;
