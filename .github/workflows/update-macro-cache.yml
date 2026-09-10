@@ -1,0 +1,156 @@
+name: Update Macro Cache
+
+on:
+  schedule:
+    # Every 6 hours. FRED series are mostly daily/weekly/monthly; this is ample.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-macro-cache.yml'
+      - 'scripts/generate_macro_cache.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macro-cache
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install cache dependencies
+        run: pip install pandas requests
+
+      - name: Switch Render macro endpoint to committed cache
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          p = Path('main.py')
+          text = p.read_text(encoding='utf-8')
+          start_marker = '@app.get("/api/macro")'
+          end_marker = '@app.get("/api/fwd-per")'
+          start = text.index(start_marker)
+          end = text.index(end_marker, start)
+
+          replacement = textwrap.dedent('''\
+          @app.get("/api/macro")
+          async def macro_data():
+              """Serve precomputed FRED/Yahoo macro data from the committed cache.
+
+              Render never calls FRED here. GitHub Actions refreshes
+              static/data/macro_cache.json on a schedule, avoiding shared-IP
+              timeouts and keeping this endpoint fast and deterministic.
+              """
+              global MACRO_CACHE
+              current_time = time.time()
+
+              # Short in-process cache avoids repeated JSON parsing while still
+              # allowing a newly deployed cache file to be picked up quickly.
+              if MACRO_CACHE["data"] and (current_time - MACRO_CACHE["timestamp"] < 300):
+                  return MACRO_CACHE["data"]
+
+              cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "macro_cache.json")
+              try:
+                  import json as _json
+                  with open(cache_path, "r", encoding="utf-8") as f:
+                      payload = _json.load(f)
+              except Exception as exc:
+                  print(f"[MACRO] cache unavailable: {exc}")
+                  if MACRO_CACHE["data"]:
+                      return MACRO_CACHE["data"]
+                  return JSONResponse(
+                      {"results": [], "error": "경제지표 캐시를 불러오지 못했습니다.", "cacheMode": "precomputed"},
+                      status_code=503,
+                  )
+
+              ordered = [
+                  row for row in (payload.get("results") or [])
+                  if isinstance(row, dict) and row.get("chart_data")
+              ]
+              if len(ordered) < 8:
+                  print(f"[MACRO] cache incomplete: {len(ordered)} rows")
+                  if MACRO_CACHE["data"]:
+                      return MACRO_CACHE["data"]
+
+              net_liquidity = compute_net_liquidity(ordered)
+              summary = generate_macro_summary(ordered, net_liquidity)
+              response_data = {
+                  "results": ordered,
+                  "net_liquidity": net_liquidity,
+                  "summary": summary,
+                  "generatedAt": payload.get("generatedAt"),
+                  "freshCount": payload.get("freshCount", len(ordered)),
+                  "staleCount": payload.get("staleCount", 0),
+                  "staleSymbols": payload.get("staleSymbols", []),
+                  "errors": payload.get("errors", {}),
+                  "source": payload.get("source", "FRED + Yahoo Chart, precomputed by GitHub Actions"),
+                  "cacheMode": "precomputed",
+              }
+              MACRO_CACHE["data"] = response_data
+              MACRO_CACHE["timestamp"] = current_time
+              print(
+                  f"[MACRO] served {len(ordered)} cached indicators "
+                  f"(fresh={response_data['freshCount']}, stale={response_data['staleCount']})"
+              )
+              return response_data
+
+
+          ''')
+
+          current_block = text[start:end]
+          if 'cacheMode' in current_block and 'macro_cache.json' in current_block and 'fredgraph.csv' not in current_block:
+              print('macro endpoint already cache-only')
+          else:
+              text = text[:start] + replacement + text[end:]
+              p.write_text(text, encoding='utf-8')
+              print('macro endpoint switched to cache-only')
+
+          compile(p.read_text(encoding='utf-8'), 'main.py', 'exec')
+          block = p.read_text(encoding='utf-8').split(start_marker, 1)[1].split(end_marker, 1)[0]
+          assert 'macro_cache.json' in block
+          assert 'fredgraph.csv' not in block
+          PY
+
+      - name: Generate macro cache
+        run: python scripts/generate_macro_cache.py
+
+      - name: Validate cache
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('static/data/macro_cache.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          rows=d.get('results') or []
+          assert len(rows) >= 11, len(rows)
+          assert all(x.get('chart_data') for x in rows)
+          assert any((x.get('original_symbol') or x.get('symbol')) == 'T10Y2Y' for x in rows)
+          assert any((x.get('original_symbol') or x.get('symbol')) == '^VIX' for x in rows)
+          print('macro cache:', len(rows), 'fresh=', d.get('freshCount'), 'stale=', d.get('staleCount'))
+          PY
+
+      - name: Commit refreshed cache and runtime switch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py static/data/macro_cache.json
+          if git diff --cached --quiet; then
+            echo "No macro cache changes"
+          else
+            git commit -m "data: refresh precomputed macro indicators"
+            git push origin HEAD:main
+          fi
