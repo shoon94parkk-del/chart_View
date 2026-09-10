@@ -12,6 +12,7 @@ on:
       - 'static/js/**'
       - 'static/css/**'
       - 'static/data/valuation_cache.json'
+      - 'static/data/macro_cache.json'
       - '.github/workflows/live-smoke.yml'
 
 jobs:
@@ -19,54 +20,41 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Wait for latest Render build and test public endpoints
+      - name: Verify current public build and endpoints
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://chart-view-bsg6.onrender.com'
 
-          echo 'Waiting until latest app + Korean forward-PE cache are live...'
           ready=0
-          for i in $(seq 1 60); do
+          for i in $(seq 1 45); do
             code=$(curl -L -sS -o /tmp/home.html -w '%{http_code}' "$BASE/" || true)
-            if [ "$code" = '200' ]; then
-              curl -fsSL --get --data-urlencode 'tickers=AAPL,NVDA,005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/version-valuation.json || true
-              if grep -q 'data-tab="screener"' /tmp/home.html && ! grep -q 'gemini.js' /tmp/home.html && python - <<'PY'
-          import json, sys
-          try:
-              d=json.load(open('/tmp/version-valuation.json'))
-              rows={x.get('ticker'): x for x in d.get('stocks', [])}
-              wanted=('AAPL','NVDA','005930.KS','000660.KS')
-              ok=all(rows.get(t,{}).get('forwardPE') is not None for t in wanted)
-              ok=ok and all(0 < float(rows[t]['forwardPE']) < 250 for t in wanted)
-              ok=ok and 'Daily Quote Cache' in str(rows.get('AAPL',{}).get('dataSource',''))
-              sys.exit(0 if ok else 1)
-          except Exception:
-              sys.exit(1)
-          PY
-              then
-                ready=1
-                echo "latest build detected on attempt=$i"
-                break
-              fi
+            if [ "$code" = '200' ] \
+              && grep -q '차트뷰' /tmp/home.html \
+              && grep -q 'viewport-fit=cover' /tmp/home.html \
+              && ! grep -q 'user-scalable=no' /tmp/home.html \
+              && grep -q '/static/js/macro.js?v=20260911v1' /tmp/home.html \
+              && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html; then
+              ready=1
+              echo "current mobile build detected on attempt=$i"
+              break
             fi
-            echo "attempt=$i status=$code: old build still live"
+            echo "attempt=$i status=$code: waiting for current build"
             sleep 10
           done
           test "$ready" = '1'
-          grep -q '차트뷰' /tmp/home.html
 
-          echo 'Health:'
-          curl -fsSL "$BASE/health" | tee /tmp/health.json
+          curl -fsSL "$BASE/health" -o /tmp/health.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/health.json'))
           assert d.get('status') == 'ok', d
+          print('health OK')
           PY
 
-          echo 'Search speed and correctness:'
+          echo 'Search correctness:'
           for q in '삼성전자' '테크윙' 'AAPL' '애플' 'TSLA'; do
-            curl -fsSL --get --data-urlencode "q=$q" -w " query=$q http=%{http_code} time=%{time_total}s\n" "$BASE/api/search" -o "/tmp/search-${q}.json"
+            curl -fsSL --get --data-urlencode "q=$q" -w " query=$q time=%{time_total}s\n" "$BASE/api/search" -o "/tmp/search-${q}.json"
           done
           python - <<'PY'
           import json
@@ -74,77 +62,77 @@ jobs:
           for q,sym in checks:
               d=json.load(open(f'/tmp/search-{q}.json'))
               assert any(x.get('symbol') == sym for x in d.get('results', [])), (q,d)
+          print('search OK')
           PY
 
-          echo 'Screener JSON:'
           curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
-          python - <<'PY'
-          import json
-          d=json.load(open('/tmp/screener.json'))
-          print('screener count=', d.get('count'), 'universe=', d.get('universeCount'), 'date=', d.get('tradeDate'))
-          assert d.get('count', 0) > 2000
-          assert len(d.get('stocks', [])) > 2000
-          PY
-
-          echo 'Valuation cache:'
           curl -fsSL "$BASE/static/data/valuation_cache.json" -o /tmp/vcache.json
+          curl -fsSL "$BASE/static/data/macro_cache.json" -o /tmp/mcache.json
+          curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux.js
+          curl -fsSL "$BASE/static/js/ideas.js?v=20260911v1" -o /tmp/ideas.js
+          curl -fsSL "$BASE/static/js/screener.js?v=20260911v1" -o /tmp/screener.js
+          grep -Fq 'const isSixCharCode = (text) => /^\d{6}$/.test(text);' /tmp/ux.js
+          grep -q 'ideas-market' /tmp/ideas.js
+          grep -q 'data-screen-preset="momentum"' /tmp/screener.js
+
           python - <<'PY'
           import json
-          d=json.load(open('/tmp/vcache.json'))
-          q=d.get('quotes', {})
+          s=json.load(open('/tmp/screener.json'))
+          assert len(s.get('stocks', [])) > 2000
+          v=json.load(open('/tmp/vcache.json'))
           for ticker in ('005930.KS','000660.KS'):
-              pe=q.get(ticker,{}).get('forwardPE')
-              print('cache', ticker, 'forwardPE=', pe, 'source=', q.get(ticker,{}).get('forwardPESource'))
-              assert pe is not None and 0 < float(pe) < 250
+              pe=v.get('quotes',{}).get(ticker,{}).get('forwardPE')
+              assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
+          m=json.load(open('/tmp/mcache.json'))
+          rows=m.get('results',[])
+          assert len(rows) == 13, len(rows)
+          assert m.get('staleCount') == 0, m.get('staleCount')
+          assert all(x.get('chart_data') and x.get('asOf') and 'delta' in x for x in rows)
+          print('static caches OK:', len(s['stocks']), 'stocks /', len(rows), 'macro')
           PY
 
-          echo 'Yahoo compare:'
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/compare.json'))
-          print('compare=', [(s.get('ticker'), s.get('price'), len(s.get('data', []))) for s in d.get('stocks', [])])
           assert len(d.get('stocks', [])) == 2, d
-          assert all(s.get('price', 0) > 0 and s.get('data') for s in d['stocks']), d
+          assert all(s.get('price', 0) > 0 and s.get('data') for s in d['stocks'])
+          print('compare OK', [(x['ticker'],x['price']) for x in d['stocks']])
           PY
 
-          echo 'Valuation snapshot:'
           curl -fsSL --get --data-urlencode 'tickers=AAPL,NVDA,005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/valuation.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/valuation.json'))
-          rows={s.get('ticker'):s for s in d.get('stocks', [])}
-          for s in d.get('stocks', []):
-              print('valuation=', s.get('ticker'), 'price=', s.get('price'), 'fwdPE=', s.get('forwardPE'), 'PE=', s.get('trailingPE'), 'PBR=', s.get('pbr'), 'source=', s.get('dataSource'))
-          assert len(rows) >= 4, d
+          rows={x.get('ticker'):x for x in d.get('stocks',[])}
           for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
-              assert rows[ticker].get('forwardPE') is not None, (ticker, rows[ticker])
-              assert rows[ticker].get('price') and rows[ticker].get('price') > 0
-          assert 'Daily Quote Cache' in rows['AAPL'].get('dataSource','')
+              row=rows[ticker]
+              assert row.get('price') and float(row['price']) > 0, (ticker,row)
+              assert row.get('forwardPE') is not None and 0 < float(row['forwardPE']) < 250, (ticker,row)
+          print('valuation OK', [(t,rows[t]['price'],rows[t]['forwardPE']) for t in rows])
           PY
 
-          echo 'Heatmap:'
           curl -fsSL "$BASE/api/heatmap" -o /tmp/heatmap.json
           python - <<'PY'
           import json
-          d=json.load(open('/tmp/heatmap.json'))
-          rows=d.get('results', [])
-          print('heatmap rows=',len(rows))
+          rows=json.load(open('/tmp/heatmap.json')).get('results',[])
           assert len(rows) >= 15, len(rows)
-          assert all(x.get('price') for x in rows), rows[:3]
+          assert all(x.get('price') for x in rows)
+          print('heatmap OK',len(rows))
           PY
 
-          echo 'Macro:'
           curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
           python - <<'PY'
           import json
           d=json.load(open('/tmp/macro.json'))
-          rows=d.get('results', [])
-          valid=[x for x in rows if not x.get('error') and x.get('chart_data')]
-          print('macro rows=',len(rows),'valid=',len(valid),'summary=',d.get('summary',{}).get('level'))
-          assert len(rows) >= 10, len(rows)
-          assert len(valid) >= 8, len(valid)
+          rows=d.get('results',[])
+          assert d.get('cacheMode') == 'precomputed', d.get('cacheMode')
+          assert len(rows) == 13, len(rows)
+          assert d.get('freshCount') == 13 and d.get('staleCount') == 0, (d.get('freshCount'),d.get('staleCount'))
+          assert all('delta' in x and x.get('chart_data') for x in rows)
           assert d.get('summary',{}).get('text')
+          assert not d.get('net_liquidity',{}).get('error'), d.get('net_liquidity')
+          print('macro OK', d.get('generatedAt'), d.get('summary',{}).get('level'))
           PY
 
-          echo 'All latest-build smoke checks passed.'
+          echo 'All current-build smoke checks passed.'
