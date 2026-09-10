@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import json
-import os
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from consensus_service import fetch_live_consensus
 
-ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "static" / "data"
 VALUATION_CACHE = DATA / "valuation_cache.json"
 OUT_CACHE = DATA / "consensus_cache.json"
@@ -29,7 +32,6 @@ def selected_symbols() -> list[str]:
     payload = load_json(VALUATION_CACHE)
     quotes = payload.get("quotes") or {}
     symbols = [str(x).upper() for x in quotes.keys() if x]
-    # Ensure the main regression names are always present.
     for symbol in ("AAPL", "NVDA", "005930.KS", "000660.KS"):
         if symbol not in symbols:
             symbols.append(symbol)
@@ -105,7 +107,6 @@ def main() -> None:
     OUT_HISTORY.write_text(json.dumps(history_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"wrote {len(quotes)}/{len(symbols)} consensus snapshots; errors={len(errors)}")
 
-    # Major names must succeed; otherwise do not publish a broken cache.
     for symbol in ("AAPL", "NVDA", "005930.KS", "000660.KS"):
         if symbol not in quotes:
             raise SystemExit(f"required consensus missing: {symbol}: {errors.get(symbol)}")
