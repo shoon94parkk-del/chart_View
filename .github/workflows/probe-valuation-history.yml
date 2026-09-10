@@ -2,38 +2,31 @@ name: Probe Historical Valuation Series
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/probe-valuation-history.yml']
+    paths: ['.github/workflows/probe-valuation-history.yml','valuation_band_service.py']
 permissions:
   contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
-      - name: Probe Yahoo fundamentals timeseries
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: Verify reconstructed PER/PBR bands
         run: |
           python - <<'PY'
-          import requests,time
-          symbols=['AAPL','005930.KS','000660.KS']
-          types=[
-            'trailingPeRatio','priceToBook','trailingPriceToBook','trailingDilutedEPS',
-            'quarterlyDilutedEPS','annualDilutedEPS','annualBasicEPS',
-            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyDilutedAverageShares',
-            'annualStockholdersEquity','annualOrdinarySharesNumber','annualDilutedAverageShares',
-            'quarterlyBookValue','annualBookValue'
-          ]
-          for s in symbols:
-            url=f'https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{s}'
-            params={'symbol':s,'type':','.join(types),'period1':0,'period2':int(time.time())}
-            r=requests.get(url,params=params,headers={'User-Agent':'Mozilla/5.0'},timeout=20)
-            print('\nSYMBOL',s,'HTTP',r.status_code)
-            r.raise_for_status()
-            data=r.json()
-            for item in data.get('timeseries',{}).get('result',[]):
-              typ=(item.get('meta',{}).get('type') or ['?'])[0]
-              vals=item.get(typ) or []
-              sample=[]
-              for v in vals[-5:]:
-                sample.append((v.get('asOfDate'),(v.get('reportedValue') or {}).get('raw')))
-              print(typ,'count=',len(vals),'last=',sample)
+          from valuation_band_service import fetch_valuation_bands
+          for s in ['AAPL','005930.KS','000660.KS']:
+              d=fetch_valuation_bands(s,3)
+              ps=d['per']['stats']; bs=d['pbr']['stats']
+              print(s,'PER',ps,'PBR',bs)
+              assert d['per']['points'] and d['pbr']['points']
+              assert ps['observations'] >= 30 and bs['observations'] >= 30
+              assert 0 < ps['current'] < 200
+              assert 0 < bs['current'] < 100
+              assert 0 <= ps['percentile'] <= 100
+              assert 0 <= bs['percentile'] <= 100
           PY
