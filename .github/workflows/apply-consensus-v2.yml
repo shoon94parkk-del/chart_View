@@ -27,7 +27,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add main.py templates/index.html .github/workflows/live-smoke.yml
+          # Workflow files are intentionally excluded: GITHUB_TOKEN cannot mutate workflows.
+          git add main.py templates/index.html
           if git diff --cached --quiet; then
             echo "No integration changes"
           else
