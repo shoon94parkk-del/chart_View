@@ -88,6 +88,10 @@ async def startup_event():
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.head("/")
+async def home_head():
+    return JSONResponse(content={}, status_code=200)
+
 
 # ========================
 # 한국 주식 검색 (KRX 종목 리스트)
@@ -680,49 +684,54 @@ async def macro_data():
         except: 
             return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
 
-    def fetch_fred_data(symbol, info):
-        """FRED 공식 CSV 엔드포인트 사용 (API key 불필요)."""
-        try:
-            start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
-            response = requests.get(
-                "https://fred.stlouisfed.org/graph/fredgraph.csv",
-                params={"id": symbol, "cosd": start_date},
-                headers={"User-Agent": "Mozilla/5.0"},
-                timeout=7,
-            )
-            response.raise_for_status()
-            frame = pd.read_csv(io.StringIO(response.text))
-            if frame.empty or len(frame.columns) < 2:
-                raise ValueError("No observations")
-
+    fred_bundle = {}
+    fred_symbols = [s for s, meta in indicators.items() if meta.get("source") == "FRED"]
+    try:
+        start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
+        response = requests.get(
+            "https://fred.stlouisfed.org/graph/fredgraph.csv",
+            params={"id": ",".join(fred_symbols), "cosd": start_date},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=15,
+        )
+        response.raise_for_status()
+        frame = pd.read_csv(io.StringIO(response.text))
+        if not frame.empty and len(frame.columns) >= 2:
             date_col = frame.columns[0]
-            value_col = symbol if symbol in frame.columns else frame.columns[-1]
-            values = pd.to_numeric(frame[value_col], errors="coerce")
-            chart_data = [
-                {"time": str(date)[:10], "value": float(value)}
-                for date, value in zip(frame[date_col], values)
-                if pd.notna(value)
-            ]
-            if not chart_data:
-                raise ValueError("No valid data")
+            for symbol in fred_symbols:
+                if symbol not in frame.columns:
+                    continue
+                values = pd.to_numeric(frame[symbol], errors="coerce")
+                rows = [
+                    {"time": str(date)[:10], "value": float(value)}
+                    for date, value in zip(frame[date_col], values)
+                    if pd.notna(value)
+                ]
+                if rows:
+                    fred_bundle[symbol] = rows[-100:]
+        print(f"[FRED] bundled {len(fred_bundle)}/{len(fred_symbols)} series")
+    except Exception as e:
+        print(f"[FRED] bundled CSV failed: {e}")
 
-            current = chart_data[-1]["value"]
-            prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
-            change = ((current - prev) / prev) * 100 if prev else 0.0
-            return {
-                "original_symbol": symbol,
-                "symbol": symbol,
-                "name": info["name"],
-                "desc": info["desc"],
-                "link": info["link"],
-                "value": round(current, 2),
-                "change": round(change, 2),
-                "chart_data": chart_data[-100:],
-                "source": "FRED",
-            }
-        except Exception as e:
-            print(f"FRED CSV failed for {symbol}: {e} -> Trying Fallback")
+    def fetch_fred_data(symbol, info):
+        """Use the single FRED bundle; fallback only if that series is unavailable."""
+        chart_data = fred_bundle.get(symbol) or []
+        if len(chart_data) < 1:
             return fetch_yahoo_fallback(symbol, info)
+        current = chart_data[-1]["value"]
+        prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
+        change = ((current - prev) / prev) * 100 if prev else 0.0
+        return {
+            "original_symbol": symbol,
+            "symbol": symbol,
+            "name": info["name"],
+            "desc": info["desc"],
+            "link": info["link"],
+            "value": round(current, 2),
+            "change": round(change, 2),
+            "chart_data": chart_data,
+            "source": "FRED",
+        }
 
     def fetch_indicator(symbol, info):
         try:
