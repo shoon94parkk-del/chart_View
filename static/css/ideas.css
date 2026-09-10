@@ -1,5 +1,7 @@
 /* Investment ideas + field provenance */
-.metric-provenance{margin-top:3px;color:#9aa3ad;font-size:10px;line-height:1.25;font-weight:500;white-space:normal}
+.metric-value-wrap{display:inline-flex;flex-direction:column;align-items:flex-end;max-width:220px}
+.metric-value-main{line-height:1.25}
+.metric-provenance{margin-top:3px;color:#9aa3ad;font-size:10px;line-height:1.25;font-weight:500;white-space:normal;text-align:right}
 .per-table td{vertical-align:top}
 
 .ideas-section{margin:18px 20px 32px;padding:24px;border-radius:22px;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.04)}
@@ -34,6 +36,8 @@
   .ideas-grid{grid-template-columns:1fr;gap:10px}
   .idea-card{padding:14px;border-radius:16px}
   .idea-axis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .metric-provenance{font-size:9px;max-width:180px;text-align:right}
+  .metric-value-wrap{max-width:190px;min-width:0;align-items:flex-end;text-align:right}
+  .metric-value-main{font-size:14px;font-weight:700;color:inherit}
+  .metric-provenance{font-size:9px;max-width:190px;text-align:right;overflow-wrap:anywhere}
   .per-table td:not(.stock-info-cell){align-items:flex-start!important}
 }
