@@ -53,5 +53,37 @@ jobs:
           rows=macro.get('results', [])
           assert len(rows) == 13, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
+          assert all('delta' in x for x in rows), 'macro delta missing'
           print('cache checks OK')
+          PY
+      - name: UX and data freshness invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          html=Path('templates/index.html').read_text(encoding='utf-8')
+          assert 'viewport-fit=cover' in html
+          assert 'user-scalable=no' not in html
+          assert '/static/js/macro.js?v=20260911v1' in html
+
+          ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
+          assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
+
+          chart=Path('static/js/chart.js').read_text(encoding='utf-8')
+          assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
+
+          fwd=Path('static/js/fwdper.js').read_text(encoding='utf-8')
+          assert "tabId === 'ideas'" in fwd
+
+          market=Path('market_service.py').read_text(encoding='utf-8')
+          start=market.index('def fetch_valuation_snapshot')
+          block=market[start:]
+          assert block.index('_positive(chart_meta.get("regularMarketPrice"))') < block.index('_positive(_raw(price_block.get("regularMarketPrice")))')
+
+          ideas=Path('static/js/ideas.js').read_text(encoding='utf-8')
+          assert "fetch('/api/macro'" in ideas and 'ideas-leaders' in ideas
+
+          screener_js=Path('static/js/screener.js').read_text(encoding='utf-8')
+          assert 'data-screen-preset="momentum"' in screener_js and 'screen-idea' in screener_js
+          print('UX invariants OK')
           PY
