@@ -1,4 +1,4 @@
-name: Probe Macro CSV Feeds
+name: Verify Live Macro Endpoint
 on:
   push:
     branches: [main]
@@ -8,60 +8,43 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
     steps:
-      - name: Verify macro data sources
+      - name: Check live health and macro payload
         run: |
           python - <<'PY'
-          import csv, io, json, urllib.request
+          import json, time, urllib.request
 
-          equibles = [
-              't10y2y','t10y3m','bamlh0a0hym2','rrpontsyd','t10yie',
-              'unrate','rsafs','walcl','m2sl','fedfunds','vixcls'
-          ]
-          failures=[]
-          for sym in equibles:
-              try:
-                  url=f'https://equibles.com/economicdata/{sym}.csv'
-                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-                  with urllib.request.urlopen(req,timeout=25) as r:
-                      text=r.read().decode('utf-8-sig','replace')
-                  rows=list(csv.DictReader(io.StringIO(text)))
-                  valid=[]
-                  for row in rows:
-                      date=(row.get('Date') or '').strip()
-                      value=(row.get('Value') or '').replace(',','').strip()
-                      if date and value not in ('','.','NA','N/A'):
-                          valid.append((date,float(value)))
-                  valid.sort(key=lambda x:x[0])
-                  if not valid: raise RuntimeError('no valid observations')
-                  print(sym,'OK','count=',len(valid),'latest=',valid[-1])
-              except Exception as exc:
-                  failures.append((sym,str(exc)))
-                  print(sym,'FAIL',exc)
+          base='https://chart-view-bsg6.onrender.com'
 
-          dbnomics = {
-              'DFII10':'https://api.db.nomics.world/v22/series/FED/H15/RIFLGFCY10_XII_N.B?observations=1',
-              'WTREGEN':'https://api.db.nomics.world/v22/series/FED/H41/RESPPLLDT_N.WW?observations=1',
-          }
-          for sym,url in dbnomics.items():
-              try:
-                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-                  with urllib.request.urlopen(req,timeout=25) as r: data=json.load(r)
-                  docs=((data.get('series') or {}).get('docs') or [])
-                  if not docs: raise RuntimeError('no docs')
-                  doc=docs[0]
-                  periods=doc.get('period') or []
-                  values=doc.get('value') or []
-                  valid=[(str(d),float(v)) for d,v in zip(periods,values) if d and v is not None]
-                  valid.sort(key=lambda x:x[0])
-                  if not valid: raise RuntimeError('no observations')
-                  print(sym,'OK','series=',doc.get('series_code'),'count=',len(valid),'latest=',valid[-1])
-              except Exception as exc:
-                  failures.append((sym,str(exc)))
-                  print(sym,'FAIL',exc)
+          def get(path, attempts=5):
+              last=None
+              for i in range(attempts):
+                  try:
+                      req=urllib.request.Request(base+path, headers={'User-Agent':'chart-view-smoke-test/1.0'})
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          body=r.read().decode('utf-8')
+                          print(path, 'HTTP', r.status, 'bytes', len(body))
+                          return json.loads(body)
+                  except Exception as exc:
+                      last=exc
+                      print(path, 'attempt', i+1, 'failed:', repr(exc))
+                      time.sleep(5)
+              raise last
 
-          if failures:
-              raise SystemExit(f'failed feeds: {failures}')
-          print('ALL_FEEDS_OK',13)
+          health=get('/health')
+          assert health.get('status') == 'ok', health
+
+          data=get('/api/macro')
+          rows=data.get('results') or []
+          symbols={(x.get('original_symbol') or x.get('symbol')) for x in rows}
+          required={'T10Y2Y','T10Y3M','BAMLH0A0HYM2','RRPONTSYD','DFII10','T10YIE','UNRATE','RSAFS','WALCL','WTREGEN','M2SL','FEDFUNDS','^VIX'}
+          assert data.get('cacheMode') == 'precomputed', data.get('cacheMode')
+          assert len(rows) == 13, len(rows)
+          assert symbols == required, (required-symbols, symbols-required)
+          assert all(x.get('chart_data') for x in rows)
+          assert data.get('staleCount') == 0, data.get('staleCount')
+          assert not data.get('net_liquidity', {}).get('error'), data.get('net_liquidity')
+          print('LIVE_MACRO_OK', 'rows=',len(rows), 'fresh=',data.get('freshCount'), 'stale=',data.get('staleCount'), 'generatedAt=',data.get('generatedAt'))
+          print('SAMPLE', {x.get('original_symbol'): (x.get('value'), x.get('asOf')) for x in rows[:5]})
           PY
