@@ -1,0 +1,86 @@
+name: Live Render Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Wait for Render and test public endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://chart-view-bsg6.onrender.com'
+
+          echo 'Waiting for homepage...'
+          ok=0
+          for i in $(seq 1 30); do
+            code=$(curl -L -sS -o /tmp/home.html -w '%{http_code}' "$BASE/" || true)
+            echo "attempt=$i status=$code"
+            if [ "$code" = '200' ]; then ok=1; break; fi
+            sleep 10
+          done
+          test "$ok" = '1'
+          grep -q '차트뷰' /tmp/home.html
+
+          echo 'Health:'
+          curl -fsSL "$BASE/health" | tee /tmp/health.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/health.json'))
+          assert d.get('status') == 'ok', d
+          PY
+
+          echo 'KOSPI search:'
+          curl -fsSL --get --data-urlencode 'q=삼성전자' "$BASE/api/search" | tee /tmp/search_ks.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/search_ks.json'))
+          assert any(x.get('symbol') == '005930.KS' for x in d.get('results', [])), d
+          PY
+
+          echo 'KOSDAQ search:'
+          curl -fsSL --get --data-urlencode 'q=테크윙' "$BASE/api/search" | tee /tmp/search_kq.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/search_kq.json'))
+          assert any(x.get('symbol') == '089030.KQ' for x in d.get('results', [])), d
+          PY
+
+          echo 'Screener JSON:'
+          curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/screener.json'))
+          print('screener count=', d.get('count'), 'universe=', d.get('universeCount'), 'date=', d.get('tradeDate'))
+          assert d.get('count', 0) > 2000, d.get('count')
+          assert len(d.get('stocks', [])) > 2000
+          PY
+
+          echo 'Yahoo compare (AAPL):'
+          curl -fsSL --get --data-urlencode 'tickers=AAPL' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare_us.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/compare_us.json'))
+          print(d.get('source'), len(d.get('stocks', [])))
+          assert len(d.get('stocks', [])) >= 1, d
+          assert d['stocks'][0].get('data'), d
+          PY
+
+          echo 'Yahoo compare (Samsung):'
+          curl -fsSL --get --data-urlencode 'tickers=005930.KS' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare_kr.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/compare_kr.json'))
+          print(d.get('source'), len(d.get('stocks', [])))
+          assert len(d.get('stocks', [])) >= 1, d
+          assert d['stocks'][0].get('data'), d
+          PY
+
+          echo 'All live smoke checks passed.'
