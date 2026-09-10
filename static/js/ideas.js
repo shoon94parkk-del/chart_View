@@ -9,9 +9,9 @@
   const esc = (v) => String(v ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
-
-  const num = (v, d = 1) => (v === null || v === undefined || !Number.isFinite(Number(v))) ? '-' : Number(v).toFixed(d);
-  const pct = (v) => (v === null || v === undefined || !Number.isFinite(Number(v))) ? '-' : `${Number(v) > 0 ? '+' : ''}${Number(v).toFixed(1)}%`;
+  const asNum = (v) => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+  const num = (v, d = 1) => asNum(v) === null ? '-' : asNum(v).toFixed(d);
+  const pct = (v) => asNum(v) === null ? '-' : `${asNum(v) > 0 ? '+' : ''}${asNum(v).toFixed(1)}%`;
 
   function selected() {
     if (typeof perTickers !== 'undefined' && Array.isArray(perTickers)) return [...perTickers];
@@ -74,75 +74,100 @@
     return quoteCachePromise;
   }
 
-  function calcMomentum(stock, screenRow) {
+  function rsi14(values) {
+    if (!Array.isArray(values) || values.length < 16) return null;
+    const changes = [];
+    for (let i = 1; i < values.length; i++) changes.push(values[i] - values[i - 1]);
+    let gain = 0, loss = 0;
+    for (let i = 0; i < 14; i++) {
+      gain += Math.max(changes[i], 0);
+      loss += Math.max(-changes[i], 0);
+    }
+    gain /= 14; loss /= 14;
+    for (let i = 14; i < changes.length; i++) {
+      gain = (gain * 13 + Math.max(changes[i], 0)) / 14;
+      loss = (loss * 13 + Math.max(-changes[i], 0)) / 14;
+    }
+    if (loss === 0) return gain > 0 ? 100 : 50;
+    return 100 - 100 / (1 + gain / loss);
+  }
+
+  function chartMomentum(compareStock) {
+    const points = Array.isArray(compareStock?.data) ? compareStock.data : [];
+    const values = points.map((p) => asNum(p.value)).filter((v) => v !== null).map((v) => 100 + v);
+    if (values.length < 25) return null;
+    const last = values.at(-1);
+    const ret = (days) => values.length > days ? (last / values[values.length - 1 - days] - 1) * 100 : null;
+    const avg = (n, end = values.length) => {
+      if (end < n) return null;
+      const slice = values.slice(end - n, end);
+      return slice.reduce((a, b) => a + b, 0) / slice.length;
+    };
+    const ma20 = avg(20), ma60 = avg(60), ma120 = avg(120);
+    const prev20 = avg(20, values.length - 1);
+    const aligned = [ma20, ma60, ma120].every((v) => v !== null) && last > ma20 && ma20 > ma60 && ma60 > ma120;
+    const cross20 = prev20 !== null && values.at(-2) <= prev20 && last > ma20;
+    return { rsi: rsi14(values), ret20: ret(20), ret60: ret(60), aligned, cross20, source: 'Yahoo Chart · 최근 6개월 일봉' };
+  }
+
+  function calcMomentum(screenRow, compareStock) {
     if (screenRow) {
       return {
-        rsi: screenRow.rsi14,
-        ret20: screenRow.ret20,
-        ret60: screenRow.ret60,
-        aligned: !!screenRow.aligned,
-        cross20: !!screenRow.cross20,
-        source: `KRX ${screenRow.date || '-'} 장마감 배치`,
+        rsi: asNum(screenRow.rsi14), ret20: asNum(screenRow.ret20), ret60: asNum(screenRow.ret60),
+        aligned: !!screenRow.aligned, cross20: !!screenRow.cross20,
+        source: `한국 ${screenRow.date || '-'} 장마감 배치`,
       };
     }
-    return { rsi: null, ret20: null, ret60: null, aligned: false, cross20: false, source: '모멘텀 상세 데이터 없음' };
+    return chartMomentum(compareStock) || { rsi: null, ret20: null, ret60: null, aligned: false, cross20: false, source: '모멘텀 데이터 없음' };
   }
 
   function outlook(stock, quote) {
-    const trailing = Number(stock.trailingPE);
-    const forward = Number(stock.forwardPE ?? quote?.forwardPE);
-    if (!Number.isFinite(forward) || forward <= 0) return { label: '전망 데이터 없음', tone: 'neutral', detail: 'FWD PER 컨센서스 미제공' };
-    if (Number.isFinite(trailing) && trailing > 0) {
+    const trailing = asNum(stock.trailingPE);
+    const forward = asNum(stock.forwardPE ?? quote?.forwardPE);
+    if (forward === null || forward <= 0) return { label: '전망 데이터 없음', tone: 'neutral' };
+    if (trailing !== null && trailing > 0) {
       const gap = (forward / trailing - 1) * 100;
-      if (gap <= -12) return { label: '이익 개선 기대', tone: 'good', detail: `FWD PER가 실적 PER보다 ${Math.abs(gap).toFixed(0)}% 낮음` };
-      if (gap >= 15) return { label: '전망 부담', tone: 'warn', detail: `FWD PER가 실적 PER보다 ${gap.toFixed(0)}% 높음` };
+      if (gap <= -12) return { label: '이익 개선 기대', tone: 'good' };
+      if (gap >= 15) return { label: '전망 부담', tone: 'warn' };
     }
-    return { label: '전망 중립', tone: 'neutral', detail: `FWD PER ${forward.toFixed(1)}배` };
+    return { label: '전망 중립', tone: 'neutral' };
   }
 
-  function buildSignals(stock, screenRow, quote) {
+  function buildSignals(stock, screenRow, quote, compareStock) {
     const positives = [];
     const cautions = [];
-    const pe = Number(stock.trailingPE);
-    const pbr = Number(stock.pbr);
-    const roe = Number(stock.roe);
-    const margin = Number(stock.operatingMargin);
-    const momentum = calcMomentum(stock, screenRow);
+    const pe = asNum(stock.trailingPE), pbr = asNum(stock.pbr), roe = asNum(stock.roe), margin = asNum(stock.operatingMargin);
+    const momentum = calcMomentum(screenRow, compareStock);
     const outlookInfo = outlook(stock, quote);
 
-    if (Number.isFinite(pe) && pe > 0 && pe <= 15) positives.push(`PER ${pe.toFixed(1)}배`);
-    else if (Number.isFinite(pe) && pe >= 40) cautions.push(`PER ${pe.toFixed(1)}배`);
-
-    if (Number.isFinite(pbr) && pbr > 0 && pbr <= 2) positives.push(`PBR ${pbr.toFixed(1)}배`);
-    if (Number.isFinite(roe) && roe >= 15) positives.push(`ROE ${roe.toFixed(1)}%`);
-    else if (Number.isFinite(roe) && roe < 5) cautions.push(`ROE ${roe.toFixed(1)}%`);
-    if (Number.isFinite(margin) && margin >= 15) positives.push(`영업이익률 ${margin.toFixed(1)}%`);
+    if (pe !== null && pe > 0 && pe <= 15) positives.push(`PER ${pe.toFixed(1)}배`);
+    else if (pe !== null && pe >= 40) cautions.push(`PER ${pe.toFixed(1)}배`);
+    if (pbr !== null && pbr > 0 && pbr <= 2) positives.push(`PBR ${pbr.toFixed(1)}배`);
+    if (roe !== null && roe >= 15) positives.push(`ROE ${roe.toFixed(1)}%`);
+    else if (roe !== null && roe < 5) cautions.push(`ROE ${roe.toFixed(1)}%`);
+    if (margin !== null && margin >= 15) positives.push(`영업이익률 ${margin.toFixed(1)}%`);
 
     if (momentum.aligned) positives.push('20·60·120일 정배열');
     else if (momentum.cross20) positives.push('20일선 돌파');
-    if (Number.isFinite(momentum.ret20) && momentum.ret20 >= 8) positives.push(`20일 ${pct(momentum.ret20)}`);
-    if (Number.isFinite(momentum.ret20) && momentum.ret20 <= -12) cautions.push(`20일 ${pct(momentum.ret20)}`);
-    if (Number.isFinite(momentum.rsi) && momentum.rsi >= 70) cautions.push(`RSI ${momentum.rsi.toFixed(1)} 과열`);
-    if (Number.isFinite(momentum.rsi) && momentum.rsi <= 35) positives.push(`RSI ${momentum.rsi.toFixed(1)} 과매도권`);
-
+    if (momentum.ret20 !== null && momentum.ret20 >= 8) positives.push(`20일 ${pct(momentum.ret20)}`);
+    if (momentum.ret20 !== null && momentum.ret20 <= -12) cautions.push(`20일 ${pct(momentum.ret20)}`);
+    if (momentum.rsi !== null && momentum.rsi >= 70) cautions.push(`RSI ${momentum.rsi.toFixed(1)} 과열`);
+    if (momentum.rsi !== null && momentum.rsi <= 35) positives.push(`RSI ${momentum.rsi.toFixed(1)} 과매도권`);
     if (outlookInfo.tone === 'good') positives.push(outlookInfo.label);
     if (outlookInfo.tone === 'warn') cautions.push(outlookInfo.label);
 
     const fields = ['trailingPE', 'pbr', 'roe', 'operatingMargin', 'forwardPE'];
-    const complete = fields.filter((k) => stock[k] !== null && stock[k] !== undefined && Number.isFinite(Number(stock[k]))).length;
+    const complete = fields.filter((k) => asNum(stock[k] ?? (k === 'forwardPE' ? quote?.forwardPE : null)) !== null).length;
     const completeness = Math.round(complete / fields.length * 100);
 
-    let status = '조건 혼재';
-    let tone = 'neutral';
+    let status = '조건 혼재', tone = 'neutral';
     if (positives.length >= 3 && cautions.length <= 1) { status = '관찰 우선'; tone = 'good'; }
     if (cautions.length >= 3) { status = '주의 필요'; tone = 'warn'; }
-
-    return { positives, cautions, momentum, outlookInfo, completeness, status, tone };
+    return { positives, cautions, momentum, completeness, status, tone };
   }
 
-  function card(stock, screenRow, quote, tradeDate) {
-    const s = buildSignals(stock, screenRow, quote);
-    const sourceDate = quote ? (tradeDate || '') : '';
+  function card(stock, screenRow, quote, compareStock) {
+    const s = buildSignals(stock, screenRow, quote, compareStock);
     const analyst = quote?.averageAnalystRating ? esc(quote.averageAnalystRating) : '없음';
     const positiveHtml = s.positives.length ? s.positives.slice(0, 5).map((x) => `<span class="idea-chip good">${esc(x)}</span>`).join('') : '<span class="idea-chip neutral">강한 긍정 신호 없음</span>';
     const cautionHtml = s.cautions.length ? s.cautions.slice(0, 4).map((x) => `<span class="idea-chip warn">${esc(x)}</span>`).join('') : '<span class="idea-chip neutral">뚜렷한 경고 신호 없음</span>';
@@ -162,11 +187,7 @@
         </div>
         <div class="idea-block"><div class="idea-block-title">볼 이유</div><div class="idea-chips">${positiveHtml}</div></div>
         <div class="idea-block"><div class="idea-block-title">확인할 위험</div><div class="idea-chips">${cautionHtml}</div></div>
-        <div class="idea-foot">
-          <span>애널리스트: ${analyst}</span>
-          <span>데이터 완성도 ${s.completeness}%</span>
-          <span>${esc(s.momentum.source)}</span>
-        </div>
+        <div class="idea-foot"><span>애널리스트: ${analyst}</span><span>데이터 완성도 ${s.completeness}%</span><span>${esc(s.momentum.source)}</span></div>
       </article>`;
   }
 
@@ -186,20 +207,18 @@
     grid.innerHTML = '<div class="ideas-loading"><div class="spinner"></div><span>투자 근거를 정리하는 중...</span></div>';
 
     try {
-      const [valuation, screener, quoteCache] = await Promise.all([
-        fetch(`/api/valuation?tickers=${encodeURIComponent(tickers.join(','))}`, { cache: 'no-store' }).then((r) => {
-          if (!r.ok) throw new Error(`valuation ${r.status}`);
-          return r.json();
-        }),
-        loadScreener(),
-        loadQuoteCache(),
+      const [valuation, screener, quoteCache, compare] = await Promise.all([
+        fetch(`/api/valuation?tickers=${encodeURIComponent(tickers.join(','))}`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(`valuation ${r.status}`); return r.json(); }),
+        loadScreener(), loadQuoteCache(),
+        fetch(`/api/compare?tickers=${encodeURIComponent(tickers.join(','))}&period=6mo`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : { stocks: [] }).catch(() => ({ stocks: [] })),
       ]);
       if (seq !== loadSeq) return;
       const stocks = Array.isArray(valuation.stocks) ? valuation.stocks : [];
       const screenMap = new Map((screener.stocks || []).map((r) => [r.symbol, r]));
+      const compareMap = new Map((compare.stocks || []).map((r) => [r.ticker, r]));
       const quotes = quoteCache.quotes || {};
-      summary.textContent = `${stocks.length}개 종목 · 가치/수익성/전망/모멘텀을 분리 평가 · 단일 매수점수 아님`;
-      grid.innerHTML = stocks.map((stock) => card(stock, screenMap.get(stock.ticker), quotes[stock.ticker], screener.tradeDate)).join('') || '<div class="ideas-empty">분석 가능한 데이터가 없습니다.</div>';
+      summary.textContent = `${stocks.length}개 종목 · 가치/수익성/전망/모멘텀 분리 평가 · 단일 매수점수 아님`;
+      grid.innerHTML = stocks.map((stock) => card(stock, screenMap.get(stock.ticker), quotes[stock.ticker], compareMap.get(stock.ticker))).join('') || '<div class="ideas-empty">분석 가능한 데이터가 없습니다.</div>';
     } catch (err) {
       console.error('Ideas load failed', err);
       if (seq === loadSeq) {
@@ -209,10 +228,7 @@
     }
   }
 
-  function init() {
-    installTab();
-  }
-
+  function init() { installTab(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();
