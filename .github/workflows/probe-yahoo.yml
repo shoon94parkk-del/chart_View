@@ -14,30 +14,24 @@ jobs:
       - name: Probe public endpoints
         run: |
           python - <<'PY'
-          import requests, time, json
+          import requests, time
           ua={'User-Agent':'Mozilla/5.0'}
           end=str(int(time.time()))
           types=[
-            'trailingMarketCap','trailingPeRatio','trailingPriceToBook','trailingPsRatio',
-            'trailingBasicEPS','trailingDilutedEPS','trailingTotalRevenue','trailingEBITDA',
-            'annualStockholdersEquity','annualOrdinarySharesNumber','annualTotalAssets',
-            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber',
-            'annualBasicEPS','annualDilutedEPS','annualTotalRevenue','annualEBITDA'
+            'trailingMarketCap','trailingPeRatio','trailingPsRatio','trailingBasicEPS','trailingDilutedEPS',
+            'trailingTotalRevenue','trailingEBITDA','trailingNetIncome','trailingOperatingIncome',
+            'trailingDividendPerShare','quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyNetDebt',
+            'annualStockholdersEquity','annualOrdinarySharesNumber','annualNetDebt'
           ]
-          for symbol in ['AAPL','005930.KS']:
+          for symbol in ['AAPL','NVDA','005930.KS','000660.KS']:
               u=('https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/' + symbol +
                  '?symbol=' + symbol + '&type=' + ','.join(types) + '&period1=0&period2=' + end)
               r=requests.get(u,headers=ua,timeout=20)
               print('\nSYMBOL',symbol,'STATUS',r.status_code)
-              try:
-                  d=r.json()
-                  for item in d.get('timeseries',{}).get('result',[]):
-                      meta=item.get('meta',{})
-                      typ=(meta.get('type') or ['?'])[0]
-                      vals=item.get(typ,[])
-                      latest=vals[-1].get('reportedValue',{}).get('raw') if vals else None
-                      print(typ,'latest=',latest,'count=',len(vals))
-                  print('error=',d.get('timeseries',{}).get('error'))
-              except Exception:
-                  print(r.text[:4000])
+              d=r.json()
+              for item in d.get('timeseries',{}).get('result',[]):
+                  typ=(item.get('meta',{}).get('type') or ['?'])[0]
+                  vals=item.get(typ,[])
+                  latest=vals[-1].get('reportedValue',{}).get('raw') if vals else None
+                  print(typ,'latest=',latest,'count=',len(vals))
           PY
