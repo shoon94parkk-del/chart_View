@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Clean legacy AI and harden FRED path
+      - name: Batch FRED macro and handle HEAD probe
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -23,106 +23,93 @@ jobs:
 
           p = Path('main.py')
           text = p.read_text(encoding='utf-8')
-          text = text.replace('from fastapi.responses import JSONResponse, StreamingResponse', 'from fastapi.responses import JSONResponse')
 
+          # Render probes the root with HEAD while deploying. Return 200 explicitly.
+          home = '''@app.get("/")
+          async def home(request: Request):
+              return templates.TemplateResponse("index.html", {"request": request})
+          '''
+          home = textwrap.dedent(home)
+          if '@app.head("/")' not in text:
+              replacement = home + '''\n@app.head("/")\nasync def home_head():\n    return JSONResponse(content={}, status_code=200)\n'''
+              if home not in text:
+                  raise RuntimeError('home route anchor not found')
+              text = text.replace(home, replacement, 1)
+
+          # Replace per-series FRED HTTP calls with one bundled CSV request.
           start = text.index('    def fetch_fred_data(symbol, info):')
           end = text.index('    def fetch_indicator(symbol, info):', start)
-          fred = textwrap.indent(textwrap.dedent('''\
-          def fetch_fred_data(symbol, info):
-              """FRED 공식 CSV 엔드포인트 사용 (API key 불필요)."""
-              try:
-                  start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
-                  response = requests.get(
-                      "https://fred.stlouisfed.org/graph/fredgraph.csv",
-                      params={"id": symbol, "cosd": start_date},
-                      headers={"User-Agent": "Mozilla/5.0"},
-                      timeout=7,
-                  )
-                  response.raise_for_status()
-                  frame = pd.read_csv(io.StringIO(response.text))
-                  if frame.empty or len(frame.columns) < 2:
-                      raise ValueError("No observations")
-
+          block = textwrap.indent(textwrap.dedent('''\
+          fred_bundle = {}
+          fred_symbols = [s for s, meta in indicators.items() if meta.get("source") == "FRED"]
+          try:
+              start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
+              response = requests.get(
+                  "https://fred.stlouisfed.org/graph/fredgraph.csv",
+                  params={"id": ",".join(fred_symbols), "cosd": start_date},
+                  headers={"User-Agent": "Mozilla/5.0"},
+                  timeout=15,
+              )
+              response.raise_for_status()
+              frame = pd.read_csv(io.StringIO(response.text))
+              if not frame.empty and len(frame.columns) >= 2:
                   date_col = frame.columns[0]
-                  value_col = symbol if symbol in frame.columns else frame.columns[-1]
-                  values = pd.to_numeric(frame[value_col], errors="coerce")
-                  chart_data = [
-                      {"time": str(date)[:10], "value": float(value)}
-                      for date, value in zip(frame[date_col], values)
-                      if pd.notna(value)
-                  ]
-                  if not chart_data:
-                      raise ValueError("No valid data")
+                  for symbol in fred_symbols:
+                      if symbol not in frame.columns:
+                          continue
+                      values = pd.to_numeric(frame[symbol], errors="coerce")
+                      rows = [
+                          {"time": str(date)[:10], "value": float(value)}
+                          for date, value in zip(frame[date_col], values)
+                          if pd.notna(value)
+                      ]
+                      if rows:
+                          fred_bundle[symbol] = rows[-100:]
+              print(f"[FRED] bundled {len(fred_bundle)}/{len(fred_symbols)} series")
+          except Exception as e:
+              print(f"[FRED] bundled CSV failed: {e}")
 
-                  current = chart_data[-1]["value"]
-                  prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
-                  change = ((current - prev) / prev) * 100 if prev else 0.0
-                  return {
-                      "original_symbol": symbol,
-                      "symbol": symbol,
-                      "name": info["name"],
-                      "desc": info["desc"],
-                      "link": info["link"],
-                      "value": round(current, 2),
-                      "change": round(change, 2),
-                      "chart_data": chart_data[-100:],
-                      "source": "FRED",
-                  }
-              except Exception as e:
-                  print(f"FRED CSV failed for {symbol}: {e} -> Trying Fallback")
+          def fetch_fred_data(symbol, info):
+              """Use the single FRED bundle; fallback only if that series is unavailable."""
+              chart_data = fred_bundle.get(symbol) or []
+              if len(chart_data) < 1:
                   return fetch_yahoo_fallback(symbol, info)
+              current = chart_data[-1]["value"]
+              prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
+              change = ((current - prev) / prev) * 100 if prev else 0.0
+              return {
+                  "original_symbol": symbol,
+                  "symbol": symbol,
+                  "name": info["name"],
+                  "desc": info["desc"],
+                  "link": info["link"],
+                  "value": round(current, 2),
+                  "change": round(change, 2),
+                  "chart_data": chart_data,
+                  "source": "FRED",
+              }
 
           '''), '    ')
-          text = text[:start] + fred + text[end:]
-
-          ai_marker = '# ========================\n# Gemini AI 질문 답변 API\n# ========================'
-          if ai_marker in text:
-              s = text.index(ai_marker)
-              e = text.index('\n\nif __name__ == "__main__":', s)
-              text = text[:s] + text[e+2:]
+          text = text[:start] + block + text[end:]
           p.write_text(text, encoding='utf-8')
 
-          p = Path('templates/index.html')
-          html = p.read_text(encoding='utf-8')
-          html = html.replace(
-              '주식 수익률 비교, 밸류에이션 분석, FRED 경제 지표를 한눈에. AI 투자 어시스턴트와 대화도 가능합니다.',
-              '주식 수익률 비교, 밸류에이션 분석, 경제 지표와 빠른 종목 발굴을 한눈에 확인합니다.'
-          )
-          html = html.replace(
-              '<button class="tab-btn" data-tab="ai">🤖 AI 질문</button>',
-              '<button class="tab-btn" data-tab="screener">🔎 종목 발굴</button>'
-          )
-          ai_start_marker = '        <!-- AI 질문 탭 -->'
-          footer_marker = '        <!-- 푸터 / 면책 조항 -->'
-          if ai_start_marker in html and footer_marker in html:
-              s = html.index(ai_start_marker)
-              e = html.index(footer_marker, s)
-              replacement = '        <!-- 종목 발굴 탭: screener.js가 내용을 채웁니다 -->\n        <div id="screener-tab" class="tab-content"></div>\n\n'
-              html = html[:s] + replacement + html[e:]
-          html = html.replace('    <script src="/static/js/gemini.js?v=20260219v2"></script>\n', '')
-          html = html.replace(
-              '본 사이트에서 제공하는 모든 정보는 <strong>Yahoo Finance</strong> 데이터를 기반으로 하며, 실제 시장 가격이나 실적과 차이가 있을 수 있습니다.',
-              '본 사이트는 <strong>Yahoo Finance, FRED, KIND/KRX, Naver Finance</strong> 등 공개 데이터를 조합하며, 소스별 갱신 시점에 따라 실제 시장 가격이나 실적과 차이가 있을 수 있습니다.'
-          )
-          p.write_text(html, encoding='utf-8')
-
-          main = Path('main.py').read_text(encoding='utf-8')
-          page = Path('templates/index.html').read_text(encoding='utf-8')
+          # Sanity: compile and ensure the removed secret/AI paths do not reappear.
+          main = p.read_text(encoding='utf-8')
           compile(main, 'main.py', 'exec')
-          assert 'e4549aea' not in main, 'hard-coded FRED key fragment still present'
-          assert 'GEMINI_API_KEYS' not in main, 'Gemini backend still present'
-          assert 'gemini.js' not in page, 'Gemini JS still loaded'
-          assert 'data-tab="screener"' in page and 'id="screener-tab"' in page
-          print('runtime cleanup complete')
+          assert 'e4549aea' not in main
+          assert 'GEMINI_API_KEYS' not in main
+          assert '@app.head("/")' in main
+          assert 'fred_bundle' in main and '",".join(fred_symbols)' in main
+          print('macro batching patch complete')
           PY
       - name: Commit cleanup
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add main.py templates/index.html
+          git add main.py
           if git diff --cached --quiet; then
             echo "No cleanup changes"
           else
-            git commit -m "fix: remove legacy AI and secure macro data path"
+            git commit -m "fix: batch FRED macro fetch and root HEAD probe"
             git push origin HEAD:main
           fi
