@@ -31,22 +31,4 @@ if 'valuation_bands.js' not in text:
     text = text.replace(anchor, anchor + script, 1)
 index.write_text(text, encoding='utf-8')
 
-# Strengthen live smoke test without changing its deployment logic.
-smoke = root / '.github' / 'workflows' / 'live-smoke.yml'
-if smoke.exists():
-    text = smoke.read_text(encoding='utf-8')
-    if "valuation_bands.js?v=20260911v1" not in text:
-        text = text.replace(
-            "    && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html; then",
-            "    && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html \\\n    && grep -q '/static/js/valuation_bands.js?v=20260911v1' /tmp/home.html; then",
-            1,
-        )
-    if "Valuation bands:" not in text:
-        marker = "          echo 'Heatmap:'\n"
-        block = '''          echo 'Valuation bands:'\n          for t in AAPL 005930.KS 000660.KS; do\n            curl -fsSL --get --data-urlencode "ticker=$t" --data-urlencode 'years=3' "$BASE/api/valuation-band" -o "/tmp/band-$t.json"\n          done\n          python - <<'PY'\n          import json\n          for t in ('AAPL','005930.KS','000660.KS'):\n              d=json.load(open(f'/tmp/band-{t}.json'))\n              print('band',t,'PER=',d.get('per',{}).get('stats'),'PBR=',d.get('pbr',{}).get('stats'))\n              assert d.get('per',{}).get('points'), (t,'PER')\n              assert d.get('pbr',{}).get('points'), (t,'PBR')\n              assert d['per']['stats']['observations'] >= 30\n              assert d['pbr']['stats']['observations'] >= 30\n          PY\n\n'''
-        if marker not in text:
-            raise SystemExit('live-smoke marker not found')
-        text = text.replace(marker, block + marker, 1)
-    smoke.write_text(text, encoding='utf-8')
-
 print('valuation bands integration applied')
