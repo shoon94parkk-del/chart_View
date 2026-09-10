@@ -1,0 +1,184 @@
+name: Bootstrap Sync Compare Charts
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bootstrap-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout destination
+        uses: actions/checkout@v4
+
+      - name: Copy original project
+        run: |
+          rm -rf /tmp/source
+          git clone --depth 1 https://github.com/honeyhoon/Sync-Compare-Charts.git /tmp/source
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='__pycache__' \
+            --exclude='*/__pycache__' \
+            /tmp/source/ ./
+
+      - name: Apply Korean stock and UX fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          main = Path('main.py')
+          s = main.read_text(encoding='utf-8')
+
+          s = s.replace(
+              '        # KOSPI\n        for market_type in ["stockMkt", "kosdaqMkt"]:\n            url = "http://kind.krx.co.kr/corpgeneral/corpList.do"',
+              '        # KOSPI / KOSDAQ 시장 정보를 함께 저장해 Yahoo suffix를 정확히 결정\n        markets = [("stockMkt", "KOSPI", ".KS"), ("kosdaqMkt", "KOSDAQ", ".KQ")]\n        for market_type, market_name, suffix in markets:\n            url = "https://kind.krx.co.kr/corpgeneral/corpList.do"'
+          )
+          s = s.replace(
+              '                    all_stocks.append({"code": code, "name": name})',
+              '                    all_stocks.append({"code": code, "name": name, "market": market_name, "suffix": suffix})'
+          )
+          s = s.replace(
+              '    # 1. 한국어가 포함되어 있으면 KRX에서 검색\n    has_korean = any(\'\\uac00\' <= c <= \'\\ud7a3\' for c in query)',
+              '    # 자주 쓰는 국내 종목 별칭도 회사명 검색으로 연결\n    aliases = {\n        "삼전": "삼성전자", "하닉": "SK하이닉스", "삼바": "삼성바이오로직스",\n        "엘전": "LG전자", "현차": "현대차", "네이버": "NAVER"\n    }\n    query = aliases.get(query.lower(), query)\n\n    # 1. 한국어가 포함되어 있으면 KRX에서 검색\n    has_korean = any(\'\\uac00\' <= c <= \'\\ud7a3\' for c in query)'
+          )
+          s = s.replace(
+              '            yahoo_ticker = f"{stock[\'code\']}.KS"',
+              '            yahoo_ticker = f"{stock[\'code\']}{stock.get(\'suffix\', \'.KS\')}"'
+          )
+          s = s.replace(
+              '                "type": "KRX"\n            })',
+              '                "type": "KRX",\n                "code": stock["code"],\n                "market": stock.get("market", "KRX")\n            })',
+              1
+          )
+          s = s.replace(
+              '                    "symbol": f"{query}.KS",',
+              '                    "symbol": f"{query}{code_match[0].get(\'suffix\', \'.KS\')}",'
+          )
+
+          old_history = '''            if start and end:\n                df = stock.history(start=start, end=end, interval="1d")\n            else:\n                df = stock.history(period=period, interval=interval)\n            \n            if df.empty:\n                return None'''
+          new_history = '''            if start and end:\n                df = stock.history(start=start, end=end, interval="1d")\n            else:\n                df = stock.history(period=period, interval=interval)\n\n            # Yahoo가 간헐적으로 돌려주는 NaN/0 가격을 차트에서 제거\n            if not df.empty and "Close" in df.columns:\n                df = df.copy()\n                df["Close"] = pd.to_numeric(df["Close"], errors="coerce")\n                df = df[df["Close"].notna() & (df["Close"] > 0)]\n\n            if df.empty:\n                return None'''
+          s = s.replace(old_history, new_history, 1)
+
+          main.write_text(s, encoding='utf-8')
+
+          chart = Path('static/js/chart.js')
+          c = chart.read_text(encoding='utf-8-sig')
+          c = c.replace("if (selectedTickers.length >= 10)", "if (selectedTickers.length >= 6)")
+          c = c.replace("alert('최대 10개까지 추가할 수 있어요')", "alert('최대 6개까지 추가할 수 있어요')")
+          c = c.replace(
+              '<span class="symbol">${r.symbol}</span>',
+              '<span class="symbol">${r.market ? ((r.code || r.symbol) + \' · \' + r.market) : r.symbol}</span>'
+          )
+          chart.write_text(c, encoding='utf-8')
+
+          template = Path('templates/index.html')
+          h = template.read_text(encoding='utf-8')
+          h = h.replace('placeholder="삼성, Apple, TSLA 등"', 'placeholder="종목명 · 6자리 코드 · 티커 검색"')
+          h = h.replace('회사명/티커 입력 후 + 버튼 또는 검색 결과 클릭 · 최대 6종목', '한국 종목은 KOSPI/KOSDAQ 자동 구분 · 회사명/6자리 코드/티커 · 최대 6종목')
+          h = h.replace('</head>', '    <link rel="stylesheet" href="/static/css/ux_patch.css?v=20260910">\n</head>')
+          h = h.replace('</body>', '    <script src="/static/js/ux_patch.js?v=20260910"></script>\n</body>')
+          template.write_text(h, encoding='utf-8')
+          PY
+
+          cat > static/css/ux_patch.css <<'EOF'
+          /* 2026-09 UX patch: comparison-first layout */
+          .global-filter .global-search {
+            border-radius: 18px !important;
+            margin-bottom: 10px !important;
+          }
+          .global-filter .sector-section {
+            border-radius: 18px !important;
+            padding: 12px 18px !important;
+            max-height: none !important;
+          }
+          .ux-sector-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 0;
+            background: transparent;
+            padding: 5px 2px 9px;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4E5968;
+            cursor: pointer;
+          }
+          .sector-section.ux-collapsed .sector-scroll-container { display: none; }
+          .search-result-item { gap: 14px; }
+          .search-result-item .name { font-weight: 650; }
+          .search-result-item .symbol { white-space: nowrap; color: #6B7684; }
+          .ux-data-status {
+            margin: -2px 20px 10px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            background: #F7F8FA;
+            color: #6B7684;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .ticker-tag { background: #F2F7FF; border-color: #DCEBFF; }
+          @media (min-width: 900px) {
+            #app { max-width: 1100px; margin: 0 auto; width: 100%; }
+            .chart-section { margin: 8px 16px 0; border-radius: 18px; box-shadow: var(--card-shadow); }
+            #chart-container { height: 340px; }
+          }
+          EOF
+
+          cat > static/js/ux_patch.js <<'EOF'
+          document.addEventListener('DOMContentLoaded', () => {
+            const sector = document.querySelector('.sector-section');
+            if (sector && !sector.querySelector('.ux-sector-toggle')) {
+              const toggle = document.createElement('button');
+              toggle.className = 'ux-sector-toggle';
+              toggle.type = 'button';
+              toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">펼치기 ↓</span>';
+              sector.insertBefore(toggle, sector.firstChild);
+              sector.classList.add('ux-collapsed');
+              toggle.addEventListener('click', () => {
+                const collapsed = sector.classList.toggle('ux-collapsed');
+                toggle.querySelector('.ux-sector-arrow').textContent = collapsed ? '펼치기 ↓' : '접기 ↑';
+              });
+            }
+
+            const chartHeader = document.querySelector('.chart-header');
+            if (chartHeader && !document.querySelector('.ux-data-status')) {
+              const status = document.createElement('div');
+              status.className = 'ux-data-status';
+              status.textContent = '시세: Yahoo Finance · 국내 종목 검색: KRX · 한국 시세는 지연될 수 있습니다.';
+              chartHeader.insertAdjacentElement('afterend', status);
+            }
+
+            const input = document.getElementById('unified-input');
+            if (input) input.setAttribute('aria-label', '종목명, 6자리 종목코드 또는 해외 티커 검색');
+          });
+          EOF
+
+          cat > render.yaml <<'EOF'
+          services:
+            - type: web
+              name: chart-view
+              runtime: python
+              buildCommand: pip install -r requirements.txt
+              startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+              healthCheckPath: /health
+          EOF
+
+      - name: Commit copied project and fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "feat: copy app and improve Korean stock search UX"
+            git push origin main
+          fi
