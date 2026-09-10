@@ -5,7 +5,7 @@
   let loadingPromise = null;
   let preset = 'candidate';
   let market = 'ALL';
-  let minCap = 100000000000;
+  let minValue = 1000000000; // 20일 평균 거래대금 10억원
   let sortKey = 'score';
 
   const esc = (value) => String(value ?? '')
@@ -26,10 +26,11 @@
     return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
   };
 
-  const cap = (value) => {
+  const money = (value) => {
     if (!value) return '-';
     if (value >= 1e12) return `${(value / 1e12).toFixed(1)}조`;
-    return `${Math.round(value / 1e8).toLocaleString('ko-KR')}억`;
+    if (value >= 1e8) return `${Math.round(value / 1e8).toLocaleString('ko-KR')}억`;
+    return `${Math.round(value / 1e6).toLocaleString('ko-KR')}백만`;
   };
 
   function installTab() {
@@ -55,18 +56,18 @@
         <div class="screener-controls">
           <div class="screener-row">
             <input id="screener-search" class="screener-search" placeholder="종목명 또는 6자리 코드 검색" autocomplete="off">
-            <select id="screener-cap" class="screen-select" aria-label="최소 시가총액">
-              <option value="0">시총 전체</option>
-              <option value="100000000000" selected>시총 1,000억+</option>
-              <option value="500000000000">시총 5,000억+</option>
-              <option value="1000000000000">시총 1조+</option>
+            <select id="screener-value" class="screen-select" aria-label="최소 평균 거래대금">
+              <option value="0">거래대금 전체</option>
+              <option value="1000000000" selected>평균 거래대금 10억+</option>
+              <option value="5000000000">평균 거래대금 50억+</option>
+              <option value="10000000000">평균 거래대금 100억+</option>
             </select>
             <select id="screener-sort" class="screen-select" aria-label="정렬 기준">
               <option value="score">기술점수 높은순</option>
               <option value="volumeRatio">거래량 급증순</option>
               <option value="rsi">RSI 낮은순</option>
               <option value="ret20">20일 수익률순</option>
-              <option value="marketCap">시총순</option>
+              <option value="avgValue20">평균 거래대금순</option>
             </select>
           </div>
 
@@ -94,7 +95,7 @@
 
   function matches(row) {
     if (market !== 'ALL' && row.market !== market) return false;
-    if ((row.marketCap || 0) < minCap) return false;
+    if ((row.avgValue20 || 0) < minValue) return false;
 
     const query = (document.getElementById('screener-search')?.value || '').trim().toLowerCase();
     if (query && !`${row.name} ${row.code} ${row.symbol}`.toLowerCase().includes(query)) return false;
@@ -114,7 +115,7 @@
     const desc = (key) => result.sort((a, b) => (b[key] ?? -Infinity) - (a[key] ?? -Infinity));
     if (sortKey === 'volumeRatio') return desc('volumeRatio');
     if (sortKey === 'ret20') return desc('ret20');
-    if (sortKey === 'marketCap') return desc('marketCap');
+    if (sortKey === 'avgValue20') return desc('avgValue20');
     if (sortKey === 'rsi') return result.sort((a, b) => (a.rsi14 ?? Infinity) - (b.rsi14 ?? Infinity));
     return desc('score');
   }
@@ -145,7 +146,7 @@
     }
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
-      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>PER/PBR</th><th>점수</th><th></th></tr></thead>
+      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수</th><th></th></tr></thead>
       <tbody>${rows.map((row) => `
         <tr>
           <td><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
@@ -154,7 +155,7 @@
           <td><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
           <td>${trendBadge(row)}</td>
           <td class="${(row.ret20 || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.ret20)}</td>
-          <td><div>${row.per ? `PER ${num(row.per, 1)}` : 'PER -'}</div><div class="screen-sub">${row.pbr ? `PBR ${num(row.pbr, 1)}` : `시총 ${cap(row.marketCap)}`}</div></td>
+          <td><strong>${money(row.avgValue20)}</strong><div class="screen-sub">5일 ${pct(row.ret5)} · 60일 ${pct(row.ret60)}</div></td>
           <td><span class="screen-score">${num(row.score, 0)}</span></td>
           <td><button class="screen-add" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">비교+</button></td>
         </tr>`).join('')}</tbody></table></div>`;
@@ -222,8 +223,8 @@
     });
 
     document.getElementById('screener-search')?.addEventListener('input', render);
-    document.getElementById('screener-cap')?.addEventListener('change', (event) => {
-      minCap = Number(event.target.value);
+    document.getElementById('screener-value')?.addEventListener('change', (event) => {
+      minValue = Number(event.target.value);
       render();
     });
     document.getElementById('screener-sort')?.addEventListener('change', (event) => {
