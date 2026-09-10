@@ -1,0 +1,781 @@
+{
+  "sectors": [
+    {
+      "name": "Technology",
+      "stocks": [
+        {
+          "ticker": "NVDA",
+          "price": 183.69,
+          "change": 1.49,
+          "marketCap": 4472300896256,
+          "pe": 45.5,
+          "fwdPe": 24.4
+        },
+        {
+          "ticker": "AAPL",
+          "price": 270.97,
+          "change": -0.99,
+          "marketCap": 4021300494336,
+          "pe": 36.4,
+          "fwdPe": 29.6
+        },
+        {
+          "ticker": "MSFT",
+          "price": 484.92,
+          "change": -0.21,
+          "marketCap": 3604491010048,
+          "pe": 34.5,
+          "fwdPe": 25.9
+        },
+        {
+          "ticker": "AVGO",
+          "price": 341.45,
+          "change": 0.51,
+          "marketCap": 1618907889664,
+          "pe": 71.4,
+          "fwdPe": 24.5
+        },
+        {
+          "ticker": "ORCL",
+          "price": 198.38,
+          "change": 3.34,
+          "marketCap": 569971572736,
+          "pe": 37.3,
+          "fwdPe": 24.9
+        },
+        {
+          "ticker": "AMD",
+          "price": 214.95,
+          "change": 0.71,
+          "marketCap": 349947527168,
+          "pe": 112.5,
+          "fwdPe": 33.3
+        },
+        {
+          "ticker": "CSCO",
+          "price": 78.11,
+          "change": -0.4,
+          "marketCap": 308620001280,
+          "pe": 30.2,
+          "fwdPe": 17.5
+        },
+        {
+          "ticker": "CRM",
+          "price": 264.63,
+          "change": 1.82,
+          "marketCap": 251927756800,
+          "pe": 35.3,
+          "fwdPe": 20.2
+        },
+        {
+          "ticker": "INTC",
+          "price": 36.37,
+          "change": -1.22,
+          "marketCap": 173484883968,
+          "pe": 606.2,
+          "fwdPe": 61.1
+        },
+        {
+          "ticker": "ADBE",
+          "price": 357.53,
+          "change": 0.47,
+          "marketCap": 151664230400,
+          "pe": 21.4,
+          "fwdPe": 13.6
+        }
+      ]
+    },
+    {
+      "name": "Communication",
+      "stocks": [
+        {
+          "ticker": "GOOGL",
+          "price": 309.78,
+          "change": 0.85,
+          "marketCap": 3752093024256,
+          "pe": 30.6,
+          "fwdPe": 27.7
+        },
+        {
+          "ticker": "META",
+          "price": 661.5,
+          "change": 0.41,
+          "marketCap": 1667329032192,
+          "pe": 29.2,
+          "fwdPe": 21.9
+        },
+        {
+          "ticker": "NFLX",
+          "price": 93.23,
+          "change": -1.23,
+          "marketCap": 395045666816,
+          "pe": 38.8,
+          "fwdPe": 23.2
+        },
+        {
+          "ticker": "TMUS",
+          "price": 195.76,
+          "change": -0.49,
+          "marketCap": 220312010752,
+          "pe": 18.9,
+          "fwdPe": 16.0
+        },
+        {
+          "ticker": "DIS",
+          "price": 112.38,
+          "change": 1.02,
+          "marketCap": 202051796992,
+          "pe": 16.4,
+          "fwdPe": 15.3
+        },
+        {
+          "ticker": "T",
+          "price": 24.3,
+          "change": 0.62,
+          "marketCap": 173754368000,
+          "pe": 7.9,
+          "fwdPe": 10.9
+        },
+        {
+          "ticker": "VZ",
+          "price": 39.98,
+          "change": 0.4,
+          "marketCap": 168572682240,
+          "pe": 8.5,
+          "fwdPe": 8.3
+        },
+        {
+          "ticker": "CMCSA",
+          "price": 29.26,
+          "change": -1.05,
+          "marketCap": 108033966080,
+          "pe": 4.9,
+          "fwdPe": 7.1
+        }
+      ]
+    },
+    {
+      "name": "Consumer Cyclical",
+      "stocks": [
+        {
+          "ticker": "AMZN",
+          "price": 228.43,
+          "change": 0.48,
+          "marketCap": 2441965993984,
+          "pe": 32.3,
+          "fwdPe": 29.1
+        },
+        {
+          "ticker": "TSLA",
+          "price": 488.73,
+          "change": 1.56,
+          "marketCap": 1625427673088,
+          "pe": 332.5,
+          "fwdPe": 219.3
+        },
+        {
+          "ticker": "HD",
+          "price": 346.39,
+          "change": 0.4,
+          "marketCap": 344835227648,
+          "pe": 23.6,
+          "fwdPe": 22.8
+        },
+        {
+          "ticker": "MCD",
+          "price": 316.22,
+          "change": 0.12,
+          "marketCap": 225655996416,
+          "pe": 27.0,
+          "fwdPe": 23.9
+        },
+        {
+          "ticker": "BKNG",
+          "price": 5406.99,
+          "change": 0.25,
+          "marketCap": 175239938048,
+          "pe": 35.2,
+          "fwdPe": 20.4
+        },
+        {
+          "ticker": "TJX",
+          "price": 156.58,
+          "change": 1.28,
+          "marketCap": 174263959552,
+          "pe": 34.6,
+          "fwdPe": 30.4
+        },
+        {
+          "ticker": "LOW",
+          "price": 242.07,
+          "change": 0.68,
+          "marketCap": 135789527040,
+          "pe": 20.0,
+          "fwdPe": 18.6
+        },
+        {
+          "ticker": "SBUX",
+          "price": 86.17,
+          "change": -2.45,
+          "marketCap": 97983905792,
+          "pe": 52.9,
+          "fwdPe": 28.7
+        },
+        {
+          "ticker": "NKE",
+          "price": 57.22,
+          "change": -2.54,
+          "marketCap": 84582686720,
+          "pe": 33.5,
+          "fwdPe": 24.4
+        }
+      ]
+    },
+    {
+      "name": "Financial",
+      "stocks": [
+        {
+          "ticker": "BRK-B",
+          "price": 499.95,
+          "change": 1.1,
+          "marketCap": 1078559571968,
+          "pe": 16.0,
+          "fwdPe": 20.7
+        },
+        {
+          "ticker": "JPM",
+          "price": 323.09,
+          "change": 1.85,
+          "marketCap": 888417943552,
+          "pe": 16.0,
+          "fwdPe": 15.3
+        },
+        {
+          "ticker": "V",
+          "price": 352.09,
+          "change": 0.81,
+          "marketCap": 679497498624,
+          "pe": 34.5,
+          "fwdPe": 24.4
+        },
+        {
+          "ticker": "MA",
+          "price": 575.7,
+          "change": 0.61,
+          "marketCap": 520439627776,
+          "pe": 36.8,
+          "fwdPe": 30.1
+        },
+        {
+          "ticker": "BAC",
+          "price": 55.88,
+          "change": 1.1,
+          "marketCap": 413900210176,
+          "pe": 15.3,
+          "fwdPe": 12.8
+        },
+        {
+          "ticker": "WFC",
+          "price": 94.28,
+          "change": 1.37,
+          "marketCap": 302020427776,
+          "pe": 15.5,
+          "fwdPe": 13.6
+        },
+        {
+          "ticker": "MS",
+          "price": 179.76,
+          "change": 1.57,
+          "marketCap": 286957305856,
+          "pe": 18.5,
+          "fwdPe": 17.1
+        },
+        {
+          "ticker": "GS",
+          "price": 899.0,
+          "change": 0.62,
+          "marketCap": 272146251776,
+          "pe": 18.2,
+          "fwdPe": 16.3
+        },
+        {
+          "ticker": "AXP",
+          "price": 380.85,
+          "change": 1.15,
+          "marketCap": 265026748416,
+          "pe": 25.6,
+          "fwdPe": 21.8
+        },
+        {
+          "ticker": "BLK",
+          "price": 1088.21,
+          "change": 2.64,
+          "marketCap": 168836775936,
+          "pe": 28.0,
+          "fwdPe": 20.3
+        }
+      ]
+    },
+    {
+      "name": "Healthcare",
+      "stocks": [
+        {
+          "ticker": "LLY",
+          "price": 1076.48,
+          "change": 0.47,
+          "marketCap": 965017796608,
+          "pe": 52.6,
+          "fwdPe": 33.1
+        },
+        {
+          "ticker": "JNJ",
+          "price": 207.32,
+          "change": 0.46,
+          "marketCap": 499495075840,
+          "pe": 20.0,
+          "fwdPe": 18.0
+        },
+        {
+          "ticker": "ABBV",
+          "price": 227.91,
+          "change": 0.48,
+          "marketCap": 402804637696,
+          "pe": 172.7,
+          "fwdPe": 16.0
+        },
+        {
+          "ticker": "UNH",
+          "price": 325.16,
+          "change": -0.69,
+          "marketCap": 294542475264,
+          "pe": 17.0,
+          "fwdPe": 18.3
+        },
+        {
+          "ticker": "MRK",
+          "price": 104.72,
+          "change": 3.59,
+          "marketCap": 261567873024,
+          "pe": 13.9,
+          "fwdPe": 12.6
+        },
+        {
+          "ticker": "ABT",
+          "price": 125.2,
+          "change": -0.2,
+          "marketCap": 217905463296,
+          "pe": 15.7,
+          "fwdPe": 22.1
+        },
+        {
+          "ticker": "TMO",
+          "price": 575.7,
+          "change": 1.39,
+          "marketCap": 216295129088,
+          "pe": 33.2,
+          "fwdPe": 23.4
+        },
+        {
+          "ticker": "ISRG",
+          "price": 579.83,
+          "change": 1.29,
+          "marketCap": 207855435776,
+          "pe": 76.9,
+          "fwdPe": 59.5
+        },
+        {
+          "ticker": "PFE",
+          "price": 25.21,
+          "change": 0.08,
+          "marketCap": 143336685568,
+          "pe": 14.7,
+          "fwdPe": 8.4
+        },
+        {
+          "ticker": "CVS",
+          "price": 78.36,
+          "change": 0.82,
+          "marketCap": 99472728064,
+          "pe": 206.2,
+          "fwdPe": 10.9
+        }
+      ]
+    },
+    {
+      "name": "Consumer Defensive",
+      "stocks": [
+        {
+          "ticker": "WMT",
+          "price": 112.6,
+          "change": -1.54,
+          "marketCap": 897743060992,
+          "pe": 39.4,
+          "fwdPe": 37.8
+        },
+        {
+          "ticker": "COST",
+          "price": 850.0,
+          "change": -0.66,
+          "marketCap": 377364054016,
+          "pe": 45.5,
+          "fwdPe": 38.3
+        },
+        {
+          "ticker": "PG",
+          "price": 142.69,
+          "change": -1.23,
+          "marketCap": 333963853824,
+          "pe": 20.8,
+          "fwdPe": 19.4
+        },
+        {
+          "ticker": "KO",
+          "price": 70.21,
+          "change": 0.21,
+          "marketCap": 302160478208,
+          "pe": 23.2,
+          "fwdPe": 21.8
+        },
+        {
+          "ticker": "PM",
+          "price": 159.7,
+          "change": 1.82,
+          "marketCap": 248595202048,
+          "pe": 22.8,
+          "fwdPe": 19.1
+        },
+        {
+          "ticker": "PEP",
+          "price": 147.05,
+          "change": -0.75,
+          "marketCap": 201322807296,
+          "pe": 28.0,
+          "fwdPe": 17.2
+        },
+        {
+          "ticker": "MDLZ",
+          "price": 54.31,
+          "change": -0.35,
+          "marketCap": 70274179072,
+          "pe": 20.3,
+          "fwdPe": 17.2
+        },
+        {
+          "ticker": "CL",
+          "price": 79.04,
+          "change": 0.87,
+          "marketCap": 63881773056,
+          "pe": 22.1,
+          "fwdPe": 20.6
+        }
+      ]
+    },
+    {
+      "name": "Industrials",
+      "stocks": [
+        {
+          "ticker": "GE",
+          "price": 314.73,
+          "change": 2.45,
+          "marketCap": 333752107008,
+          "pe": 42.0,
+          "fwdPe": 43.7
+        },
+        {
+          "ticker": "CAT",
+          "price": 582.41,
+          "change": 1.07,
+          "marketCap": 272846782464,
+          "pe": 29.9,
+          "fwdPe": 26.1
+        },
+        {
+          "ticker": "RTX",
+          "price": 185.68,
+          "change": 2.02,
+          "marketCap": 248954535936,
+          "pe": 38.2,
+          "fwdPe": 27.4
+        },
+        {
+          "ticker": "BA",
+          "price": 216.84,
+          "change": 1.29,
+          "marketCap": 169801170944,
+          "pe": null,
+          "fwdPe": 92.7
+        },
+        {
+          "ticker": "UNP",
+          "price": 234.61,
+          "change": 0.16,
+          "marketCap": 139161485312,
+          "pe": 19.9,
+          "fwdPe": 18.5
+        },
+        {
+          "ticker": "HON",
+          "price": 195.96,
+          "change": -1.58,
+          "marketCap": 132051509248,
+          "pe": 20.7,
+          "fwdPe": 18.5
+        },
+        {
+          "ticker": "DE",
+          "price": 468.77,
+          "change": -0.38,
+          "marketCap": 126776705024,
+          "pe": 25.3,
+          "fwdPe": 20.7
+        },
+        {
+          "ticker": "LMT",
+          "price": 483.57,
+          "change": 1.99,
+          "marketCap": 112896696320,
+          "pe": 27.0,
+          "fwdPe": 16.6
+        },
+        {
+          "ticker": "UPS",
+          "price": 100.73,
+          "change": -1.17,
+          "marketCap": 85457887232,
+          "pe": 15.6,
+          "fwdPe": 14.1
+        }
+      ]
+    },
+    {
+      "name": "Energy",
+      "stocks": [
+        {
+          "ticker": "XOM",
+          "price": 118.15,
+          "change": 1.25,
+          "marketCap": 503702650880,
+          "pe": 17.2,
+          "fwdPe": 16.4
+        },
+        {
+          "ticker": "CVX",
+          "price": 149.8,
+          "change": 1.39,
+          "marketCap": 301820411904,
+          "pe": 21.0,
+          "fwdPe": 19.8
+        },
+        {
+          "ticker": "COP",
+          "price": 93.31,
+          "change": 1.49,
+          "marketCap": 116538810368,
+          "pe": 13.2,
+          "fwdPe": 15.0
+        },
+        {
+          "ticker": "SLB",
+          "price": 38.33,
+          "change": 0.66,
+          "marketCap": 57262092288,
+          "pe": 14.9,
+          "fwdPe": 13.0
+        },
+        {
+          "ticker": "EOG",
+          "price": 103.42,
+          "change": 1.46,
+          "marketCap": 56466636800,
+          "pe": 10.3,
+          "fwdPe": 9.8
+        },
+        {
+          "ticker": "PSX",
+          "price": 128.99,
+          "change": 0.08,
+          "marketCap": 52127989760,
+          "pe": 34.8,
+          "fwdPe": 11.1
+        },
+        {
+          "ticker": "VLO",
+          "price": 163.55,
+          "change": 0.52,
+          "marketCap": 50807095296,
+          "pe": 34.0,
+          "fwdPe": 13.0
+        },
+        {
+          "ticker": "MPC",
+          "price": 164.77,
+          "change": -2.11,
+          "marketCap": 50093428736,
+          "pe": 17.5,
+          "fwdPe": 11.6
+        }
+      ]
+    },
+    {
+      "name": "Materials",
+      "stocks": [
+        {
+          "ticker": "LIN",
+          "price": 423.51,
+          "change": 0.49,
+          "marketCap": 198587875328,
+          "pe": 28.3,
+          "fwdPe": 23.7
+        },
+        {
+          "ticker": "NEM",
+          "price": 104.88,
+          "change": 3.54,
+          "marketCap": 115205398528,
+          "pe": 16.3,
+          "fwdPe": 13.5
+        },
+        {
+          "ticker": "SHW",
+          "price": 323.84,
+          "change": 0.93,
+          "marketCap": 80744095744,
+          "pe": 31.7,
+          "fwdPe": 25.8
+        },
+        {
+          "ticker": "ECL",
+          "price": 267.38,
+          "change": 1.44,
+          "marketCap": 75835629568,
+          "pe": 38.5,
+          "fwdPe": 31.5
+        },
+        {
+          "ticker": "FCX",
+          "price": 50.64,
+          "change": 3.03,
+          "marketCap": 72715526144,
+          "pe": 35.4,
+          "fwdPe": 22.4
+        },
+        {
+          "ticker": "APD",
+          "price": 244.78,
+          "change": 2.01,
+          "marketCap": 54486011904,
+          "pe": null,
+          "fwdPe": 17.7
+        }
+      ]
+    },
+    {
+      "name": "Utilities",
+      "stocks": [
+        {
+          "ticker": "NEE",
+          "price": 80.04,
+          "change": 0.63,
+          "marketCap": 166692077568,
+          "pe": 25.4,
+          "fwdPe": 20.0
+        },
+        {
+          "ticker": "SO",
+          "price": 85.72,
+          "change": 0.52,
+          "marketCap": 94386716672,
+          "pe": 21.3,
+          "fwdPe": 18.7
+        },
+        {
+          "ticker": "DUK",
+          "price": 116.3,
+          "change": 0.64,
+          "marketCap": 90442006528,
+          "pe": 18.3,
+          "fwdPe": 17.4
+        },
+        {
+          "ticker": "AEP",
+          "price": 114.62,
+          "change": 0.11,
+          "marketCap": 61352144896,
+          "pe": 16.8,
+          "fwdPe": 18.1
+        },
+        {
+          "ticker": "SRE",
+          "price": 88.09,
+          "change": 1.32,
+          "marketCap": 57494712320,
+          "pe": 27.1,
+          "fwdPe": 17.3
+        },
+        {
+          "ticker": "D",
+          "price": 57.22,
+          "change": -3.72,
+          "marketCap": 48860917760,
+          "pe": 18.7,
+          "fwdPe": 15.9
+        }
+      ]
+    },
+    {
+      "name": "Real Estate",
+      "stocks": [
+        {
+          "ticker": "PLD",
+          "price": 127.59,
+          "change": 0.28,
+          "marketCap": 118514139136,
+          "pe": 37.1,
+          "fwdPe": 44.2
+        },
+        {
+          "ticker": "AMT",
+          "price": 172.53,
+          "change": 0.07,
+          "marketCap": 80787382272,
+          "pe": 27.6,
+          "fwdPe": 24.8
+        },
+        {
+          "ticker": "EQIX",
+          "price": 757.92,
+          "change": -0.08,
+          "marketCap": 74417192960,
+          "pe": 69.5,
+          "fwdPe": 49.7
+        },
+        {
+          "ticker": "SPG",
+          "price": 186.66,
+          "change": 0.94,
+          "marketCap": 70409461760,
+          "pe": 27.2,
+          "fwdPe": 27.1
+        },
+        {
+          "ticker": "PSA",
+          "price": 261.41,
+          "change": 0.87,
+          "marketCap": 45867786240,
+          "pe": 27.2,
+          "fwdPe": 25.4
+        },
+        {
+          "ticker": "CCI",
+          "price": 86.43,
+          "change": 0.38,
+          "marketCap": 37638451200,
+          "pe": null,
+          "fwdPe": 25.2
+        }
+      ]
+    }
+  ],
+  "updated": "2025-12-23T22:26:14.459166",
+  "count": 90
+}

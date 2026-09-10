@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#FFFFFF">
+    <title>차트뷰 - 주식 비교 분석</title>
+    <meta name="description" content="주식 수익률 비교, 밸류에이션 분석, FRED 경제 지표를 한눈에. AI 투자 어시스턴트와 대화도 가능합니다.">
+
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=20260219v2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="/static/css/ux_patch.css?v=20260910">
+</head>
+
+<body>
+    <div id="app">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1 class="title">차트뷰</h1>
+        </header>
+
+        <!-- ========================================
+             Global Filter (통합 종목 입력 + 섹터 칩)
+             차트/밸류에이션 탭에서 공유
+             ======================================== -->
+        <section id="global-filter" class="global-filter">
+            <!-- 통합 검색 입력 -->
+            <div class="search-section global-search">
+                <div class="search-label">🔍 종목 검색 · 수익률 차트 & 밸류에이션 동시 비교</div>
+                <div class="search-row">
+                    <div class="search-container">
+                        <input type="text" id="unified-input" placeholder="종목명 · 6자리 코드 · 티커 검색" autocomplete="off">
+                        <div id="search-results" class="search-results hidden"></div>
+                    </div>
+                    <button id="add-btn" class="btn-add">+</button>
+                </div>
+                <div class="search-hint">한국 종목은 KOSPI/KOSDAQ 자동 구분 · 회사명/6자리 코드/티커 · 최대 6종목</div>
+                <!-- 선택된 종목 태그 -->
+                <div id="ticker-tags" class="ticker-tags"></div>
+            </div>
+
+            <!-- 섹터별 빠른 선택 (통합) -->
+            <section class="sector-section">
+                <div class="sector-scroll-container">
+                    <div class="sector-group">
+                        <div class="sector-title">🖥️ 빅테크</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('AAPL')">AAPL</button>
+                            <button class="chip" onclick="addGlobalTicker('MSFT')">MSFT</button>
+                            <button class="chip" onclick="addGlobalTicker('GOOGL')">GOOGL</button>
+                            <button class="chip" onclick="addGlobalTicker('AMZN')">AMZN</button>
+                            <button class="chip" onclick="addGlobalTicker('META')">META</button>
+                            <button class="chip" onclick="addGlobalTicker('NFLX')">NFLX</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">🤖 AI·반도체</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('NVDA')">NVDA</button>
+                            <button class="chip" onclick="addGlobalTicker('AMD')">AMD</button>
+                            <button class="chip" onclick="addGlobalTicker('TSM')">TSM</button>
+                            <button class="chip" onclick="addGlobalTicker('AVGO')">AVGO</button>
+                            <button class="chip" onclick="addGlobalTicker('INTC')">INTC</button>
+                            <button class="chip" onclick="addGlobalTicker('MU')">MU</button>
+                            <button class="chip" onclick="addGlobalTicker('QCOM')">QCOM</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">💰 금융</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('JPM')">JPM</button>
+                            <button class="chip" onclick="addGlobalTicker('BAC')">BAC</button>
+                            <button class="chip" onclick="addGlobalTicker('GS')">GS</button>
+                            <button class="chip" onclick="addGlobalTicker('V')">V</button>
+                            <button class="chip" onclick="addGlobalTicker('MA')">MA</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">💊 헬스케어</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('UNH')">UNH</button>
+                            <button class="chip" onclick="addGlobalTicker('JNJ')">JNJ</button>
+                            <button class="chip" onclick="addGlobalTicker('PFE')">PFE</button>
+                            <button class="chip" onclick="addGlobalTicker('LLY')">LLY</button>
+                            <button class="chip" onclick="addGlobalTicker('ABBV')">ABBV</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">📊 대표 ETF</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('SPY')">SPY</button>
+                            <button class="chip" onclick="addGlobalTicker('QQQ')">QQQ</button>
+                            <button class="chip" onclick="addGlobalTicker('SOXX')">SOXX</button>
+                            <button class="chip" onclick="addGlobalTicker('ARKK')">ARKK</button>
+                            <button class="chip" onclick="addGlobalTicker('VTI')">VTI</button>
+                            <button class="chip" onclick="addGlobalTicker('IWM')">IWM</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">⚡ 전기차·에너지</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('TSLA')">TSLA</button>
+                            <button class="chip" onclick="addGlobalTicker('RIVN')">RIVN</button>
+                            <button class="chip" onclick="addGlobalTicker('ENPH')">ENPH</button>
+                            <button class="chip" onclick="addGlobalTicker('XOM')">XOM</button>
+                            <button class="chip" onclick="addGlobalTicker('CVX')">CVX</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">🏆 원자재</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('GLD')">금(GLD)</button>
+                            <button class="chip" onclick="addGlobalTicker('SLV')">은(SLV)</button>
+                            <button class="chip" onclick="addGlobalTicker('USO')">원유(USO)</button>
+                            <button class="chip" onclick="addGlobalTicker('UNG')">천연가스(UNG)</button>
+                            <button class="chip" onclick="addGlobalTicker('COPX')">구리(COPX)</button>
+                        </div>
+                    </div>
+                    <div class="sector-group">
+                        <div class="sector-title">🇰🇷 한국 대표</div>
+                        <div class="sector-chips">
+                            <button class="chip" onclick="addGlobalTicker('005930.KS', '삼성전자')">삼성전자</button>
+                            <button class="chip" onclick="addGlobalTicker('000660.KS', 'SK하이닉스')">SK하이닉스</button>
+                            <button class="chip" onclick="addGlobalTicker('035420.KS', 'NAVER')">NAVER</button>
+                            <button class="chip" onclick="addGlobalTicker('035720.KS', '카카오')">카카오</button>
+                            <button class="chip" onclick="addGlobalTicker('006400.KS', '삼성SDI')">삼성SDI</button>
+                            <button class="chip" onclick="addGlobalTicker('051910.KS', 'LG화학')">LG화학</button>
+                            <button class="chip" onclick="addGlobalTicker('005380.KS', '현대차')">현대차</button>
+                            <button class="chip" onclick="addGlobalTicker('068270.KS', '셀트리온')">셀트리온</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- 탭 네비게이션 -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="chart">📈 차트 비교</button>
+            <button class="tab-btn" data-tab="fwdper">📊 밸류에이션</button>
+            <button class="tab-btn" data-tab="macro">🌐 경제 지표</button>
+            <button class="tab-btn" data-tab="ai">🤖 AI 질문</button>
+        </nav>
+
+        <!-- 차트 탭 -->
+        <div id="chart-tab" class="tab-content active">
+            <!-- 기간 선택 -->
+            <section class="date-section">
+                <div class="date-row">
+                    <div class="date-field">
+                        <label>시작일</label>
+                        <input type="date" id="start-date">
+                    </div>
+                    <span class="date-sep">~</span>
+                    <div class="date-field">
+                        <label>종료일</label>
+                        <input type="date" id="end-date">
+                    </div>
+                    <button id="apply-date-btn" class="btn-apply">적용</button>
+                </div>
+                <div class="quick-periods">
+                    <button class="period-chip active" data-period="1mo">1개월</button>
+                    <button class="period-chip" data-period="3mo">3개월</button>
+                    <button class="period-chip" data-period="6mo">6개월</button>
+                    <button class="period-chip" data-period="ytd">YTD</button>
+                    <button class="period-chip" data-period="1y">1년</button>
+                    <button class="period-chip" data-period="max">전체</button>
+                </div>
+            </section>
+
+            <!-- 차트 영역 -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <span class="chart-title">수익률 비교</span>
+                    <span class="chart-unit">%</span>
+                </div>
+                <div id="chart-container"></div>
+                <div id="legend" class="legend"></div>
+            </section>
+        </div>
+
+        <!-- 밸류에이션 탭 -->
+        <div id="fwdper-tab" class="tab-content">
+            <!-- 지표 선택 -->
+            <section class="metric-section">
+                <div class="metric-label">📊 비교할 지표를 선택하세요</div>
+                <div class="metric-chips">
+                    <button class="metric-chip active" data-metric="overview">📊 종합 비교 (Overview)</button>
+                    <button class="metric-chip" data-metric="fwd_per">📈 FWD PER (전망)</button>
+                    <button class="metric-chip" data-metric="trailing_pe">📉 PER (실적)</button>
+                    <button class="metric-chip" data-metric="pbr">📖 PBR (자산)</button>
+                    <button class="metric-chip" data-metric="psr">💰 PSR (매출)</button>
+                    <button class="metric-chip" data-metric="ev">🏭 EV/EBITDA</button>
+                    <button class="metric-chip" data-metric="dividend">💎 배당률</button>
+                    <button class="metric-chip" data-metric="profitability">🔥 수익성(ROE)</button>
+                </div>
+            </section>
+
+            <!-- 결과 테이블 -->
+            <section class="per-section">
+                <div class="per-header">
+                    <div class="per-header-left">
+                        <span class="per-title" id="metric-title">Forward PER 비교</span>
+                        <div class="per-header-meta">
+                            <div id="metric-description" class="metric-description"></div>
+                            <div id="update-badge" class="update-badge hidden"></div>
+                        </div>
+                        <div class="per-source">Yahoo Finance 애널리스트 컨센서스 기준</div>
+                    </div>
+                    <div class="per-sort">
+                        <button class="sort-btn active" data-sort="default">입력순</button>
+                        <button class="sort-btn" data-sort="metric-asc">낮은순 ↑</button>
+                        <button class="sort-btn" data-sort="metric-desc">높은순 ↓</button>
+                    </div>
+                </div>
+                <div id="per-table-container">
+                    <div class="per-empty">상단에서 종목을 선택하면 밸류에이션 비교 결과가 표시됩니다</div>
+                </div>
+                <div id="per-loading" class="loading hidden">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 경제 지표 탭 -->
+        <div id="macro-tab" class="tab-content">
+            <section class="macro-section">
+                <div class="macro-header">
+                    <h2 class="macro-title">🌐 글로벌 매크로 인사이트</h2>
+                    <p class="macro-desc">미 연준(FRED) 및 글로벌 금융 시장의 핵심 지표를 한국어로 풀이해 드립니다.</p>
+                </div>
+
+                <div id="macro-grid" class="macro-grid">
+                    <!-- JS에서 렌더링 -->
+                    <div class="macro-loading-inner">
+                        <div class="spinner"></div>
+                        <p>글로벌 경제 데이터를 번역하고 있습니다...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- AI 질문 탭 -->
+        <div id="ai-tab" class="tab-content">
+            <section class="ai-section">
+                <div class="ai-header">
+                    <h2 class="ai-title">🤖 AI 투자 어시스턴트</h2>
+                    <p class="ai-desc">주식, 경제, 투자 전략에 대해 무엇이든 물어보세요. 쉽고 재미있게 설명해 드립니다.</p>
+                </div>
+
+                <!-- 추천 질문 -->
+                <div class="ai-suggestions">
+                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">장단기 금리차가 역전되면 무슨 일이 생기나요?</button>
+                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">지금 미국 주식 시장 전망은?</button>
+                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">PER이 낮은 주식이 무조건 좋은 건가요?</button>
+                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">연준의 양적긴축(QT)이 주식에 미치는 영향</button>
+                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">환율이 오르면 한국 투자자에게 유리한가요?</button>
+                </div>
+
+                <!-- 채팅 영역 -->
+                <div id="ai-chat-container" class="ai-chat-container">
+                    <div id="ai-messages" class="ai-messages">
+                        <div class="ai-message ai-bot">
+                            <div class="ai-avatar">🤖</div>
+                            <div class="ai-bubble">
+                                안녕하세요! 저는 주식/경제 전문 AI 어시스턴트입니다.<br>
+                                궁금한 점을 편하게 물어보세요. 💬
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 입력 영역 -->
+                <div class="ai-input-area">
+                    <div class="ai-input-row">
+                        <textarea id="ai-input" class="ai-input" placeholder="주식, 경제, 투자에 대해 물어보세요..."
+                            rows="1"></textarea>
+                        <button id="ai-send-btn" class="ai-send-btn" onclick="sendAiQuestion()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13" />
+                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="ai-input-hint">Gemini AI 기반 · 투자 참고용 정보이며 투자 조언이 아닙니다</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 푸터 / 면책 조항 -->
+        <footer class="app-footer">
+            <div class="disclaimer">
+                <p>본 사이트에서 제공하는 모든 정보는 <strong>Yahoo Finance</strong> 데이터를 기반으로 하며, 실제 시장 가격이나 실적과 차이가 있을 수 있습니다.</p>
+                <p>제공되는 데이터와 지표는 투자 참고용이며, 이를 기반으로 한 투자 결과에 대하여 당사는 어떠한 책임도 지지 않습니다. 최종 투자 결정은 투자자 본인의 판단하에 이루어져야 합니다.
+                </p>
+            </div>
+        </footer>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/chart.js?v=20260219v2"></script>
+    <script src="/static/js/fwdper.js?v=20260219v2"></script>
+    <script src="/static/js/macro.js?v=20260219v2"></script>
+    <script src="/static/js/gemini.js?v=20260219v2"></script>
+    <script src="/static/js/ux_patch.js?v=20260910"></script>
+</body>
+
+</html>

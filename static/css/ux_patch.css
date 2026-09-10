@@ -1,0 +1,43 @@
+/* 2026-09 UX patch: comparison-first layout */
+.global-filter .global-search {
+  border-radius: 18px !important;
+  margin-bottom: 10px !important;
+}
+.global-filter .sector-section {
+  border-radius: 18px !important;
+  padding: 12px 18px !important;
+  max-height: none !important;
+}
+.ux-sector-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  padding: 5px 2px 9px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4E5968;
+  cursor: pointer;
+}
+.sector-section.ux-collapsed .sector-scroll-container { display: none; }
+.search-result-item { gap: 14px; }
+.search-result-item .name { font-weight: 650; }
+.search-result-item .symbol { white-space: nowrap; color: #6B7684; }
+.ux-data-status {
+  margin: -2px 20px 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #F7F8FA;
+  color: #6B7684;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.ticker-tag { background: #F2F7FF; border-color: #DCEBFF; }
+@media (min-width: 900px) {
+  #app { max-width: 1100px; margin: 0 auto; width: 100%; }
+  .chart-section { margin: 8px 16px 0; border-radius: 18px; box-shadow: var(--card-shadow); }
+  #chart-container { height: 340px; }
+}
