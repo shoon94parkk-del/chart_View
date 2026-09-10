@@ -20,6 +20,7 @@ import os
 import threading
 from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
 from valuation_band_service import fetch_valuation_bands
+from consensus_service import fetch_consensus
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -654,6 +655,21 @@ async def valuation_band_data(ticker: str, years: int = 3):
         print(f"[ValuationBand] {symbol} failed: {exc}")
         return JSONResponse(
             {"error": "역사적 밸류에이션 데이터를 계산하지 못했습니다.", "ticker": symbol},
+            status_code=503,
+        )
+
+
+@app.get("/api/consensus")
+async def consensus_data(ticker: str):
+    symbol = (ticker or "").strip().upper()
+    if not symbol:
+        return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+    try:
+        return await asyncio.to_thread(fetch_consensus, symbol)
+    except Exception as exc:
+        print(f"[Consensus] {symbol} failed: {exc}")
+        return JSONResponse(
+            {"error": "애널리스트 컨센서스 데이터를 불러오지 못했습니다.", "ticker": symbol},
             status_code=503,
         )
 
