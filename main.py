@@ -20,6 +20,7 @@ import base64
 import asyncio
 import os
 import threading
+from market_service import fetch_compare_stock, fetch_valuation_snapshot
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -237,91 +238,17 @@ def get_korean_stock_name(ticker):
 
 @app.get("/api/compare")
 async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, end: str = None):
-    """여러 종목 비교 API (날짜 범위 지원)"""
-    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()]
-    
+    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
     if not ticker_list:
         return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
-    
-    # 기간별 인터벌
-    interval_map = {
-        "1d": "5m", "5d": "15m", "1mo": "1h",
-        "3mo": "1d", "6mo": "1d", "1y": "1d", "max": "1d"
-    }
-    interval = interval_map.get(period, "1d")
-    
-    results = []
-    
-    async def fetch_stock_data(ticker):
-        # 캐시 확인 (이름 정보 등)
-        cached = STOCK_INFO_CACHE.get(ticker)
-        now_ts = time.time()
-        
-        try:
-            stock = yf.Ticker(ticker)
-            
-            # 날짜 범위가 있으면 사용, 없으면 기간 사용
-            if start and end:
-                df = stock.history(start=start, end=end, interval="1d")
-            else:
-                df = stock.history(period=period, interval=interval)
-
-            # Yahoo가 간헐적으로 돌려주는 NaN/0 가격을 차트에서 제거
-            if not df.empty and "Close" in df.columns:
-                df = df.copy()
-                df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
-                df = df[df["Close"].notna() & (df["Close"] > 0)]
-
-            if df.empty:
-                return None
-            
-            # 이름 정보 캐싱 (가장 느린 부분)
-            if cached and (now_ts - cached["timestamp"] < CACHE_EXPIRE):
-                name = cached["name"]
-            else:
-                is_korean = ticker.endswith(".KS") or ticker.endswith(".KQ")
-                name = ticker
-                
-                if is_korean:
-                    # 한국 주식: 네이버 금융에서 한글 이름 가져오기
-                    name = get_korean_stock_name(ticker) or ticker
-                
-                if name == ticker:
-                    # 글로벌 주식 또는 네이버 실패 시 yfinance 사용
-                    info = stock.info
-                    name = info.get("shortName") or info.get("longName") or ticker
-                
-                STOCK_INFO_CACHE[ticker] = {"name": name, "timestamp": now_ts}
-            
-            # 수익률 계산
-            first = df["Close"].iloc[0]
-            line_data = [{"time": int(idx.timestamp()), "value": round(((row["Close"] - first) / first) * 100, 2)} 
-                         for idx, row in df.iterrows()]
-            
-            return {
-                "ticker": ticker,
-                "name": name,
-                "price": round(df["Close"].iloc[-1], 2),
-                "return": round(((df["Close"].iloc[-1] - first) / first) * 100, 2),
-                "data": line_data
-            }
-        except Exception as e:
-            print(f"Error fetching {ticker}: {e}")
-            return None
-
-    # 병렬 실행 (최대 6종목)
-    tasks = [fetch_stock_data(t) for t in ticker_list[:6]]
-    fetch_results = await asyncio.gather(*tasks)
-    results = [r for r in fetch_results if r]
-    
-    import datetime
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    return {
-        "stocks": results,
-        "timestamp": now,
-        "source": "Yahoo Finance"
-    }
+    fetched = await asyncio.gather(*[asyncio.to_thread(fetch_compare_stock, t, period, start, end) for t in ticker_list], return_exceptions=True)
+    by_ticker, errors = {}, []
+    for ticker, item in zip(ticker_list, fetched):
+        if isinstance(item, Exception): errors.append({"ticker": ticker, "message": str(item)})
+        elif item: by_ticker[ticker] = item
+        else: errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
+    return {"stocks": [by_ticker[t] for t in ticker_list if t in by_ticker], "errors": errors,
+  "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "source": "Yahoo Finance Chart"}
 
 
 @app.get("/api/popular")
@@ -895,162 +822,16 @@ async def macro_data():
 @app.get("/api/fwd-per")
 @app.get("/api/valuation")
 async def valuation_data(tickers: str):
-    """밸류에이션 데이터 API - PER, PBR, PSR, EV/EBITDA, 배당수익률, ROE"""
-    ticker_list = [t.strip() for t in tickers.split(",") if t.strip()]
-    
-    if not ticker_list:
-        return {"stocks": []}
-    
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    
-    def fetch_naver_valuation(ticker):
-        """네이버 금융에서 한국 주식 PER/PBR 가져오기 (yfinance 폴백)"""
-        try:
-            from bs4 import BeautifulSoup
-            # 티커에서 종목코드 추출: 080220.KS -> 080220
-            code = ticker.split(".")[0]
-            url = f"https://finance.naver.com/item/main.naver?code={code}"
-            r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
-            r.encoding = "euc-kr"
-            soup = BeautifulSoup(r.text, "html.parser")
-            
-            result = {}
-            
-            # 종목명
-            name_tag = soup.select_one("div.wrap_company h2 a")
-            if name_tag:
-                result["name"] = name_tag.get_text(strip=True)
-            
-            # PER (id="_per"), PBR (id="_pbr"), 배당수익률 (id="_dvr")
-            per_tag = soup.select_one("#_per")
-            pbr_tag = soup.select_one("#_pbr")
-            dvr_tag = soup.select_one("#_dvr")
-            
-            if per_tag:
-                per_text = per_tag.get_text(strip=True).replace(",", "")
-                if per_text and per_text != "N/A":
-                    try: result["per"] = float(per_text)
-                    except: pass
-            
-            if pbr_tag:
-                pbr_text = pbr_tag.get_text(strip=True).replace(",", "")
-                if pbr_text and pbr_text != "N/A":
-                    try: result["pbr"] = float(pbr_text)
-                    except: pass
-            
-            if dvr_tag:
-                dvr_text = dvr_tag.get_text(strip=True).replace(",", "").replace("%", "")
-                if dvr_text and dvr_text != "N/A":
-                    try: result["dividendYield"] = float(dvr_text) / 100
-                    except: pass
-            
-            if result:
-                print(f"[Naver] {ticker}: PER={result.get('per')}, PBR={result.get('pbr')}")
-            return result if result else None
-        except Exception as e:
-            print(f"[Naver] Failed for {ticker}: {e}")
-            return None
-    
-    def fetch_valuation(ticker):
-        """개별 종목 밸류에이션 데이터 가져오기"""
-        now_ts = time.time()
-        # 캐시 키는 지표를 포함하므로 'valuation_' 접두사 사용
-        cache_key = f"val_{ticker.upper()}"
-        cached = STOCK_INFO_CACHE.get(cache_key)
-        
-        if cached and (now_ts - cached["timestamp"] < CACHE_EXPIRE):
-            return cached["data"]
-
-        try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
-            
-            name = info.get("shortName") or info.get("longName") or ticker
-            price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
-            market_cap = info.get("marketCap", 0)
-            sector = info.get("sector", "")
-            
-            # PER 등 주요 지표 수집
-            trailing_pe = info.get("trailingPE")
-            forward_pe = info.get("forwardPE")
-            trailing_eps = info.get("trailingEps")
-            forward_eps = info.get("forwardEps")
-            pbr = info.get("priceToBook")
-            book_value = info.get("bookValue")
-            psr = info.get("priceToSalesTrailing12Months")
-            
-            ev = info.get("enterpriseValue")
-            ebitda = info.get("ebitda")
-            ev_ebitda = (ev / ebitda) if ev and ebitda and ebitda > 0 else None
-            
-            dividend_yield = info.get("dividendYield")
-            roe = info.get("returnOnEquity")
-            if roe is not None: roe = roe * 100
-            
-            operating_margin = info.get("operatingMargins")
-            if operating_margin is not None: operating_margin = operating_margin * 100
-            
-            # 한국 주식 폴백: yfinance에서 PER/PBR이 없으면 네이버 금융에서 가져오기
-            is_korean = ticker.endswith(".KS") or ticker.endswith(".KQ")
-            if is_korean and trailing_pe is None and pbr is None:
-                naver_data = fetch_naver_valuation(ticker)
-                if naver_data:
-                    trailing_pe = trailing_pe or naver_data.get("per")
-                    pbr = pbr or naver_data.get("pbr")
-                    dividend_yield = dividend_yield or naver_data.get("dividendYield")
-                    if naver_data.get("name"):
-                        name = naver_data["name"]
-            
-            data = {
-                "ticker": ticker,
-                "name": name,
-                "price": round(price, 2) if price else 0,
-                "marketCap": market_cap,
-                "sector": sector,
-                "trailingPE": round(trailing_pe, 2) if trailing_pe else None,
-                "forwardPE": round(forward_pe, 2) if forward_pe else None,
-                "trailingEPS": round(trailing_eps, 2) if trailing_eps else None,
-                "forwardEPS": round(forward_eps, 2) if forward_eps else None,
-                "pbr": round(pbr, 2) if pbr else None,
-                "bookValue": round(book_value, 2) if book_value else None,
-                "psr": round(psr, 2) if psr else None,
-                "evEbitda": round(ev_ebitda, 2) if ev_ebitda else None,
-                "dividendYield": round(dividend_yield, 2) if dividend_yield else None,
-                "roe": round(roe, 2) if roe else None,
-                "operatingMargin": round(operating_margin, 2) if operating_margin else None,
-            }
-            # 캐시 저장
-            STOCK_INFO_CACHE[cache_key] = {"data": data, "timestamp": now_ts}
-            return data
-        except Exception as e:
-            print(f"Valuation Error: {ticker} - {e}")
-            return None
-    
-    # 병렬 처리 (최대 10개)
-    results = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_valuation, t): t for t in ticker_list[:20]}
-        for future in as_completed(futures):
-            result = future.result()
-            if result:
-                results.append(result)
-    
-    # 입력 순서 유지
-    ordered = []
-    for t in ticker_list:
-        for r in results:
-            if r["ticker"].upper() == t.upper():
-                ordered.append(r)
-                break
-    
-    import datetime
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    return {
-        "stocks": ordered,
-        "timestamp": now,
-        "source": "Yahoo Finance"
-    }
+    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
+    if not ticker_list: return {"stocks": []}
+    fetched = await asyncio.gather(*[asyncio.to_thread(fetch_valuation_snapshot, t) for t in ticker_list], return_exceptions=True)
+    stocks, errors = [], []
+    for ticker, item in zip(ticker_list, fetched):
+        if isinstance(item, Exception): errors.append({"ticker": ticker, "message": str(item)})
+        elif item: stocks.append(item)
+        else: errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
+    return {"stocks": stocks, "errors": errors, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+  "source": "Yahoo Finance Chart + Fundamentals"}
 
 
 # ========================

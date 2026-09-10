@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 밸류에이션 비교 로직 (정밀화 버전)
  * PER, PBR, PSR, EV/EBITDA 등 모든 지표 대응
  */
@@ -14,19 +14,17 @@ const perTickerNameMap = {};
 // 지표 메타 정보 (탭의 모든 데이터 속성과 일치시킴)
 const METRIC_CONFIG = {
     'overview': {
-        title: '종합 밸류에이션 비교',
-        description: '주요 투자 지표를 한눈에 비교합니다.',
-        columns: [
-            { key: 'forwardPE', label: 'FWD PER', format: 'number', color: true },
-            { key: 'pbr', label: 'PBR', format: 'number', color: true },
-            { key: 'psr', label: 'PSR', format: 'number', color: true },
-            { key: 'dividendYield', label: '배당률(%)', format: 'percent', color: true }
-        ],
-        barKey: 'forwardPE',
-        barLabel: 'FWD PER (선행)',
-        sortKey: 'forwardPE',
-        colorFunc: (v) => v > 0 && v < 25 ? '#3182F6' : '#6B7684'
-    },
+    title: '종합 밸류에이션 비교',
+    description: '현재 확인 가능한 핵심 투자 지표를 한눈에 비교합니다.',
+    columns: [
+        { key: 'trailingPE', label: 'PER', format: 'number', color: true },
+        { key: 'pbr', label: 'PBR', format: 'number', color: true },
+        { key: 'psr', label: 'PSR', format: 'number', color: true },
+        { key: 'roe', label: 'ROE(%)', format: 'percent', color: true }
+    ],
+    barKey: 'trailingPE', barLabel: 'PER (최근 실적)', sortKey: 'trailingPE',
+    colorFunc: (v) => v > 0 && v < 25 ? '#3182F6' : '#6B7684'
+},
     'fwd_per': {
         title: 'Forward PER (선행)',
         description: '향후 12개월 예상 이익 대비 주가 수준입니다.',
@@ -196,7 +194,8 @@ function renderPerTable() {
 
     sortedData.forEach(stock => {
         const isKR = stock.ticker.includes('.KS') || stock.ticker.includes('.KQ');
-        const priceStr = isKR ? `₩${stock.price?.toLocaleString()}` : `$${stock.price?.toLocaleString()}`;
+        const hasPrice = stock.price != null && Number(stock.price) > 0;
+        const priceStr = !hasPrice ? '-' : (isKR ? `₩${Math.round(Number(stock.price)).toLocaleString()}` : `$${Number(stock.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
         html += `<tr>
             <td class="stock-info-cell">
                 <div class="stock-name">${perTickerNameMap[stock.ticker] || stock.name || stock.ticker}</div>
@@ -250,11 +249,8 @@ function renderPerTable() {
 window.addPerTickerDirect = function (ticker) {
     if (!perTickers.includes(ticker)) {
         perTickers.push(ticker);
-        loadPerData();
-        // 차트와 동기화
-        if (typeof addTickerDirect === 'function' && typeof selectedTickers !== 'undefined' && !selectedTickers.includes(ticker)) {
-            addTickerDirect(ticker);
-        }
+        const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+        if (activeTab === 'fwdper') loadPerData();
     }
 };
 
@@ -328,6 +324,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 초기 로드
-    loadPerData();
+    // 밸류에이션 탭을 열 때만 데이터 로드
 });

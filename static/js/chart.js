@@ -310,7 +310,17 @@ function updateLegend(stocks) {
 
 // 로딩
 function showLoading(show) {
-    document.getElementById('loading').classList.toggle('hidden', !show);
+    const section = document.querySelector('.chart-section');
+    if (!section) return;
+    let indicator = section.querySelector('.ux-inline-loader');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'ux-inline-loader';
+        indicator.innerHTML = '<span class="ux-mini-spinner"></span><span>차트 업데이트 중</span>';
+        const header = section.querySelector('.chart-header');
+        if (header) header.insertAdjacentElement('afterend', indicator); else section.prepend(indicator);
+    }
+    indicator.classList.toggle('show', !!show);
 }
 
 // 이벤트 리스너

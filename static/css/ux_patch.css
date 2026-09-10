@@ -13,3 +13,15 @@
   .chart-section { margin: 8px 16px 0; border-radius: 18px; box-shadow: var(--card-shadow); }
   #chart-container { height: 340px; }
 }
+
+
+/* nonblocking-loaders-v2 */
+#loading.loading { display:none !important; }
+.chart-section,.per-section { position:relative; }
+.ux-inline-loader { display:none;align-items:center;gap:7px;width:max-content;margin:4px 16px 8px auto;padding:6px 10px;border-radius:999px;background:#f2f4f6;color:#6b7684;font-size:12px;font-weight:600; }
+.ux-inline-loader.show { display:flex; }
+.ux-mini-spinner { width:13px;height:13px;border:2px solid #d1d6db;border-top-color:#3182f6;border-radius:50%;animation:ux-spin .7s linear infinite; }
+@keyframes ux-spin { to { transform:rotate(360deg); } }
+#per-loading.loading { position:absolute !important;inset:0 !important;min-height:160px;background:rgba(255,255,255,.72);z-index:20;border-radius:16px; }
+#per-loading.loading.hidden { display:none !important; }
+#per-loading.loading:not(.hidden) { display:flex !important; }
