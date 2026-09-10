@@ -10,18 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe macro mirrors
+      - name: Inspect Equibles observation markup
         run: |
           python - <<'PY'
           import re, urllib.request
           for sym in ['t10y2y','walcl','rrpontsyd','bamlh0a0hym2','rsafs','vixcls']:
               url=f'https://equibles.com/economicdata/{sym}'
-              try:
-                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-                  with urllib.request.urlopen(req,timeout=20) as r:
-                      text=r.read().decode('utf-8','replace')
-                  matches=re.findall(r'(20\d{2}-\d{2}-\d{2}).{0,120}?(-?\d[\d,]*(?:\.\d+)?)',text,re.S)
-                  print(sym,'status=200','bytes=',len(text),'matches=',len(matches),'tail=',matches[-3:])
-              except Exception as e:
-                  print(sym,'ERR',repr(e))
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=25) as r:
+                  text=r.read().decode('utf-8','replace')
+              print('\n###',sym,'bytes',len(text))
+              for needle in ['2026-09-09','2026-09-08','2026-09-07','2026-09-02','2026-07-01']:
+                  p=text.find(needle)
+                  if p>=0:
+                      print('needle',needle,'snippet=',repr(text[max(0,p-250):p+500]))
+                      break
+              for pat in [r'"date":"(20\d\d-\d\d-\d\d)"[^}]{0,300}?"value":([^,}\]]+)', r'>(20\d\d-\d\d-\d\d)<.*?>(-?[\d,]+(?:\.\d+)?)<']:
+                  m=re.search(pat,text,re.S)
+                  print('pattern',pat[:25],'match=',m.groups() if m else None)
           PY
