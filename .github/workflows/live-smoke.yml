@@ -7,6 +7,7 @@ on:
     paths:
       - 'main.py'
       - 'market_service.py'
+      - 'valuation_band_service.py'
       - 'requirements.txt'
       - 'templates/**'
       - 'static/js/**'
@@ -34,7 +35,8 @@ jobs:
               && grep -q 'viewport-fit=cover' /tmp/home.html \
               && ! grep -q 'user-scalable=no' /tmp/home.html \
               && grep -q '/static/js/macro.js?v=20260911v1' /tmp/home.html \
-              && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html; then
+              && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html \
+              && grep -q '/static/js/valuation_bands.js?v=20260911v1' /tmp/home.html; then
               ready=1
               echo "current mobile build detected on attempt=$i"
               break
@@ -71,9 +73,11 @@ jobs:
           curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux.js
           curl -fsSL "$BASE/static/js/ideas.js?v=20260911v1" -o /tmp/ideas.js
           curl -fsSL "$BASE/static/js/screener.js?v=20260911v1" -o /tmp/screener.js
+          curl -fsSL "$BASE/static/js/valuation_bands.js?v=20260911v1" -o /tmp/bands.js
           grep -Fq 'const isSixCharCode = (text) => /^\d{6}$/.test(text);' /tmp/ux.js
           grep -q 'ideas-market' /tmp/ideas.js
           grep -q 'data-screen-preset="momentum"' /tmp/screener.js
+          grep -q '역사적 밸류에이션 밴드' /tmp/bands.js
 
           python - <<'PY'
           import json
@@ -110,6 +114,23 @@ jobs:
               assert row.get('price') and float(row['price']) > 0, (ticker,row)
               assert row.get('forwardPE') is not None and 0 < float(row['forwardPE']) < 250, (ticker,row)
           print('valuation OK', [(t,rows[t]['price'],rows[t]['forwardPE']) for t in rows])
+          PY
+
+          echo 'Historical valuation bands:'
+          for t in AAPL NVDA 005930.KS 000660.KS; do
+            curl -fsSL --get --data-urlencode "ticker=$t" --data-urlencode 'years=3' "$BASE/api/valuation-band" -o "/tmp/band-$t.json"
+          done
+          python - <<'PY'
+          import json
+          for t in ('AAPL','NVDA','005930.KS','000660.KS'):
+              d=json.load(open(f'/tmp/band-{t}.json'))
+              ps=d.get('per',{}).get('stats') or {}
+              bs=d.get('pbr',{}).get('stats') or {}
+              assert len(d.get('per',{}).get('points',[])) >= 30, (t,'PER')
+              assert len(d.get('pbr',{}).get('points',[])) >= 30, (t,'PBR')
+              assert 0 < float(ps.get('current',0)) < 200, (t,ps)
+              assert 0 < float(bs.get('current',0)) < 100, (t,bs)
+              print('band OK',t,'PER',ps.get('current'),'PBR',bs.get('current'),'PER pct',ps.get('percentile'),'PBR pct',bs.get('percentile'))
           PY
 
           curl -fsSL "$BASE/api/heatmap" -o /tmp/heatmap.json
