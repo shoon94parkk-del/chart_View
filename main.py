@@ -143,10 +143,10 @@ async def search_stocks(q: str):
     
     results = []
     
-    # 자주 쓰는 국내 종목 별칭도 회사명 검색으로 연결
+    # 자주 쓰는 국내 종목 별칭도 회사명/종목코드 검색으로 연결
     aliases = {
         "삼전": "삼성전자", "하닉": "SK하이닉스", "삼바": "삼성바이오로직스",
-        "엘전": "LG전자", "현차": "현대차", "네이버": "NAVER"
+        "엘전": "LG전자", "현차": "현대차", "네이버": "035420"
     }
     query = aliases.get(query.lower(), query)
 
@@ -186,7 +186,9 @@ async def search_stocks(q: str):
                 results.append({
                     "symbol": f"{query}{code_match[0].get('suffix', '.KS')}",
                     "name": code_match[0]["name"],
-                    "type": "KRX"
+                    "type": "KRX",
+                    "code": code_match[0]["code"],
+                    "market": code_match[0].get("market", "KRX")
                 })
         
         # yfinance로 티커 검색
