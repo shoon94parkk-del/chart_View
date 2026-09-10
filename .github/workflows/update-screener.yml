@@ -1,0 +1,52 @@
+name: Update Korean Stock Screener
+
+on:
+  schedule:
+    - cron: '10 7 * * 1-5'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature/fast-screener
+    paths:
+      - 'scripts/generate_screener.py'
+      - '.github/workflows/update-screener.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: korean-screener-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install screener dependencies
+        run: pip install pykrx pandas requests lxml html5lib
+
+      - name: Generate precomputed screener
+        run: python scripts/generate_screener.py
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/screener.json
+          if git diff --cached --quiet; then
+            echo "No screener changes"
+          else
+            git commit -m "data: refresh Korean stock screener"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
