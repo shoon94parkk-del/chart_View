@@ -2,21 +2,15 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
+    # 17:30 KST on Korean weekdays, after the regular market close
     - cron: '30 8 * * 1-5'
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - feature/fast-screener
-    paths:
-      - 'scripts/generate_screener.py'
-      - '.github/workflows/update-screener.yml'
 
 permissions:
   contents: write
 
 concurrency:
-  group: korean-screener-${{ github.ref_name }}
+  group: korean-screener
   cancel-in-progress: true
 
 jobs:
@@ -25,8 +19,6 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
 
       - uses: actions/setup-python@v5
         with:
@@ -49,5 +41,5 @@ jobs:
             echo "No screener changes"
           else
             git commit -m "data: refresh Korean stock screener"
-            git push origin HEAD:${{ github.ref_name }}
+            git push origin HEAD:main
           fi
