@@ -2,8 +2,8 @@ name: Update Valuation Detail Cache
 
 on:
   schedule:
-    # 07:30 KST on Korean weekdays, after the US regular session has closed.
-    - cron: '30 22 * * 1-5'
+    # 07:30 KST Monday-Friday = 22:30 UTC Sunday-Thursday.
+    - cron: '30 22 * * 0-4'
   workflow_dispatch:
   push:
     branches: [main]
