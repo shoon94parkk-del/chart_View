@@ -1,4 +1,4 @@
-name: Probe DBnomics Macro Mappings
+name: Probe Macro CSV Feeds
 on:
   push:
     branches: [main]
@@ -10,22 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect Equibles observation markup
+      - name: Verify Equibles CSV feeds
         run: |
           python - <<'PY'
-          import re, urllib.request
-          for sym in ['t10y2y','walcl','rrpontsyd','bamlh0a0hym2','rsafs','vixcls']:
-              url=f'https://equibles.com/economicdata/{sym}'
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-              with urllib.request.urlopen(req,timeout=25) as r:
-                  text=r.read().decode('utf-8','replace')
-              print('\n###',sym,'bytes',len(text))
-              for needle in ['2026-09-09','2026-09-08','2026-09-07','2026-09-02','2026-07-01']:
-                  p=text.find(needle)
-                  if p>=0:
-                      print('needle',needle,'snippet=',repr(text[max(0,p-250):p+500]))
-                      break
-              for pat in [r'"date":"(20\d\d-\d\d-\d\d)"[^}]{0,300}?"value":([^,}\]]+)', r'>(20\d\d-\d\d-\d\d)<.*?>(-?[\d,]+(?:\.\d+)?)<']:
-                  m=re.search(pat,text,re.S)
-                  print('pattern',pat[:25],'match=',m.groups() if m else None)
+          import csv, io, urllib.request
+          symbols = [
+              't10y2y','t10y3m','bamlh0a0hym2','rrpontsyd','dfii10','t10yie',
+              'unrate','rsafs','walcl','wtregen','m2sl','fedfunds','vixcls'
+          ]
+          failures=[]
+          for sym in symbols:
+              url=f'https://equibles.com/economicdata/{sym}.csv'
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=25) as r:
+                      text=r.read().decode('utf-8-sig','replace')
+                  rows=list(csv.reader(io.StringIO(text)))
+                  valid=[row for row in rows[1:] if len(row)>=2 and row[0] and row[1] not in ('','.','NA','N/A')]
+                  if not valid:
+                      raise RuntimeError('no valid observations')
+                  print(sym,'OK','header=',rows[0],'rows=',len(valid),'latest=',valid[-1][:2])
+              except Exception as exc:
+                  failures.append((sym,str(exc)))
+                  print(sym,'FAIL',exc)
+          if failures:
+              raise SystemExit(f'failed feeds: {failures}')
+          print('ALL_FEEDS_OK',len(symbols))
           PY
