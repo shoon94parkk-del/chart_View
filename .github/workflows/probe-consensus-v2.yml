@@ -1,0 +1,40 @@
+name: Probe Consensus V2
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/probe-consensus-v2.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe Yahoo analyst consensus fields
+        run: |
+          python - <<'PY'
+          import requests
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
+          s=requests.Session(); s.headers.update({'User-Agent':UA,'Accept':'application/json,text/plain,*/*'})
+          try: s.get('https://fc.yahoo.com',timeout=8)
+          except Exception: pass
+          c=s.get('https://query1.finance.yahoo.com/v1/test/getcrumb',timeout=8); c.raise_for_status(); crumb=c.text.strip()
+          print('crumb_ok',bool(crumb),'cookies',bool(s.cookies))
+          for sym in ['AAPL','NVDA','005930.KS','000660.KS']:
+            url=f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{sym}'
+            r=s.get(url,params={'modules':'price,earningsTrend,earningsHistory','crumb':crumb},timeout=15)
+            print('\nSYMBOL',sym,'HTTP',r.status_code)
+            r.raise_for_status()
+            root=(r.json().get('quoteSummary',{}).get('result') or [{}])[0]
+            print('name',(root.get('price') or {}).get('shortName'))
+            for row in (root.get('earningsTrend') or {}).get('trend') or []:
+              def raw(obj,key):
+                v=(obj or {}).get(key)
+                return v.get('raw') if isinstance(v,dict) else v
+              print('period',row.get('period'),'endDate',row.get('endDate'))
+              et=row.get('earningsEstimate') or {}; rt=row.get('revenueEstimate') or {}; tr=row.get('epsTrend') or {}; rev=row.get('epsRevisions') or {}
+              print(' earnings avg/low/high/n',raw(et,'avg'),raw(et,'low'),raw(et,'high'),raw(et,'numberOfAnalysts'))
+              print(' revenue avg/low/high/n/growth',raw(rt,'avg'),raw(rt,'low'),raw(rt,'high'),raw(rt,'numberOfAnalysts'),raw(rt,'growth'))
+              print(' epsTrend current/7/30/60/90',raw(tr,'current'),raw(tr,'7daysAgo'),raw(tr,'30daysAgo'),raw(tr,'60daysAgo'),raw(tr,'90daysAgo'))
+              print(' revisions up7/up30/down7/down30',raw(rev,'upLast7days'),raw(rev,'upLast30days'),raw(rev,'downLast7days'),raw(rev,'downLast30days'))
+          PY
