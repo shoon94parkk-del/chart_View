@@ -114,7 +114,8 @@ def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
 def make_row(symbol: str, meta: dict[str, str], rows: list[dict[str, Any]], source: str) -> dict[str, Any]:
     current = rows[-1]["value"]
     previous = rows[-2]["value"] if len(rows) > 1 else current
-    change = ((current - previous) / abs(previous) * 100) if previous else 0.0
+    delta = current - previous
+    change = ((delta / abs(previous)) * 100) if previous else 0.0
     return {
         "original_symbol": symbol,
         "symbol": symbol,
@@ -122,6 +123,7 @@ def make_row(symbol: str, meta: dict[str, str], rows: list[dict[str, Any]], sour
         "desc": meta["desc"],
         "link": meta["link"],
         "value": round(current, 4),
+        "delta": round(delta, 4),
         "change": round(change, 2),
         "chart_data": rows,
         "source": source,
@@ -164,8 +166,6 @@ def main() -> None:
     fresh: dict[str, dict[str, Any]] = {}
     errors: dict[str, str] = {}
 
-    # The feeds are public and light enough for modest parallelism. Keeping the
-    # pool small reduces rate-limit risk while completing well inside Actions' limit.
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(fetch_one, symbol): symbol for symbol in INDICATORS}
         for future in as_completed(futures):
@@ -194,9 +194,6 @@ def main() -> None:
         print("STALE", symbol, kept.get("asOf"))
 
     ordered = [results[symbol] for symbol in INDICATORS if symbol in results]
-
-    # Never create a partial first cache. After a successful baseline exists,
-    # tolerate up to two temporarily unavailable feeds by keeping stale rows.
     required = len(INDICATORS) if not previous else 11
     if len(ordered) < required:
         raise RuntimeError(
