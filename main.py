@@ -7,9 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 import requests
@@ -20,7 +18,7 @@ import base64
 import asyncio
 import os
 import threading
-from market_service import fetch_compare_stock, fetch_valuation_snapshot
+from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -38,7 +36,9 @@ app.add_middleware(
     allow_origins=[
         "https://chartview.apps.tossmini.com",        # 실제 서비스 환경
         "https://chartview.private-apps.tossmini.com", # 콘솔 QR 테스트 환경
-        "*",  # 개발용 (프로덕션에서는 제거 권장)
+        "https://chart-view-bsg6.onrender.com",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -104,9 +104,32 @@ def load_krx_stock_list():
         return KRX_STOCK_LIST
     
     try:
-        # KRX 종목 리스트를 krx.co.kr에서 가져오기
+        # local-screener-universe-v4: GitHub Actions가 만든 전체 종목 JSON을 먼저 사용.
+        # Render cold start에서 KIND를 다시 다운로드하던 수초 지연을 제거한다.
+        try:
+            import json as _json
+            local_path = os.path.join(os.path.dirname(__file__), "static", "data", "screener.json")
+            with open(local_path, "r", encoding="utf-8") as f:
+                payload = _json.load(f)
+            local_rows = []
+            for row in payload.get("stocks", []):
+                code = str(row.get("code") or "").zfill(6)
+                name = str(row.get("name") or "").strip()
+                market = str(row.get("market") or "")
+                if code and name and market in ("KOSPI", "KOSDAQ"):
+                    local_rows.append({
+                        "code": code, "name": name, "market": market,
+                        "suffix": ".KS" if market == "KOSPI" else ".KQ"
+                    })
+            if local_rows:
+                KRX_STOCK_LIST = local_rows
+                KRX_CACHE_TIME = time.time()
+                return KRX_STOCK_LIST
+        except Exception as e:
+            print(f"[KRX] Local screener universe unavailable: {e}")
+
+        # Fallback: KIND bulk download
         headers = {"User-Agent": "Mozilla/5.0"}
-        
         all_stocks = []
         
         # KOSPI / KOSDAQ 시장 정보를 함께 저장해 Yahoo suffix를 정확히 결정
@@ -137,85 +160,60 @@ def load_krx_stock_list():
 
 @app.get("/api/search")
 async def search_stocks(q: str):
-    """종목 검색 API - 한국 주식 이름 및 글로벌 티커 검색"""
-    query = q.strip()
+    """Unified fast search: local KRX universe + local aliases, no yfinance.info."""
+    query = (q or "").strip()
     if not query:
         return {"results": []}
-    
-    results = []
-    
-    # 자주 쓰는 국내 종목 별칭도 회사명/종목코드 검색으로 연결
+
     aliases = {
         "삼전": "삼성전자", "하닉": "SK하이닉스", "삼바": "삼성바이오로직스",
-        "엘전": "LG전자", "현차": "현대차", "네이버": "035420"
+        "엘전": "LG전자", "현차": "현대차", "네이버": "NAVER",
     }
-    query = aliases.get(query.lower(), query)
+    lookup = aliases.get(query.lower(), query)
+    ql = query.lower()
+    ll = lookup.lower()
+    found = {}
 
-    # 1. 한국어가 포함되어 있으면 KRX에서 검색
-    has_korean = any('\uac00' <= c <= '\ud7a3' for c in query)
-    
-    if has_korean:
-        krx_list = load_krx_stock_list()
-        
-        # 정확히 일치하는 것 먼저
-        exact = [s for s in krx_list if s["name"] == query]
-        # 포함하는 것
-        partial = [s for s in krx_list if query in s["name"] and s not in exact]
-        
-        matches = (exact + partial)[:10]
-        
-        for stock in matches:
-            # Yahoo Finance 형식: 6자리코드.KS (KOSPI) 또는 .KQ (KOSDAQ)
-            # 먼저 .KS로 시도, 실패 시 .KQ
-            yahoo_ticker = f"{stock['code']}{stock.get('suffix', '.KS')}"
-            results.append({
-                "symbol": yahoo_ticker,
-                "name": stock["name"],
-                "type": "KRX",
-                "code": stock["code"],
-                "market": stock.get("market", "KRX")
-            })
-    else:
-        # 2. 영문 입력: yfinance로 직접 검색 시도
-        query_upper = query.upper()
-        
-        # 먼저 KRX에서 코드 검색 (숫자 6자리 입력 시)
-        if query.isdigit() and len(query) == 6:
-            krx_list = load_krx_stock_list()
-            code_match = [s for s in krx_list if s["code"] == query]
-            if code_match:
-                results.append({
-                    "symbol": f"{query}{code_match[0].get('suffix', '.KS')}",
-                    "name": code_match[0]["name"],
-                    "type": "KRX",
-                    "code": code_match[0]["code"],
-                    "market": code_match[0].get("market", "KRX")
-                })
-        
-        # yfinance로 티커 검색
-        try:
-            ticker = yf.Ticker(query_upper)
-            info = ticker.info
-            name = info.get("shortName") or info.get("longName") or query_upper
-            if info.get("regularMarketPrice") or info.get("previousClose"):
-                results.append({
-                    "symbol": query_upper,
-                    "name": name,
-                    "type": "GLOBAL"
-                })
-        except:
-            pass
-        
-        # 결과가 없으면 그대로 반환
-        if not results:
-            results.append({
-                "symbol": query_upper,
-                "name": query_upper,
-                "type": "UNKNOWN"
-            })
-    
+    def put(symbol, name, kind="GLOBAL", code=None, market=None, score=50):
+        old = found.get(symbol)
+        row = {"symbol": symbol, "name": name, "type": kind, "score": score}
+        if code: row["code"] = code
+        if market: row["market"] = market
+        if old is None or score < old["score"]:
+            found[symbol] = row
+
+    # Small hand-curated alias DB is instant and also resolves Korean names such as 애플/테슬라.
+    for stock in STOCK_DATABASE:
+        symbol = stock["symbol"]
+        name = stock["name"]
+        blob = f"{symbol} {name} {stock.get('keywords', '')}".lower()
+        if ql == symbol.lower() or ql == name.lower() or ll == symbol.lower() or ll == name.lower():
+            put(symbol, name, "LOCAL", score=0)
+        elif name.lower().startswith(ql) or symbol.lower().startswith(ql):
+            put(symbol, name, "LOCAL", score=1)
+        elif ql in blob or ll in blob:
+            put(symbol, name, "LOCAL", score=3)
+
+    # Full KRX lookup is read from local screener.json; no network on normal operation.
+    has_korean = any('가' <= c <= '힣' for c in lookup)
+    is_code = lookup.isdigit() and len(lookup) == 6
+    if has_korean or is_code:
+        for stock in load_krx_stock_list():
+            name = stock["name"]
+            code = stock["code"]
+            if (is_code and code == lookup) or (has_korean and lookup in name):
+                score = 0 if (name == lookup or code == lookup) else (1 if name.startswith(lookup) else 2)
+                put(f"{code}{stock.get('suffix', '.KS')}", name, "KRX", code, stock.get("market"), score)
+
+    results = sorted(found.values(), key=lambda x: (x["score"], x["name"]))[:10]
+    for row in results:
+        row.pop("score", None)
+
+    # Unknown ASCII ticker: add immediately and let /api/compare validate it.
+    if not results and all(c.isalnum() or c in '.^-=' for c in lookup) and not is_code:
+        results = [{"symbol": lookup.upper(), "name": lookup.upper(), "type": "DIRECT"}]
+
     return {"results": results}
-
 
 def get_korean_stock_name(ticker):
     """네이버 금융에서 한국 주식 한글 이름 가져오기"""
@@ -334,68 +332,29 @@ STOCK_DATABASE = [
 ]
 
 
-@app.get("/api/search")
-async def search_ticker(q: str):
-    """종목 검색 API"""
-    if not q or len(q) < 1:
-        return {"results": []}
-    
-    query = q.lower()
-    results = []
-    
-    for stock in STOCK_DATABASE:
-        # 심볼, 이름, 키워드에서 검색
-        if (query in stock["symbol"].lower() or 
-            query in stock["name"].lower() or 
-            query in stock.get("keywords", "").lower()):
-            results.append({
-                "symbol": stock["symbol"],
-                "name": stock["name"]
-            })
-    
-    return {"results": results[:10]}
-
-
 @app.get("/api/heatmap")
 async def heatmap_data():
-    """히트맵용 주요 종목 데이터 API"""
-    # 히트맵에 표시할 주요 종목 리스트
+    """Heatmap snapshots via the lightweight chart endpoint (no yfinance.info)."""
     heatmap_tickers = [
         "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD",
         "JPM", "V", "MA", "UNH", "JNJ", "LLY", "XOM", "AVGO",
         "005930.KS", "000660.KS", "035420.KS", "035720.KS", "005380.KS"
     ]
-    
-    def fetch_change(ticker):
-        try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
-            # regularMarketChangePercent 또는 trailingPegRatio 등은 실시간성에 따라 다를 수 있음
-            # 간단하게 previousClose와 currentPrice 비교
-            current = info.get("currentPrice") or info.get("regularMarketPrice")
-            prev = info.get("regularMarketPreviousClose")
-            
-            if current and prev:
-                change = ((current - prev) / prev) * 100
-                return {
-                    "ticker": ticker,
-                    "name": info.get("shortName") or ticker,
-                    "change": round(change, 2),
-                    "price": current,
-                    "marketCap": info.get("marketCap", 0)
-                }
-        except:
-            return None
-        return None
-
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_quote_snapshot, t) for t in heatmap_tickers],
+        return_exceptions=True,
+    )
     results = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_change, t): t for t in heatmap_tickers}
-        for future in as_completed(futures):
-            res = future.result()
-            if res:
-                results.append(res)
-    
+    for ticker, row in zip(heatmap_tickers, fetched):
+        if isinstance(row, Exception) or not row:
+            continue
+        results.append({
+            "ticker": ticker,
+            "name": row.get("name") or ticker,
+            "change": row.get("change", 0),
+            "price": row.get("price"),
+            "marketCap": row.get("marketCap") or 0,
+        })
     return {"results": results}
 
 def compute_net_liquidity(ordered_results):
@@ -702,15 +661,12 @@ async def macro_data():
             return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
         
         try:
-            stock = yf.Ticker(fallback_sym)
-            hist = stock.history(period="6mo")
-            if hist.empty: 
+            chart_data = fetch_history_series(fallback_sym, "6mo")
+            if len(chart_data) < 2:
                 return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-            
-            current = hist['Close'].iloc[-1]
-            prev = hist['Close'].iloc[-2]
-            change = ((current - prev) / prev) * 100
-            chart_data = [{"time": t.strftime("%Y-%m-%d"), "value": round(v, 2)} for t, v in hist['Close'].items()]
+            current = chart_data[-1]["value"]
+            prev = chart_data[-2]["value"]
+            change = ((current - prev) / prev) * 100 if prev else 0.0
             
             return {
                 "original_symbol": symbol,
@@ -774,14 +730,11 @@ async def macro_data():
                 return fetch_fred_data(symbol, info)
 
             # Yahoo 일반
-            stock = yf.Ticker(symbol)
-            hist = stock.history(period="6mo")
-            if hist.empty: 
+            chart_data = fetch_history_series(symbol, "6mo")
+            if len(chart_data) < 2:
                 return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-
-            current, prev = hist['Close'].iloc[-1], hist['Close'].iloc[-2]
-            change = ((current - prev) / prev) * 100
-            chart_data = [{"time": t.strftime("%Y-%m-%d"), "value": round(v, 2)} for t, v in hist['Close'].items()]
+            current, prev = chart_data[-1]["value"], chart_data[-2]["value"]
+            change = ((current - prev) / prev) * 100 if prev else 0.0
             
             return {
                 "original_symbol": symbol,

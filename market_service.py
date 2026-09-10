@@ -29,6 +29,7 @@ _names: dict[str, str] | None = None
 _cache_lock = threading.Lock()
 _compare_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 _valuation_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_quote_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 _auth_lock = threading.Lock()
 _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 
@@ -340,6 +341,67 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
     except Exception:
         return {}
 
+
+
+def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
+    """Fast current quote for heatmaps; uses Yahoo chart only, never crumb/info."""
+    symbol = symbol.strip().upper()
+    if not symbol:
+        return None
+    now = time.time()
+    with _cache_lock:
+        cached = _quote_cache.get(symbol)
+        if cached and now - cached[0] < 60:
+            return cached[1]
+    try:
+        result = _chart_result(symbol, period="5d", interval="1d")
+        meta = result.get("meta", {})
+        closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+        good = [float(v) for v in closes if v is not None and float(v) > 0]
+        if not good:
+            value = None
+        else:
+            current = _positive(meta.get("regularMarketPrice")) or good[-1]
+            previous = (
+                _positive(meta.get("chartPreviousClose"))
+                or _positive(meta.get("previousClose"))
+                or (good[-2] if len(good) > 1 else None)
+            )
+            change = ((current - previous) / previous * 100) if previous else 0.0
+            detail = _local_detail_cache().get(symbol, {})
+            value = {
+                "ticker": symbol,
+                "name": _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or detail.get("shortName") or symbol,
+                "price": round(float(current), 2),
+                "change": round(float(change), 2),
+                "marketCap": _number(detail.get("marketCap")),
+                "currency": meta.get("currency") or detail.get("currency"),
+                "source": "Yahoo Chart",
+            }
+    except Exception as exc:
+        print(f"[MarketData] quote failed {symbol}: {exc}")
+        value = None
+    with _cache_lock:
+        _quote_cache[symbol] = (now, value)
+    return value
+
+
+def fetch_history_series(symbol: str, period: str = "6mo") -> list[dict[str, Any]]:
+    """Daily close history using the same crumb-free chart endpoint."""
+    symbol = symbol.strip().upper()
+    result = _chart_result(symbol, period=period, interval="1d")
+    timestamps = result.get("timestamp") or []
+    closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+    rows = []
+    for ts, close in zip(timestamps, closes):
+        if close is None:
+            continue
+        value = _number(close)
+        if value is None or value <= 0:
+            continue
+        date = datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d")
+        rows.append({"time": date, "value": round(value, 4)})
+    return rows
 
 def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     symbol = symbol.strip().upper()
