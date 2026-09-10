@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 글로벌 필터(상단 바) 노출 여부 조절
         const globalFilter = document.getElementById('global-filter');
         if (globalFilter) {
-            globalFilter.style.display = (tabId === 'chart' || tabId === 'fwdper') ? 'block' : 'none';
+            globalFilter.style.display = (tabId === 'chart' || tabId === 'fwdper' || tabId === 'ideas') ? 'block' : 'none';
         }
 
         // 탭 전용 데이터 로드

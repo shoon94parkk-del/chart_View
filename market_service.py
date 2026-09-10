@@ -437,9 +437,9 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     profile = detail.get("assetProfile") or {}
 
     price = (
-        _positive(_raw(price_block.get("regularMarketPrice")))
-        or _positive(chart_meta.get("regularMarketPrice"))
+        _positive(chart_meta.get("regularMarketPrice"))
         or last_close
+        or _positive(_raw(price_block.get("regularMarketPrice")))
         or 0.0
     )
     market_cap = _positive(_raw(summary.get("marketCap"))) or _positive(_raw(price_block.get("marketCap"))) or _positive(fund.get("trailingMarketCap"))

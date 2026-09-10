@@ -37,7 +37,7 @@ const chartOptions = {
     rightPriceScale: { borderColor: '#E5E8EB' },
     timeScale: { borderColor: '#E5E8EB', timeVisible: true },
     handleScroll: { mouseWheel: false, horzTouchDrag: true, vertTouchDrag: false },
-    handleScale: { mouseWheel: false, pinch: false },
+    handleScale: { mouseWheel: false, pinch: true },
 };
 
 // 티커 표시 이름 가져오기
