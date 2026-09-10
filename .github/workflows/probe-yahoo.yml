@@ -1,30 +1,25 @@
 name: Probe Yahoo Valuation Endpoints
-
 on:
   push:
     branches: [main]
     paths: ['.github/workflows/probe-yahoo.yml']
   workflow_dispatch:
-
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe crumb authenticated quoteSummary
+      - name: Probe crumb authenticated multi quote
         run: |
           python - <<'PY'
           import requests
-          s=requests.Session()
-          s.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'})
-          r=s.get('https://fc.yahoo.com',timeout=15,allow_redirects=True)
-          print('fc',r.status_code,'cookies',list(s.cookies.keys()))
-          c=s.get('https://query1.finance.yahoo.com/v1/test/getcrumb',timeout=15)
-          print('crumb',c.status_code,repr(c.text[:100]))
-          crumb=c.text.strip()
-          for symbol in ['AAPL','NVDA','005930.KS','000660.KS']:
-              u=f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}'
-              q=s.get(u,params={'modules':'price,summaryDetail,defaultKeyStatistics,financialData','crumb':crumb},timeout=20)
-              print('\n',symbol,'status',q.status_code)
-              print(q.text[:2500])
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'})
+          s.get('https://fc.yahoo.com',timeout=10,allow_redirects=True)
+          crumb=s.get('https://query1.finance.yahoo.com/v1/test/getcrumb',timeout=10).text.strip()
+          syms=['AAPL','NVDA','MSFT','GOOGL','AMZN','META','TSLA','AMD','AVGO','MU','005930.KS','000660.KS']
+          for host in ['query1.finance.yahoo.com','query2.finance.yahoo.com']:
+              u=f'https://{host}/v7/finance/quote'
+              r=s.get(u,params={'symbols':','.join(syms),'crumb':crumb},timeout=20)
+              print('HOST',host,'STATUS',r.status_code)
+              print(r.text[:12000])
           PY
