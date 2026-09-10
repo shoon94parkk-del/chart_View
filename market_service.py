@@ -33,6 +33,70 @@ _auth_lock = threading.Lock()
 _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 
 
+# disk-valuation-detail-cache-v3
+_detail_cache_lock = threading.Lock()
+_detail_cache: dict[str, dict[str, Any]] | None = None
+
+
+def _local_detail_cache() -> dict[str, dict[str, Any]]:
+    """Read the daily GitHub-generated quote cache once per process."""
+    global _detail_cache
+    if _detail_cache is not None:
+        return _detail_cache
+    with _detail_cache_lock:
+        if _detail_cache is not None:
+            return _detail_cache
+        rows: dict[str, dict[str, Any]] = {}
+        try:
+            path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
+            with open(path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+            raw_rows = payload.get("quotes") or {}
+            if isinstance(raw_rows, dict):
+                rows = {str(k).upper(): v for k, v in raw_rows.items() if isinstance(v, dict)}
+        except Exception as exc:
+            print(f"[MarketData] valuation detail cache unavailable: {exc}")
+        _detail_cache = rows
+        return rows
+
+
+def _cached_quote_summary(symbol: str) -> dict[str, Any] | None:
+    """Adapt a flat daily quote row to the subset of quoteSummary used below."""
+    row = _local_detail_cache().get(symbol.upper())
+    if not row:
+        return None
+
+    def rv(value: Any) -> dict[str, Any]:
+        return {"raw": value} if value is not None else {}
+
+    dividend = _number(row.get("dividendYield"))
+    # v7/quote exposes dividendYield in percentage units (e.g. 0.34 == 0.34%).
+    dividend_fraction = dividend / 100 if dividend is not None else None
+    return {
+        "price": {
+            "shortName": row.get("shortName"),
+            "currency": row.get("currency"),
+            "regularMarketPrice": rv(row.get("regularMarketPrice")),
+            "marketCap": rv(row.get("marketCap")),
+        },
+        "summaryDetail": {
+            "marketCap": rv(row.get("marketCap")),
+            "trailingPE": rv(row.get("trailingPE")),
+            "forwardPE": rv(row.get("forwardPE")),
+            "dividendYield": rv(dividend_fraction),
+        },
+        "defaultKeyStatistics": {
+            "trailingEps": rv(row.get("epsTrailingTwelveMonths")),
+            "forwardEps": rv(row.get("epsForward")),
+            "forwardPE": rv(row.get("forwardPE")),
+            "priceToBook": rv(row.get("priceToBook")),
+            "bookValue": rv(row.get("bookValue")),
+        },
+        "financialData": {},
+        "assetProfile": {},
+    }
+
+
 def _local_names() -> dict[str, str]:
     global _names
     if _names is not None:
@@ -155,8 +219,13 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
 def _ensure_yahoo_auth(force: bool = False) -> tuple[dict[str, str], str] | None:
     now = time.time()
     with _auth_lock:
-        if not force and _auth_state.get("crumb") and now - float(_auth_state.get("timestamp") or 0) < 1800:
-            return dict(_auth_state["cookies"]), str(_auth_state["crumb"])
+        auth_age = now - float(_auth_state.get("timestamp") or 0)
+        if not force and _auth_state.get("timestamp") and auth_age < 1800:
+            # Cache failures too. Render shared IPs can be rate-limited by Yahoo; without
+            # negative caching concurrent tickers each retried the same slow crumb call.
+            if _auth_state.get("crumb") and _auth_state.get("cookies"):
+                return dict(_auth_state["cookies"]), str(_auth_state["crumb"])
+            return None
         try:
             session = requests.Session()
             session.headers.update(HEADERS)
@@ -297,7 +366,8 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
         print(f"[MarketData] fundamentals failed {symbol}: {exc}")
         fund = {}
 
-    detail = _quote_summary(symbol) or {}
+    cached_detail = _cached_quote_summary(symbol)
+    detail = cached_detail or _quote_summary(symbol) or {}
     summary = detail.get("summaryDetail") or {}
     stats = detail.get("defaultKeyStatistics") or {}
     financial = detail.get("financialData") or {}
@@ -393,7 +463,7 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
         "dividendYield": round(dividend_yield, 2) if dividend_yield is not None else None,
         "roe": round(roe, 2) if roe is not None else None,
         "operatingMargin": round(operating_margin, 2) if operating_margin is not None else None,
-        "dataSource": "Yahoo Chart + Fundamentals" + (" + QuoteSummary" if detail else "") + (" + Naver" if naver else ""),
+        "dataSource": "Yahoo Chart + Fundamentals" + (" + Daily Quote Cache" if cached_detail else (" + QuoteSummary" if detail else "")) + (" + Naver" if naver else ""),
     }
     with _cache_lock:
         _valuation_cache[symbol] = (now, data)

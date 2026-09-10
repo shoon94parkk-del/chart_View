@@ -9,6 +9,8 @@ let series = {};
 let selectedTickers = ['AAPL', 'NVDA'];
 let currentPeriod = '1mo';
 let customDateRange = null;
+let chartRequestController = null;
+let chartLoadSeq = 0;
 
 // 티커 → 기업명 매핑 (검색/추가 시 저장)
 const tickerNameMap = {};
@@ -233,8 +235,13 @@ function updateTags() {
 
 // 데이터 로드
 async function loadData() {
+    const seq = ++chartLoadSeq;
+    if (chartRequestController) chartRequestController.abort();
+    chartRequestController = new AbortController();
+
     if (!selectedTickers.length) {
         updateLegend([]);
+        showLoading(false);
         return;
     }
 
@@ -242,33 +249,25 @@ async function loadData() {
 
     try {
         let url = `/api/compare?tickers=${selectedTickers.join(',')}&period=${currentPeriod}&_t=${Date.now()}`;
-
-        // 커스텀 날짜 범위가 있으면 추가
         if (customDateRange) {
             url += `&start=${customDateRange.start}&end=${customDateRange.end}`;
         }
 
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, { cache: 'no-store', signal: chartRequestController.signal });
+        if (!res.ok) throw new Error(`차트 API 오류 (${res.status})`);
         const data = await res.json();
+        if (seq !== chartLoadSeq) return;
+        if (data.error) throw new Error(data.error);
 
-        if (data.error) {
-            showLoading(false);
-            return;
-        }
-
-        // 기존 시리즈 제거
+        const stocks = Array.isArray(data.stocks) ? data.stocks : [];
         Object.keys(series).forEach(t => {
             try { chart.removeSeries(series[t]); } catch (e) { }
         });
         series = {};
 
-        // 새 시리즈 추가
-        data.stocks.forEach((stock, i) => {
-            // API 응답에서 이름 저장 (이미 한글 이름이 있으면 덮어쓰지 않음)
-            if (stock.name && !tickerNameMap[stock.ticker]) {
-                tickerNameMap[stock.ticker] = stock.name;
-            }
-
+        stocks.forEach((stock, i) => {
+            if (stock.name && !tickerNameMap[stock.ticker]) tickerNameMap[stock.ticker] = stock.name;
+            if (!Array.isArray(stock.data) || stock.data.length === 0) return;
             const s = chart.addLineSeries({
                 color: COLORS[i % COLORS.length],
                 lineWidth: 2,
@@ -278,14 +277,19 @@ async function loadData() {
             series[stock.ticker] = s;
         });
 
-        chart.timeScale().fitContent();
-        updateTags(); // 이름 갱신
-        updateLegend(data.stocks);
+        if (stocks.length) chart.timeScale().fitContent();
+        updateTags();
+        updateLegend(stocks);
 
+        if (!stocks.length && selectedTickers.length) {
+            console.warn('No chart data returned', data.errors || []);
+        }
     } catch (e) {
-        console.error(e);
+        if (e && e.name === 'AbortError') return;
+        console.error('Chart load error:', e);
     } finally {
-        showLoading(false);
+        // An older aborted request must not hide the loader for a newer request.
+        if (seq === chartLoadSeq) showLoading(false);
     }
 }
 
@@ -427,6 +431,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const end = document.getElementById('end-date').value;
 
         if (start && end) {
+            if (start > end) {
+                alert('시작일은 종료일보다 늦을 수 없어요');
+                return;
+            }
             customDateRange = { start, end };
             document.querySelectorAll('.period-chip').forEach(b => b.classList.remove('active'));
             loadData();

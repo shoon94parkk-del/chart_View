@@ -10,6 +10,8 @@ let perTickers = ['AAPL', 'NVDA'];
 
 // 티커 -> 기업명 매핑
 const perTickerNameMap = {};
+let perRequestController = null;
+let perLoadSeq = 0;
 
 // 지표 메타 정보 (탭의 모든 데이터 속성과 일치시킴)
 const METRIC_CONFIG = {
@@ -30,7 +32,7 @@ const METRIC_CONFIG = {
         description: '향후 12개월 예상 이익 대비 주가 수준입니다.',
         columns: [
             { key: 'forwardPE', label: 'FWD PER', format: 'number', color: true },
-            { key: 'forwardEPS', label: 'FWD EPS($)', format: 'currency' },
+            { key: 'forwardEPS', label: 'FWD EPS', format: 'currency' },
             { key: 'trailingPE', label: 'PER(실적)', format: 'number' }
         ],
         sortKey: 'forwardPE',
@@ -43,7 +45,7 @@ const METRIC_CONFIG = {
         description: '최근 12개월 발표된 실제 이익 대비 주가 수준입니다.',
         columns: [
             { key: 'trailingPE', label: 'PER(실적)', format: 'number', color: true },
-            { key: 'trailingEPS', label: '현재 EPS($)', format: 'currency' },
+            { key: 'trailingEPS', label: 'EPS(실적)', format: 'currency' },
             { key: 'forwardPE', label: 'FWD PER', format: 'number' }
         ],
         sortKey: 'trailingPE',
@@ -126,27 +128,49 @@ function updatePerTags() {
 }
 
 async function loadPerData() {
+    const seq = ++perLoadSeq;
+    if (perRequestController) perRequestController.abort();
+    perRequestController = new AbortController();
+
+    const container = document.getElementById('per-table-container');
     if (perTickers.length === 0) {
-        const container = document.getElementById('per-table-container');
+        perData = [];
         if (container) container.innerHTML = '<div class="per-empty">종목을 선택하면 밸류에이션 비교 결과가 표시됩니다</div>';
         return;
     }
 
-    const loading = document.getElementById('per-loading') || document.getElementById('loading');
+    const loading = document.getElementById('per-loading');
     if (loading) loading.classList.remove('hidden');
 
     try {
-        const res = await fetch(`/api/valuation?tickers=${perTickers.join(',')}`);
+        const res = await fetch(`/api/valuation?tickers=${encodeURIComponent(perTickers.join(','))}`, {
+            cache: 'no-store',
+            signal: perRequestController.signal,
+        });
+        if (!res.ok) throw new Error(`밸류에이션 API 오류 (${res.status})`);
         const data = await res.json();
-        if (data.stocks) {
-            perData = data.stocks;
-            perData.forEach(s => { if (s.name && !perTickerNameMap[s.ticker]) perTickerNameMap[s.ticker] = s.name; });
-            renderPerTable();
+        if (seq !== perLoadSeq) return;
+
+        perData = Array.isArray(data.stocks) ? data.stocks : [];
+        perData.forEach(s => {
+            if (s.name && !perTickerNameMap[s.ticker]) perTickerNameMap[s.ticker] = s.name;
+        });
+        renderPerTable();
+
+        const badge = document.getElementById('update-badge');
+        if (badge) {
+            const failed = Array.isArray(data.errors) ? data.errors.length : 0;
+            badge.textContent = failed ? `${failed}개 종목 일부 데이터 누락` : '업데이트 완료';
+            badge.classList.remove('hidden');
         }
     } catch (e) {
-        console.error('PER data error:', e);
+        if (e && e.name === 'AbortError') return;
+        console.error('Valuation data error:', e);
+        if (seq === perLoadSeq && container) {
+            container.innerHTML = '<div class="per-empty">밸류에이션 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
+        }
     } finally {
-        if (loading) loading.classList.add('hidden');
+        if (seq === perLoadSeq && loading) loading.classList.add('hidden');
     }
 }
 
@@ -182,10 +206,18 @@ function renderPerTable() {
     let sortedData = [...perData];
     const sortField = config.sortKey;
 
-    if (currentSort === 'metric-asc' && sortField) {
-        sortedData.sort((a, b) => (a[sortField] ?? -999999) - (b[sortField] ?? -999999));
-    } else if (currentSort === 'metric-desc' && sortField) {
-        sortedData.sort((a, b) => (b[sortField] ?? -999999) - (a[sortField] ?? -999999));
+    if ((currentSort === 'metric-asc' || currentSort === 'metric-desc') && sortField) {
+        const direction = currentSort === 'metric-asc' ? 1 : -1;
+        sortedData.sort((a, b) => {
+            const av = Number(a[sortField]);
+            const bv = Number(b[sortField]);
+            const aValid = Number.isFinite(av) && a[sortField] !== null;
+            const bValid = Number.isFinite(bv) && b[sortField] !== null;
+            if (!aValid && !bValid) return 0;
+            if (!aValid) return 1;
+            if (!bValid) return -1;
+            return (av - bv) * direction;
+        });
     }
 
     let html = `<table class="per-table"><thead><tr><th>종목</th><th>현재가</th>`;
@@ -257,11 +289,10 @@ window.addPerTickerDirect = function (ticker) {
 window.removePerTicker = function (ticker) {
     perTickers = perTickers.filter(t => t !== ticker);
     perData = perData.filter(d => d.ticker !== ticker);
-    renderPerTable();
-    // 차트와 동기화
-    if (typeof removeTicker === 'function' && typeof selectedTickers !== 'undefined' && selectedTickers.includes(ticker)) {
-        removeTicker(ticker);
-    }
+    // removeTicker() in chart.js is the single owner of global removal.
+    // Calling it again here caused chart -> valuation -> chart recursion.
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+    if (activeTab === 'fwdper') renderPerTable();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
