@@ -11,6 +11,7 @@ on:
       - 'templates/**'
       - 'static/js/**'
       - 'static/css/**'
+      - 'static/data/valuation_cache.json'
       - '.github/workflows/live-smoke.yml'
 
 jobs:
@@ -24,21 +25,21 @@ jobs:
           set -euo pipefail
           BASE='https://chart-view-bsg6.onrender.com'
 
-          echo 'Waiting until the latest valuation-cache code is live...'
+          echo 'Waiting until latest app + Korean forward-PE cache are live...'
           ready=0
           for i in $(seq 1 60); do
             code=$(curl -L -sS -o /tmp/home.html -w '%{http_code}' "$BASE/" || true)
             if [ "$code" = '200' ]; then
-              curl -fsSL --get --data-urlencode 'tickers=AAPL,NVDA' "$BASE/api/valuation" -o /tmp/version-valuation.json || true
-              if python - <<'PY'
+              curl -fsSL --get --data-urlencode 'tickers=AAPL,NVDA,005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/version-valuation.json || true
+              if grep -q 'data-tab="screener"' /tmp/home.html && ! grep -q 'gemini.js' /tmp/home.html && python - <<'PY'
           import json, sys
           try:
               d=json.load(open('/tmp/version-valuation.json'))
               rows={x.get('ticker'): x for x in d.get('stocks', [])}
-              a=rows.get('AAPL', {})
-              n=rows.get('NVDA', {})
-              ok=(a.get('forwardPE') is not None and n.get('forwardPE') is not None and
-                  'Daily Quote Cache' in str(a.get('dataSource', '')))
+              wanted=('AAPL','NVDA','005930.KS','000660.KS')
+              ok=all(rows.get(t,{}).get('forwardPE') is not None for t in wanted)
+              ok=ok and all(0 < float(rows[t]['forwardPE']) < 250 for t in wanted)
+              ok=ok and 'Daily Quote Cache' in str(rows.get('AAPL',{}).get('dataSource',''))
               sys.exit(0 if ok else 1)
           except Exception:
               sys.exit(1)
@@ -82,6 +83,19 @@ jobs:
           d=json.load(open('/tmp/screener.json'))
           print('screener count=', d.get('count'), 'universe=', d.get('universeCount'), 'date=', d.get('tradeDate'))
           assert d.get('count', 0) > 2000
+          assert len(d.get('stocks', [])) > 2000
+          PY
+
+          echo 'Valuation cache:'
+          curl -fsSL "$BASE/static/data/valuation_cache.json" -o /tmp/vcache.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/vcache.json'))
+          q=d.get('quotes', {})
+          for ticker in ('005930.KS','000660.KS'):
+              pe=q.get(ticker,{}).get('forwardPE')
+              print('cache', ticker, 'forwardPE=', pe, 'source=', q.get(ticker,{}).get('forwardPESource'))
+              assert pe is not None and 0 < float(pe) < 250
           PY
 
           echo 'Yahoo compare:'
@@ -103,8 +117,9 @@ jobs:
           for s in d.get('stocks', []):
               print('valuation=', s.get('ticker'), 'price=', s.get('price'), 'fwdPE=', s.get('forwardPE'), 'PE=', s.get('trailingPE'), 'PBR=', s.get('pbr'), 'source=', s.get('dataSource'))
           assert len(rows) >= 4, d
-          assert rows['AAPL'].get('forwardPE') is not None
-          assert rows['NVDA'].get('forwardPE') is not None
+          for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
+              assert rows[ticker].get('forwardPE') is not None, (ticker, rows[ticker])
+              assert rows[ticker].get('price') and rows[ticker].get('price') > 0
           assert 'Daily Quote Cache' in rows['AAPL'].get('dataSource','')
           PY
 
@@ -117,6 +132,19 @@ jobs:
           print('heatmap rows=',len(rows))
           assert len(rows) >= 15, len(rows)
           assert all(x.get('price') for x in rows), rows[:3]
+          PY
+
+          echo 'Macro:'
+          curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/macro.json'))
+          rows=d.get('results', [])
+          valid=[x for x in rows if not x.get('error') and x.get('chart_data')]
+          print('macro rows=',len(rows),'valid=',len(valid),'summary=',d.get('summary',{}).get('level'))
+          assert len(rows) >= 10, len(rows)
+          assert len(valid) >= 8, len(valid)
+          assert d.get('summary',{}).get('text')
           PY
 
           echo 'All latest-build smoke checks passed.'
