@@ -1,3 +1,20 @@
+// Load the fast screener without changing the original template file.
+(() => {
+  if (!document.querySelector('link[data-fast-screener]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/static/css/screener.css?v=20260910v1';
+    link.dataset.fastScreener = '1';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[data-fast-screener]')) {
+    const script = document.createElement('script');
+    script.src = '/static/js/screener.js?v=20260910v1';
+    script.dataset.fastScreener = '1';
+    document.head.appendChild(script);
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   const sector = document.querySelector('.sector-section');
   if (sector && !sector.querySelector('.ux-sector-toggle')) {
