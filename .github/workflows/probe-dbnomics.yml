@@ -10,35 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Query DBnomics candidates
+      - name: Probe macro mirrors
         run: |
           python - <<'PY'
-          import json, urllib.parse, urllib.request
-          def get(url):
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-              with urllib.request.urlopen(req,timeout=20) as r: return json.load(r)
-          def dataset(provider,dataset,q,limit=40):
-              url=f'https://api.db.nomics.world/v22/series/{provider}/{dataset}?observations=0&limit={limit}&q='+urllib.parse.quote(q)
-              print('\n### DATASET',provider,dataset,q)
+          import re, urllib.request
+          for sym in ['t10y2y','walcl','rrpontsyd','bamlh0a0hym2','rsafs','vixcls']:
+              url=f'https://equibles.com/economicdata/{sym}'
               try:
-                  docs=(get(url).get('series') or {}).get('docs') or []
-                  for x in docs[:limit]: print(x.get('series_code'),'|',x.get('series_name') or x.get('name'))
-              except Exception as e: print('ERR',repr(e))
-          def search(q,limit=40):
-              url='https://api.db.nomics.world/v22/search?limit='+str(limit)+'&q='+urllib.parse.quote(q)
-              print('\n### SEARCH',q)
-              try:
-                  d=get(url); print('keys',d.keys())
-                  docs=(d.get('results') or {}).get('docs') or d.get('docs') or []
-                  for x in docs[:limit]: print(x.get('provider_code'),x.get('dataset_code'),x.get('series_code'),'|',x.get('series_name') or x.get('name') or x.get('title'))
-              except Exception as e: print('ERR',repr(e))
-          dataset('FED','H41','All Federal Reserve Banks Total Assets',50)
-          dataset('FED','H41','Assets Total Wednesday level',50)
-          dataset('FED','H41','Treasury General Account Total Wednesday level',20)
-          dataset('FED','H15','Federal funds Overnight Daily',20)
-          dataset('FED','H15','Treasury constant maturities Nominal 2-year Business day',20)
-          dataset('FED','H15','Inflation indexed 10-year Business day',20)
-          search('reverse repurchase overnight Federal Reserve New York',50)
-          search('retail sales food services United States monthly census',50)
-          search('high yield option adjusted spread United States',50)
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      text=r.read().decode('utf-8','replace')
+                  matches=re.findall(r'(20\d{2}-\d{2}-\d{2}).{0,120}?(-?\d[\d,]*(?:\.\d+)?)',text,re.S)
+                  print(sym,'status=200','bytes=',len(text),'matches=',len(matches),'tail=',matches[-3:])
+              except Exception as e:
+                  print(sym,'ERR',repr(e))
           PY
