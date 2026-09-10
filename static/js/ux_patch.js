@@ -16,6 +16,27 @@
     document.head.appendChild(script);
   }
 
+  // Evidence-based ideas + field-level valuation provenance.
+  if (!document.querySelector('link[data-ideas-ui]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/static/css/ideas.css?v=20260910v1';
+    link.dataset.ideasUi = '1';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[data-valuation-meta]')) {
+    const script = document.createElement('script');
+    script.src = '/static/js/valuation_meta.js?v=20260910v1';
+    script.dataset.valuationMeta = '1';
+    document.head.appendChild(script);
+  }
+  if (!document.querySelector('script[data-investment-ideas]')) {
+    const script = document.createElement('script');
+    script.src = '/static/js/ideas.js?v=20260910v1';
+    script.dataset.investmentIdeas = '1';
+    document.head.appendChild(script);
+  }
+
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
     '엘전': 'LG전자', '현차': '현대차', '네이버': 'NAVER'
