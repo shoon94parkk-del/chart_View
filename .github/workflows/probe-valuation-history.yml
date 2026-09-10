@@ -16,8 +16,11 @@ jobs:
           import requests,time
           symbols=['AAPL','005930.KS','000660.KS']
           types=[
-            'trailingPeRatio','priceToBook','trailingDilutedEPS','quarterlyDilutedEPS',
-            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyDilutedAverageShares'
+            'trailingPeRatio','priceToBook','trailingPriceToBook','trailingDilutedEPS',
+            'quarterlyDilutedEPS','annualDilutedEPS','annualBasicEPS',
+            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyDilutedAverageShares',
+            'annualStockholdersEquity','annualOrdinarySharesNumber','annualDilutedAverageShares',
+            'quarterlyBookValue','annualBookValue'
           ]
           for s in symbols:
             url=f'https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{s}'
@@ -30,7 +33,7 @@ jobs:
               typ=(item.get('meta',{}).get('type') or ['?'])[0]
               vals=item.get(typ) or []
               sample=[]
-              for v in vals[-3:]:
+              for v in vals[-5:]:
                 sample.append((v.get('asOfDate'),(v.get('reportedValue') or {}).get('raw')))
               print(typ,'count=',len(vals),'last=',sample)
           PY
