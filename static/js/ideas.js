@@ -1,10 +1,11 @@
-// Evidence-based investment ideas built from existing valuation + price data.
+// Evidence-based investment ideas built from valuation, momentum and macro context.
 (() => {
   'use strict';
 
   let screenerPromise = null;
   let quoteCachePromise = null;
   let loadSeq = 0;
+  let tagObserver = null;
 
   const esc = (v) => String(v ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -22,6 +23,7 @@
   function installTab() {
     const nav = document.querySelector('.tab-nav');
     if (!nav || nav.querySelector('[data-tab="ideas"]')) return;
+
     const btn = document.createElement('button');
     btn.className = 'tab-btn';
     btn.dataset.tab = 'ideas';
@@ -37,11 +39,13 @@
         <div class="ideas-head">
           <div>
             <h2>💡 선택 종목 투자 아이디어</h2>
-            <p>가치·수익성·전망·모멘텀을 실제 데이터로 나눠 보여줍니다. 단일 매수점수가 아니라 관찰 근거를 제공합니다.</p>
+            <p>가치·수익성·전망·모멘텀을 분리하고 시장 환경까지 함께 봅니다. 단일 매수점수가 아니라 확인해야 할 근거를 정리합니다.</p>
           </div>
           <button id="ideas-refresh" class="ideas-refresh" type="button">새로고침</button>
         </div>
-        <div class="ideas-method">가치/수익성: Yahoo Fundamentals · 전망: Yahoo 컨센서스(있는 경우) · 모멘텀: Yahoo Chart 또는 한국 장마감 스크리너</div>
+        <div class="ideas-method">밸류/수익성: Yahoo Fundamentals · 전망: Yahoo 컨센서스 캐시 · 모멘텀: Yahoo Chart/한국 장마감 배치 · 시장환경: 경제지표 캐시</div>
+        <div id="ideas-market" class="ideas-market"></div>
+        <div id="ideas-leaders" class="ideas-leaders"></div>
         <div id="ideas-summary" class="ideas-summary">탭을 열면 선택 종목을 분석합니다.</div>
         <div id="ideas-grid" class="ideas-grid"><div class="ideas-empty">분석할 종목을 선택해 주세요.</div></div>
       </section>`;
@@ -54,6 +58,18 @@
       loadIdeas();
     });
     tab.querySelector('#ideas-refresh')?.addEventListener('click', loadIdeas);
+
+    const tags = document.getElementById('ticker-tags');
+    if (tags && !tagObserver) {
+      let timer = null;
+      tagObserver = new MutationObserver(() => {
+        if (document.querySelector('[data-tab="ideas"]')?.classList.contains('active')) {
+          clearTimeout(timer);
+          timer = setTimeout(loadIdeas, 120);
+        }
+      });
+      tagObserver.observe(tags, { childList: true, subtree: true });
+    }
   }
 
   function loadScreener() {
@@ -127,8 +143,8 @@
     if (forward === null || forward <= 0) return { label: '전망 데이터 없음', tone: 'neutral' };
     if (trailing !== null && trailing > 0) {
       const gap = (forward / trailing - 1) * 100;
-      if (gap <= -12) return { label: '이익 개선 기대', tone: 'good' };
-      if (gap >= 15) return { label: '전망 부담', tone: 'warn' };
+      if (gap <= -12) return { label: 'FWD PER이 실적 PER보다 낮음', tone: 'good' };
+      if (gap >= 15) return { label: 'FWD PER이 실적 PER보다 높음', tone: 'warn' };
     }
     return { label: '전망 중립', tone: 'neutral' };
   }
@@ -140,8 +156,8 @@
     const momentum = calcMomentum(screenRow, compareStock);
     const outlookInfo = outlook(stock, quote);
 
-    if (pe !== null && pe > 0 && pe <= 15) positives.push(`PER ${pe.toFixed(1)}배`);
-    else if (pe !== null && pe >= 40) cautions.push(`PER ${pe.toFixed(1)}배`);
+    if (pe !== null && pe > 0 && pe <= 15) positives.push(`PER ${pe.toFixed(1)}배 · 절대값 낮음`);
+    else if (pe !== null && pe >= 40) cautions.push(`PER ${pe.toFixed(1)}배 · 절대값 높음`);
     if (pbr !== null && pbr > 0 && pbr <= 2) positives.push(`PBR ${pbr.toFixed(1)}배`);
     if (roe !== null && roe >= 15) positives.push(`ROE ${roe.toFixed(1)}%`);
     else if (roe !== null && roe < 5) cautions.push(`ROE ${roe.toFixed(1)}%`);
@@ -164,6 +180,75 @@
     if (positives.length >= 3 && cautions.length <= 1) { status = '관찰 우선'; tone = 'good'; }
     if (cautions.length >= 3) { status = '주의 필요'; tone = 'warn'; }
     return { positives, cautions, momentum, completeness, status, tone };
+  }
+
+  function renderMarketContext(macro) {
+    const el = document.getElementById('ideas-market');
+    if (!el) return;
+    if (!macro || !Array.isArray(macro.results)) {
+      el.innerHTML = '<div class="ideas-market-empty">시장환경 데이터 없음</div>';
+      return;
+    }
+    const rows = new Map(macro.results.map((x) => [x.original_symbol || x.symbol, x]));
+    const summary = macro.summary || {};
+    const level = summary.level || 'yellow';
+    const label = level === 'green' ? '안정' : level === 'red' ? '위험' : '주의';
+    const tone = level === 'green' ? 'good' : level === 'red' ? 'warn' : 'neutral';
+    const vix = rows.get('^VIX');
+    const curve = rows.get('T10Y2Y');
+    const credit = rows.get('BAMLH0A0HYM2');
+    const fed = rows.get('FEDFUNDS');
+    const stale = Number(macro.staleCount || 0);
+
+    el.innerHTML = `
+      <div class="ideas-market-top">
+        <div><span class="ideas-kicker">현재 시장환경</span><strong class="ideas-market-state ${tone}">${label}</strong></div>
+        <span class="ideas-market-date">${stale ? `stale ${stale}개` : '13개 지표 정상'} · ${esc(String(macro.generatedAt || '').slice(0, 10))}</span>
+      </div>
+      <div class="ideas-market-metrics">
+        <div><span>VIX</span><strong>${num(vix?.value, 1)}</strong></div>
+        <div><span>10Y-2Y</span><strong>${num(curve?.value, 2)}%</strong></div>
+        <div><span>하이일드</span><strong>${num(credit?.value, 2)}%</strong></div>
+        <div><span>Fed Funds</span><strong>${num(fed?.value, 2)}%</strong></div>
+      </div>
+      <div class="ideas-market-text">${esc(summary.text || '시장환경 요약이 없습니다.')}</div>`;
+  }
+
+  function leader(items, extractor, mode = 'max') {
+    const valid = items.map((item) => ({ item, value: asNum(extractor(item)) })).filter((x) => x.value !== null);
+    if (!valid.length) return null;
+    valid.sort((a, b) => mode === 'min' ? a.value - b.value : b.value - a.value);
+    return valid[0];
+  }
+
+  function renderLeaders(stocks, screenMap, quotes, compareMap) {
+    const el = document.getElementById('ideas-leaders');
+    if (!el) return;
+    if (!stocks.length) { el.innerHTML = ''; return; }
+
+    const enriched = stocks.map((stock) => ({
+      stock,
+      quote: quotes[stock.ticker] || {},
+      momentum: calcMomentum(screenMap.get(stock.ticker), compareMap.get(stock.ticker)),
+      signal: buildSignals(stock, screenMap.get(stock.ticker), quotes[stock.ticker] || {}, compareMap.get(stock.ticker)),
+    }));
+    const fwd = leader(enriched, x => x.stock.forwardPE ?? x.quote.forwardPE, 'min');
+    const roe = leader(enriched, x => x.stock.roe, 'max');
+    const mom = leader(enriched, x => x.momentum.ret20, 'max');
+    const quality = leader(enriched, x => x.signal.completeness, 'max');
+
+    const cards = [
+      fwd && ['낮은 FWD PER', fwd.item.stock.name || fwd.item.stock.ticker, `${num(fwd.value, 1)}x`],
+      roe && ['높은 ROE', roe.item.stock.name || roe.item.stock.ticker, `${num(roe.value, 1)}%`],
+      mom && ['강한 20일 모멘텀', mom.item.stock.name || mom.item.stock.ticker, pct(mom.value)],
+      quality && ['데이터 완성도', quality.item.stock.name || quality.item.stock.ticker, `${Math.round(quality.value)}%`],
+    ].filter(Boolean);
+
+    el.innerHTML = cards.length ? `
+      <div class="ideas-leaders-title">선택 종목 상대 비교 <span>낮음/높음 자체가 매수 신호는 아닙니다</span></div>
+      <div class="ideas-leaders-grid">${cards.map(([label, name, value]) => `
+        <div class="idea-leader"><span>${esc(label)}</span><strong>${esc(name)}</strong><em>${esc(value)}</em></div>`).join('')}
+      </div>` : '';
   }
 
   function card(stock, screenRow, quote, compareStock) {
@@ -199,6 +284,8 @@
     if (!grid || !summary) return;
     if (!tickers.length) {
       summary.textContent = '선택 종목 0개';
+      document.getElementById('ideas-market').innerHTML = '';
+      document.getElementById('ideas-leaders').innerHTML = '';
       grid.innerHTML = '<div class="ideas-empty">차트 또는 밸류에이션에서 종목을 먼저 선택해 주세요.</div>';
       return;
     }
@@ -207,16 +294,19 @@
     grid.innerHTML = '<div class="ideas-loading"><div class="spinner"></div><span>투자 근거를 정리하는 중...</span></div>';
 
     try {
-      const [valuation, screener, quoteCache, compare] = await Promise.all([
+      const [valuation, screener, quoteCache, compare, macro] = await Promise.all([
         fetch(`/api/valuation?tickers=${encodeURIComponent(tickers.join(','))}`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(`valuation ${r.status}`); return r.json(); }),
         loadScreener(), loadQuoteCache(),
         fetch(`/api/compare?tickers=${encodeURIComponent(tickers.join(','))}&period=6mo`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : { stocks: [] }).catch(() => ({ stocks: [] })),
+        fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
       ]);
       if (seq !== loadSeq) return;
       const stocks = Array.isArray(valuation.stocks) ? valuation.stocks : [];
       const screenMap = new Map((screener.stocks || []).map((r) => [r.symbol, r]));
       const compareMap = new Map((compare.stocks || []).map((r) => [r.ticker, r]));
       const quotes = quoteCache.quotes || {};
+      renderMarketContext(macro);
+      renderLeaders(stocks, screenMap, quotes, compareMap);
       summary.textContent = `${stocks.length}개 종목 · 가치/수익성/전망/모멘텀 분리 평가 · 단일 매수점수 아님`;
       grid.innerHTML = stocks.map((stock) => card(stock, screenMap.get(stock.ticker), quotes[stock.ticker], compareMap.get(stock.ticker))).join('') || '<div class="ideas-empty">분석 가능한 데이터가 없습니다.</div>';
     } catch (err) {
