@@ -566,219 +566,64 @@ def generate_macro_summary(ordered_results, net_liquidity):
 
 @app.get("/api/macro")
 async def macro_data():
-    """FRED 및 주요 글로벌 매크로 지표 (10종 패키지)"""
+    """Serve precomputed FRED/Yahoo macro data from the committed cache.
+
+    Render never calls FRED here. GitHub Actions refreshes
+    static/data/macro_cache.json on a schedule, avoiding shared-IP
+    timeouts and keeping this endpoint fast and deterministic.
+    """
     global MACRO_CACHE
     current_time = time.time()
-    
-    # 1시간(3600초) 캐싱 - 빠른 로딩을 위해 이전 데이터를 기억
-    if MACRO_CACHE["data"] and (current_time - MACRO_CACHE["timestamp"] < 3600):
+
+    # Short in-process cache avoids repeated JSON parsing while still
+    # allowing a newly deployed cache file to be picked up quickly.
+    if MACRO_CACHE["data"] and (current_time - MACRO_CACHE["timestamp"] < 300):
         return MACRO_CACHE["data"]
 
-    # 1. 지표 정의 (메르 스타일 10종)
-    indicators = {
-        "T10Y2Y": {
-            "name": "장단기 금리차 (10Y-2Y)", 
-            "desc": "경기 침체 신호등. 0 이하(역전)로 내려갔다가 다시 올라올 때 침체가 시작되는 경향이 있습니다.",
-            "link": "https://fred.stlouisfed.org/series/T10Y2Y",
-            "source": "FRED", "fallback": None
-        },
-        "T10Y3M": {
-            "name": "장단기 금리차 (10Y-3M)", 
-            "desc": "연준이 가장 신뢰하는 침체 지표. 이 수치가 마이너스면 연준의 긴축이 과도하다는 뜻입니다.",
-            "link": "https://fred.stlouisfed.org/series/T10Y3M",
-            "source": "FRED", "fallback": None
-        },
-        "BAMLH0A0HYM2": {
-            "name": "하이일드 스프레드 (Risk)", 
-            "desc": "기업 부도 위험. 이 그래프가 치솟으면 기업들의 자금줄이 마르고 있다는 강력한 경고입니다.",
-            "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
-            "source": "FRED", "fallback": "HYG"
-        },
-        "RRPONTSYD": {
-            "name": "역래포 잔액 (Liquidity)", 
-            "desc": "시장의 예비 자금. 이 돈이 줄어들면 시장에 유동성이 공급되어 주가 방어에 도움이 됩니다.",
-            "link": "https://fred.stlouisfed.org/series/RRPONTSYD",
-            "source": "FRED", "fallback": "BIL"
-        },
-        "DFII10": {
-            "name": "10년 실질금리 (TIPS)", 
-            "desc": "인플레이션을 뺀 진짜 금리. 이 금리가 높으면(플러스) 자산 시장(주식, 부동산)은 하락 압력을 받습니다.",
-            "link": "https://fred.stlouisfed.org/series/DFII10",
-            "source": "FRED", "fallback": "TIP"
-        },
-        "T10YIE": {
-            "name": "기대인플레이션 (BEI)", 
-            "desc": "향후 10년 물가 예상치. 연준의 목표(2%)보다 높으면 금리 인하가 지연될 수 있습니다.",
-            "link": "https://fred.stlouisfed.org/series/T10YIE",
-            "source": "FRED", "fallback": None
-        },
-        "UNRATE": {
-            "name": "실업률 (Unemployment)", 
-            "desc": "실물 경기 바닥 신호. 실업률이 저점에서 0.5%p 이상 오르면(삼의 법칙) 침체 초기입니다.",
-            "link": "https://fred.stlouisfed.org/series/UNRATE",
-            "source": "FRED", "fallback": None
-        },
-        "RSAFS": {
-            "name": "소매판매 (Retail Sales)", 
-            "desc": "미국 경제의 70%인 소비의 힘. 소비가 꺾이면 기업 실적이 나빠지고 경기 침체가 옵니다.",
-            "link": "https://fred.stlouisfed.org/series/RSAFS",
-            "source": "FRED", "fallback": "XRT"
-        },
-        "WALCL": {
-            "name": "연준 총자산 (Fed Balance)", 
-            "desc": "연준이 푼 돈의 총량(QT/QE). 그래프가 꺾여 내려가면 시장 유동성이 줄어들고 있다는 뜻입니다.",
-            "link": "https://fred.stlouisfed.org/series/WALCL",
-            "source": "FRED", "fallback": "BTC-USD"
-        },
-        "WTREGEN": {
-            "name": "재무부 일반계정 (TGA)", 
-            "desc": "미 재무부가 보유한 현금. TGA가 줄어들면 시장에 유동성이 공급되고, 늘어나면 유동성이 흡수됩니다.",
-            "link": "https://fred.stlouisfed.org/series/WTREGEN",
-            "source": "FRED", "fallback": None
-        },
-        "M2SL": {
-            "name": "M2 통화량 (Money Supply)", 
-            "desc": "시중에 풀린 돈의 총량. M2가 증가하면 인플레이션 압력이 커지고, 감소하면 긴축 신호입니다.",
-            "link": "https://fred.stlouisfed.org/series/M2SL",
-            "source": "FRED", "fallback": None
-        },
-        "FEDFUNDS": {
-            "name": "연방기금금리 (Fed Rate)", 
-            "desc": "연준의 기준금리. 모든 금리의 기준이며, 인상 시 경기 긴축, 인하 시 경기 부양 신호입니다.",
-            "link": "https://fred.stlouisfed.org/series/FEDFUNDS",
-            "source": "FRED", "fallback": None
-        },
-        "^VIX": {
-            "name": "공포 지수 (VIX)", 
-            "desc": "투자 심리 지표. 20 이하면 평온, 30 이상이면 패닉 상태입니다.",
-            "link": "https://finance.yahoo.com/quote/%5EVIX",
-            "source": "YAHOO", "fallback": None
-        },
-    }
-
-    # 2. 헬퍼 함수 정의
-    def fetch_yahoo_fallback(symbol, info):
-        """FRED 실패 시 야후 파이낸스 대체 지표 수집"""
-        fallback_sym = info.get("fallback")
-        # 대체제가 없어도 None 리턴 금지 -> 에러 객체 리턴
-        if not fallback_sym: 
-            return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-        
-        try:
-            chart_data = fetch_history_series(fallback_sym, "6mo")
-            if len(chart_data) < 2:
-                return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-            current = chart_data[-1]["value"]
-            prev = chart_data[-2]["value"]
-            change = ((current - prev) / prev) * 100 if prev else 0.0
-            
-            return {
-                "original_symbol": symbol,
-                "symbol": fallback_sym, 
-                "name": info["name"] + " (대체)", 
-                "desc": info["desc"] + " [FRED 접속 실패로 대체 지표]",
-                "link": f"https://finance.yahoo.com/quote/{fallback_sym}",
-                "value": round(current, 2), "change": round(change, 2),
-                "chart_data": chart_data[-100:]
-            }
-        except: 
-            return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-
-    fred_bundle = {}
-    fred_symbols = [s for s, meta in indicators.items() if meta.get("source") == "FRED"]
+    cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "macro_cache.json")
     try:
-        start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
-        response = requests.get(
-            "https://fred.stlouisfed.org/graph/fredgraph.csv",
-            params={"id": ",".join(fred_symbols), "cosd": start_date},
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=15,
+        import json as _json
+        with open(cache_path, "r", encoding="utf-8") as f:
+            payload = _json.load(f)
+    except Exception as exc:
+        print(f"[MACRO] cache unavailable: {exc}")
+        if MACRO_CACHE["data"]:
+            return MACRO_CACHE["data"]
+        return JSONResponse(
+            {"results": [], "error": "경제지표 캐시를 불러오지 못했습니다.", "cacheMode": "precomputed"},
+            status_code=503,
         )
-        response.raise_for_status()
-        frame = pd.read_csv(io.StringIO(response.text))
-        if not frame.empty and len(frame.columns) >= 2:
-            date_col = frame.columns[0]
-            for symbol in fred_symbols:
-                if symbol not in frame.columns:
-                    continue
-                values = pd.to_numeric(frame[symbol], errors="coerce")
-                rows = [
-                    {"time": str(date)[:10], "value": float(value)}
-                    for date, value in zip(frame[date_col], values)
-                    if pd.notna(value)
-                ]
-                if rows:
-                    fred_bundle[symbol] = rows[-100:]
-        print(f"[FRED] bundled {len(fred_bundle)}/{len(fred_symbols)} series")
-    except Exception as e:
-        print(f"[FRED] bundled CSV failed: {e}")
 
-    def fetch_fred_data(symbol, info):
-        """Use the single FRED bundle; fallback only if that series is unavailable."""
-        chart_data = fred_bundle.get(symbol) or []
-        if len(chart_data) < 1:
-            return fetch_yahoo_fallback(symbol, info)
-        current = chart_data[-1]["value"]
-        prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
-        change = ((current - prev) / prev) * 100 if prev else 0.0
-        return {
-            "original_symbol": symbol,
-            "symbol": symbol,
-            "name": info["name"],
-            "desc": info["desc"],
-            "link": info["link"],
-            "value": round(current, 2),
-            "change": round(change, 2),
-            "chart_data": chart_data,
-            "source": "FRED",
-        }
+    ordered = [
+        row for row in (payload.get("results") or [])
+        if isinstance(row, dict) and row.get("chart_data")
+    ]
+    if len(ordered) < 8:
+        print(f"[MACRO] cache incomplete: {len(ordered)} rows")
+        if MACRO_CACHE["data"]:
+            return MACRO_CACHE["data"]
 
-    def fetch_indicator(symbol, info):
-        try:
-            if info.get("source") == "FRED":
-                return fetch_fred_data(symbol, info)
-
-            # Yahoo 일반
-            chart_data = fetch_history_series(symbol, "6mo")
-            if len(chart_data) < 2:
-                return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-            current, prev = chart_data[-1]["value"], chart_data[-2]["value"]
-            change = ((current - prev) / prev) * 100 if prev else 0.0
-            
-            return {
-                "original_symbol": symbol,
-                "symbol": symbol, "name": info["name"], "desc": info["desc"],
-                "link": info["link"],
-                "value": round(current, 2), "change": round(change, 2), "chart_data": chart_data[-100:]
-            }
-        except: 
-            return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
-
-    # 3. 병렬 실행
-    target_symbols = list(indicators.keys())
-    results = []
-    with ThreadPoolExecutor(max_workers=len(target_symbols)) as executor:
-        futures = {executor.submit(fetch_indicator, s, indicators[s]): s for s in target_symbols}
-        for future in as_completed(futures):
-            res = future.result()
-            if res: results.append(res)
-    
-    # 4. 정렬 (매우 중요: original_symbol 사용)
-    ordered = [r for s in target_symbols for r in results if r.get('original_symbol') == s]
-    
-    # 5. 순유동성(Net Liquidity) 계산: WALCL - WTREGEN - RRPONTSYD
     net_liquidity = compute_net_liquidity(ordered)
-    
-    # 6. 한줄 요약 생성
     summary = generate_macro_summary(ordered, net_liquidity)
-    
-    response_data = {"results": ordered, "net_liquidity": net_liquidity, "summary": summary}
+    response_data = {
+        "results": ordered,
+        "net_liquidity": net_liquidity,
+        "summary": summary,
+        "generatedAt": payload.get("generatedAt"),
+        "freshCount": payload.get("freshCount", len(ordered)),
+        "staleCount": payload.get("staleCount", 0),
+        "staleSymbols": payload.get("staleSymbols", []),
+        "errors": payload.get("errors", {}),
+        "source": payload.get("source", "FRED + Yahoo Chart, precomputed by GitHub Actions"),
+        "cacheMode": "precomputed",
+    }
     MACRO_CACHE["data"] = response_data
     MACRO_CACHE["timestamp"] = current_time
-    print(f"[MACRO] Fetched {len(ordered)} indicators + Net Liquidity, cached for 1 hour")
-    
+    print(
+        f"[MACRO] served {len(ordered)} cached indicators "
+        f"(fresh={response_data['freshCount']}, stale={response_data['staleCount']})"
+    )
     return response_data
-
 
 
 @app.get("/api/fwd-per")
