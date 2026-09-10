@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="theme-color" content="#FFFFFF">
     <title>차트뷰 - 주식 비교 분석</title>
-    <meta name="description" content="주식 수익률 비교, 밸류에이션 분석, FRED 경제 지표를 한눈에. AI 투자 어시스턴트와 대화도 가능합니다.">
+    <meta name="description" content="주식 수익률 비교, 밸류에이션 분석, 경제 지표와 빠른 종목 발굴을 한눈에 확인합니다.">
 
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <link rel="stylesheet" href="/static/css/style.css?v=20260219v2">
@@ -140,7 +140,7 @@
             <button class="tab-btn active" data-tab="chart">📈 차트 비교</button>
             <button class="tab-btn" data-tab="fwdper">📊 밸류에이션</button>
             <button class="tab-btn" data-tab="macro">🌐 경제 지표</button>
-            <button class="tab-btn" data-tab="ai">🤖 AI 질문</button>
+            <button class="tab-btn" data-tab="screener">🔎 종목 발굴</button>
         </nav>
 
         <!-- 차트 탭 -->
@@ -241,58 +241,13 @@
             </section>
         </div>
 
-        <!-- AI 질문 탭 -->
-        <div id="ai-tab" class="tab-content">
-            <section class="ai-section">
-                <div class="ai-header">
-                    <h2 class="ai-title">🤖 AI 투자 어시스턴트</h2>
-                    <p class="ai-desc">주식, 경제, 투자 전략에 대해 무엇이든 물어보세요. 쉽고 재미있게 설명해 드립니다.</p>
-                </div>
-
-                <!-- 추천 질문 -->
-                <div class="ai-suggestions">
-                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">장단기 금리차가 역전되면 무슨 일이 생기나요?</button>
-                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">지금 미국 주식 시장 전망은?</button>
-                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">PER이 낮은 주식이 무조건 좋은 건가요?</button>
-                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">연준의 양적긴축(QT)이 주식에 미치는 영향</button>
-                    <button class="ai-suggest-btn" onclick="askSuggestion(this)">환율이 오르면 한국 투자자에게 유리한가요?</button>
-                </div>
-
-                <!-- 채팅 영역 -->
-                <div id="ai-chat-container" class="ai-chat-container">
-                    <div id="ai-messages" class="ai-messages">
-                        <div class="ai-message ai-bot">
-                            <div class="ai-avatar">🤖</div>
-                            <div class="ai-bubble">
-                                안녕하세요! 저는 주식/경제 전문 AI 어시스턴트입니다.<br>
-                                궁금한 점을 편하게 물어보세요. 💬
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 입력 영역 -->
-                <div class="ai-input-area">
-                    <div class="ai-input-row">
-                        <textarea id="ai-input" class="ai-input" placeholder="주식, 경제, 투자에 대해 물어보세요..."
-                            rows="1"></textarea>
-                        <button id="ai-send-btn" class="ai-send-btn" onclick="sendAiQuestion()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13" />
-                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="ai-input-hint">Gemini AI 기반 · 투자 참고용 정보이며 투자 조언이 아닙니다</div>
-                </div>
-            </section>
-        </div>
+        <!-- 종목 발굴 탭: screener.js가 내용을 채웁니다 -->
+        <div id="screener-tab" class="tab-content"></div>
 
         <!-- 푸터 / 면책 조항 -->
         <footer class="app-footer">
             <div class="disclaimer">
-                <p>본 사이트에서 제공하는 모든 정보는 <strong>Yahoo Finance</strong> 데이터를 기반으로 하며, 실제 시장 가격이나 실적과 차이가 있을 수 있습니다.</p>
+                <p>본 사이트는 <strong>Yahoo Finance, FRED, KIND/KRX, Naver Finance</strong> 등 공개 데이터를 조합하며, 소스별 갱신 시점에 따라 실제 시장 가격이나 실적과 차이가 있을 수 있습니다.</p>
                 <p>제공되는 데이터와 지표는 투자 참고용이며, 이를 기반으로 한 투자 결과에 대하여 당사는 어떠한 책임도 지지 않습니다. 최종 투자 결정은 투자자 본인의 판단하에 이루어져야 합니다.
                 </p>
             </div>
@@ -307,7 +262,6 @@
     <script src="/static/js/chart.js?v=20260910v3"></script>
     <script src="/static/js/fwdper.js?v=20260910v3"></script>
     <script src="/static/js/macro.js?v=20260219v2"></script>
-    <script src="/static/js/gemini.js?v=20260219v2"></script>
     <script src="/static/js/ux_patch.js?v=20260910"></script>
 </body>
 

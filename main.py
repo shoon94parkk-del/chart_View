@@ -4,7 +4,7 @@ FastAPI 서버 (토스 가이드라인 준수)
 """
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -681,48 +681,48 @@ async def macro_data():
             return {"original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"], "value": 0, "change": 0, "chart_data": [], "error": True}
 
     def fetch_fred_data(symbol, info):
-        """FRED 공식 API 사용 (가장 확실한 방법)"""
-        API_KEY = "e4549aea3557be8678ec41be06039285"
-        base_url = "https://api.stlouisfed.org/fred/series/observations"
-        
+        """FRED 공식 CSV 엔드포인트 사용 (API key 불필요)."""
         try:
-            # 최근 6개월 데이터만 요청 (차트에 최신 그래프 표시)
             start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
-            params = {
-                "series_id": symbol, "api_key": API_KEY, "file_type": "json",
-                "sort_order": "asc",
-                "observation_start": start_date
-            }
-            
-            response = requests.get(base_url, params=params, timeout=5)
-            # 400 Bad Request (존재하지 않는 심볼 등) 시 예외 발생 -> Catch -> Yahoo Fallback 시도
-            response.raise_for_status() 
-            
-            data = response.json()
-            observations = data.get("observations", [])
-            
-            if not observations: raise ValueError("No observations")
+            response = requests.get(
+                "https://fred.stlouisfed.org/graph/fredgraph.csv",
+                params={"id": symbol, "cosd": start_date},
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=7,
+            )
+            response.raise_for_status()
+            frame = pd.read_csv(io.StringIO(response.text))
+            if frame.empty or len(frame.columns) < 2:
+                raise ValueError("No observations")
 
-            chart_data = []
-            for obs in observations:
-                val = obs["value"]
-                if val == ".": continue
-                chart_data.append({"time": obs["date"], "value": float(val)})
-            
-            if not chart_data: raise ValueError("No valid data")
-            
+            date_col = frame.columns[0]
+            value_col = symbol if symbol in frame.columns else frame.columns[-1]
+            values = pd.to_numeric(frame[value_col], errors="coerce")
+            chart_data = [
+                {"time": str(date)[:10], "value": float(value)}
+                for date, value in zip(frame[date_col], values)
+                if pd.notna(value)
+            ]
+            if not chart_data:
+                raise ValueError("No valid data")
+
             current = chart_data[-1]["value"]
             prev = chart_data[-2]["value"] if len(chart_data) > 1 else current
-            change = ((current - prev) / prev) * 100 if prev != 0 else 0.0
-            
+            change = ((current - prev) / prev) * 100 if prev else 0.0
             return {
-                "original_symbol": symbol, "symbol": symbol, "name": info["name"], "desc": info["desc"], "link": info["link"],
-                "value": round(current, 2), "change": round(change, 2), "chart_data": chart_data
+                "original_symbol": symbol,
+                "symbol": symbol,
+                "name": info["name"],
+                "desc": info["desc"],
+                "link": info["link"],
+                "value": round(current, 2),
+                "change": round(change, 2),
+                "chart_data": chart_data[-100:],
+                "source": "FRED",
             }
-            
         except Exception as e:
-            print(f"FRED API failed for {symbol}: {e} -> Trying Fallback")
-            return fetch_yahoo_fallback(symbol, info) # 결과(성공/실패 객체)를 그대로 리턴
+            print(f"FRED CSV failed for {symbol}: {e} -> Trying Fallback")
+            return fetch_yahoo_fallback(symbol, info)
 
     def fetch_indicator(symbol, info):
         try:
@@ -785,118 +785,6 @@ async def valuation_data(tickers: str):
         else: errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
     return {"stocks": stocks, "errors": errors, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
   "source": "Yahoo Finance Chart + Fundamentals"}
-
-
-# ========================
-# Gemini AI 질문 답변 API
-# ========================
-from pydantic import BaseModel
-
-class AskRequest(BaseModel):
-    question: str
-    history: list = []  # 대화 히스토리 (선택)
-
-# Gemini API 키 (환경변수 전용 - 코드에 키를 넣으면 Google이 유출로 감지합니다)
-# 로컬: set GEMINI_API_KEYS=your_key_here (CMD) 또는 $env:GEMINI_API_KEYS="your_key_here" (PowerShell)
-# Render: Environment Variables에서 GEMINI_API_KEYS 설정
-_raw_keys = os.environ.get("GEMINI_API_KEYS", "")
-GEMINI_API_KEYS = [k.strip() for k in _raw_keys.split(",") if k.strip()]
-if not GEMINI_API_KEYS:
-    print("[WARNING] GEMINI_API_KEYS 환경변수 미설정. AI 채팅 비활성화.")
-GEMINI_KEY_INDEX = 0
-
-SYSTEM_PROMPT = """당신은 한국어 주식/경제 전문 AI 어시스턴트입니다.
-다음 원칙을 따르세요:
-1. 복잡한 경제 개념을 쉽고 직관적인 비유로 설명합니다.
-2. 답변은 간결하되 핵심을 놓치지 않습니다. 불필요한 서론은 생략합니다.
-3. 투자 조언이 아닌 '정보 제공'임을 명확히 합니다.
-4. 데이터나 수치를 언급할 때는 출처(FRED, Yahoo Finance 등)를 명시합니다.
-5. 마크다운 형식(굵은 글씨, 리스트, 이모지 등)을 활용해 가독성을 높입니다.
-6. 한국 투자자 관점에서 환율, 원화 영향 등도 언급합니다.
-7. 확실하지 않은 정보는 "~일 수 있습니다", "확인이 필요합니다" 등으로 표현합니다."""
-
-import httpx
-import json
-
-@app.post("/api/ask")
-async def ask_gemini(req: AskRequest):
-    """Gemini AI에게 주식/경제 관련 질문 (스트리밍 지원)"""
-    global GEMINI_KEY_INDEX
-    
-    question = req.question.strip()
-    if not question:
-        return JSONResponse({"error": "질문을 입력해주세요"}, status_code=400)
-    
-    if not GEMINI_API_KEYS:
-        return JSONResponse({"error": "AI 서비스가 설정되지 않았습니다. 관리자에게 문의하세요."}, status_code=503)
-    
-    # 대화 히스토리 구성
-    contents = []
-    contents.append({"role": "user", "parts": [{"text": SYSTEM_PROMPT}]})
-    contents.append({"role": "model", "parts": [{"text": "네, 주식/경제 전문 AI 어시스턴트입니다. 궁금한 점을 편하게 물어보세요!"}]})
-    
-    for msg in req.history[-10:]:
-        role = "user" if msg.get("role") == "user" else "model"
-        contents.append({"role": role, "parts": [{"text": msg.get("content", "")}]})
-    
-    contents.append({"role": "user", "parts": [{"text": question}]})
-
-    async def generate():
-        global GEMINI_KEY_INDEX
-        last_error = ""
-        
-        for attempt in range(len(GEMINI_API_KEYS)):
-            key_idx = (GEMINI_KEY_INDEX + attempt) % len(GEMINI_API_KEYS)
-            api_key = GEMINI_API_KEYS[key_idx]
-            
-            # SSE 스트리밍 API URL (alt=sse로 안정적 파싱)
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={api_key}"
-            
-            payload = {
-                "contents": contents,
-                "generationConfig": {
-                    "temperature": 0.7,
-                    "topP": 0.95,
-                    "maxOutputTokens": 2048,
-                }
-            }
-            
-            try:
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    async with client.stream("POST", url, json=payload) as response:
-                        if response.status_code == 200:
-                            GEMINI_KEY_INDEX = key_idx
-                            async for line in response.aiter_lines():
-                                # SSE 형식: "data: {...JSON...}"
-                                if not line or not line.startswith("data: "):
-                                    continue
-                                try:
-                                    json_str = line[6:]  # "data: " 제거
-                                    chunk_data = json.loads(json_str)
-                                    candidates = chunk_data.get("candidates", [])
-                                    if candidates:
-                                        parts = candidates[0].get("content", {}).get("parts", [])
-                                        for part in parts:
-                                            text = part.get("text", "")
-                                            if text:
-                                                yield text
-                                except json.JSONDecodeError:
-                                    continue
-                            return  # 성공적으로 스트리밍 완료
-                        elif response.status_code == 429:
-                            last_error = f"API Key {key_idx+1} 할당량 초과"
-                            continue
-                        else:
-                            body = await response.aread()
-                            last_error = f"API 오류 {response.status_code}: {body.decode()[:200]}"
-                            continue
-            except Exception as e:
-                last_error = str(e)
-                continue
-        
-        yield f"에러 발생: {last_error}"
-
-    return StreamingResponse(generate(), media_type="text/plain")
 
 
 if __name__ == "__main__":
