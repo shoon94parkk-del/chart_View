@@ -115,9 +115,40 @@
     return false;
   }
 
+  // Add semantic labels to valuation cells. CSS uses data-label on mobile to
+  // convert a wide table into one readable card per stock without duplicating data.
+  function enhanceValuationTable() {
+    const table = document.querySelector('#per-table-container .per-table');
+    if (!table) return;
+
+    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
+    if (!headers.length) return;
+
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      const cells = Array.from(row.children);
+      cells.forEach((cell, index) => {
+        cell.dataset.label = headers[index] || '';
+      });
+
+      const name = row.querySelector('.stock-name')?.textContent?.trim();
+      const ticker = row.querySelector('.stock-ticker')?.textContent?.trim();
+      if (name || ticker) row.setAttribute('aria-label', [name, ticker].filter(Boolean).join(' '));
+    });
+  }
+
+  function watchValuationTable() {
+    const container = document.getElementById('per-table-container');
+    if (!container) return;
+
+    enhanceValuationTable();
+    const observer = new MutationObserver(() => enhanceValuationTable());
+    observer.observe(container, { childList: true, subtree: true });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Preload the ~2,600-stock universe once. All Korean autocomplete after this is browser-side.
     loadUniverse();
+    watchValuationTable();
 
     const sector = document.querySelector('.sector-section');
     if (sector && !sector.querySelector('.ux-sector-toggle')) {
