@@ -5,7 +5,7 @@
   let loadingPromise = null;
   let preset = 'candidate';
   let market = 'ALL';
-  let minValue = 1000000000; // 20일 평균 거래대금 10억원
+  let minValue = 1000000000;
   let sortKey = 'score';
 
   const esc = (value) => String(value ?? '')
@@ -50,11 +50,11 @@
             <h2 class="screener-title">🔎 한국 주식 빠른 스크리너</h2>
             <p class="screener-desc">KOSPI·KOSDAQ 전체를 장 마감 후 미리 계산해 필터링은 즉시 실행됩니다.</p>
           </div>
-          <div class="screener-update">무료 배치 계산 · 서버 실시간 전수조회 없음</div>
+          <div class="screener-update">장마감 배치 · 서버 실시간 전수조회 없음</div>
         </div>
 
         <div class="screener-controls">
-          <div class="screener-row">
+          <div class="screener-row screener-main-row">
             <input id="screener-search" class="screener-search" placeholder="종목명 또는 6자리 코드 검색" autocomplete="off">
             <select id="screener-value" class="screen-select" aria-label="최소 평균 거래대금">
               <option value="0">거래대금 전체</option>
@@ -71,14 +71,15 @@
             </select>
           </div>
 
-          <div class="screener-row">
+          <div class="screener-row screen-scroll-row">
             <button class="screen-chip active" data-screen-market="ALL">전체 시장</button>
             <button class="screen-chip" data-screen-market="KOSPI">KOSPI</button>
             <button class="screen-chip" data-screen-market="KOSDAQ">KOSDAQ</button>
           </div>
 
-          <div class="screener-row">
+          <div class="screener-row screen-scroll-row">
             <button class="screen-chip active" data-screen-preset="candidate">종합 후보</button>
+            <button class="screen-chip" data-screen-preset="momentum">추세+거래량</button>
             <button class="screen-chip" data-screen-preset="oversold">RSI 과매도</button>
             <button class="screen-chip" data-screen-preset="volume">거래량 2배+</button>
             <button class="screen-chip" data-screen-preset="cross20">20일선 돌파</button>
@@ -89,7 +90,7 @@
 
         <div id="screener-summary" class="screener-summary">탭을 열면 최신 스크리너 데이터를 불러옵니다.</div>
         <div id="screener-results"><div class="screener-empty">종목 발굴 탭을 열어주세요.</div></div>
-        <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 탐색용 지표이며 투자판단 점수가 아닙니다. 데이터는 한국 장 마감 후 자동 갱신됩니다.</div>
+        <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 탐색용 지표이며 투자판단 점수가 아닙니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
   }
 
@@ -104,6 +105,7 @@
     if (preset === 'volume') return (row.volumeRatio || 0) >= 2;
     if (preset === 'cross20') return row.cross20 === true;
     if (preset === 'aligned') return row.aligned === true;
+    if (preset === 'momentum') return (row.volumeRatio || 0) >= 1.5 && (row.aligned === true || row.cross20 === true) && (row.rsi14 == null || row.rsi14 < 70);
     if (preset === 'candidate') {
       return (row.score || 0) >= 55 && (row.rsi14 === null || row.rsi14 <= 65) && (row.volumeRatio || 0) >= 1.2;
     }
@@ -136,9 +138,10 @@
 
     let rows = sortRows(payload.stocks.filter(matches));
     const total = rows.length;
+    const shown = Math.min(total, 200);
     rows = rows.slice(0, 200);
 
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 종목 · ${payload.tradeDate || '-'} 기준 · 전체 ${payload.count?.toLocaleString('ko-KR') || '-'}개에서 즉시 필터링`;
+    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}`;
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -146,18 +149,18 @@
     }
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
-      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수</th><th></th></tr></thead>
+      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수</th><th>액션</th></tr></thead>
       <tbody>${rows.map((row) => `
         <tr>
-          <td><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
-          <td><div>${num(row.price, 0)}원</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.change1d)}</div></td>
-          <td><strong>${num(row.rsi14, 1)}</strong></td>
-          <td><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
-          <td>${trendBadge(row)}</td>
-          <td class="${(row.ret20 || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.ret20)}</td>
-          <td><strong>${money(row.avgValue20)}</strong><div class="screen-sub">5일 ${pct(row.ret5)} · 60일 ${pct(row.ret60)}</div></td>
-          <td><span class="screen-score">${num(row.score, 0)}</span></td>
-          <td><button class="screen-add" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">비교+</button></td>
+          <td data-label="종목"><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
+          <td data-label="현재가"><div>${num(row.price, 0)}원</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.change1d)}</div></td>
+          <td data-label="RSI"><strong>${num(row.rsi14, 1)}</strong></td>
+          <td data-label="거래량"><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
+          <td data-label="추세">${trendBadge(row)}</td>
+          <td data-label="20일" class="${(row.ret20 || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.ret20)}</td>
+          <td data-label="평균 거래대금"><strong>${money(row.avgValue20)}</strong><div class="screen-sub">5일 ${pct(row.ret5)} · 60일 ${pct(row.ret60)}</div></td>
+          <td data-label="기술점수"><span class="screen-score">${num(row.score, 0)}</span></td>
+          <td data-label="액션"><div class="screen-actions"><button class="screen-add" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">비교+</button><button class="screen-idea" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">아이디어</button></div></td>
         </tr>`).join('')}</tbody></table></div>`;
 
     results.querySelectorAll('.screen-add').forEach((button) => {
@@ -166,6 +169,18 @@
         const name = button.dataset.name;
         if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
         if (typeof window.switchTab === 'function') window.switchTab('chart');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    results.querySelectorAll('.screen-idea').forEach((button) => {
+      button.addEventListener('click', () => {
+        const symbol = button.dataset.symbol;
+        const name = button.dataset.name;
+        if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
+        const ideasTab = document.querySelector('[data-tab="ideas"]');
+        if (ideasTab) ideasTab.click();
+        else if (typeof window.switchTab === 'function') window.switchTab('fwdper');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
@@ -193,7 +208,7 @@
       })
       .catch((error) => {
         console.error('Screener load failed:', error);
-        if (results) results.innerHTML = '<div class="screener-empty">첫 스크리너 데이터를 생성 중입니다. 잠시 후 새로고침해 주세요.</div>';
+        if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
         throw error;
       })
       .finally(() => { loadingPromise = null; });
@@ -238,9 +253,6 @@
     bind();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
 })();
