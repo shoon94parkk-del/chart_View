@@ -1,0 +1,57 @@
+name: App Regression Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'market_service.py'
+      - 'scripts/**'
+      - 'static/js/**'
+      - 'static/css/**'
+      - 'templates/**'
+      - '.github/workflows/app-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python syntax
+        run: |
+          python -m py_compile main.py market_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py
+      - name: Frontend JavaScript syntax
+        run: |
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js; do
+            echo "checking $f"
+            node --check "$f"
+          done
+      - name: Static cache shape
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          screener=json.loads(Path('static/data/screener.json').read_text(encoding='utf-8'))
+          assert len(screener.get('stocks', [])) > 2000
+
+          valuation=json.loads(Path('static/data/valuation_cache.json').read_text(encoding='utf-8'))
+          quotes=valuation.get('quotes', {})
+          for ticker in ('005930.KS','000660.KS'):
+              pe=quotes.get(ticker,{}).get('forwardPE')
+              assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
+
+          macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
+          rows=macro.get('results', [])
+          assert len(rows) == 13, len(rows)
+          assert all(x.get('chart_data') and x.get('asOf') for x in rows)
+          print('cache checks OK')
+          PY
