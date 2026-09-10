@@ -1,120 +1,83 @@
-"""Generate a resilient macro-data cache for the Render app.
+"""Build a resilient precomputed macro cache for the Render app.
 
-The app never calls FRED at request time. GitHub Actions refreshes a committed
-JSON cache. Direct cloud-IP access to fred.stlouisfed.org is currently unreliable,
-so FRED's public CSV is read through the keyless Jina Reader proxy. The original
-FRED series URL and dates remain attached to every record.
+Render never contacts FRED at request time. GitHub Actions refreshes this cache.
+The primary source is an open-source FRED proxy because direct cloud-IP access to
+fred.stlouisfed.org is currently timing out. Previous good rows are retained as
+stale data if an upstream refresh partially fails.
 """
 from __future__ import annotations
 
 import json
-import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
-from io import StringIO
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
-import pandas as pd
 import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "static" / "data" / "macro_cache.json"
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
-HEADERS = {"User-Agent": UA, "Accept": "text/plain,application/json,*/*"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 Chrome/126 Safari/537.36",
+    "Accept": "application/json,text/plain,*/*",
+}
+FRED_PROXY = "https://fred.libhack.so/v0/observations"
 
 INDICATORS: dict[str, dict[str, str]] = {
-    "T10Y2Y": {"name": "장단기 금리차 (10Y-2Y)", "desc": "경기 침체 신호등. 0 이하(역전)로 내려갔다가 다시 올라올 때 침체가 시작되는 경향이 있습니다.", "link": "https://fred.stlouisfed.org/series/T10Y2Y", "source": "FRED"},
-    "T10Y3M": {"name": "장단기 금리차 (10Y-3M)", "desc": "연준이 중요하게 보는 침체 지표 중 하나입니다.", "link": "https://fred.stlouisfed.org/series/T10Y3M", "source": "FRED"},
-    "BAMLH0A0HYM2": {"name": "하이일드 스프레드 (Risk)", "desc": "기업 신용 위험을 보여주는 지표입니다.", "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2", "source": "FRED"},
-    "RRPONTSYD": {"name": "역래포 잔액 (Liquidity)", "desc": "연준 역레포 시설에 머무는 유동성 규모입니다.", "link": "https://fred.stlouisfed.org/series/RRPONTSYD", "source": "FRED"},
-    "DFII10": {"name": "10년 실질금리 (TIPS)", "desc": "인플레이션 기대를 제외한 미국 10년 실질금리입니다.", "link": "https://fred.stlouisfed.org/series/DFII10", "source": "FRED"},
-    "T10YIE": {"name": "기대인플레이션 (BEI)", "desc": "미국 10년 기대인플레이션 지표입니다.", "link": "https://fred.stlouisfed.org/series/T10YIE", "source": "FRED"},
-    "UNRATE": {"name": "실업률 (Unemployment)", "desc": "미국 실업률입니다.", "link": "https://fred.stlouisfed.org/series/UNRATE", "source": "FRED"},
-    "RSAFS": {"name": "소매판매 (Retail Sales)", "desc": "미국 소매·음식서비스 판매액입니다.", "link": "https://fred.stlouisfed.org/series/RSAFS", "source": "FRED"},
-    "WALCL": {"name": "연준 총자산 (Fed Balance)", "desc": "연준 대차대조표 총자산입니다.", "link": "https://fred.stlouisfed.org/series/WALCL", "source": "FRED"},
-    "WTREGEN": {"name": "재무부 일반계정 (TGA)", "desc": "미 재무부의 연준 예치금 규모입니다.", "link": "https://fred.stlouisfed.org/series/WTREGEN", "source": "FRED"},
-    "M2SL": {"name": "M2 통화량 (Money Supply)", "desc": "미국 M2 통화량입니다.", "link": "https://fred.stlouisfed.org/series/M2SL", "source": "FRED"},
-    "FEDFUNDS": {"name": "연방기금금리 (Fed Rate)", "desc": "미국 연방기금금리 월간 시계열입니다.", "link": "https://fred.stlouisfed.org/series/FEDFUNDS", "source": "FRED"},
-    "^VIX": {"name": "공포 지수 (VIX)", "desc": "미국 주식시장의 기대 변동성을 나타냅니다.", "link": "https://finance.yahoo.com/quote/%5EVIX", "source": "YAHOO"},
+    "T10Y2Y": {"name": "장단기 금리차 (10Y-2Y)", "desc": "10년-2년 미국 국채 금리차입니다.", "link": "https://fred.stlouisfed.org/series/T10Y2Y"},
+    "T10Y3M": {"name": "장단기 금리차 (10Y-3M)", "desc": "10년-3개월 미국 국채 금리차입니다.", "link": "https://fred.stlouisfed.org/series/T10Y3M"},
+    "BAMLH0A0HYM2": {"name": "하이일드 스프레드 (Risk)", "desc": "미국 하이일드 회사채 신용 스프레드입니다.", "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"},
+    "RRPONTSYD": {"name": "역래포 잔액 (Liquidity)", "desc": "연준 역레포 시설 잔액입니다.", "link": "https://fred.stlouisfed.org/series/RRPONTSYD"},
+    "DFII10": {"name": "10년 실질금리 (TIPS)", "desc": "미국 10년 물가연동국채 실질금리입니다.", "link": "https://fred.stlouisfed.org/series/DFII10"},
+    "T10YIE": {"name": "기대인플레이션 (BEI)", "desc": "미국 10년 기대인플레이션입니다.", "link": "https://fred.stlouisfed.org/series/T10YIE"},
+    "UNRATE": {"name": "실업률 (Unemployment)", "desc": "미국 실업률입니다.", "link": "https://fred.stlouisfed.org/series/UNRATE"},
+    "RSAFS": {"name": "소매판매 (Retail Sales)", "desc": "미국 소매·음식서비스 판매액입니다.", "link": "https://fred.stlouisfed.org/series/RSAFS"},
+    "WALCL": {"name": "연준 총자산 (Fed Balance)", "desc": "연준 대차대조표 총자산입니다.", "link": "https://fred.stlouisfed.org/series/WALCL"},
+    "WTREGEN": {"name": "재무부 일반계정 (TGA)", "desc": "미 재무부 일반계정 잔액입니다.", "link": "https://fred.stlouisfed.org/series/WTREGEN"},
+    "M2SL": {"name": "M2 통화량 (Money Supply)", "desc": "미국 M2 통화량입니다.", "link": "https://fred.stlouisfed.org/series/M2SL"},
+    "FEDFUNDS": {"name": "연방기금금리 (Fed Rate)", "desc": "미국 연방기금금리입니다.", "link": "https://fred.stlouisfed.org/series/FEDFUNDS"},
+    "^VIX": {"name": "공포 지수 (VIX)", "desc": "미국 주식시장의 기대 변동성입니다.", "link": "https://finance.yahoo.com/quote/%5EVIX"},
 }
 
 
-def request_with_retry(url: str, *, params: dict[str, Any] | None = None, attempts: int = 3, timeout: int = 25) -> requests.Response:
-    last_error: Exception | None = None
+def get_json(url: str, params: dict[str, Any], attempts: int = 3, timeout: int = 25) -> Any:
+    last: Exception | None = None
     for attempt in range(1, attempts + 1):
         try:
-            response = requests.get(url, params=params or {}, headers=HEADERS, timeout=timeout)
-            response.raise_for_status()
-            return response
+            r = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+            r.raise_for_status()
+            return r.json()
         except Exception as exc:
-            last_error = exc
+            last = exc
             if attempt < attempts:
                 time.sleep(attempt * 2)
-    raise RuntimeError(str(last_error) if last_error else "request failed")
+    raise RuntimeError(str(last) if last else "request failed")
 
 
-def extract_fred_csv(reader_text: str, symbol: str) -> str:
-    """Extract the CSV rows from Jina Reader's plain-text/Markdown response."""
-    lines = reader_text.replace("\ufeff", "").splitlines()
-    header_index = None
-    header_re = re.compile(rf"^(?:observation_date|DATE),\s*{re.escape(symbol)}\s*$", re.I)
-    for i, raw in enumerate(lines):
-        line = raw.strip().strip("`").strip()
-        if header_re.match(line):
-            header_index = i
-            break
-    if header_index is None:
-        # Some reader responses may pass the CSV through unchanged with a different
-        # first-column label. Accept any two-column header ending in the series id.
-        for i, raw in enumerate(lines):
-            line = raw.strip().strip("`").strip()
-            if line.upper().endswith("," + symbol.upper()) and "," in line:
-                header_index = i
-                break
-    if header_index is None:
-        raise RuntimeError(f"FRED CSV header not found for {symbol}")
-
-    header = lines[header_index].strip().strip("`").strip()
-    rows = [header]
-    row_re = re.compile(r"^\d{4}-\d{2}-\d{2},")
-    for raw in lines[header_index + 1:]:
-        line = raw.strip().strip("`").strip()
-        if row_re.match(line):
-            rows.append(line)
-        elif len(rows) > 1 and line and not line.startswith("```"):
-            break
-    if len(rows) < 2:
-        raise RuntimeError(f"FRED CSV observations not found for {symbol}")
-    return "\n".join(rows)
+def normalize_rows(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        raise RuntimeError("unexpected observations payload")
+    rows: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        date = str(item.get("date") or "")[:10]
+        raw_value = item.get("value")
+        if not date or raw_value in (None, ".", ""):
+            continue
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            continue
+        rows.append({"time": date, "value": round(value, 6)})
+    rows.sort(key=lambda x: x["time"])
+    return rows[-100:]
 
 
-def fetch_fred(symbol: str, meta: dict[str, str]) -> dict[str, Any]:
-    start = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-    source_url = (
-        "https://fred.stlouisfed.org/graph/fredgraph.csv"
-        f"?id={quote(symbol)}&cosd={quote(start)}"
-    )
-    reader_url = "https://r.jina.ai/" + source_url
-    response = request_with_retry(reader_url, attempts=2, timeout=35)
-    csv_text = extract_fred_csv(response.text, symbol)
-    frame = pd.read_csv(StringIO(csv_text))
-    if frame.empty or len(frame.columns) < 2:
-        raise RuntimeError(f"empty FRED series {symbol}")
-
-    date_col = frame.columns[0]
-    value_col = symbol if symbol in frame.columns else frame.columns[-1]
-    values = pd.to_numeric(frame[value_col], errors="coerce")
-    rows = [
-        {"time": str(date)[:10], "value": round(float(value), 6)}
-        for date, value in zip(frame[date_col], values)
-        if pd.notna(value)
-    ][-100:]
+def make_row(symbol: str, meta: dict[str, str], rows: list[dict[str, Any]], source: str) -> dict[str, Any]:
     if not rows:
-        raise RuntimeError(f"no valid FRED values {symbol}")
-
+        raise RuntimeError(f"no valid observations for {symbol}")
     current = rows[-1]["value"]
     prev = rows[-2]["value"] if len(rows) > 1 else current
     change = ((current - prev) / abs(prev) * 100) if prev else 0.0
@@ -127,45 +90,49 @@ def fetch_fred(symbol: str, meta: dict[str, str]) -> dict[str, Any]:
         "value": round(current, 4),
         "change": round(change, 2),
         "chart_data": rows,
-        "source": "FRED (cached via Jina Reader)",
+        "source": source,
         "asOf": rows[-1]["time"],
         "stale": False,
     }
 
 
+def fetch_fred(symbol: str, meta: dict[str, str]) -> dict[str, Any]:
+    start = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
+    raw = get_json(
+        FRED_PROXY,
+        {"series_id": symbol, "observation_start": start},
+        attempts=3,
+        timeout=25,
+    )
+    return make_row(symbol, meta, normalize_rows(raw), "FRED via fred.libhack.so cache proxy")
+
+
 def fetch_vix(meta: dict[str, str]) -> dict[str, Any]:
     period1 = int((datetime.now(timezone.utc) - timedelta(days=365)).timestamp())
     period2 = int(time.time())
-    response = request_with_retry(
+    raw = get_json(
         "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX",
-        params={"period1": period1, "period2": period2, "interval": "1d", "events": "history"},
+        {"period1": period1, "period2": period2, "interval": "1d", "events": "history"},
         attempts=2,
         timeout=20,
     )
-    result = (response.json().get("chart", {}).get("result") or [None])[0]
+    result = (raw.get("chart", {}).get("result") or [None])[0] if isinstance(raw, dict) else None
     if not result:
         raise RuntimeError("Yahoo VIX chart missing")
     timestamps = result.get("timestamp") or []
     closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-    rows = []
+    rows: list[dict[str, Any]] = []
     for ts, close in zip(timestamps, closes):
         if close is None:
             continue
         value = float(close)
         if value <= 0:
             continue
-        rows.append({"time": datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d"), "value": round(value, 4)})
-    rows = rows[-100:]
-    if not rows:
-        raise RuntimeError("Yahoo VIX values missing")
-    current = rows[-1]["value"]
-    prev = rows[-2]["value"] if len(rows) > 1 else current
-    return {
-        "original_symbol": "^VIX", "symbol": "^VIX", "name": meta["name"],
-        "desc": meta["desc"], "link": meta["link"], "value": round(current, 2),
-        "change": round((current - prev) / prev * 100 if prev else 0.0, 2),
-        "chart_data": rows, "source": "Yahoo Chart", "asOf": rows[-1]["time"], "stale": False,
-    }
+        rows.append({
+            "time": datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d"),
+            "value": round(value, 6),
+        })
+    return make_row("^VIX", meta, rows[-100:], "Yahoo Chart")
 
 
 def load_previous() -> dict[str, dict[str, Any]]:
@@ -173,8 +140,11 @@ def load_previous() -> dict[str, dict[str, Any]]:
         return {}
     try:
         payload = json.loads(OUT.read_text(encoding="utf-8"))
-        rows = payload.get("results") or []
-        return {str(row.get("original_symbol") or row.get("symbol")): row for row in rows if isinstance(row, dict)}
+        return {
+            str(row.get("original_symbol") or row.get("symbol")): row
+            for row in (payload.get("results") or [])
+            if isinstance(row, dict)
+        }
     except Exception as exc:
         print("previous cache unreadable:", exc)
         return {}
@@ -189,8 +159,7 @@ def main() -> None:
         meta = INDICATORS[symbol]
         return fetch_vix(meta) if symbol == "^VIX" else fetch_fred(symbol, meta)
 
-    # Keep concurrency conservative because the free reader proxy is shared.
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(fetch_one, symbol): symbol for symbol in INDICATORS}
         for future in as_completed(futures):
             symbol = futures[future]
@@ -207,14 +176,13 @@ def main() -> None:
         if symbol in results:
             continue
         old = previous.get(symbol)
-        if not old:
-            continue
-        kept = dict(old)
-        kept["stale"] = True
-        kept["staleReason"] = errors.get(symbol, "upstream unavailable")
-        results[symbol] = kept
-        stale_symbols.append(symbol)
-        print("STALE", symbol, kept.get("asOf"))
+        if old:
+            kept = dict(old)
+            kept["stale"] = True
+            kept["staleReason"] = errors.get(symbol, "upstream unavailable")
+            results[symbol] = kept
+            stale_symbols.append(symbol)
+            print("STALE", symbol, kept.get("asOf"))
 
     ordered = [results[s] for s in INDICATORS if s in results]
     if len(ordered) < 11:
@@ -222,9 +190,13 @@ def main() -> None:
 
     payload = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "count": len(ordered), "freshCount": len(fresh), "staleCount": len(stale_symbols),
-        "staleSymbols": stale_symbols, "results": ordered, "errors": errors,
-        "source": "FRED via Jina Reader + Yahoo Chart, precomputed by GitHub Actions",
+        "count": len(ordered),
+        "freshCount": len(fresh),
+        "staleCount": len(stale_symbols),
+        "staleSymbols": stale_symbols,
+        "results": ordered,
+        "errors": errors,
+        "source": "FRED via fred.libhack.so + Yahoo Chart, precomputed by GitHub Actions",
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
