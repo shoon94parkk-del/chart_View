@@ -8,11 +8,14 @@ on:
       - 'main.py'
       - 'market_service.py'
       - 'valuation_band_service.py'
+      - 'consensus_service.py'
       - 'requirements.txt'
       - 'templates/**'
       - 'static/js/**'
       - 'static/css/**'
       - 'static/data/valuation_cache.json'
+      - 'static/data/consensus_cache.json'
+      - 'static/data/consensus_history.json'
       - 'static/data/macro_cache.json'
       - '.github/workflows/live-smoke.yml'
 
@@ -36,7 +39,8 @@ jobs:
               && ! grep -q 'user-scalable=no' /tmp/home.html \
               && grep -q '/static/js/macro.js?v=20260911v1' /tmp/home.html \
               && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html \
-              && grep -q '/static/js/valuation_bands.js?v=20260911v1' /tmp/home.html; then
+              && grep -q '/static/js/valuation_bands.js?v=20260911v1' /tmp/home.html \
+              && grep -q '/static/js/consensus_v2.js?v=20260911v1' /tmp/home.html; then
               ready=1
               echo "current mobile build detected on attempt=$i"
               break
@@ -69,15 +73,19 @@ jobs:
 
           curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
           curl -fsSL "$BASE/static/data/valuation_cache.json" -o /tmp/vcache.json
+          curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/ccache.json
+          curl -fsSL "$BASE/static/data/consensus_history.json" -o /tmp/chistory.json
           curl -fsSL "$BASE/static/data/macro_cache.json" -o /tmp/mcache.json
           curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux.js
           curl -fsSL "$BASE/static/js/ideas.js?v=20260911v1" -o /tmp/ideas.js
           curl -fsSL "$BASE/static/js/screener.js?v=20260911v1" -o /tmp/screener.js
           curl -fsSL "$BASE/static/js/valuation_bands.js?v=20260911v1" -o /tmp/bands.js
+          curl -fsSL "$BASE/static/js/consensus_v2.js?v=20260911v1" -o /tmp/consensus.js
           grep -Fq 'const isSixCharCode = (text) => /^\d{6}$/.test(text);' /tmp/ux.js
           grep -q 'ideas-market' /tmp/ideas.js
           grep -q 'data-screen-preset="momentum"' /tmp/screener.js
           grep -q '역사적 밸류에이션 밴드' /tmp/bands.js
+          grep -q 'EPS · 매출 컨센서스 추세' /tmp/consensus.js
 
           python - <<'PY'
           import json
@@ -87,12 +95,17 @@ jobs:
           for ticker in ('005930.KS','000660.KS'):
               pe=v.get('quotes',{}).get(ticker,{}).get('forwardPE')
               assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
+          c=json.load(open('/tmp/ccache.json'))
+          h=json.load(open('/tmp/chistory.json'))
+          for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
+              assert ticker in c.get('quotes',{}), ticker
+              assert (h.get('history',{}).get(ticker,{}).get('0y') or []), (ticker,'history')
           m=json.load(open('/tmp/mcache.json'))
           rows=m.get('results',[])
           assert len(rows) == 13, len(rows)
           assert m.get('staleCount') == 0, m.get('staleCount')
           assert all(x.get('chart_data') and x.get('asOf') and 'delta' in x for x in rows)
-          print('static caches OK:', len(s['stocks']), 'stocks /', len(rows), 'macro')
+          print('static caches OK:', len(s['stocks']), 'stocks /', c.get('count'), 'consensus /', len(rows), 'macro')
           PY
 
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare.json
@@ -131,6 +144,23 @@ jobs:
               assert 0 < float(ps.get('current',0)) < 200, (t,ps)
               assert 0 < float(bs.get('current',0)) < 100, (t,bs)
               print('band OK',t,'PER',ps.get('current'),'PBR',bs.get('current'),'PER pct',ps.get('percentile'),'PBR pct',bs.get('percentile'))
+          PY
+
+          echo 'Analyst consensus:'
+          for t in AAPL NVDA 005930.KS 000660.KS; do
+            curl -fsSL --get --data-urlencode "ticker=$t" "$BASE/api/consensus" -o "/tmp/cons-$t.json"
+          done
+          python - <<'PY'
+          import json
+          for t in ('AAPL','NVDA','005930.KS','000660.KS'):
+              d=json.load(open(f'/tmp/cons-{t}.json'))
+              for p in ('0q','+1q','0y','+1y'):
+                  row=d.get('periods',{}).get(p) or {}
+                  assert (row.get('earnings') or {}).get('avg') is not None, (t,p,'eps')
+                  assert (row.get('revenue') or {}).get('avg') is not None, (t,p,'revenue')
+              annual=d['periods']['0y']
+              assert (annual.get('epsTrend') or {}).get('90daysAgo') is not None, (t,'90d trend')
+              print('consensus OK',t,'EPS',annual['earnings']['avg'],'Revenue',annual['revenue']['avg'],'mode',d.get('cacheMode'))
           PY
 
           curl -fsSL "$BASE/api/heatmap" -o /tmp/heatmap.json
