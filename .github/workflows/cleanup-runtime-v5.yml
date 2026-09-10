@@ -19,15 +19,16 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import textwrap
 
-          # ---- main.py: remove exposed FRED key / use official keyless CSV ----
           p = Path('main.py')
           text = p.read_text(encoding='utf-8')
           text = text.replace('from fastapi.responses import JSONResponse, StreamingResponse', 'from fastapi.responses import JSONResponse')
 
           start = text.index('    def fetch_fred_data(symbol, info):')
           end = text.index('    def fetch_indicator(symbol, info):', start)
-          fred = '''    def fetch_fred_data(symbol, info):
+          fred = textwrap.indent(textwrap.dedent('''\
+          def fetch_fred_data(symbol, info):
               """FRED 공식 CSV 엔드포인트 사용 (API key 불필요)."""
               try:
                   start_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
@@ -71,19 +72,16 @@ jobs:
                   print(f"FRED CSV failed for {symbol}: {e} -> Trying Fallback")
                   return fetch_yahoo_fallback(symbol, info)
 
-          '''
+          '''), '    ')
           text = text[:start] + fred + text[end:]
 
-          # ---- main.py: remove dormant Gemini backend completely ----
           ai_marker = '# ========================\n# Gemini AI 질문 답변 API\n# ========================'
           if ai_marker in text:
               s = text.index(ai_marker)
               e = text.index('\n\nif __name__ == "__main__":', s)
               text = text[:s] + text[e+2:]
-
           p.write_text(text, encoding='utf-8')
 
-          # ---- template: make screener native instead of hijacking AI tab ----
           p = Path('templates/index.html')
           html = p.read_text(encoding='utf-8')
           html = html.replace(
@@ -99,10 +97,7 @@ jobs:
           if ai_start_marker in html and footer_marker in html:
               s = html.index(ai_start_marker)
               e = html.index(footer_marker, s)
-              replacement = '''        <!-- 종목 발굴 탭: screener.js가 내용을 채웁니다 -->
-              <div id="screener-tab" class="tab-content"></div>
-
-          '''
+              replacement = '        <!-- 종목 발굴 탭: screener.js가 내용을 채웁니다 -->\n        <div id="screener-tab" class="tab-content"></div>\n\n'
               html = html[:s] + replacement + html[e:]
           html = html.replace('    <script src="/static/js/gemini.js?v=20260219v2"></script>\n', '')
           html = html.replace(
@@ -111,7 +106,6 @@ jobs:
           )
           p.write_text(html, encoding='utf-8')
 
-          # Basic sanity checks
           main = Path('main.py').read_text(encoding='utf-8')
           page = Path('templates/index.html').read_text(encoding='utf-8')
           compile(main, 'main.py', 'exec')
