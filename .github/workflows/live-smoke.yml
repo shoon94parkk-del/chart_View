@@ -5,12 +5,17 @@ on:
   push:
     branches: [main]
     paths:
+      - 'main.py'
+      - 'requirements.txt'
+      - 'templates/**'
+      - 'static/js/**'
+      - 'static/css/**'
       - '.github/workflows/live-smoke.yml'
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Wait for Render and test public endpoints
         shell: bash
@@ -20,7 +25,7 @@ jobs:
 
           echo 'Waiting for homepage...'
           ok=0
-          for i in $(seq 1 30); do
+          for i in $(seq 1 40); do
             code=$(curl -L -sS -o /tmp/home.html -w '%{http_code}' "$BASE/" || true)
             echo "attempt=$i status=$code"
             if [ "$code" = '200' ]; then ok=1; break; fi
@@ -63,24 +68,24 @@ jobs:
           assert len(d.get('stocks', [])) > 2000
           PY
 
-          echo 'Yahoo compare (AAPL):'
-          curl -fsSL --get --data-urlencode 'tickers=AAPL' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare_us.json
+          echo 'Yahoo compare:'
+          curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare.json
           python - <<'PY'
           import json
-          d=json.load(open('/tmp/compare_us.json'))
-          print(d.get('source'), len(d.get('stocks', [])))
-          assert len(d.get('stocks', [])) >= 1, d
-          assert d['stocks'][0].get('data'), d
+          d=json.load(open('/tmp/compare.json'))
+          print('compare=', [(s.get('ticker'), s.get('price'), len(s.get('data', []))) for s in d.get('stocks', [])])
+          assert len(d.get('stocks', [])) == 2, d
+          assert all(s.get('price', 0) > 0 and s.get('data') for s in d['stocks']), d
           PY
 
-          echo 'Yahoo compare (Samsung):'
-          curl -fsSL --get --data-urlencode 'tickers=005930.KS' --data-urlencode 'period=1mo' "$BASE/api/compare" -o /tmp/compare_kr.json
+          echo 'Valuation snapshot:'
+          curl -fsSL --get --data-urlencode 'tickers=AAPL,NVDA,005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/valuation.json
           python - <<'PY'
           import json
-          d=json.load(open('/tmp/compare_kr.json'))
-          print(d.get('source'), len(d.get('stocks', [])))
-          assert len(d.get('stocks', [])) >= 1, d
-          assert d['stocks'][0].get('data'), d
+          d=json.load(open('/tmp/valuation.json'))
+          for s in d.get('stocks', []):
+              print('valuation=', s.get('ticker'), 'price=', s.get('price'), 'fwdPE=', s.get('forwardPE'), 'PE=', s.get('trailingPE'), 'PBR=', s.get('pbr'), 'source=', s.get('dataSource'))
+          assert len(d.get('stocks', [])) >= 4, d
           PY
 
           echo 'All live smoke checks passed.'
