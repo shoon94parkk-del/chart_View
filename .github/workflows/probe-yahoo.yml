@@ -16,16 +16,28 @@ jobs:
           python - <<'PY'
           import requests, time, json
           ua={'User-Agent':'Mozilla/5.0'}
-          urls=[
-            'https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1d&range=5d',
-            'https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/AAPL?symbol=AAPL&type=trailingMarketCap,trailingPeRatio,forwardPeRatio,priceToBookRatio,trailingEps,forwardEps&period1=0&period2='+str(int(time.time())),
-            'https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/AAPL?symbol=AAPL&type=trailingMarketCap,trailingPeRatio,forwardPeRatio,priceToBookRatio,trailingEps,forwardEps&period1=0&period2='+str(int(time.time())),
+          end=str(int(time.time()))
+          types=[
+            'trailingMarketCap','trailingPeRatio','trailingPriceToBook','trailingPsRatio',
+            'trailingBasicEPS','trailingDilutedEPS','trailingTotalRevenue','trailingEBITDA',
+            'annualStockholdersEquity','annualOrdinarySharesNumber','annualTotalAssets',
+            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber',
+            'annualBasicEPS','annualDilutedEPS','annualTotalRevenue','annualEBITDA'
           ]
-          for u in urls:
+          for symbol in ['AAPL','005930.KS']:
+              u=('https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/' + symbol +
+                 '?symbol=' + symbol + '&type=' + ','.join(types) + '&period1=0&period2=' + end)
+              r=requests.get(u,headers=ua,timeout=20)
+              print('\nSYMBOL',symbol,'STATUS',r.status_code)
               try:
-                  r=requests.get(u,headers=ua,timeout=15)
-                  print('\nURL',u[:100], 'STATUS',r.status_code)
-                  print(r.text[:3000])
-              except Exception as e:
-                  print('ERR',e)
+                  d=r.json()
+                  for item in d.get('timeseries',{}).get('result',[]):
+                      meta=item.get('meta',{})
+                      typ=(meta.get('type') or ['?'])[0]
+                      vals=item.get(typ,[])
+                      latest=vals[-1].get('reportedValue',{}).get('raw') if vals else None
+                      print(typ,'latest=',latest,'count=',len(vals))
+                  print('error=',d.get('timeseries',{}).get('error'))
+              except Exception:
+                  print(r.text[:4000])
           PY
