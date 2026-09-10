@@ -1,0 +1,36 @@
+name: Probe Historical Valuation Series
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/probe-valuation-history.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Probe Yahoo fundamentals timeseries
+        run: |
+          python - <<'PY'
+          import requests,time
+          symbols=['AAPL','005930.KS','000660.KS']
+          types=[
+            'trailingPeRatio','priceToBook','trailingDilutedEPS','quarterlyDilutedEPS',
+            'quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyDilutedAverageShares'
+          ]
+          for s in symbols:
+            url=f'https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{s}'
+            params={'symbol':s,'type':','.join(types),'period1':0,'period2':int(time.time())}
+            r=requests.get(url,params=params,headers={'User-Agent':'Mozilla/5.0'},timeout=20)
+            print('\nSYMBOL',s,'HTTP',r.status_code)
+            r.raise_for_status()
+            data=r.json()
+            for item in data.get('timeseries',{}).get('result',[]):
+              typ=(item.get('meta',{}).get('type') or ['?'])[0]
+              vals=item.get(typ) or []
+              sample=[]
+              for v in vals[-3:]:
+                sample.append((v.get('asOfDate'),(v.get('reportedValue') or {}).get('raw')))
+              print(typ,'count=',len(vals),'last=',sample)
+          PY
