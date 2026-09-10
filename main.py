@@ -19,6 +19,7 @@ import asyncio
 import os
 import threading
 from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
+from valuation_band_service import fetch_valuation_bands
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -639,6 +640,22 @@ async def valuation_data(tickers: str):
         else: errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
     return {"stocks": stocks, "errors": errors, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
   "source": "Yahoo Finance Chart + Fundamentals"}
+
+
+@app.get("/api/valuation-band")
+async def valuation_band_data(ticker: str, years: int = 3):
+    symbol = (ticker or "").strip().upper()
+    if not symbol:
+        return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+    try:
+        data = await asyncio.to_thread(fetch_valuation_bands, symbol, years)
+        return data
+    except Exception as exc:
+        print(f"[ValuationBand] {symbol} failed: {exc}")
+        return JSONResponse(
+            {"error": "역사적 밸류에이션 데이터를 계산하지 못했습니다.", "ticker": symbol},
+            status_code=503,
+        )
 
 
 if __name__ == "__main__":
