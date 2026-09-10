@@ -1,0 +1,240 @@
+name: Apply Market Fixes
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/apply-market-fixes.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch backend and frontend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          # ---------- backend ----------
+          p = Path('main.py')
+          text = p.read_text(encoding='utf-8')
+          imp = 'from market_service import fetch_compare_stock, fetch_valuation_snapshot\n'
+          if imp not in text:
+              anchor = 'import threading\n'
+              if anchor not in text:
+                  raise SystemExit('main import anchor missing')
+              text = text.replace(anchor, anchor + imp, 1)
+
+          compare = '''@app.get("/api/compare")
+          async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, end: str = None):
+              """Fast multi-stock comparison using Yahoo's public chart endpoint."""
+              ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
+              if not ticker_list:
+                  return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+
+              tasks = [asyncio.to_thread(fetch_compare_stock, t, period, start, end) for t in ticker_list]
+              fetched = await asyncio.gather(*tasks, return_exceptions=True)
+              by_ticker = {}
+              errors = []
+              for ticker, item in zip(ticker_list, fetched):
+                  if isinstance(item, Exception):
+                      errors.append({"ticker": ticker, "message": str(item)})
+                  elif item:
+                      by_ticker[ticker] = item
+                  else:
+                      errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
+
+              ordered = [by_ticker[t] for t in ticker_list if t in by_ticker]
+              return {
+                  "stocks": ordered,
+                  "errors": errors,
+                  "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                  "source": "Yahoo Finance Chart"
+              }
+          '''.replace('\n          ', '\n').lstrip()
+
+          s = text.index('@app.get("/api/compare")')
+          e = text.index('@app.get("/api/popular")', s)
+          text = text[:s] + compare + '\n\n' + text[e:]
+
+          valuation = '''@app.get("/api/fwd-per")
+          @app.get("/api/valuation")
+          async def valuation_data(tickers: str):
+              """Reliable valuation snapshot without yfinance.info/quote dependency."""
+              ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
+              if not ticker_list:
+                  return {"stocks": []}
+
+              tasks = [asyncio.to_thread(fetch_valuation_snapshot, t) for t in ticker_list]
+              fetched = await asyncio.gather(*tasks, return_exceptions=True)
+              stocks = []
+              errors = []
+              for ticker, item in zip(ticker_list, fetched):
+                  if isinstance(item, Exception):
+                      errors.append({"ticker": ticker, "message": str(item)})
+                  elif item:
+                      stocks.append(item)
+                  else:
+                      errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
+
+              return {
+                  "stocks": stocks,
+                  "errors": errors,
+                  "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                  "source": "Yahoo Finance Chart + Fundamentals"
+              }
+          '''.replace('\n          ', '\n').lstrip()
+
+          s = text.index('@app.get("/api/fwd-per")')
+          marker = '# ========================\n# Gemini AI 질문 답변 API'
+          e = text.index(marker, s)
+          text = text[:s] + valuation + '\n\n' + text[e:]
+          p.write_text(text, encoding='utf-8')
+
+          # ---------- valuation UI ----------
+          p = Path('static/js/fwdper.js')
+          js = p.read_text(encoding='utf-8-sig')
+          overview_start = js.index("    'overview': {")
+          overview_end = js.index("    'fwd_per': {", overview_start)
+          overview = '''    'overview': {
+              title: '종합 밸류에이션 비교',
+              description: '현재 확인 가능한 핵심 투자 지표를 한눈에 비교합니다.',
+              columns: [
+                  { key: 'trailingPE', label: 'PER', format: 'number', color: true },
+                  { key: 'pbr', label: 'PBR', format: 'number', color: true },
+                  { key: 'psr', label: 'PSR', format: 'number', color: true },
+                  { key: 'roe', label: 'ROE(%)', format: 'percent', color: true }
+              ],
+              barKey: 'trailingPE',
+              barLabel: 'PER (최근 실적)',
+              sortKey: 'trailingPE',
+              colorFunc: (v) => v > 0 && v < 25 ? '#3182F6' : '#6B7684'
+          },
+          '''.replace('\n          ', '\n')
+          js = js[:overview_start] + overview + js[overview_end:]
+
+          old_price = "        const priceStr = isKR ? `₩${stock.price?.toLocaleString()}` : `$${stock.price?.toLocaleString()}`;"
+          new_price = "        const hasPrice = stock.price != null && Number(stock.price) > 0;\n        const priceStr = !hasPrice ? '-' : (isKR ? `₩${Math.round(Number(stock.price)).toLocaleString()}` : `$${Number(stock.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}`);"
+          if old_price not in js:
+              raise SystemExit('price display anchor missing')
+          js = js.replace(old_price, new_price, 1)
+
+          old_add = '''window.addPerTickerDirect = function (ticker) {
+              if (!perTickers.includes(ticker)) {
+                  perTickers.push(ticker);
+                  loadPerData();
+                  // 차트와 동기화
+                  if (typeof addTickerDirect === 'function' && typeof selectedTickers !== 'undefined' && !selectedTickers.includes(ticker)) {
+                      addTickerDirect(ticker);
+                  }
+              }
+          };'''.replace('\n          ', '\n')
+          new_add = '''window.addPerTickerDirect = function (ticker) {
+              if (!perTickers.includes(ticker)) {
+                  perTickers.push(ticker);
+                  // 차트 탭에서 종목을 고를 때는 무거운 밸류에이션 요청을 미리 하지 않는다.
+                  // 밸류에이션 탭을 실제로 열었을 때만 요청한다.
+                  const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+                  if (activeTab === 'fwdper') loadPerData();
+              }
+          };'''.replace('\n          ', '\n')
+          if old_add not in js:
+              raise SystemExit('addPerTickerDirect anchor missing')
+          js = js.replace(old_add, new_add, 1)
+
+          old_initial = '    // 초기 로드\n    loadPerData();'
+          if old_initial not in js:
+              raise SystemExit('initial valuation load anchor missing')
+          js = js.replace(old_initial, '    // 기본 차트 화면에서는 밸류에이션을 선로딩하지 않음', 1)
+          p.write_text(js, encoding='utf-8')
+
+          # ---------- chart loader ----------
+          p = Path('static/js/chart.js')
+          chart = p.read_text(encoding='utf-8-sig')
+          old_loader = '''function showLoading(show) {
+              document.getElementById('loading').classList.toggle('hidden', !show);
+          }'''.replace('\n          ', '\n')
+          new_loader = '''function showLoading(show) {
+              const section = document.querySelector('.chart-section');
+              if (!section) return;
+              let indicator = section.querySelector('.ux-inline-loader');
+              if (!indicator) {
+                  indicator = document.createElement('div');
+                  indicator.className = 'ux-inline-loader';
+                  indicator.innerHTML = '<span class="ux-mini-spinner"></span><span>차트 업데이트 중</span>';
+                  const header = section.querySelector('.chart-header');
+                  if (header) header.insertAdjacentElement('afterend', indicator);
+                  else section.prepend(indicator);
+              }
+              indicator.classList.toggle('show', !!show);
+          }'''.replace('\n          ', '\n')
+          if old_loader not in chart:
+              raise SystemExit('chart loader anchor missing')
+          chart = chart.replace(old_loader, new_loader, 1)
+          p.write_text(chart, encoding='utf-8')
+
+          # ---------- non-blocking loading CSS ----------
+          p = Path('static/css/ux_patch.css')
+          css = p.read_text(encoding='utf-8')
+          marker_css = '/* nonblocking-loaders-v2 */'
+          if marker_css not in css:
+              css += r'''
+
+          /* nonblocking-loaders-v2 */
+          #loading.loading { display: none !important; }
+          .chart-section { position: relative; }
+          .ux-inline-loader {
+            display: none;
+            align-items: center;
+            gap: 7px;
+            width: max-content;
+            margin: 4px 16px 8px auto;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f2f4f6;
+            color: #6b7684;
+            font-size: 12px;
+            font-weight: 600;
+          }
+          .ux-inline-loader.show { display: flex; }
+          .ux-mini-spinner {
+            width: 13px;
+            height: 13px;
+            border: 2px solid #d1d6db;
+            border-top-color: #3182f6;
+            border-radius: 50%;
+            animation: ux-spin .7s linear infinite;
+          }
+          @keyframes ux-spin { to { transform: rotate(360deg); } }
+          .per-section { position: relative; }
+          #per-loading.loading {
+            position: absolute !important;
+            inset: 0 !important;
+            min-height: 160px;
+            background: rgba(255,255,255,.72);
+            backdrop-filter: blur(1px);
+            z-index: 20;
+            border-radius: 16px;
+          }
+          #per-loading.loading.hidden { display: none !important; }
+          #per-loading.loading:not(.hidden) { display: flex !important; }
+          '''.replace('\n          ', '\n')
+          p.write_text(css, encoding='utf-8')
+
+          # Syntax sanity for imported module and main.py.
+          compile(Path('main.py').read_text(encoding='utf-8'), 'main.py', 'exec')
+          compile(Path('market_service.py').read_text(encoding='utf-8'), 'market_service.py', 'exec')
+          print('Patch complete')
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py static/js/fwdper.js static/js/chart.js static/css/ux_patch.css
+          git commit -m "fix: remove blocking loaders and restore valuation data"
+          git push origin HEAD:main
