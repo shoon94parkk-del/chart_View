@@ -19,14 +19,18 @@ jobs:
         run: |
           python - <<'PY'
           from valuation_band_service import fetch_valuation_bands
-          for s in ['AAPL','005930.KS','000660.KS']:
+          for s in ['AAPL','NVDA','005930.KS','000660.KS']:
               d=fetch_valuation_bands(s,3)
               ps=d['per']['stats']; bs=d['pbr']['stats']
-              print(s,'PER',ps,'PBR',bs)
+              print(s,'PER',ps,'PBR',bs,'validation',d.get('perValidation'))
               assert d['per']['points'] and d['pbr']['points']
               assert ps['observations'] >= 30 and bs['observations'] >= 30
               assert 0 < ps['current'] < 200
               assert 0 < bs['current'] < 100
               assert 0 <= ps['percentile'] <= 100
               assert 0 <= bs['percentile'] <= 100
+              # A stock split must not create an artificial multi-fold jump in PBR.
+              p=[float(x['value']) for x in d['pbr']['points']]
+              jumps=[max(a/b,b/a) for a,b in zip(p,p[1:]) if a>0 and b>0]
+              assert not jumps or max(jumps) < 3.0, (s,max(jumps))
           PY
