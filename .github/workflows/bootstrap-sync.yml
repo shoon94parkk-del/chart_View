@@ -45,7 +45,7 @@ jobs:
           )
           s = s.replace(
               '    # 1. 한국어가 포함되어 있으면 KRX에서 검색\n    has_korean = any(\'\\uac00\' <= c <= \'\\ud7a3\' for c in query)',
-              '    # 자주 쓰는 국내 종목 별칭도 회사명 검색으로 연결\n    aliases = {\n        "삼전": "삼성전자", "하닉": "SK하이닉스", "삼바": "삼성바이오로직스",\n        "엘전": "LG전자", "현차": "현대차", "네이버": "NAVER"\n    }\n    query = aliases.get(query.lower(), query)\n\n    # 1. 한국어가 포함되어 있으면 KRX에서 검색\n    has_korean = any(\'\\uac00\' <= c <= \'\\ud7a3\' for c in query)'
+              '    # 자주 쓰는 국내 종목 별칭도 회사명/종목코드 검색으로 연결\n    aliases = {\n        "삼전": "삼성전자", "하닉": "SK하이닉스", "삼바": "삼성바이오로직스",\n        "엘전": "LG전자", "현차": "현대차", "네이버": "035420"\n    }\n    query = aliases.get(query.lower(), query)\n\n    # 1. 한국어가 포함되어 있으면 KRX에서 검색\n    has_korean = any(\'\\uac00\' <= c <= \'\\ud7a3\' for c in query)'
           )
           s = s.replace(
               '            yahoo_ticker = f"{stock[\'code\']}.KS"',
@@ -57,14 +57,13 @@ jobs:
               1
           )
           s = s.replace(
-              '                    "symbol": f"{query}.KS",',
-              '                    "symbol": f"{query}{code_match[0].get(\'suffix\', \'.KS\')}",'
+              '                    "symbol": f"{query}.KS",\n                    "name": code_match[0]["name"],\n                    "type": "KRX"',
+              '                    "symbol": f"{query}{code_match[0].get(\'suffix\', \'.KS\')}",\n                    "name": code_match[0]["name"],\n                    "type": "KRX",\n                    "code": code_match[0]["code"],\n                    "market": code_match[0].get("market", "KRX")'
           )
 
           old_history = '''            if start and end:\n                df = stock.history(start=start, end=end, interval="1d")\n            else:\n                df = stock.history(period=period, interval=interval)\n            \n            if df.empty:\n                return None'''
           new_history = '''            if start and end:\n                df = stock.history(start=start, end=end, interval="1d")\n            else:\n                df = stock.history(period=period, interval=interval)\n\n            # Yahoo가 간헐적으로 돌려주는 NaN/0 가격을 차트에서 제거\n            if not df.empty and "Close" in df.columns:\n                df = df.copy()\n                df["Close"] = pd.to_numeric(df["Close"], errors="coerce")\n                df = df[df["Close"].notna() & (df["Close"] > 0)]\n\n            if df.empty:\n                return None'''
           s = s.replace(old_history, new_history, 1)
-
           main.write_text(s, encoding='utf-8')
 
           chart = Path('static/js/chart.js')
@@ -88,42 +87,14 @@ jobs:
 
           cat > static/css/ux_patch.css <<'EOF'
           /* 2026-09 UX patch: comparison-first layout */
-          .global-filter .global-search {
-            border-radius: 18px !important;
-            margin-bottom: 10px !important;
-          }
-          .global-filter .sector-section {
-            border-radius: 18px !important;
-            padding: 12px 18px !important;
-            max-height: none !important;
-          }
-          .ux-sector-toggle {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 0;
-            background: transparent;
-            padding: 5px 2px 9px;
-            font: inherit;
-            font-size: 13px;
-            font-weight: 700;
-            color: #4E5968;
-            cursor: pointer;
-          }
+          .global-filter .global-search { border-radius: 18px !important; margin-bottom: 10px !important; }
+          .global-filter .sector-section { border-radius: 18px !important; padding: 12px 18px !important; max-height: none !important; }
+          .ux-sector-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; border: 0; background: transparent; padding: 5px 2px 9px; font: inherit; font-size: 13px; font-weight: 700; color: #4E5968; cursor: pointer; }
           .sector-section.ux-collapsed .sector-scroll-container { display: none; }
           .search-result-item { gap: 14px; }
           .search-result-item .name { font-weight: 650; }
           .search-result-item .symbol { white-space: nowrap; color: #6B7684; }
-          .ux-data-status {
-            margin: -2px 20px 10px;
-            padding: 9px 12px;
-            border-radius: 10px;
-            background: #F7F8FA;
-            color: #6B7684;
-            font-size: 11px;
-            line-height: 1.4;
-          }
+          .ux-data-status { margin: -2px 20px 10px; padding: 9px 12px; border-radius: 10px; background: #F7F8FA; color: #6B7684; font-size: 11px; line-height: 1.4; }
           .ticker-tag { background: #F2F7FF; border-color: #DCEBFF; }
           @media (min-width: 900px) {
             #app { max-width: 1100px; margin: 0 auto; width: 100%; }
@@ -170,6 +141,15 @@ jobs:
               startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
               healthCheckPath: /health
           EOF
+
+      - name: Validate patched project
+        run: |
+          python -m py_compile main.py
+          node --check static/js/chart.js
+          node --check static/js/ux_patch.js
+          grep -q '"KOSDAQ", ".KQ"' main.py
+          grep -q 'Yahoo가 간헐적으로' main.py
+          grep -q '최대 6개까지 추가할 수 있어요' static/js/chart.js
 
       - name: Commit copied project and fixes
         run: |
