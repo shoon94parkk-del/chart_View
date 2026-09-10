@@ -11,27 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe public endpoints
+      - name: Probe crumb authenticated quoteSummary
         run: |
           python - <<'PY'
-          import requests, time
-          ua={'User-Agent':'Mozilla/5.0'}
-          end=str(int(time.time()))
-          types=[
-            'trailingMarketCap','trailingPeRatio','trailingPsRatio','trailingBasicEPS','trailingDilutedEPS',
-            'trailingTotalRevenue','trailingEBITDA','trailingNetIncome','trailingOperatingIncome',
-            'trailingDividendPerShare','quarterlyStockholdersEquity','quarterlyOrdinarySharesNumber','quarterlyNetDebt',
-            'annualStockholdersEquity','annualOrdinarySharesNumber','annualNetDebt'
-          ]
+          import requests
+          s=requests.Session()
+          s.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'})
+          r=s.get('https://fc.yahoo.com',timeout=15,allow_redirects=True)
+          print('fc',r.status_code,'cookies',list(s.cookies.keys()))
+          c=s.get('https://query1.finance.yahoo.com/v1/test/getcrumb',timeout=15)
+          print('crumb',c.status_code,repr(c.text[:100]))
+          crumb=c.text.strip()
           for symbol in ['AAPL','NVDA','005930.KS','000660.KS']:
-              u=('https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/' + symbol +
-                 '?symbol=' + symbol + '&type=' + ','.join(types) + '&period1=0&period2=' + end)
-              r=requests.get(u,headers=ua,timeout=20)
-              print('\nSYMBOL',symbol,'STATUS',r.status_code)
-              d=r.json()
-              for item in d.get('timeseries',{}).get('result',[]):
-                  typ=(item.get('meta',{}).get('type') or ['?'])[0]
-                  vals=item.get(typ,[])
-                  latest=vals[-1].get('reportedValue',{}).get('raw') if vals else None
-                  print(typ,'latest=',latest,'count=',len(vals))
+              u=f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}'
+              q=s.get(u,params={'modules':'price,summaryDetail,defaultKeyStatistics,financialData','crumb':crumb},timeout=20)
+              print('\n',symbol,'status',q.status_code)
+              print(q.text[:2500])
           PY
