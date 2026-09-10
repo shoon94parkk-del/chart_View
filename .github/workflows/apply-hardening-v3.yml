@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add market_service.py static/js/chart.js static/js/fwdper.js templates/index.html .github/workflows/update-valuation-cache.yml
+          git add market_service.py static/js/chart.js static/js/fwdper.js templates/index.html
           if git diff --cached --quiet; then
             echo "No changes"
           else
