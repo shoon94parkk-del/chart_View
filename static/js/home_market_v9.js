@@ -103,7 +103,7 @@
           </div>`).join('')}
       </div>
       <div class="home-market-v9-foot">등락은 직전 종가 대비 · 60초마다 갱신 · 휴장/장외에는 최근 거래값</div>`;
-    home.insertBefore(panel, home.firstChild);
+    home.appendChild(panel);
     return panel;
   }
 

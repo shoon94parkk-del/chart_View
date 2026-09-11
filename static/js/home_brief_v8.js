@@ -29,6 +29,95 @@
     return (a / b - 1) * 100;
   };
 
+  const HOME_MAJOR_STOCKS = [
+    { symbol: '005930.KS', name: '삼성전자', domain: 'samsung.com' },
+    { symbol: '000660.KS', name: 'SK하이닉스', domain: 'skhynix.com' },
+    { symbol: 'NVDA', name: '엔비디아', domain: 'nvidia.com' },
+    { symbol: 'AAPL', name: '애플', domain: 'apple.com' },
+    { symbol: 'MSFT', name: '마이크로소프트', domain: 'microsoft.com' },
+    { symbol: 'META', name: '메타', domain: 'meta.com' },
+    { symbol: 'TSLA', name: '테슬라', domain: 'tesla.com' },
+    { symbol: 'GOOGL', name: '알파벳', domain: 'google.com' },
+  ];
+
+  function homeLogo(item) {
+    const initials = esc(String(item.name || item.symbol || '?').replace(/[^0-9A-Za-z가-힣]/g, '').slice(0, 2).toUpperCase() || '?');
+    const fallback = `<span class="home16-logo-fallback">${initials}</span>`;
+    if (!item.domain) return `<span class="home16-logo">${fallback}</span>`;
+    const src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.domain)}&sz=128`;
+    return `<span class="home16-logo"><img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">${fallback}</span>`;
+  }
+
+  function homePrice(symbol, value) {
+    const price = n(value);
+    if (price === null) return '-';
+    if (/\.(KS|KQ)$/.test(symbol)) return `₩${Math.round(price).toLocaleString('ko-KR')}`;
+    return `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  }
+
+  function homeChangeClass(value) {
+    const x = n(value) || 0;
+    return x > 0 ? 'up' : x < 0 ? 'down' : 'flat';
+  }
+
+  function homeCheckedAt() {
+    try {
+      return new Intl.DateTimeFormat('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+        .format(new Date()).replace(/\. /g, '.').replace(/\.$/, '');
+    } catch (_) { return '최신'; }
+  }
+
+  function majorRows(heatmap) {
+    const map = new Map((heatmap?.results || []).map((row) => [row.ticker, row]));
+    return HOME_MAJOR_STOCKS.map((item) => ({ ...item, ...(map.get(item.symbol) || {}) }));
+  }
+
+  function majorStocksHtml(rows) {
+    return `
+      <section class="home-v8-block home16-major-card">
+        <div class="home-block-head home16-head">
+          <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
+          <small>${esc(homeCheckedAt())} 기준</small>
+        </div>
+        <div class="home16-stock-strip">${rows.map((row) => `
+          <button type="button" class="home16-stock" data-home-symbol="${esc(row.symbol)}" data-home-name="${esc(row.name)}">
+            <span class="home16-ring">${homeLogo(row)}</span>
+            <strong>${esc(row.name)}</strong>
+            <small>${homePrice(row.symbol, row.price)}</small>
+            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b>
+          </button>`).join('')}</div>
+        <div class="home16-caption">등락률은 직전 종가 대비 · 종목을 누르면 상세 분석으로 이동</div>
+      </section>`;
+  }
+
+  function moversHtml(rows) {
+    const available = rows.filter((row) => n(row.change) !== null);
+    const movers = [...available].sort((a, b) => Math.abs(n(b.change)) - Math.abs(n(a.change))).slice(0, 4);
+    if (!movers.length) return '';
+    return `
+      <section class="home-v8-block home16-movers-card">
+        <div class="home-block-head home16-head"><div><span>TODAY</span><h3>오늘 많이 움직인 종목</h3></div></div>
+        <div class="home16-movers">${movers.map((row, index) => `
+          <button type="button" class="home16-mover" data-home-symbol="${esc(row.symbol)}" data-home-name="${esc(row.name)}">
+            <span class="home16-mover-rank">${index + 1}</span>
+            ${homeLogo(row)}
+            <span class="home16-mover-copy"><strong>${esc(row.name)}</strong><small>${esc(row.symbol)} · ${homePrice(row.symbol, row.price)}</small></span>
+            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b><i>›</i>
+          </button>`).join('')}</div>
+      </section>`;
+  }
+
+  function marketSummaryHtml(macro) {
+    const summary = typeof macro?.summary === 'string' ? macro.summary : macro?.summary?.text;
+    const stale = Number(macro?.staleCount || 0);
+    return `
+      <section class="home-v8-block home16-summary-card">
+        <div class="home-block-head home16-head"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
+        <p>${esc(summary || '주요 지수와 종목별 움직임을 확인해 주세요.')}</p>
+        <div class="home16-summary-foot"><span class="${stale ? 'warn' : 'ok'}"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 갱신'}</div>
+      </section>`;
+  }
+
   function selectedTickersNow() {
     try {
       if (typeof selectedTickers !== 'undefined' && Array.isArray(selectedTickers)) return [...selectedTickers];
@@ -53,12 +142,8 @@
     tab.id = 'home-tab';
     tab.className = 'tab-content home-tab';
     tab.innerHTML = `
-      <section class="home-v8">
-        <div class="home-v8-hero">
-          <div><span class="home-v8-kicker">TODAY</span><h2>오늘은 여기부터 보세요</h2><p>후보를 찾고 → 한 종목을 선택하고 → 근거를 확인하면 됩니다.</p></div>
-          <div class="home-v8-flow" aria-label="사용 흐름"><span><b>1</b> 기회 확인</span><i>›</i><span><b>2</b> 종목 선택</span><i>›</i><span><b>3</b> 상세 분석</span></div>
-        </div>
-        <div id="home-v8-body"><div class="home-v8-loading"><div class="spinner"></div><span>오늘의 투자 정보를 정리하는 중...</span></div></div>
+      <section class="home-v8 home16-market-home">
+        <div id="home-v8-body"><div class="home-v8-loading"><div class="spinner"></div><span>오늘 시황을 불러오는 중...</span></div></div>
       </section>`;
     chartTab.insertAdjacentElement('beforebegin', tab);
   }
@@ -93,9 +178,7 @@
   function loadHomeSources() {
     if (!homePromise) {
       homePromise = Promise.all([
-        fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('consensus'); return r.json(); }),
-        loadScreener(),
-        fetch('/static/data/valuation_cache.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { quotes: {} }).catch(() => ({ quotes: {} })),
+        fetch('/api/heatmap', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] })),
         fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
       ]);
     }
@@ -187,20 +270,17 @@
   async function renderHome() {
     const root = document.getElementById('home-v8-body');
     if (!root) return;
-    root.innerHTML = '<div class="home-v8-loading"><div class="spinner"></div><span>오늘의 투자 정보를 정리하는 중...</span></div>';
+    root.innerHTML = '<div class="home-v8-loading"><div class="spinner"></div><span>오늘 시황을 불러오는 중...</span></div>';
     try {
-      const [consensus, screener, valuation, macro] = await loadHomeSources();
-      const rows = buildOpportunityRows(consensus, screener, valuation);
-      root.innerHTML = `
-        <section class="home-v8-block home-primary"><div class="home-block-head"><div><span>① 먼저 볼 것</span><h3>실적은 좋아졌는데 주가가 덜 움직인 종목</h3></div><button type="button" data-home-discover>전체 후보 →</button></div>${opportunityCards(rows)}</section>
-        <div class="home-v8-two-col">
-          <section class="home-v8-block"><div class="home-block-head"><div><span>② 다른 관점</span><h3>기술적으로 움직임이 생긴 종목</h3></div><button type="button" data-home-screener>스크리너 →</button></div>${technicalCards(screener)}</section>
-          <section class="home-v8-block"><div class="home-block-head"><div><span>③ 마지막 확인</span><h3>지금 시장 환경은 어떤가</h3></div></div>${macroBlock(macro)}</section>
-        </div>`;
+      // Refresh live-ish home data every time Home is opened; stock-detail caches stay untouched.
+      homePromise = null;
+      const [heatmap, macro] = await loadHomeSources();
+      const rows = majorRows(heatmap);
+      root.innerHTML = majorStocksHtml(rows) + moversHtml(rows) + marketSummaryHtml(macro);
       bindHomeActions(root);
     } catch (error) {
-      console.error('home dashboard failed', error);
-      root.innerHTML = '<div class="home-v8-empty">오늘의 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>';
+      console.error('home market dashboard failed', error);
+      root.innerHTML = '<div class="home-v8-empty">오늘 시황을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>';
     }
   }
 
