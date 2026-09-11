@@ -15,6 +15,7 @@
     if (document.querySelector(selector)) return;
     const script = document.createElement('script');
     script.src = src;
+    script.async = false;
     script.dataset[datasetKey] = '1';
     document.head.appendChild(script);
   }
@@ -24,6 +25,9 @@
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v1', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
+  ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v3', 'uxV3');
+  ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v3', 'uxV3');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
