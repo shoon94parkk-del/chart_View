@@ -344,7 +344,7 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
 
 
 def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
-    """Fast current quote for heatmaps; uses Yahoo chart only, never crumb/info."""
+    """Current quote using today's intraday chart and the prior trading close."""
     symbol = symbol.strip().upper()
     if not symbol:
         return None
@@ -353,34 +353,46 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         cached = _quote_cache.get(symbol)
         if cached and now - cached[0] < 60:
             return cached[1]
+
+    value = None
     try:
-        result = _chart_result(symbol, period="5d", interval="1d")
+        # 5-minute bars give much fresher futures/FX/yield values than the 5-day daily meta.
+        result = _chart_result(symbol, period="1d", interval="5m")
         meta = result.get("meta", {})
         closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
         good = [float(v) for v in closes if v is not None and float(v) > 0]
-        if not good:
-            value = None
-        else:
-            current = _positive(meta.get("regularMarketPrice")) or good[-1]
-            previous = (
-                (good[-2] if len(good) > 1 else None)
-                or _positive(meta.get("previousClose"))
-                or _positive(meta.get("chartPreviousClose"))
-            )
+        current = good[-1] if good else _positive(meta.get("regularMarketPrice"))
+        previous = _positive(meta.get("chartPreviousClose")) or _positive(meta.get("previousClose"))
+
+        # Some symbols can have sparse intraday bars. Fall back to daily bars only as needed.
+        if current is None or previous is None:
+            daily = _chart_result(symbol, period="5d", interval="1d")
+            daily_meta = daily.get("meta", {})
+            daily_closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+            daily_good = [float(v) for v in daily_closes if v is not None and float(v) > 0]
+            if current is None:
+                current = _positive(daily_meta.get("regularMarketPrice")) or (daily_good[-1] if daily_good else None)
+            if previous is None:
+                previous = (daily_good[-2] if len(daily_good) > 1 else None) or _positive(daily_meta.get("previousClose")) or _positive(daily_meta.get("chartPreviousClose"))
+            if not meta:
+                meta = daily_meta
+
+        if current is not None:
             change = ((current - previous) / previous * 100) if previous else 0.0
             detail = _local_detail_cache().get(symbol, {})
             value = {
                 "ticker": symbol,
                 "name": _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or detail.get("shortName") or symbol,
-                "price": round(float(current), 2),
+                "price": round(float(current), 4),
                 "change": round(float(change), 2),
                 "marketCap": _number(detail.get("marketCap")),
                 "currency": meta.get("currency") or detail.get("currency"),
-                "source": "Yahoo Chart",
+                "source": "Yahoo Chart 5m",
             }
     except Exception as exc:
         print(f"[MarketData] quote failed {symbol}: {exc}")
         value = None
+
     with _cache_lock:
         _quote_cache[symbol] = (now, value)
     return value
