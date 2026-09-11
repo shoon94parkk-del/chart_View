@@ -1,0 +1,43 @@
+name: Apply Market Now Endpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-market-now-endpoint.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add market-now API
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('main.py')
+          text = path.read_text(encoding='utf-8')
+          route = '@app.get("/api/market-now")'
+          if route not in text:
+              marker = '\n@app.get("/api/heatmap")\nasync def heatmap_data():'
+              insert = '''\n\nMARKET_NOW_TICKERS = ["^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]\n\n@app.get("/api/market-now")\nasync def market_now():\n    \"\"\"Latest market snapshot using current/latest trade versus the previous close.\"\"\"\n    fetched = await asyncio.gather(\n        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],\n        return_exceptions=True,\n    )\n    results, errors = [], []\n    for ticker, row in zip(MARKET_NOW_TICKERS, fetched):\n        if isinstance(row, Exception):\n            errors.append({\"ticker\": ticker, \"message\": str(row)})\n            continue\n        if not row:\n            errors.append({\"ticker\": ticker, \"message\": \"시세 데이터를 가져오지 못했습니다.\"})\n            continue\n        results.append({\n            \"ticker\": ticker,\n            \"name\": row.get(\"name\") or ticker,\n            \"price\": row.get(\"price\"),\n            \"change\": row.get(\"change\"),\n            \"currency\": row.get(\"currency\"),\n            \"source\": row.get(\"source\") or \"Yahoo Chart\",\n        })\n    now_kst = datetime.utcnow() + timedelta(hours=9)\n    return {\n        \"results\": results,\n        \"errors\": errors,\n        \"timestamp\": now_kst.strftime(\"%Y-%m-%d %H:%M:%S\"),\n        \"date\": now_kst.strftime(\"%Y-%m-%d\"),\n        \"basis\": \"previous_close\",\n        \"source\": \"Yahoo Finance Chart\",\n    }\n'''
+              if marker not in text:
+                  raise SystemExit('heatmap marker not found')
+              text = text.replace(marker, insert + marker, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py
+          if git diff --cached --quiet; then
+            echo 'No patch needed'
+          else
+            git commit -m 'fix: add previous-close market snapshot endpoint'
+            git push
+          fi
