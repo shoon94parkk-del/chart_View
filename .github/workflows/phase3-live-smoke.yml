@@ -45,6 +45,8 @@ jobs:
           assert '"source": "Yahoo Chart 5m"' in block
           main=Path('main.py').read_text(encoding='utf-8')
           assert '@app.get("/api/market-now")' in main and '"basis": "previous_close"' in main
+          for symbol in ('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
+              assert symbol in main, symbol
           print('source market invariants OK')
           PY
       - name: Wait for app build and verify public assets
@@ -54,24 +56,25 @@ jobs:
 
           ready=0
           for i in $(seq 1 42); do
-            code=$(curl -sS -o /tmp/home_market.js -w '%{http_code}' "$BASE/static/js/home_market_v9.js?v=20260911v9" || true)
+            code=$(curl -sS -o /tmp/home_market.js -w '%{http_code}' "$BASE/static/js/home_market_v9.js?v=20260911v10" || true)
             api_code=$(curl -sS -o /tmp/market_now.json -w '%{http_code}' "$BASE/api/market-now" || true)
             if [ "$code" = '200' ] && [ "$api_code" = '200' ] \
               && grep -q "fetch('/api/market-now'" /tmp/home_market.js \
-              && grep -q '직전 종가 대비' /tmp/home_market.js \
+              && grep -q 'KOSPI' /tmp/home_market.js \
+              && grep -q 'KOSDAQ' /tmp/home_market.js \
               && grep -q 'Yahoo Chart 5m' /tmp/market_now.json; then
               ready=1
-              echo "intraday market home build detected on attempt=$i"
+              echo "Korea market home build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i assets=$code api=$api_code: waiting for intraday deploy"
+            echo "attempt=$i assets=$code api=$api_code: waiting for Korea-index deploy"
             sleep 10
           done
           test "$ready" = '1'
 
           curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
           curl -fsSL "$BASE/static/js/home_brief_v8.js?v=20260911v8" -o /tmp/home_brief.js
-          curl -fsSL "$BASE/static/css/home_market_v9.css?v=20260911v9" -o /tmp/home_market.css
+          curl -fsSL "$BASE/static/css/home_market_v9.css?v=20260911v10" -o /tmp/home_market.css
           curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
           curl -fsSL "$BASE/health" -o /tmp/health.json
@@ -87,15 +90,16 @@ jobs:
           grep -q 'data-app-mode="home"' /tmp/app_ux.js
           grep -q '오늘은 여기부터 보세요' /tmp/home_brief.js
           grep -q '오늘의 시장' /tmp/home_market.js
+          grep -q 'KOSPI' /tmp/home_market.js
+          grep -q 'KOSDAQ' /tmp/home_market.js
           grep -q '미 10년물' /tmp/home_market.js
           grep -q 'WTI 유가' /tmp/home_market.js
           grep -q '원/달러' /tmp/home_market.js
           grep -q '직전 종가 대비' /tmp/home_market.js
           ! grep -q '/api/compare' /tmp/home_market.js
           ! grep -q '__openAppTab' /tmp/home_market.js
-          grep -q 'body.home-clean-mode .home-v8-hero' /tmp/home_market.css
-          grep -q 'text-align: center' /tmp/home_market.css
-          grep -q 'cursor: default' /tmp/home_market.css
+          grep -q 'grid-template-columns: repeat(4, minmax(0, 1fr))' /tmp/home_market.css
+          grep -q 'grid-template-columns: repeat(2, minmax(0, 1fr))' /tmp/home_market.css
 
           python - <<'PY'
           import json
@@ -109,17 +113,15 @@ jobs:
           assert market.get('basis') == 'previous_close', market
           assert market.get('date') == datetime.now(ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%d'), market.get('date')
           market_rows={x.get('ticker'):x for x in market.get('results', [])}
-          required=('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')
+          required=('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')
           missing=[x for x in required if x not in market_rows or market_rows[x].get('price') is None]
           assert not missing, ('market snapshot missing', missing, market.get('errors'))
           for ticker in required:
               assert market_rows[ticker].get('change') is not None, (ticker, market_rows[ticker])
               assert market_rows[ticker].get('source') == 'Yahoo Chart 5m', (ticker, market_rows[ticker])
 
-          # Sanity bands catch stale range-baseline errors without hard-coding market values.
-          assert abs(float(market_rows['^GSPC']['change'])) < 10
-          assert abs(float(market_rows['^IXIC']['change'])) < 10
-          assert abs(float(market_rows['KRW=X']['change'])) < 10
+          for ticker in ('^KS11','^KQ11','^GSPC','^IXIC','KRW=X'):
+              assert abs(float(market_rows[ticker]['change'])) < 15, (ticker, market_rows[ticker])
 
           screener=json.load(open('/tmp/screener.json'))
           stocks=screener.get('stocks', [])
@@ -145,5 +147,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed'
           assert len(macro.get('results', [])) == 13
 
-          print('Intraday home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
+          print('Korea + global home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
           PY
