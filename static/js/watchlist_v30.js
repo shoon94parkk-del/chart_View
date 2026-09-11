@@ -405,6 +405,9 @@
   window.__renderHomeWatchlist = renderHomeShortcut;
 
   function init() {
+    // Make the in-memory defaults and persisted state identical from first launch.
+    saveWatchlist();
+    saveRecents();
     installTab();
     wrapAnalysisState();
     try {
