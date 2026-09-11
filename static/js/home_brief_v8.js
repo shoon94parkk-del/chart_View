@@ -434,7 +434,7 @@
     const insight = insightText(s);
     const price = n(v.price);
     const isKR = /\.(KS|KQ)$/.test(symbol);
-    const priceText = price === null ? '-' : isKR ? `₩${Math.round(price).toLocaleString('ko-KR')}` : `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+    const priceText = price === null ? '-' : isKR ? `₩${Math.round(price).toLocaleString('ko-KR')}` : `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
     body.innerHTML = `
       <div class="stock-brief-summary">
         <div class="stock-brief-identity"><div><strong>${esc(displayName(symbol))}</strong><span>${esc(symbol)}</span></div><b>${priceText}</b></div>
