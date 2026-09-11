@@ -1,0 +1,45 @@
+name: Apply Investment Tools V22
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_investment_tools_v22.py'
+      - '.github/workflows/apply-investment-tools-v22.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python scripts/apply_investment_tools_v22.py
+      - name: Validate generated files
+        run: |
+          python -m py_compile scripts/apply_investment_tools_v22.py
+          node --check static/js/investment_tools_v22.js
+          node --check static/js/home_brief_v8.js
+          node --check static/js/ux_v3.js
+          node --check static/js/ux_patch.js
+          test -s static/css/investment_tools_v22.css
+          test -s static/js/investment_tools_v22.js
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/investment_tools_v22.js static/css/investment_tools_v22.css static/js/home_brief_v8.js static/js/ux_v3.js static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'No generated changes'
+          else
+            git commit -m 'feat: add investment tools hub and simplify home'
+            git push
+          fi
