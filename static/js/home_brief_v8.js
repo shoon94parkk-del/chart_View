@@ -30,22 +30,22 @@
   };
 
   const HOME_MAJOR_STOCKS = [
-    { symbol: '005930.KS', name: '삼성전자', domain: 'samsung.com' },
-    { symbol: '000660.KS', name: 'SK하이닉스', domain: 'skhynix.com' },
-    { symbol: 'NVDA', name: '엔비디아', domain: 'nvidia.com' },
-    { symbol: 'AAPL', name: '애플', domain: 'apple.com' },
-    { symbol: 'MSFT', name: '마이크로소프트', domain: 'microsoft.com' },
-    { symbol: 'META', name: '메타', domain: 'meta.com' },
-    { symbol: 'TSLA', name: '테슬라', domain: 'tesla.com' },
-    { symbol: 'GOOGL', name: '알파벳', domain: 'google.com' },
+    { symbol: '005930.KS', name: '삼성전자', logo: 'https://cdn.simpleicons.org/samsung/1428A0', fallback: '삼성' },
+    { symbol: '000660.KS', name: 'SK하이닉스', logo: null, fallback: 'SK', fallbackColor: '#e8522f' },
+    { symbol: 'NVDA', name: '엔비디아', logo: 'https://cdn.simpleicons.org/nvidia/76B900', fallback: 'NV' },
+    { symbol: 'AAPL', name: '애플', logo: 'https://cdn.simpleicons.org/apple/111111', fallback: 'A' },
+    { symbol: 'MSFT', name: '마이크로소프트', logo: 'https://cdn.simpleicons.org/microsoft/5E5E5E', fallback: 'MS' },
+    { symbol: 'META', name: '메타', logo: 'https://cdn.simpleicons.org/meta/0866FF', fallback: 'M' },
+    { symbol: 'TSLA', name: '테슬라', logo: 'https://cdn.simpleicons.org/tesla/E82127', fallback: 'T' },
+    { symbol: 'GOOGL', name: '알파벳', logo: 'https://cdn.simpleicons.org/google/4285F4', fallback: 'G' },
   ];
 
   function homeLogo(item) {
-    const initials = esc(String(item.name || item.symbol || '?').replace(/[^0-9A-Za-z가-힣]/g, '').slice(0, 2).toUpperCase() || '?');
-    const fallback = `<span class="home16-logo-fallback">${initials}</span>`;
-    if (!item.domain) return `<span class="home16-logo">${fallback}</span>`;
-    const src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.domain)}&sz=128`;
-    return `<span class="home16-logo"><img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">${fallback}</span>`;
+    const label = esc(item.fallback || String(item.name || item.symbol || '?').slice(0, 2));
+    const color = item.fallbackColor ? ` style="color:${esc(item.fallbackColor)}"` : '';
+    const fallback = `<span class="home16-logo-fallback"${color}>${label}</span>`;
+    if (!item.logo) return `<span class="home16-logo">${fallback}</span>`;
+    return `<span class="home16-logo"><img src="${esc(item.logo)}" alt="" loading="eager" decoding="async" onerror="this.remove()">${fallback}</span>`;
   }
 
   function homePrice(symbol, value) {
@@ -60,7 +60,9 @@
     return x > 0 ? 'up' : x < 0 ? 'down' : 'flat';
   }
 
-  function homeCheckedAt() {
+  function homeCheckedAt(raw) {
+    const match = String(raw || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (match) return `${match[2]}.${match[3]} ${match[4]}:${match[5]}`;
     try {
       return new Intl.DateTimeFormat('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
         .format(new Date()).replace(/\. /g, '.').replace(/\.$/, '');
@@ -72,12 +74,12 @@
     return HOME_MAJOR_STOCKS.map((item) => ({ ...(map.get(item.symbol) || {}), ...item }));
   }
 
-  function majorStocksHtml(rows) {
+  function majorStocksHtml(rows, generatedAt) {
     return `
       <section class="home-v8-block home16-major-card">
         <div class="home-block-head home16-head">
           <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
-          <small>${esc(homeCheckedAt())} 기준</small>
+          <small>${esc(homeCheckedAt(generatedAt))} 기준</small>
         </div>
         <div class="home16-stock-strip">${rows.map((row) => `
           <button type="button" class="home16-stock" data-home-symbol="${esc(row.symbol)}" data-home-name="${esc(row.name)}">
@@ -86,7 +88,7 @@
             <small>${homePrice(row.symbol, row.price)}</small>
             <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b>
           </button>`).join('')}</div>
-        <div class="home16-caption">등락률은 직전 종가 대비 · 종목을 누르면 상세 분석으로 이동</div>
+        <div class="home16-caption">직전 종가 대비 · 캐시 즉시 표시 후 최신 시세로 자동 갱신</div>
       </section>`;
   }
 
@@ -175,14 +177,29 @@
     return screenerPromise;
   }
 
-  function loadHomeSources() {
-    if (!homePromise) {
-      homePromise = Promise.all([
-        fetch('/api/heatmap', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { results: [] }).catch(() => ({ results: [] })),
-        fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-      ]);
-    }
+  function loadHomeSources(fresh = false) {
+    const request = () => fetch(`/api/home-snapshot${fresh ? '?fresh=1' : ''}`, { cache: 'no-store' })
+      .then((r) => { if (!r.ok) throw new Error(`home snapshot HTTP ${r.status}`); return r.json(); });
+    if (fresh) return request();
+    if (!homePromise) homePromise = request();
     return homePromise;
+  }
+
+  function saveHomeLocal(snapshot) {
+    try { localStorage.setItem('chartview-home-snapshot-v17', JSON.stringify(snapshot)); } catch (_) {}
+  }
+
+  function readHomeLocal() {
+    try {
+      const raw = localStorage.getItem('chartview-home-snapshot-v17');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+
+  function paintHome(root, snapshot) {
+    const rows = majorRows(snapshot?.heatmap || { results: [] });
+    root.innerHTML = majorStocksHtml(rows, snapshot?.generatedAt) + moversHtml(rows) + marketSummaryHtml(snapshot?.macro);
+    bindHomeActions(root);
   }
 
   function buildOpportunityRows(consensus, screener, valuation) {
@@ -270,17 +287,34 @@
   async function renderHome() {
     const root = document.getElementById('home-v8-body');
     if (!root) return;
-    root.innerHTML = '<div class="home-v8-loading"><div class="spinner"></div><span>오늘 시황을 불러오는 중...</span></div>';
+
+    // 1) Same-device cache paints synchronously, so returning users never stare at a spinner.
+    const local = readHomeLocal();
+    if (local?.heatmap?.results?.length) paintHome(root, local);
+    else if (!root.querySelector('.home16-major-card')) {
+      root.innerHTML = '<div class="home-v8-loading"><div class="spinner"></div><span>마지막 시황을 불러오는 중...</span></div>';
+    }
+
     try {
-      // Refresh live-ish home data every time Home is opened; stock-detail caches stay untouched.
+      // 2) Shared server cache is returned immediately for every visitor.
       homePromise = null;
-      const [heatmap, macro] = await loadHomeSources();
-      const rows = majorRows(heatmap);
-      root.innerHTML = majorStocksHtml(rows) + moversHtml(rows) + marketSummaryHtml(macro);
-      bindHomeActions(root);
+      const cached = await loadHomeSources(false);
+      if (cached?.heatmap?.results?.length) {
+        paintHome(root, cached);
+        saveHomeLocal(cached);
+      }
+
+      // 3) Latest quotes refresh behind the already-painted UI. Never block Home on this request.
+      loadHomeSources(true).then((fresh) => {
+        if (!fresh?.heatmap?.results?.length) return;
+        saveHomeLocal(fresh);
+        if (document.body.contains(root)) paintHome(root, fresh);
+      }).catch((error) => console.warn('home background refresh failed', error));
     } catch (error) {
       console.error('home market dashboard failed', error);
-      root.innerHTML = '<div class="home-v8-empty">오늘 시황을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>';
+      if (!root.querySelector('.home16-major-card')) {
+        root.innerHTML = '<div class="home-v8-empty">마지막 시황을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>';
+      }
     }
   }
 

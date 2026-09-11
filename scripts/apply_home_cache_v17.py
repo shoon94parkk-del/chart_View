@@ -25,7 +25,9 @@ def patch_main() -> None:
     text = replace_once(text, startup_old, startup_new, 'startup warmup')
 
     insert_anchor = '''\n\n@app.get("/api/fwd-per")\n@app.get("/api/valuation")\nasync def valuation_data(tickers: str):\n'''
-    snapshot_code = r'''\n\ndef _seed_home_snapshot_from_disk():
+    snapshot_code = '''
+
+def _seed_home_snapshot_from_disk():
     """Best-effort cold-start seed from the committed daily valuation cache."""
     if HOME_SNAPSHOT_CACHE.get("data"):
         return HOME_SNAPSHOT_CACHE["data"]

@@ -30,6 +30,17 @@ MACRO_CACHE = {
 STOCK_INFO_CACHE = {}  # {ticker: {"name": str, "timestamp": float}}
 CACHE_EXPIRE = 3600 * 6  # 6시간 캐시
 
+# HOME V17 shared stale-while-revalidate snapshot.
+# One successful load is reused by every visitor; refresh happens in the background.
+HOME_SNAPSHOT_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
+HOME_SNAPSHOT_TTL = 60
+HOME_SNAPSHOT_REFRESH_GUARD = 8
+HOME_MAJOR_TICKERS = [
+    "005930.KS", "000660.KS", "NVDA", "AAPL",
+    "MSFT", "META", "TSLA", "GOOGL",
+]
+HOME_SNAPSHOT_LOCK = asyncio.Lock()
+
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
 # CORS 설정 - 토스 앱인토스 도메인 허용
@@ -81,9 +92,16 @@ def self_ping_worker():
 
 @app.on_event("startup")
 async def startup_event():
-    """서버 시작 시 Self-Ping 백그라운드 스레드 시작"""
+    """Start keep-alive and warm the shared Home snapshot before traffic arrives."""
     ping_thread = threading.Thread(target=self_ping_worker, daemon=True)
     ping_thread.start()
+    try:
+        _seed_home_snapshot_from_disk()
+        await asyncio.wait_for(_refresh_home_snapshot(force=True), timeout=12)
+        print("[HOME] shared snapshot warmed")
+    except Exception as exc:
+        # The disk seed still lets Home render immediately even if Yahoo is temporarily slow.
+        print(f"[HOME] warmup deferred: {exc}")
 
 
 @app.get("/")
@@ -662,6 +680,140 @@ async def macro_data():
         f"(fresh={response_data['freshCount']}, stale={response_data['staleCount']})"
     )
     return response_data
+
+
+def _seed_home_snapshot_from_disk():
+    """Best-effort cold-start seed from the committed daily valuation cache."""
+    if HOME_SNAPSHOT_CACHE.get("data"):
+        return HOME_SNAPSHOT_CACHE["data"]
+    results = []
+    try:
+        import json as _json
+        cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
+        with open(cache_path, "r", encoding="utf-8") as f:
+            quotes = (_json.load(f).get("quotes") or {})
+        for ticker in HOME_MAJOR_TICKERS:
+            row = quotes.get(ticker) or {}
+            price = row.get("regularMarketPrice")
+            if price is None:
+                price = row.get("price")
+            change = row.get("regularMarketChangePercent")
+            if change is None:
+                change = row.get("change")
+            if price is None:
+                continue
+            results.append({
+                "ticker": ticker,
+                "name": row.get("shortName") or ticker,
+                "price": price,
+                "change": change,
+                "marketCap": row.get("marketCap") or 0,
+            })
+    except Exception as exc:
+        print(f"[HOME] disk seed unavailable: {exc}")
+
+    if results:
+        now_kst = datetime.utcnow() + timedelta(hours=9)
+        HOME_SNAPSHOT_CACHE["data"] = {
+            "heatmap": {"results": results},
+            "macro": MACRO_CACHE.get("data"),
+            "generatedAt": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "disk-seed",
+        }
+        HOME_SNAPSHOT_CACHE["timestamp"] = time.time()
+    return HOME_SNAPSHOT_CACHE.get("data")
+
+
+async def _refresh_home_snapshot(force: bool = False):
+    """Refresh the shared snapshot once, preserving old rows when a provider is partial."""
+    now = time.time()
+    cached = HOME_SNAPSHOT_CACHE.get("data")
+    if cached and not force and now - HOME_SNAPSHOT_CACHE.get("timestamp", 0) < HOME_SNAPSHOT_REFRESH_GUARD:
+        return cached
+
+    async with HOME_SNAPSHOT_LOCK:
+        now = time.time()
+        cached = HOME_SNAPSHOT_CACHE.get("data")
+        if cached and not force and now - HOME_SNAPSHOT_CACHE.get("timestamp", 0) < HOME_SNAPSHOT_REFRESH_GUARD:
+            return cached
+
+        HOME_SNAPSHOT_CACHE["refreshing"] = True
+        try:
+            previous_rows = {
+                row.get("ticker"): row
+                for row in ((cached or {}).get("heatmap", {}).get("results") or [])
+                if isinstance(row, dict) and row.get("ticker")
+            }
+            fetched = await asyncio.gather(
+                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in HOME_MAJOR_TICKERS],
+                return_exceptions=True,
+            )
+            results = []
+            for ticker, row in zip(HOME_MAJOR_TICKERS, fetched):
+                if isinstance(row, Exception) or not row:
+                    old = previous_rows.get(ticker)
+                    if old:
+                        results.append(old)
+                    continue
+                results.append({
+                    "ticker": ticker,
+                    "name": row.get("name") or ticker,
+                    "change": row.get("change"),
+                    "price": row.get("price"),
+                    "marketCap": row.get("marketCap") or 0,
+                })
+
+            if not results and cached:
+                return cached
+
+            macro_payload = None
+            try:
+                macro_candidate = await macro_data()
+                if not isinstance(macro_candidate, JSONResponse):
+                    macro_payload = macro_candidate
+            except Exception as exc:
+                print(f"[HOME] macro snapshot refresh failed: {exc}")
+            if macro_payload is None and cached:
+                macro_payload = cached.get("macro")
+
+            now_kst = datetime.utcnow() + timedelta(hours=9)
+            data = {
+                "heatmap": {"results": results},
+                "macro": macro_payload,
+                "generatedAt": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+                "source": "shared-memory-swr",
+            }
+            HOME_SNAPSHOT_CACHE["data"] = data
+            HOME_SNAPSHOT_CACHE["timestamp"] = time.time()
+            return data
+        finally:
+            HOME_SNAPSHOT_CACHE["refreshing"] = False
+
+
+@app.get("/api/home-snapshot")
+async def home_snapshot(fresh: bool = False):
+    """Return the last successful Home snapshot immediately and revalidate behind it."""
+    data = HOME_SNAPSHOT_CACHE.get("data") or _seed_home_snapshot_from_disk()
+    if fresh:
+        try:
+            data = await _refresh_home_snapshot(force=True) or data
+        except Exception as exc:
+            print(f"[HOME] foreground refresh failed: {exc}")
+    elif not data:
+        try:
+            data = await _refresh_home_snapshot(force=True)
+        except Exception as exc:
+            print(f"[HOME] first refresh failed: {exc}")
+    else:
+        age = time.time() - HOME_SNAPSHOT_CACHE.get("timestamp", 0)
+        if age >= HOME_SNAPSHOT_TTL and not HOME_SNAPSHOT_CACHE.get("refreshing"):
+            asyncio.create_task(_refresh_home_snapshot(force=False))
+
+    payload = dict(data or {"heatmap": {"results": []}, "macro": None})
+    payload["cacheAgeSec"] = round(max(0.0, time.time() - HOME_SNAPSHOT_CACHE.get("timestamp", 0)), 1)
+    payload["refreshing"] = bool(HOME_SNAPSHOT_CACHE.get("refreshing"))
+    payload["cacheMode"] = "stale-while-revalidate"
+    return payload
 
 
 @app.get("/api/fwd-per")
