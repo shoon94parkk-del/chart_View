@@ -1,0 +1,130 @@
+/* v10 valuation matrix: keep stocks as rows and metrics as columns on mobile. */
+#per-table-container{position:relative}
+.per-table thead th{background:#191f28!important;color:#fff!important}
+.per-table tbody tr:nth-child(even){background:#fbfcfd}
+.per-table td,.per-table th{font-variant-numeric:tabular-nums}
+
+@media(max-width:720px){
+  .per-section{padding:16px 12px 14px!important}
+  .per-header{margin-bottom:10px!important}
+  .metric-description{font-size:11.5px!important;line-height:1.4!important}
+  .per-source{font-size:9.5px!important}
+  #per-table-container{
+    width:calc(100% + 24px)!important;
+    max-width:none!important;
+    margin:10px -12px 0!important;
+    padding:0 0 5px!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    background:#fff;
+  }
+  #per-table-container .per-table{
+    display:table!important;
+    width:max-content!important;
+    min-width:790px!important;
+    border-collapse:separate!important;
+    border-spacing:0!important;
+    table-layout:auto!important;
+    background:#fff!important;
+    font-size:11px!important;
+  }
+  #per-table-container .per-table thead{display:table-header-group!important}
+  #per-table-container .per-table tbody{display:table-row-group!important;width:auto!important}
+  #per-table-container .per-table thead tr,
+  #per-table-container .per-table tbody tr{
+    display:table-row!important;
+    width:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  #per-table-container .per-table tbody tr:nth-child(even) td{background:#fbfcfd!important}
+  #per-table-container .per-table th,
+  #per-table-container .per-table td{
+    display:table-cell!important;
+    width:auto!important;
+    min-width:78px!important;
+    max-width:none!important;
+    padding:10px 9px!important;
+    border:0!important;
+    border-bottom:1px solid #edf0f2!important;
+    border-radius:0!important;
+    background:#fff!important;
+    color:inherit;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    line-height:1.25!important;
+    vertical-align:middle!important;
+  }
+  #per-table-container .per-table th{
+    position:sticky;
+    top:0;
+    z-index:4;
+    min-height:38px;
+    background:#191f28!important;
+    color:#fff!important;
+    font-size:10px!important;
+    font-weight:800!important;
+    border-bottom:0!important;
+  }
+  #per-table-container .per-table td::before{display:none!important;content:none!important}
+  #per-table-container .per-table th:first-child,
+  #per-table-container .per-table td:first-child{
+    position:sticky!important;
+    left:0!important;
+    z-index:5;
+    min-width:118px!important;
+    width:118px!important;
+    max-width:118px!important;
+    padding-left:11px!important;
+    padding-right:9px!important;
+    text-align:left!important;
+    box-shadow:8px 0 12px -12px rgba(15,23,42,.45);
+  }
+  #per-table-container .per-table th:first-child{
+    z-index:7;
+    background:#191f28!important;
+    border-top-left-radius:10px!important;
+  }
+  #per-table-container .per-table td:first-child{
+    display:table-cell!important;
+    margin:0!important;
+    border-radius:0!important;
+    border-bottom:1px solid #edf0f2!important;
+    background:#fff!important;
+  }
+  #per-table-container .per-table tbody tr:nth-child(even) td:first-child{background:#fbfcfd!important}
+  #per-table-container .stock-info-cell .stock-name{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    color:#191f28!important;
+    font-size:11.5px!important;
+    font-weight:800!important;
+    line-height:1.25!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #per-table-container .stock-info-cell .stock-ticker{
+    display:block!important;
+    margin-top:2px!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    color:#8b95a1!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #per-table-container .price-cell{font-weight:750!important;color:#333d4b!important}
+  .per-bars{display:none!important}
+  .per-sort{margin-top:2px}
+  .per-sort .sort-btn{min-height:34px!important;padding:0 10px!important;font-size:10px!important}
+  #update-badge{font-size:9.5px!important}
+}
