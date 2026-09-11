@@ -1,0 +1,214 @@
+/* App header v5: reclaim the old brand bar for search and normalize sizing. */
+#app,
+#app *,
+.app-bottom-nav,
+.app-bottom-nav * {
+  box-sizing: border-box;
+}
+
+.header.app-utility-header {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 12px 16px 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.header.app-utility-header .title {
+  display: none !important;
+}
+
+.app-utility-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 8px;
+}
+
+.app-utility-copy {
+  min-width: 0;
+}
+
+.app-utility-copy strong {
+  display: block;
+  color: #191f28;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.app-utility-copy span {
+  display: block;
+  margin-top: 2px;
+  color: #8b95a1;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.app-selection-status {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f2f4f6;
+  color: #6b7684;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.header.app-utility-header .app-header-search {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.header.app-utility-header .search-row {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.header.app-utility-header .search-container {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+.header.app-utility-header #unified-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  font-size: 15px !important;
+}
+
+.header.app-utility-header .btn-add {
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+}
+
+.header.app-utility-header .search-results {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.header.app-utility-header .search-hint {
+  margin-top: 6px !important;
+  color: #8b95a1 !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+
+.header.app-utility-header .ticker-tags {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  max-width: 100% !important;
+  margin-top: 7px !important;
+  padding-bottom: 2px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.header.app-utility-header .ticker-tags::-webkit-scrollbar { display: none; }
+.header.app-utility-header .ticker-tag { flex: 0 0 auto; }
+
+#app > .global-filter,
+#app > .tab-content,
+#app > .app-context-shell,
+#global-filter .sector-section,
+.chart-section,
+.per-section,
+.macro-section {
+  max-width: 100%;
+}
+
+.app-context-shell {
+  top: 0 !important;
+}
+
+@media (min-width: 900px) {
+  .header.app-utility-header {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .header.app-utility-header {
+    padding: 8px 10px 4px !important;
+  }
+
+  .app-utility-top {
+    align-items: center;
+    margin-bottom: 7px;
+  }
+
+  .app-utility-copy strong {
+    font-size: 14px;
+  }
+
+  .app-utility-copy span {
+    display: none;
+  }
+
+  .header.app-utility-header #unified-input {
+    height: 46px !important;
+    font-size: 14px !important;
+  }
+
+  .header.app-utility-header .btn-add {
+    flex-basis: 46px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+  }
+
+  .header.app-utility-header .search-hint {
+    white-space: normal !important;
+  }
+
+  .global-filter .sector-section,
+  .date-section,
+  .chart-section,
+  .metric-section,
+  .per-section,
+  .macro-section {
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+  }
+
+  .app-context-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 4px !important;
+  }
+
+  .app-bottom-nav {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
