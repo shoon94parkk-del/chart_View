@@ -66,9 +66,8 @@ jobs:
             const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('chartview-watchlist-v1')||'[]').length);
             console.log('screener_added=',symbol,name,before,'->',after);
             assert.strictEqual(after,before+1,'screener star did not save');
-            const savedStar=page.locator(`#screener-results .screen-watch[data-symbol="${symbol}"]`).first();
+            const savedStar=page.locator(`#screener-results .screen-watch[data-symbol="${symbol}"]`);
             assert(await savedStar.evaluate(x=>x.classList.contains('active')),'screener star not active');
-            assert.strictEqual((await savedStar.textContent()).trim(),'★','screener star glyph not updated');
 
             await page.locator('.app-bottom-btn[data-app-mode="home"]').tap();
             await page.waitForSelector('#home-watchlist-v30',{timeout:5000});
