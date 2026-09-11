@@ -31,7 +31,7 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -42,7 +42,11 @@ jobs:
           from pathlib import Path
 
           screener=json.loads(Path('static/data/screener.json').read_text(encoding='utf-8'))
-          assert len(screener.get('stocks', [])) > 2000
+          stocks=screener.get('stocks', [])
+          assert len(stocks) > 2000
+          jyp=[x for x in stocks if 'jyp' in str(x.get('name','')).lower()]
+          assert jyp, 'JYP missing from screener cache'
+          assert any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
 
           valuation=json.loads(Path('static/data/valuation_cache.json').read_text(encoding='utf-8'))
           quotes=valuation.get('quotes', {})
@@ -69,7 +73,7 @@ jobs:
           assert len(rows) == 13, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
           assert all('delta' in x for x in rows), 'macro delta missing'
-          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision-ready')
+          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision-ready / JYP', jyp[0].get('symbol'))
           PY
       - name: App UX and data invariants
         run: |
@@ -82,10 +86,24 @@ jobs:
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
+          assert "'jyp': 'JYP Ent.'" in ux
           assert '/static/js/ux_v3.js?v=20260911v4' in ux
           assert '/static/css/ux_v3.css?v=20260911v4' in ux
           assert '/static/js/valuation_overview_v4.js?v=20260911v4' in ux
+          assert '/static/js/app_header_v5.js?v=20260911v5' in ux
+          assert '/static/css/app_header_v5.css?v=20260911v5' in ux
           assert "toggle.setAttribute('aria-expanded', 'true')" in ux
+
+          header=Path('static/js/app_header_v5.js').read_text(encoding='utf-8')
+          assert 'app-utility-header' in header and 'app-selection-status' in header
+          assert "header.querySelector('.title')?.remove()" in header
+          assert '종목 검색' in header
+
+          header_css=Path('static/css/app_header_v5.css').read_text(encoding='utf-8')
+          assert '.header.app-utility-header' in header_css
+          assert 'position: static !important' in header_css
+          assert 'box-sizing: border-box' in header_css
+          assert 'width: calc(100% - 20px) !important' in header_css
 
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
           assert 'app-bottom-nav' in app
