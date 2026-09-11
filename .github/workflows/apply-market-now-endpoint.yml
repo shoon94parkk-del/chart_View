@@ -14,40 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Keep market-now API and fix previous-close precedence
+      - name: Use current intraday market snapshots
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          main_path = Path('main.py')
-          main = main_path.read_text(encoding='utf-8')
-          route = '@app.get("/api/market-now")'
-          if route not in main:
-              marker = '\n@app.get("/api/heatmap")\nasync def heatmap_data():'
-              insert = '''\n\nMARKET_NOW_TICKERS = ["^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]\n\n@app.get("/api/market-now")\nasync def market_now():\n    \"\"\"Latest market snapshot using current/latest trade versus the previous close.\"\"\"\n    fetched = await asyncio.gather(\n        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],\n        return_exceptions=True,\n    )\n    results, errors = [], []\n    for ticker, row in zip(MARKET_NOW_TICKERS, fetched):\n        if isinstance(row, Exception):\n            errors.append({\"ticker\": ticker, \"message\": str(row)})\n            continue\n        if not row:\n            errors.append({\"ticker\": ticker, \"message\": \"시세 데이터를 가져오지 못했습니다.\"})\n            continue\n        results.append({\n            \"ticker\": ticker,\n            \"name\": row.get(\"name\") or ticker,\n            \"price\": row.get(\"price\"),\n            \"change\": row.get(\"change\"),\n            \"currency\": row.get(\"currency\"),\n            \"source\": row.get(\"source\") or \"Yahoo Chart\",\n        })\n    now_kst = datetime.utcnow() + timedelta(hours=9)\n    return {\n        \"results\": results,\n        \"errors\": errors,\n        \"timestamp\": now_kst.strftime(\"%Y-%m-%d %H:%M:%S\"),\n        \"date\": now_kst.strftime(\"%Y-%m-%d\"),\n        \"basis\": \"previous_close\",\n        \"source\": \"Yahoo Finance Chart\",\n    }\n'''
-              if marker not in main:
-                  raise SystemExit('heatmap marker not found')
-              main = main.replace(marker, insert + marker, 1)
-              main_path.write_text(main, encoding='utf-8')
-
           market_path = Path('market_service.py')
           market = market_path.read_text(encoding='utf-8')
-          old = '''            previous = (\n                _positive(meta.get("chartPreviousClose"))\n                or _positive(meta.get("previousClose"))\n                or (good[-2] if len(good) > 1 else None)\n            )'''
-          new = '''            previous = (\n                (good[-2] if len(good) > 1 else None)\n                or _positive(meta.get("previousClose"))\n                or _positive(meta.get("chartPreviousClose"))\n            )'''
-          if old in market:
-              market = market.replace(old, new, 1)
-              market_path.write_text(market, encoding='utf-8')
-          elif new not in market:
-              raise SystemExit('fetch_quote_snapshot previous-close block not found')
+          start = market.index('def fetch_quote_snapshot')
+          end = market.index('def fetch_history_series', start)
+          replacement = '''def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:\n    \"\"\"Current quote using today's intraday chart and the prior trading close.\"\"\"\n    symbol = symbol.strip().upper()\n    if not symbol:\n        return None\n    now = time.time()\n    with _cache_lock:\n        cached = _quote_cache.get(symbol)\n        if cached and now - cached[0] < 60:\n            return cached[1]\n\n    value = None\n    try:\n        # 5-minute bars give much fresher futures/FX/yield values than the 5-day daily meta.\n        result = _chart_result(symbol, period=\"1d\", interval=\"5m\")\n        meta = result.get(\"meta\", {})\n        closes = ((result.get(\"indicators\", {}).get(\"quote\") or [{}])[0].get(\"close\") or [])\n        good = [float(v) for v in closes if v is not None and float(v) > 0]\n        current = good[-1] if good else _positive(meta.get(\"regularMarketPrice\"))\n        previous = _positive(meta.get(\"chartPreviousClose\")) or _positive(meta.get(\"previousClose\"))\n\n        # Some symbols can have sparse intraday bars. Fall back to daily bars only as needed.\n        if current is None or previous is None:\n            daily = _chart_result(symbol, period=\"5d\", interval=\"1d\")\n            daily_meta = daily.get(\"meta\", {})\n            daily_closes = ((daily.get(\"indicators\", {}).get(\"quote\") or [{}])[0].get(\"close\") or [])\n            daily_good = [float(v) for v in daily_closes if v is not None and float(v) > 0]\n            if current is None:\n                current = _positive(daily_meta.get(\"regularMarketPrice\")) or (daily_good[-1] if daily_good else None)\n            if previous is None:\n                previous = (daily_good[-2] if len(daily_good) > 1 else None) or _positive(daily_meta.get(\"previousClose\")) or _positive(daily_meta.get(\"chartPreviousClose\"))\n            if not meta:\n                meta = daily_meta\n\n        if current is not None:\n            change = ((current - previous) / previous * 100) if previous else 0.0\n            detail = _local_detail_cache().get(symbol, {})\n            value = {\n                \"ticker\": symbol,\n                \"name\": _local_names().get(symbol) or meta.get(\"shortName\") or meta.get(\"longName\") or detail.get(\"shortName\") or symbol,\n                \"price\": round(float(current), 4),\n                \"change\": round(float(change), 2),\n                \"marketCap\": _number(detail.get(\"marketCap\")),\n                \"currency\": meta.get(\"currency\") or detail.get(\"currency\"),\n                \"source\": \"Yahoo Chart 5m\",\n            }\n    except Exception as exc:\n        print(f\"[MarketData] quote failed {symbol}: {exc}\")\n        value = None\n\n    with _cache_lock:\n        _quote_cache[symbol] = (now, value)\n    return value\n\n\n'''
+          market = market[:start] + replacement + market[end:]
+          market_path.write_text(market, encoding='utf-8')
           PY
       - name: Commit patch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add main.py market_service.py
+          git add market_service.py
           if git diff --cached --quiet; then
             echo 'No patch needed'
           else
-            git commit -m 'fix: use true prior trading close for market changes'
+            git commit -m 'fix: use intraday bars for current market snapshots'
             git push
           fi
