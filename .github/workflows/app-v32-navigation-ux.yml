@@ -1,0 +1,44 @@
+name: App V32 Navigation UX
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-v32-navigation-ux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V32
+        run: python scripts/apply_v32_navigation_ux.py
+      - name: Validate V32
+        run: |
+          python -m py_compile scripts/apply_v32_navigation_ux.py
+          node --check static/js/ux_v3.js
+          node --check static/js/home_brief_v8.js
+          node --check static/js/screener.js
+          node --check static/js/watchlist_v30.js
+          node --check static/js/ux_patch.js
+          grep -q 'openingAppTab' static/js/ux_v3.js
+          grep -q '__openAppTab' static/js/home_brief_v8.js
+          grep -q '__openAppTab' static/js/screener.js
+          grep -q "insertAdjacentElement('beforebegin', section)" static/js/watchlist_v30.js
+          grep -q 'App state UX V32' static/css/app_states_v32.css
+          grep -q 'ux_patch.js?v=20260912v32' templates/index.html
+      - name: Commit V32
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_v3.js static/js/home_brief_v8.js static/js/screener.js static/js/watchlist_v30.js static/js/ux_patch.js static/css/app_states_v32.css templates/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'feat: unify app navigation and state ux v32'
+            git push origin HEAD:main
+          fi
