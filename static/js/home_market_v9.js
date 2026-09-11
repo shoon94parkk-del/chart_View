@@ -129,7 +129,8 @@
       const row = rows.get(item.symbol);
       if (!row) return;
       const change = formatChange(item, row);
-      node.classList.remove('is-loading');
+      node.classList.remove('is-loading', 'home23-up', 'home23-down', 'home23-flat');
+      node.classList.add(`home23-${change.dir}`);
       node.innerHTML = `
         <span>${item.label}</span>
         <strong>${formatValue(item, row)}</strong>
