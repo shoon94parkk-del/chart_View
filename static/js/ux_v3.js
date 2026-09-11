@@ -3,6 +3,8 @@
 
   let lastAnalysis = 'chart';
   let lastDiscover = 'screener';
+  let lastMarket = 'macro';
+  let handlingPopState = false;
 
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
@@ -18,7 +20,7 @@
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
-        if (document.querySelector('.app-bottom-nav')) openTab('home');
+        if (document.querySelector('.app-bottom-nav')) openTab('home', { history: false });
       }, { once: true });
       document.head.appendChild(script);
     }
@@ -26,9 +28,10 @@
 
   function modeFor(tabId) {
     if (tabId === 'home') return 'home';
-    if (tabId === 'tools') return 'tools';
+    if (tabId === 'watchlist') return 'watchlist';
     if (['chart', 'fwdper', 'ideas'].includes(tabId)) return 'analysis';
     if (['screener', 'revision'].includes(tabId)) return 'discover';
+    if (['macro', 'tools'].includes(tabId)) return 'market';
     return 'market';
   }
 
@@ -42,10 +45,10 @@
       button.classList.toggle('active', button.dataset.appTab === tabId);
     });
     document.querySelectorAll('.app-context-nav').forEach((nav) => {
-      nav.hidden = mode === 'home' || nav.dataset.appContext !== mode;
+      nav.hidden = mode === 'home' || mode === 'watchlist' || nav.dataset.appContext !== mode;
     });
     const shell = document.querySelector('.app-context-shell');
-    if (shell) shell.hidden = mode === 'home' || mode === 'tools';
+    if (shell) shell.hidden = mode === 'home' || mode === 'watchlist';
 
     // 종목 선택 UI는 실제로 종목을 비교하는 '종목분석'에서만 노출한다.
     const utilityHeader = document.querySelector('.header');
@@ -59,30 +62,59 @@
 
     if (mode === 'analysis') lastAnalysis = tabId;
     if (mode === 'discover') lastDiscover = tabId;
+    if (mode === 'market') lastMarket = tabId;
   }
 
-  function openTab(tabId) {
-    if (tabId === 'home') {
+  function commitHistory(tabId, replace = false) {
+    if (handlingPopState || !window.history?.pushState) return;
+    const state = history.state || {};
+    if (state.chartView && state.tab === tabId) return;
+    const payload = { chartView: true, tab: tabId };
+    try {
+      if (replace) history.replaceState(payload, '', location.href);
+      else history.pushState(payload, '', location.href);
+    } catch (_) { }
+  }
+
+  function openTab(tabId, options = {}) {
+    const pushHistory = options.history !== false;
+    const resolved = tabId === 'market' ? 'macro' : tabId;
+
+    if (resolved === 'home') {
       if (typeof window.switchTab === 'function') window.switchTab('home');
       if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
+      if (pushHistory) commitHistory('home');
       return;
     }
-    if (tabId === 'ideas') {
+    if (resolved === 'watchlist') {
+      if (typeof window.__installWatchlist === 'function') window.__installWatchlist();
+      if (typeof window.switchTab === 'function') window.switchTab('watchlist');
+      if (typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
+      if (pushHistory) commitHistory('watchlist');
+      return;
+    }
+    if (resolved === 'ideas') {
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
       else if (typeof window.switchTab === 'function') window.switchTab('fwdper');
+      if (pushHistory) commitHistory('ideas');
       return;
     }
-    if (tabId === 'screener') {
+    if (resolved === 'screener') {
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
       else if (typeof window.switchTab === 'function') window.switchTab('screener');
+      if (pushHistory) commitHistory('screener');
       return;
     }
-    if (typeof window.switchTab === 'function') window.switchTab(tabId);
-    if (tabId === 'revision' && typeof window.__loadRevisionRadar === 'function') {
+    if (typeof window.switchTab === 'function') window.switchTab(resolved);
+    if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
     }
+    if (resolved === 'tools' && typeof window.__installInvestmentTools === 'function') {
+      window.__installInvestmentTools();
+    }
+    if (pushHistory) commitHistory(resolved);
   }
 
   function wrapSwitchTab() {
@@ -93,6 +125,7 @@
       syncNavigation(tabId);
       if (tabId === 'home' && typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (tabId === 'chart' && typeof window.__refreshStockBrief === 'function') window.__refreshStockBrief();
+      if (tabId === 'watchlist' && typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
     };
     window.__appNavWrapped = true;
   }
@@ -114,8 +147,9 @@
         <button type="button" class="app-context-btn active" data-app-tab="screener">스크리너</button>
         <button type="button" class="app-context-btn" data-app-tab="revision">실적·괴리</button>
       </nav>
-      <nav class="app-context-nav app-context-single" data-app-context="market" aria-label="시장 세부 기능" hidden>
-        <span class="app-context-title">시장 환경</span>
+      <nav class="app-context-nav" data-app-context="market" aria-label="시장 세부 기능" hidden>
+        <button type="button" class="app-context-btn active" data-app-tab="macro">시장지표</button>
+        <button type="button" class="app-context-btn" data-app-tab="tools">투자도구</button>
       </nav>`;
     oldNav.insertAdjacentElement('beforebegin', context);
 
@@ -126,14 +160,14 @@
       <button type="button" class="app-bottom-btn active" data-app-mode="home">
         <span class="app-bottom-icon">⌂</span><span>홈</span>
       </button>
-      <button type="button" class="app-bottom-btn" data-app-mode="analysis">
-        <span class="app-bottom-icon">▥</span><span>종목분석</span>
+      <button type="button" class="app-bottom-btn" data-app-mode="watchlist">
+        <span class="app-bottom-icon">☆</span><span>관심종목</span>
       </button>
       <button type="button" class="app-bottom-btn" data-app-mode="discover">
         <span class="app-bottom-icon">⌕</span><span>종목발굴</span>
       </button>
-      <button type="button" class="app-bottom-btn" data-app-mode="tools">
-        <span class="app-bottom-icon">▦</span><span>도구</span>
+      <button type="button" class="app-bottom-btn" data-app-mode="market">
+        <span class="app-bottom-icon">▦</span><span>시장</span>
       </button>`;
     document.body.appendChild(bottom);
 
@@ -144,15 +178,15 @@
       button.addEventListener('click', () => {
         const mode = button.dataset.appMode;
         if (mode === 'home') openTab('home');
-        else if (mode === 'analysis') openTab(lastAnalysis);
+        else if (mode === 'watchlist') openTab('watchlist');
         else if (mode === 'discover') openTab(lastDiscover);
-        else if (mode === 'tools') openTab('tools');
-        else openTab('macro');
+        else if (mode === 'market') openTab(lastMarket);
       });
     });
 
     document.body.classList.add('app-shell-ready');
-    if (document.getElementById('home-tab')) openTab('home');
+    try { history.replaceState({ chartView: true, tab: 'home' }, '', location.href); } catch (_) { }
+    if (document.getElementById('home-tab')) openTab('home', { history: false });
     else syncNavigation('chart');
   }
 
@@ -231,6 +265,12 @@
     observeLateUI();
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-context-btn')) requestAnimationFrame(keepActiveContextVisible);
+    });
+    window.addEventListener('popstate', (event) => {
+      const tab = event.state?.chartView ? event.state.tab : 'home';
+      handlingPopState = true;
+      try { openTab(tab || 'home', { history: false }); }
+      finally { handlingPopState = false; }
     });
   }
 
