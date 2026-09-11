@@ -1,0 +1,17 @@
+/* V30 app information architecture overrides. */
+.app-bottom-nav {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+.app-context-nav[data-app-context="market"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.app-bottom-btn {
+  min-width: 0;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+@media (max-width: 420px) {
+  .app-bottom-nav { gap: 2px; padding-left: 4px; padding-right: 4px; }
+  .app-bottom-btn { font-size: 10px; border-radius: 11px; }
+  .app-bottom-btn .app-bottom-icon { font-size: 19px; }
+}
