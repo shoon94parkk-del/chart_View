@@ -5,6 +5,7 @@
   let lastDiscover = 'screener';
 
   function modeFor(tabId) {
+    if (tabId === 'home') return 'home';
     if (['chart', 'fwdper', 'ideas'].includes(tabId)) return 'analysis';
     if (['screener', 'revision'].includes(tabId)) return 'discover';
     return 'market';
@@ -20,16 +21,21 @@
       button.classList.toggle('active', button.dataset.appTab === tabId);
     });
     document.querySelectorAll('.app-context-nav').forEach((nav) => {
-      nav.hidden = nav.dataset.appContext !== mode;
+      nav.hidden = mode === 'home' || nav.dataset.appContext !== mode;
     });
     const shell = document.querySelector('.app-context-shell');
-    if (shell) shell.hidden = false;
+    if (shell) shell.hidden = mode === 'home';
 
     if (mode === 'analysis') lastAnalysis = tabId;
     if (mode === 'discover') lastDiscover = tabId;
   }
 
   function openTab(tabId) {
+    if (tabId === 'home') {
+      if (typeof window.switchTab === 'function') window.switchTab('home');
+      if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
+      return;
+    }
     if (tabId === 'ideas') {
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
@@ -54,6 +60,8 @@
     window.switchTab = function (tabId) {
       base(tabId);
       syncNavigation(tabId);
+      if (tabId === 'home' && typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
+      if (tabId === 'chart' && typeof window.__refreshStockBrief === 'function') window.__refreshStockBrief();
     };
     window.__appNavWrapped = true;
   }
@@ -66,14 +74,14 @@
     const context = document.createElement('div');
     context.className = 'app-context-shell';
     context.innerHTML = `
-      <nav class="app-context-nav" data-app-context="analysis" aria-label="종목 분석 세부 기능">
+      <nav class="app-context-nav" data-app-context="analysis" aria-label="종목 분석 세부 기능" hidden>
         <button type="button" class="app-context-btn active" data-app-tab="chart">차트</button>
         <button type="button" class="app-context-btn" data-app-tab="fwdper">밸류에이션</button>
         <button type="button" class="app-context-btn" data-app-tab="ideas">투자판단</button>
       </nav>
       <nav class="app-context-nav" data-app-context="discover" aria-label="종목 발굴 세부 기능" hidden>
         <button type="button" class="app-context-btn active" data-app-tab="screener">스크리너</button>
-        <button type="button" class="app-context-btn" data-app-tab="revision">실적 상향</button>
+        <button type="button" class="app-context-btn" data-app-tab="revision">실적·괴리</button>
       </nav>
       <nav class="app-context-nav app-context-single" data-app-context="market" aria-label="시장 세부 기능" hidden>
         <span class="app-context-title">시장 환경</span>
@@ -84,7 +92,10 @@
     bottom.className = 'app-bottom-nav';
     bottom.setAttribute('aria-label', '주요 메뉴');
     bottom.innerHTML = `
-      <button type="button" class="app-bottom-btn active" data-app-mode="analysis">
+      <button type="button" class="app-bottom-btn active" data-app-mode="home">
+        <span class="app-bottom-icon">⌂</span><span>홈</span>
+      </button>
+      <button type="button" class="app-bottom-btn" data-app-mode="analysis">
         <span class="app-bottom-icon">▥</span><span>종목분석</span>
       </button>
       <button type="button" class="app-bottom-btn" data-app-mode="discover">
@@ -101,14 +112,16 @@
     bottom.querySelectorAll('[data-app-mode]').forEach((button) => {
       button.addEventListener('click', () => {
         const mode = button.dataset.appMode;
-        if (mode === 'analysis') openTab(lastAnalysis);
+        if (mode === 'home') openTab('home');
+        else if (mode === 'analysis') openTab(lastAnalysis);
         else if (mode === 'discover') openTab(lastDiscover);
         else openTab('macro');
       });
     });
 
     document.body.classList.add('app-shell-ready');
-    syncNavigation('chart');
+    if (document.getElementById('home-tab')) openTab('home');
+    else syncNavigation('chart');
   }
 
   function revealAllValuationMetrics() {
@@ -194,6 +207,8 @@
       if (event.target.closest('.app-context-btn')) requestAnimationFrame(keepActiveContextVisible);
     });
   }
+
+  window.__openAppTab = openTab;
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
