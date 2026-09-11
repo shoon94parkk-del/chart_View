@@ -1,0 +1,143 @@
+/* Home market strip + hard home-only chrome cleanup */
+body.home-clean-mode .header,
+body.home-clean-mode #global-filter,
+body.home-clean-mode .app-context-shell {
+  display: none !important;
+}
+
+body.home-clean-mode #home-tab.active {
+  padding-top: 4px !important;
+}
+
+.home-market-v9 {
+  margin: 8px 0 18px;
+  padding: 14px;
+  border: 1px solid #e5e8eb;
+  border-radius: 20px;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.home-market-v9-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.home-market-v9-head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.home-market-v9-kicker {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: #3182f6;
+}
+
+.home-market-v9-head strong {
+  font-size: 20px;
+  color: #191f28;
+}
+
+#home-market-v9-time {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #8b95a1;
+}
+
+.home-market-v9-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.home-market-v9-item {
+  min-width: 0;
+  padding: 11px 10px;
+  border-radius: 14px;
+  background: #f7f8fa;
+  box-sizing: border-box;
+}
+
+.home-market-v9-item > span,
+.home-market-v9-item > strong,
+.home-market-v9-item > small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-market-v9-item > span {
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 650;
+  color: #8b95a1;
+}
+
+.home-market-v9-item > strong {
+  margin-bottom: 3px;
+  font-size: 16px;
+  line-height: 1.25;
+  color: #191f28;
+}
+
+.home-market-v9-item > small {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7684;
+}
+
+.home-market-v9-item > small.up { color: #00a86b; }
+.home-market-v9-item > small.down { color: #f04452; }
+.home-market-v9-item > small.flat { color: #8b95a1; }
+.home-market-v9-item.is-loading { opacity: .6; }
+
+.home-market-v9-foot {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #adb5bd;
+}
+
+@media (max-width: 720px) {
+  .home-market-v9 {
+    margin: 4px 10px 16px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .home-market-v9-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .home-market-v9-item {
+    padding: 10px 9px;
+  }
+
+  .home-market-v9-item > strong {
+    font-size: 15px;
+  }
+
+  .home-market-v9-head strong {
+    font-size: 18px;
+  }
+
+  body.home-clean-mode .home-v8-hero {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-market-v9-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
