@@ -1,19 +1,22 @@
-/* v10 valuation matrix: keep stocks as rows and metrics as columns on mobile. */
+/* v11 valuation matrix: dense mobile comparison with sticky stock names and compact provenance. */
 #per-table-container{position:relative}
 .per-table thead th{background:#191f28!important;color:#fff!important}
 .per-table tbody tr:nth-child(even){background:#fbfcfd}
 .per-table td,.per-table th{font-variant-numeric:tabular-nums}
 
 @media(max-width:720px){
-  .per-section{padding:16px 12px 14px!important}
-  .per-header{margin-bottom:10px!important}
-  .metric-description{font-size:11.5px!important;line-height:1.4!important}
-  .per-source{font-size:9.5px!important}
+  .per-section{padding:12px 8px 12px!important}
+  .per-header{margin-bottom:7px!important}
+  .per-title,#metric-title{font-size:19px!important;line-height:1.22!important}
+  .metric-description{margin-top:4px!important;font-size:10.5px!important;line-height:1.35!important}
+  .per-source{margin-top:4px!important;font-size:8.8px!important;line-height:1.35!important;color:#8b95a1!important}
+  #update-badge{font-size:9px!important;padding:3px 7px!important}
+
   #per-table-container{
-    width:calc(100% + 24px)!important;
+    width:calc(100% + 16px)!important;
     max-width:none!important;
-    margin:10px -12px 0!important;
-    padding:0 0 5px!important;
+    margin:7px -8px 0!important;
+    padding:0 0 4px!important;
     overflow-x:auto!important;
     overflow-y:visible!important;
     -webkit-overflow-scrolling:touch;
@@ -22,13 +25,14 @@
   }
   #per-table-container .per-table{
     display:table!important;
-    width:max-content!important;
-    min-width:790px!important;
+    width:608px!important;
+    min-width:608px!important;
+    max-width:608px!important;
     border-collapse:separate!important;
     border-spacing:0!important;
-    table-layout:auto!important;
+    table-layout:fixed!important;
     background:#fff!important;
-    font-size:11px!important;
+    font-size:10px!important;
   }
   #per-table-container .per-table thead{display:table-header-group!important}
   #per-table-container .per-table tbody{display:table-row-group!important;width:auto!important}
@@ -47,10 +51,9 @@
   #per-table-container .per-table th,
   #per-table-container .per-table td{
     display:table-cell!important;
-    width:auto!important;
-    min-width:78px!important;
+    min-width:0!important;
     max-width:none!important;
-    padding:10px 9px!important;
+    padding:8px 4px!important;
     border:0!important;
     border-bottom:1px solid #edf0f2!important;
     border-radius:0!important;
@@ -58,39 +61,60 @@
     color:inherit;
     text-align:center!important;
     white-space:nowrap!important;
-    overflow:visible!important;
-    line-height:1.25!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.18!important;
     vertical-align:middle!important;
+    font-size:10px!important;
+    letter-spacing:-.15px;
   }
   #per-table-container .per-table th{
     position:sticky;
     top:0;
     z-index:4;
-    min-height:38px;
+    min-height:34px;
     background:#191f28!important;
     color:#fff!important;
-    font-size:10px!important;
+    font-size:9px!important;
     font-weight:800!important;
     border-bottom:0!important;
+    padding-top:9px!important;
+    padding-bottom:9px!important;
   }
   #per-table-container .per-table td::before{display:none!important;content:none!important}
+  #per-table-container .metric-provenance{display:none!important}
+  #per-table-container .metric-value-wrap,
+  #per-table-container .metric-value-main{display:block!important;width:100%!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+
+  /* Column widths tuned so stock + price + FWD PER + PER + PBR fit in a typical phone viewport. */
+  #per-table-container .per-table th:nth-child(1),#per-table-container .per-table td:nth-child(1){width:88px!important}
+  #per-table-container .per-table th:nth-child(2),#per-table-container .per-table td:nth-child(2){width:70px!important}
+  #per-table-container .per-table th:nth-child(3),#per-table-container .per-table td:nth-child(3){width:56px!important}
+  #per-table-container .per-table th:nth-child(4),#per-table-container .per-table td:nth-child(4){width:50px!important}
+  #per-table-container .per-table th:nth-child(5),#per-table-container .per-table td:nth-child(5){width:50px!important}
+  #per-table-container .per-table th:nth-child(6),#per-table-container .per-table td:nth-child(6){width:50px!important}
+  #per-table-container .per-table th:nth-child(7),#per-table-container .per-table td:nth-child(7){width:68px!important}
+  #per-table-container .per-table th:nth-child(8),#per-table-container .per-table td:nth-child(8){width:54px!important}
+  #per-table-container .per-table th:nth-child(9),#per-table-container .per-table td:nth-child(9){width:68px!important}
+  #per-table-container .per-table th:nth-child(10),#per-table-container .per-table td:nth-child(10){width:54px!important}
+
   #per-table-container .per-table th:first-child,
   #per-table-container .per-table td:first-child{
     position:sticky!important;
     left:0!important;
     z-index:5;
-    min-width:118px!important;
-    width:118px!important;
-    max-width:118px!important;
-    padding-left:11px!important;
-    padding-right:9px!important;
+    min-width:88px!important;
+    width:88px!important;
+    max-width:88px!important;
+    padding-left:8px!important;
+    padding-right:5px!important;
     text-align:left!important;
-    box-shadow:8px 0 12px -12px rgba(15,23,42,.45);
+    box-shadow:7px 0 10px -10px rgba(15,23,42,.55);
   }
   #per-table-container .per-table th:first-child{
     z-index:7;
     background:#191f28!important;
-    border-top-left-radius:10px!important;
+    border-top-left-radius:8px!important;
   }
   #per-table-container .per-table td:first-child{
     display:table-cell!important;
@@ -105,9 +129,9 @@
     max-width:100%!important;
     overflow:hidden!important;
     color:#191f28!important;
-    font-size:11.5px!important;
+    font-size:10.5px!important;
     font-weight:800!important;
-    line-height:1.25!important;
+    line-height:1.18!important;
     text-overflow:ellipsis!important;
     white-space:nowrap!important;
   }
@@ -117,14 +141,20 @@
     max-width:100%!important;
     overflow:hidden!important;
     color:#8b95a1!important;
-    font-size:9px!important;
-    line-height:1.2!important;
+    font-size:8px!important;
+    line-height:1.15!important;
     text-overflow:ellipsis!important;
     white-space:nowrap!important;
   }
-  #per-table-container .price-cell{font-weight:750!important;color:#333d4b!important}
+  #per-table-container .price-cell{font-weight:750!important;color:#333d4b!important;font-size:9.5px!important}
   .per-bars{display:none!important}
-  .per-sort{margin-top:2px}
-  .per-sort .sort-btn{min-height:34px!important;padding:0 10px!important;font-size:10px!important}
-  #update-badge{font-size:9.5px!important}
+  .per-sort{margin-top:0!important;gap:4px!important}
+  .per-sort .sort-btn{min-height:30px!important;padding:0 8px!important;font-size:9.5px!important}
+}
+
+@media(max-width:380px){
+  #per-table-container .per-table{width:588px!important;min-width:588px!important;max-width:588px!important}
+  #per-table-container .per-table th:nth-child(1),#per-table-container .per-table td:nth-child(1){width:84px!important}
+  #per-table-container .per-table th:first-child,#per-table-container .per-table td:first-child{min-width:84px!important;width:84px!important;max-width:84px!important}
+  #per-table-container .per-table th,#per-table-container .per-table td{padding-left:3px!important;padding-right:3px!important;font-size:9.5px!important}
 }
