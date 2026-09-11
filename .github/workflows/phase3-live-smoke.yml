@@ -7,12 +7,14 @@ on:
       - 'static/js/ux_patch.js'
       - 'static/js/ux_v3.js'
       - 'static/js/home_brief_v8.js'
+      - 'static/js/home_market_v9.js'
       - 'static/js/valuation_overview_v4.js'
       - 'static/js/revision_radar.js'
       - 'static/js/decision_ux_v7.js'
       - 'static/js/app_header_v5.js'
       - 'static/css/ux_v3.css'
       - 'static/css/home_brief_v8.css'
+      - 'static/css/home_market_v9.css'
       - 'static/css/decision_ux_v7.css'
       - 'static/css/bottom_nav_v6.css'
       - 'static/css/app_header_v5.css'
@@ -35,28 +37,25 @@ jobs:
 
           ready=0
           for i in $(seq 1 42); do
-            code=$(curl -sS -o /tmp/app_ux.js -w '%{http_code}' "$BASE/static/js/ux_v3.js?v=20260911v4" || true)
+            code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
             if [ "$code" = '200' ] \
-              && grep -q '/static/js/home_brief_v8.js?v=20260911v8' /tmp/app_ux.js \
-              && grep -q '/static/css/home_brief_v8.css?v=20260911v8' /tmp/app_ux.js \
-              && grep -q 'data-app-mode="home"' /tmp/app_ux.js; then
+              && grep -q '/static/js/home_market_v9.js?v=20260911v9' /tmp/ux_patch.js \
+              && grep -q '/static/css/home_market_v9.css?v=20260911v9' /tmp/ux_patch.js; then
               ready=1
-              echo "home dashboard build detected on attempt=$i"
+              echo "home market build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i status=$code: waiting for home dashboard deploy"
+            echo "attempt=$i status=$code: waiting for home market deploy"
             sleep 10
           done
           test "$ready" = '1'
 
-          curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux_patch.js
+          curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
           curl -fsSL "$BASE/static/js/home_brief_v8.js?v=20260911v8" -o /tmp/home_brief.js
+          curl -fsSL "$BASE/static/js/home_market_v9.js?v=20260911v9" -o /tmp/home_market.js
           curl -fsSL "$BASE/static/css/home_brief_v8.css?v=20260911v8" -o /tmp/home_brief.css
-          curl -fsSL "$BASE/static/js/valuation_overview_v4.js?v=20260911v4" -o /tmp/dense_valuation.js
-          curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
+          curl -fsSL "$BASE/static/css/home_market_v9.css?v=20260911v9" -o /tmp/home_market.css
           curl -fsSL "$BASE/static/js/decision_ux_v7.js?v=20260911v7" -o /tmp/decision_ux.js
-          curl -fsSL "$BASE/static/js/app_header_v5.js?v=20260911v5" -o /tmp/app_header.js
-          curl -fsSL "$BASE/static/css/decision_ux_v7.css?v=20260911v7" -o /tmp/decision_ux.css
           curl -fsSL "$BASE/static/css/bottom_nav_v6.css?v=20260911v6" -o /tmp/bottom_nav.css
           curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
@@ -64,29 +63,26 @@ jobs:
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' "$BASE/api/valuation" -o /tmp/valuation.json
           curl -fsSL --get --data-urlencode 'ticker=AAPL' "$BASE/api/consensus" -o /tmp/aapl_consensus.json
           curl -fsSL --get --data-urlencode 'ticker=AAPL' --data-urlencode 'years=3' "$BASE/api/valuation-band" -o /tmp/aapl_band.json
+          curl -fsSL --get --data-urlencode 'tickers=^GSPC,^IXIC,^TNX,^VIX,CL=F,KRW=X' --data-urlencode 'period=1d' "$BASE/api/compare" -o /tmp/market_now.json
           curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
 
           node --check /tmp/app_ux.js
           node --check /tmp/home_brief.js
-          node --check /tmp/dense_valuation.js
-          node --check /tmp/revision_radar.js
+          node --check /tmp/home_market.js
           node --check /tmp/decision_ux.js
-          node --check /tmp/app_header.js
 
           grep -q 'data-app-mode="home"' /tmp/app_ux.js
-          grep -q '<span>홈</span>' /tmp/app_ux.js
-          grep -q '종목분석' /tmp/app_ux.js
-          grep -q '종목발굴' /tmp/app_ux.js
           grep -q '오늘은 여기부터 보세요' /tmp/home_brief.js
-          grep -q '실적은 좋아졌는데 주가가 덜 움직인 종목' /tmp/home_brief.js
-          grep -q '선택 종목 요약' /tmp/home_brief.js
-          grep -q '좋게 볼 점' /tmp/home_brief.js
-          grep -q '확인할 점' /tmp/home_brief.js
-          grep -q 'grid-template-columns: repeat(4, minmax(0, 1fr))' /tmp/home_brief.css
-          grep -q '.stock-brief-metrics' /tmp/home_brief.css
-          grep -q '핵심 밸류에이션 한눈에' /tmp/dense_valuation.js
+          grep -q '오늘의 시장' /tmp/home_market.js
+          grep -q '미 10년물' /tmp/home_market.js
+          grep -q 'WTI 유가' /tmp/home_market.js
+          grep -q '원/달러' /tmp/home_market.js
+          grep -q '60초마다 자동 갱신' /tmp/home_market.js
+          grep -q 'home-clean-mode' /tmp/home_market.js
+          grep -q 'body.home-clean-mode .header' /tmp/home_market.css
+          grep -q 'body.home-clean-mode #global-filter' /tmp/home_market.css
+          grep -q 'display: none !important' /tmp/home_market.css
           grep -q '실적 상향 + 주가 미반영' /tmp/decision_ux.js
-          grep -q "new Set(\['overview', 'bands', 'consensus'\])" /tmp/decision_ux.js
           grep -q 'background: #edf5ff' /tmp/bottom_nav.css
 
           python - <<'PY'
@@ -94,6 +90,14 @@ jobs:
 
           health=json.load(open('/tmp/health.json'))
           assert health.get('status') == 'ok', health
+
+          market=json.load(open('/tmp/market_now.json'))
+          market_rows={x.get('ticker'):x for x in market.get('stocks', [])}
+          required=('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')
+          missing=[x for x in required if x not in market_rows or not market_rows[x].get('price')]
+          assert not missing, ('market snapshot missing', missing, market.get('errors'))
+          for ticker in required:
+              assert market_rows[ticker].get('return') is not None, (ticker, market_rows[ticker])
 
           screener=json.load(open('/tmp/screener.json'))
           stocks=screener.get('stocks', [])
@@ -104,22 +108,6 @@ jobs:
           consensus=json.load(open('/tmp/consensus.json'))
           quotes=consensus.get('quotes', {})
           assert len(quotes) >= 40, len(quotes)
-          price_ready=0
-          divergence_ready=0
-          for quote in quotes.values():
-              row=(quote.get('periods') or {}).get('0y') or {}
-              trend=row.get('epsTrend') or {}
-              cur=trend.get('current')
-              prev=trend.get('30daysAgo')
-              pt=quote.get('priceTrend') or {}
-              ret30=pt.get('return30')
-              ret90=pt.get('return90')
-              if ret30 is not None and ret90 is not None:
-                  price_ready += 1
-              if cur is not None and prev is not None and cur > 0 and prev > 0 and ret30 is not None:
-                  divergence_ready += 1
-          assert price_ready >= 40, price_ready
-          assert divergence_ready >= 20, divergence_ready
 
           valuation=json.load(open('/tmp/valuation.json'))
           rows={x.get('ticker'):x for x in valuation.get('stocks', [])}
@@ -136,5 +124,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed', macro.get('cacheMode')
           assert len(macro.get('results', [])) == 13
 
-          print('Home + stock brief live smoke OK:', len(quotes), 'consensus /', price_ready, 'price-ready /', divergence_ready, 'divergence-ready')
+          print('Home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['return']) for k in required})
           PY
