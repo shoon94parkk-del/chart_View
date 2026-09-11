@@ -37,10 +37,13 @@ jobs:
             const requests=[];
             page.on('pageerror', e=>errors.push(String(e)));
             page.on('request', r=>{ if(r.url().includes('screener')) requests.push(r.url()); });
-            const res = await page.goto('https://chart-view-bsg6.onrender.com/?v29fresh=1',{waitUntil:'domcontentloaded',timeout:60000});
+            const res = await page.goto('https://chart-view-bsg6.onrender.com/?v29fresh=2',{waitUntil:'domcontentloaded',timeout:60000});
             assert(res && res.status()===200,'homepage HTTP failed');
             await page.waitForSelector('#ux12-data-status [data-status="screener"] strong',{timeout:20000});
-            await page.waitForTimeout(1200);
+            await page.waitForFunction(
+              ()=>document.querySelector('#ux12-data-status [data-status="screener"] strong')?.textContent?.includes('09.11'),
+              null,{timeout:20000}
+            );
             const status = (await page.locator('#ux12-data-status [data-status="screener"] strong').textContent()).trim();
             console.log('home_status=',status);
             assert(status.includes('09.11'),'home screener status is stale: '+status);
@@ -52,7 +55,7 @@ jobs:
             console.log('screener_summary=',summary);
             assert(summary.includes('2026-09-11'),'screener tab stale: '+summary);
 
-            const metaRes=await context.request.get('https://chart-view-bsg6.onrender.com/static/data/screener_meta.json?smoke=1');
+            const metaRes=await context.request.get('https://chart-view-bsg6.onrender.com/static/data/screener_meta.json?smoke=2');
             assert(metaRes.ok(),'meta endpoint failed');
             const meta=await metaRes.json();
             console.log('meta=',meta);
