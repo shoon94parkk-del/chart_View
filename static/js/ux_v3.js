@@ -46,9 +46,13 @@
     const shell = document.querySelector('.app-context-shell');
     if (shell) shell.hidden = mode === 'home';
 
-    // 홈은 '오늘 무엇을 볼지'에 집중한다. 검색/선택 UI는 종목분석에서만 노출한다.
+    // 종목 선택 UI는 실제로 종목을 비교하는 '종목분석'에서만 노출한다.
     const utilityHeader = document.querySelector('.header');
-    if (utilityHeader) utilityHeader.hidden = mode === 'home';
+    if (utilityHeader) {
+      const showStockSearch = mode === 'analysis';
+      utilityHeader.hidden = !showStockSearch;
+      utilityHeader.style.setProperty('display', showStockSearch ? 'block' : 'none', 'important');
+    }
     const globalFilter = document.getElementById('global-filter');
     if (globalFilter) globalFilter.style.display = mode === 'analysis' ? 'block' : 'none';
 
