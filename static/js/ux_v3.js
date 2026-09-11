@@ -14,7 +14,7 @@
     }
     if (!document.querySelector('script[data-home-v8]')) {
       const script = document.createElement('script');
-      script.src = '/static/js/home_brief_v8.js?v=20260911v16';
+      script.src = '/static/js/home_brief_v8.js?v=20260911v17';
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
