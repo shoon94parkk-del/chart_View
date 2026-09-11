@@ -21,7 +21,7 @@
   }
 
   ensureStyle('link[data-fast-screener]', '/static/css/screener.css?v=20260911v3', 'fastScreener');
-  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260911v13', 'fastScreener');
+  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260912v29', 'fastScreener');
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v2', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
@@ -30,7 +30,7 @@
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
   ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260912v28', 'investmentToolsV22');
   ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260912v28', 'investmentToolsV22');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v26', 'uxV3');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v29', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260911v6', 'bottomNavV6');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
   ensureScript('script[data-decision-ux-v7]', '/static/js/decision_ux_v7.js?v=20260911v7', 'decisionUxV7');
@@ -42,7 +42,7 @@
   ensureScript('script[data-home-priority-v10]', '/static/js/home_priority_v10.js?v=20260911v10', 'homePriorityV10');
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');
   ensureStyle('link[data-ux-patterns-v12]', '/static/css/ux_patterns_v12.css?v=20260911v12', 'uxPatternsV12');
-  ensureScript('script[data-ux-patterns-v12]', '/static/js/ux_patterns_v12.js?v=20260911v12', 'uxPatternsV12');
+  ensureScript('script[data-ux-patterns-v12]', '/static/js/ux_patterns_v12.js?v=20260912v29', 'uxPatternsV12');
   ensureStyle('link[data-ux-interactions-v13]', '/static/css/ux_interactions_v13.css?v=20260911v13', 'uxInteractionsV13');
   ensureScript('script[data-ux-interactions-v13]', '/static/js/ux_interactions_v13.js?v=20260911v13', 'uxInteractionsV13');
   ensureStyle('link[data-analysis-ui-v20]', '/static/css/analysis_ui_v20.css?v=20260911v20', 'analysisUiV20');
@@ -65,7 +65,9 @@
 
   function loadUniverse() {
     if (!universePromise) {
-      universePromise = fetch('/static/data/screener.json', { cache: 'force-cache' })
+      universePromise = fetch('/static/data/screener_meta.json', { cache: 'no-store' })
+        .then((res) => res.ok ? res.json() : null)
+        .then((meta) => fetch(`/static/data/screener.json?v=${encodeURIComponent(meta?.tradeDate || meta?.updated || 'latest')}`, { cache: 'force-cache' }))
         .then((res) => {
           if (!res.ok) throw new Error(`screener HTTP ${res.status}`);
           return res.json();

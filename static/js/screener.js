@@ -192,6 +192,18 @@
     });
   }
 
+  async function screenerDataUrl() {
+    try {
+      const response = await fetch('/static/data/screener_meta.json', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`meta HTTP ${response.status}`);
+      const meta = await response.json();
+      const version = meta.tradeDate || meta.updated || 'latest';
+      return `/static/data/screener.json?v=${encodeURIComponent(version)}`;
+    } catch (_) {
+      return `/static/data/screener.json?v=${Date.now()}`;
+    }
+  }
+
   async function loadData() {
     if (payload) {
       render();
@@ -202,7 +214,8 @@
     const results = document.getElementById('screener-results');
     if (results) results.innerHTML = '<div class="screener-loading"><div class="spinner"></div><span>스크리너 데이터를 불러오는 중...</span></div>';
 
-    loadingPromise = fetch('/static/data/screener.json', { cache: 'no-store' })
+    loadingPromise = screenerDataUrl()
+      .then((url) => fetch(url, { cache: 'force-cache' }))
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();

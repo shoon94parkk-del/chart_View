@@ -159,7 +159,7 @@
       set('market', marketTime && !marketTime.includes('불러오는') ? marketTime.replace(' 기준', '') : '최신 시세', marketTime?.includes('확인 필요') ? 'warn' : 'ok');
 
       const [screener, consensus, macro] = await Promise.all([
-        fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch('/static/data/screener_meta.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
       ]);

@@ -185,7 +185,9 @@
 
   function loadScreener() {
     if (!screenerPromise) {
-      screenerPromise = fetch('/static/data/screener.json', { cache: 'force-cache' })
+      screenerPromise = fetch('/static/data/screener_meta.json', { cache: 'no-store' })
+        .then((r) => r.ok ? r.json() : null)
+        .then((meta) => fetch(`/static/data/screener.json?v=${encodeURIComponent(meta?.tradeDate || meta?.updated || 'latest')}`, { cache: 'force-cache' }))
         .then((r) => r.ok ? r.json() : { stocks: [] })
         .catch(() => ({ stocks: [] }));
     }

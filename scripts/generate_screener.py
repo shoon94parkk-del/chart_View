@@ -19,6 +19,7 @@ import yfinance as yf
 
 KST = timezone(timedelta(hours=9))
 OUT = Path("static/data/screener.json")
+META_OUT = Path("static/data/screener_meta.json")
 BATCH_SIZE = 80
 PERIOD = "8mo"
 MIN_ROWS = 120
@@ -287,7 +288,9 @@ def build():
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"Saved {len(rows)} stocks -> {OUT} ({OUT.stat().st_size / 1024:.1f} KB)")
+    meta_payload = {key: payload[key] for key in ("updated", "tradeDate", "count", "universeCount", "source")}
+    META_OUT.write_text(json.dumps(meta_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"Saved {len(rows)} stocks -> {OUT} ({OUT.stat().st_size / 1024:.1f} KB); meta -> {META_OUT}")
 
 
 if __name__ == "__main__":
