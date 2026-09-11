@@ -1,22 +1,14 @@
 (() => {
   'use strict';
 
-  function syncDirections(panel) {
-    panel.querySelectorAll('.home-market-v9-item').forEach((item) => {
-      item.classList.remove('home23-up', 'home23-down', 'home23-flat');
-      const change = item.querySelector('small');
-      if (change?.classList.contains('up')) item.classList.add('home23-up');
-      else if (change?.classList.contains('down')) item.classList.add('home23-down');
-      else item.classList.add('home23-flat');
-    });
-  }
-
   function enhanceMarket() {
     const panel = document.getElementById('home-market-v9');
     const grid = document.getElementById('home-market-v9-grid');
     if (!panel || !grid) return false;
 
     const items = Array.from(grid.querySelectorAll('.home-market-v9-item'));
+    if (items.length < 4) return false;
+
     items.forEach((item, index) => {
       item.classList.toggle('home23-primary', index < 4);
       item.classList.toggle('home23-secondary', index >= 4);
@@ -31,19 +23,19 @@
       toggle.setAttribute('aria-expanded', 'false');
       toggle.innerHTML = '<span>금리 · VIX · 유가 · 환율</span><strong>4개 더보기</strong><i>⌄</i>';
       grid.insertAdjacentElement('afterend', toggle);
-      toggle.addEventListener('click', () => {
-        const expanded = panel.classList.toggle('home23-expanded');
+
+      // Pure UI toggle: no fetch, no home re-render, no observer.
+      toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const expanded = !panel.classList.contains('home23-expanded');
+        panel.classList.toggle('home23-expanded', expanded);
         toggle.setAttribute('aria-expanded', String(expanded));
         const strong = toggle.querySelector('strong');
         if (strong) strong.textContent = expanded ? '접기' : '4개 더보기';
       });
     }
 
-    syncDirections(panel);
-    if (panel.dataset.home23Observed !== '1') {
-      panel.dataset.home23Observed = '1';
-      new MutationObserver(() => syncDirections(panel)).observe(grid, { childList: true, subtree: true, characterData: true });
-    }
     panel.dataset.home23 = '1';
     return true;
   }
@@ -71,25 +63,26 @@
     return true;
   }
 
+  function stabilizeHome() {
+    enhanceMarket();
+    enforceOrder();
+  }
+
   function boot() {
+    // Bounded retries only while late-loaded home/status elements appear.
+    // No MutationObserver: opening the market detail can never create a render loop.
     let tries = 0;
     const timer = setInterval(() => {
       tries += 1;
-      enhanceMarket();
-      enforceOrder();
-      if (tries >= 80) clearInterval(timer);
-    }, 180);
-
-    const observer = new MutationObserver(() => {
-      enhanceMarket();
-      enforceOrder();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 15000);
+      const marketReady = enhanceMarket();
+      const orderReady = enforceOrder();
+      const statusReady = compactDataStatus();
+      if ((marketReady && orderReady && statusReady) || tries >= 32) clearInterval(timer);
+    }, 200);
 
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) {
-        setTimeout(() => { enhanceMarket(); enforceOrder(); }, 120);
+        setTimeout(stabilizeHome, 120);
       }
     });
   }
