@@ -3,6 +3,9 @@
 
   const qs = (s, r = document) => r.querySelector(s);
   const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+  let dataStatusLoading = false;
+  let dataStatusLoadedAt = 0;
+
   const textNum = (value) => {
     const m = String(value || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
     return m ? Number(m[0]) : null;
@@ -20,7 +23,8 @@
     const search = qs('#screener-search');
     const valueSelect = qs('#screener-value');
     const sortSelect = qs('#screener-sort');
-    if (!section || !row || !search || !valueSelect || !sortSelect || qs('#ux12-filter-sheet')) return false;
+    if (!section || !row || !search || !valueSelect || !sortSelect) return false;
+    if (qs('#ux12-filter-sheet')) return true;
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
@@ -87,6 +91,9 @@
     const summary = qs('#screener-summary');
     const results = qs('#screener-results');
     if (!summary || !results) return false;
+    if (results.dataset.ux12Kpis === '1') return true;
+    results.dataset.ux12Kpis = '1';
+
     let strip = qs('#ux12-screener-kpis');
     if (!strip) {
       strip = document.createElement('div');
@@ -116,9 +123,12 @@
     return true;
   }
 
-  async function installDataStatus() {
+  async function installDataStatus(force = false) {
     const market = qs('#home-market-v9');
     if (!market) return false;
+    if (!force && (dataStatusLoading || Date.now() - dataStatusLoadedAt < 60_000)) return true;
+    dataStatusLoading = true;
+
     let strip = qs('#ux12-data-status');
     if (!strip) {
       strip = document.createElement('section');
@@ -144,17 +154,22 @@
       if (strong) strong.textContent = label;
     };
 
-    const marketTime = qs('#home-market-v9-time')?.textContent?.trim();
-    set('market', marketTime && !marketTime.includes('불러오는') ? marketTime.replace(' 기준', '') : '최신 시세', marketTime?.includes('확인 필요') ? 'warn' : 'ok');
+    try {
+      const marketTime = qs('#home-market-v9-time')?.textContent?.trim();
+      set('market', marketTime && !marketTime.includes('불러오는') ? marketTime.replace(' 기준', '') : '최신 시세', marketTime?.includes('확인 필요') ? 'warn' : 'ok');
 
-    const [screener, consensus, macro] = await Promise.all([
-      fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-      fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-    ]);
-    if (screener) set('screener', `장마감 ${shortDate(screener.tradeDate || screener.updated)}`, 'ok'); else set('screener', '확인 필요', 'warn');
-    if (consensus) set('consensus', `${shortDate(consensus.generatedAt)} · ${Number(consensus.count || 0)}종목`, 'ok'); else set('consensus', '확인 필요', 'warn');
-    if (macro) set('macro', `${shortDate(macro.generatedAt)} · ${Number(macro.staleCount || 0) ? '일부 지연' : '정상'}`, Number(macro.staleCount || 0) ? 'warn' : 'ok'); else set('macro', '확인 필요', 'warn');
+      const [screener, consensus, macro] = await Promise.all([
+        fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      ]);
+      if (screener) set('screener', `장마감 ${shortDate(screener.tradeDate || screener.updated)}`, 'ok'); else set('screener', '확인 필요', 'warn');
+      if (consensus) set('consensus', `${shortDate(consensus.generatedAt)} · ${Number(consensus.count || 0)}종목`, 'ok'); else set('consensus', '확인 필요', 'warn');
+      if (macro) set('macro', `${shortDate(macro.generatedAt)} · ${Number(macro.staleCount || 0) ? '일부 지연' : '정상'}`, Number(macro.staleCount || 0) ? 'warn' : 'ok'); else set('macro', '확인 필요', 'warn');
+      dataStatusLoadedAt = Date.now();
+    } finally {
+      dataStatusLoading = false;
+    }
     return true;
   }
 
@@ -168,7 +183,7 @@
       if (attempts >= 60) clearInterval(timer);
     }, 250);
     document.addEventListener('click', (event) => {
-      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(installDataStatus, 350);
+      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => installDataStatus(true), 350);
       if (event.target.closest('[data-tab="screener"], [data-app-mode="discover"]')) setTimeout(() => { installFilterSheet(); installScreenerKpis(); }, 250);
     });
   }
