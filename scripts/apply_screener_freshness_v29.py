@@ -20,11 +20,6 @@ replace_required(
     '    OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")\n    print(f"Saved {len(rows)} stocks -> {OUT} ({OUT.stat().st_size / 1024:.1f} KB)")',
     '    OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")\n    meta_payload = {key: payload[key] for key in ("updated", "tradeDate", "count", "universeCount", "source")}\n    META_OUT.write_text(json.dumps(meta_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")\n    print(f"Saved {len(rows)} stocks -> {OUT} ({OUT.stat().st_size / 1024:.1f} KB); meta -> {META_OUT}")',
 )
-replace_required(
-    '.github/workflows/update-screener.yml',
-    '          git add static/data/screener.json',
-    '          git add static/data/screener.json static/data/screener_meta.json',
-)
 
 # Seed metadata from the already-fresh current JSON so no regeneration is needed now.
 payload = json.loads(Path('static/data/screener.json').read_text(encoding='utf-8'))
