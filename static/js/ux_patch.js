@@ -34,8 +34,8 @@
   ensureScript('script[data-decision-ux-v7]', '/static/js/decision_ux_v7.js?v=20260911v7', 'decisionUxV7');
   ensureStyle('link[data-app-header-v5]', '/static/css/app_header_v5.css?v=20260911v5', 'appHeaderV5');
   ensureScript('script[data-app-header-v5]', '/static/js/app_header_v5.js?v=20260911v5', 'appHeaderV5');
-  ensureStyle('link[data-home-market-v9]', '/static/css/home_market_v9.css?v=20260911v10', 'homeMarketV9');
-  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260911v16', 'homeMarketV9');
+  ensureStyle('link[data-home-market-v9]', '/static/css/home_market_v9.css?v=20260911v21', 'homeMarketV9');
+  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260911v21', 'homeMarketV9');
   ensureStyle('link[data-home-priority-v10]', '/static/css/home_priority_v10.css?v=20260911v10', 'homePriorityV10');
   ensureScript('script[data-home-priority-v10]', '/static/js/home_priority_v10.js?v=20260911v10', 'homePriorityV10');
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');

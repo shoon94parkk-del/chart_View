@@ -103,7 +103,9 @@
           </div>`).join('')}
       </div>
       <div class="home-market-v9-foot">등락은 직전 종가 대비 · 60초마다 갱신 · 휴장/장외에는 최근 거래값</div>`;
-    home.appendChild(panel);
+    const anchor = document.getElementById('home-v8-body');
+    if (anchor && anchor.parentElement === home) home.insertBefore(panel, anchor);
+    else home.prepend(panel);
     return panel;
   }
 
@@ -117,6 +119,39 @@
     return `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
   }
 
+  function paintMarket(panel, data) {
+    if (!panel || !data) return false;
+    const rows = new Map((data.results || []).map((row) => [row.ticker, row]));
+    let painted = 0;
+    MARKET_ITEMS.forEach((item) => {
+      const node = panel.querySelector(`[data-market-symbol="${CSS.escape(item.symbol)}"]`);
+      if (!node) return;
+      const row = rows.get(item.symbol);
+      if (!row) return;
+      const change = formatChange(item, row);
+      node.classList.remove('is-loading');
+      node.innerHTML = `
+        <span>${item.label}</span>
+        <strong>${formatValue(item, row)}</strong>
+        <small class="${change.dir}">${change.text}</small>`;
+      painted += 1;
+    });
+    const time = panel.querySelector('#home-market-v9-time');
+    if (time && painted) time.textContent = `${formatCheckedAt(data)} 기준`;
+    return painted > 0;
+  }
+
+  function saveMarketLocal(data) {
+    try { localStorage.setItem('chartview-market-now-v21', JSON.stringify(data)); } catch (_) {}
+  }
+
+  function readMarketLocal() {
+    try {
+      const raw = localStorage.getItem('chartview-market-now-v21');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+
   async function loadMarket(force = false) {
     if (!isHomeActive()) return;
     const panel = ensurePanel();
@@ -125,31 +160,18 @@
 
     const seq = ++marketLoadSeq;
     try {
-      const response = await fetch('/api/market-now', { cache: 'no-store' });
+      const response = await fetch(`/api/market-now${force ? '?fresh=1' : ''}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`market HTTP ${response.status}`);
       const data = await response.json();
       if (seq !== marketLoadSeq) return;
-
-      const rows = new Map((data.results || []).map((row) => [row.ticker, row]));
-      MARKET_ITEMS.forEach((item) => {
-        const node = panel.querySelector(`[data-market-symbol="${CSS.escape(item.symbol)}"]`);
-        if (!node) return;
-        const row = rows.get(item.symbol);
-        const change = formatChange(item, row);
-        node.classList.remove('is-loading');
-        node.innerHTML = `
-          <span>${item.label}</span>
-          <strong>${formatValue(item, row)}</strong>
-          <small class="${change.dir}">${change.text}</small>`;
-      });
-
-      const time = panel.querySelector('#home-market-v9-time');
-      if (time) time.textContent = `${formatCheckedAt(data)} 기준`;
-      lastLoadedAt = Date.now();
+      if (paintMarket(panel, data)) {
+        saveMarketLocal(data);
+        lastLoadedAt = Date.now();
+      }
     } catch (error) {
       console.warn('home market snapshot failed', error);
       const time = panel.querySelector('#home-market-v9-time');
-      if (time) time.textContent = '일부 데이터 확인 필요';
+      if (time && !readMarketLocal()) time.textContent = '일부 데이터 확인 필요';
     }
   }
 
@@ -167,9 +189,13 @@
     const timer = setInterval(() => {
       attempts += 1;
       syncHomeChrome();
-      if (ensurePanel()) {
+      const panel = ensurePanel();
+      if (panel) {
         clearInterval(timer);
-        loadMarket(true);
+        const local = readMarketLocal();
+        if (local) paintMarket(panel, local);
+        loadMarket(false);
+        setTimeout(() => loadMarket(true), 450);
         startRefreshLoop();
       } else if (attempts >= 40) {
         clearInterval(timer);

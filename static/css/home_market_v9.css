@@ -177,3 +177,30 @@ body.home-clean-mode .home-v8-flow {
     padding-right: 6px;
   }
 }
+
+/* HOME MARKET V21: compact top strip */
+.home-market-v9{margin:4px 0 12px;padding:10px 12px 9px;border-radius:17px}
+.home-market-v9-head{align-items:center;margin-bottom:8px}
+.home-market-v9-head strong{font-size:17px}
+.home-market-v9-kicker{font-size:9px}
+#home-market-v9-time{font-size:10px}
+.home-market-v9-grid{gap:6px}
+.home-market-v9-item{padding:8px 9px;border-radius:11px}
+.home-market-v9-item>span{margin-bottom:2px;font-size:9.5px}
+.home-market-v9-item>strong{margin-bottom:1px;font-size:14px}
+.home-market-v9-item>small{font-size:9.5px}
+.home-market-v9-foot{margin-top:7px;font-size:9px}
+
+@media(max-width:720px){
+  .home-market-v9{margin:4px 10px 10px;padding:10px 10px 8px;border-radius:16px}
+  .home-market-v9-head{margin-bottom:7px}
+  .home-market-v9-head>div{gap:6px}
+  .home-market-v9-head strong{font-size:16px}
+  .home-market-v9-grid{display:flex;grid-template-columns:none;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .home-market-v9-grid::-webkit-scrollbar{display:none}
+  .home-market-v9-item{flex:0 0 108px;min-height:64px;padding:7px 8px;scroll-snap-align:start}
+  .home-market-v9-item>span{font-size:9px}
+  .home-market-v9-item>strong{font-size:13.5px}
+  .home-market-v9-item>small{font-size:9px}
+  .home-market-v9-foot{display:none}
+}

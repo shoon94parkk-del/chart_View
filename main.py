@@ -98,6 +98,11 @@ async def startup_event():
     try:
         _seed_home_snapshot_from_disk()
         await asyncio.wait_for(_refresh_home_snapshot(force=True), timeout=12)
+        try:
+            await asyncio.wait_for(_refresh_market_now(force=True), timeout=10)
+            print("[MARKET NOW] shared snapshot warmed")
+        except Exception as market_exc:
+            print(f"[MARKET NOW] warmup deferred: {market_exc}")
         print("[HOME] shared snapshot warmed")
     except Exception as exc:
         # The disk seed still lets Home render immediately even if Yahoo is temporarily slow.
@@ -358,39 +363,96 @@ STOCK_DATABASE = [
 
 
 MARKET_NOW_TICKERS = ["^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
+MARKET_NOW_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
+MARKET_NOW_TTL = 60
+MARKET_NOW_REFRESH_GUARD = 8
+MARKET_NOW_LOCK = asyncio.Lock()
+
+
+async def _refresh_market_now(force: bool = False):
+    """Refresh one shared market snapshot while keeping the last successful rows available."""
+    now = time.time()
+    cached = MARKET_NOW_CACHE.get("data")
+    if cached and not force and now - MARKET_NOW_CACHE.get("timestamp", 0) < MARKET_NOW_REFRESH_GUARD:
+        return cached
+
+    async with MARKET_NOW_LOCK:
+        now = time.time()
+        cached = MARKET_NOW_CACHE.get("data")
+        if cached and not force and now - MARKET_NOW_CACHE.get("timestamp", 0) < MARKET_NOW_REFRESH_GUARD:
+            return cached
+
+        MARKET_NOW_CACHE["refreshing"] = True
+        try:
+            previous = {
+                row.get("ticker"): row
+                for row in ((cached or {}).get("results") or [])
+                if isinstance(row, dict) and row.get("ticker")
+            }
+            fetched = await asyncio.gather(
+                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
+                return_exceptions=True,
+            )
+            results, errors = [], []
+            for ticker, row in zip(MARKET_NOW_TICKERS, fetched):
+                if isinstance(row, Exception) or not row:
+                    old = previous.get(ticker)
+                    if old:
+                        results.append(old)
+                    errors.append({"ticker": ticker, "message": str(row) if isinstance(row, Exception) else "시세 데이터를 가져오지 못했습니다."})
+                    continue
+                results.append({
+                    "ticker": ticker,
+                    "name": row.get("name") or ticker,
+                    "price": row.get("price"),
+                    "change": row.get("change"),
+                    "currency": row.get("currency"),
+                    "source": row.get("source") or "Yahoo Chart",
+                })
+
+            if not results and cached:
+                return cached
+
+            now_kst = datetime.utcnow() + timedelta(hours=9)
+            data = {
+                "results": results,
+                "errors": errors,
+                "timestamp": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+                "date": now_kst.strftime("%Y-%m-%d"),
+                "basis": "previous_close",
+                "source": "Yahoo Finance Chart",
+            }
+            MARKET_NOW_CACHE["data"] = data
+            MARKET_NOW_CACHE["timestamp"] = time.time()
+            return data
+        finally:
+            MARKET_NOW_CACHE["refreshing"] = False
+
 
 @app.get("/api/market-now")
-async def market_now():
-    """Latest market snapshot using current/latest trade versus the previous close."""
-    fetched = await asyncio.gather(
-        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
-        return_exceptions=True,
-    )
-    results, errors = [], []
-    for ticker, row in zip(MARKET_NOW_TICKERS, fetched):
-        if isinstance(row, Exception):
-            errors.append({"ticker": ticker, "message": str(row)})
-            continue
-        if not row:
-            errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
-            continue
-        results.append({
-            "ticker": ticker,
-            "name": row.get("name") or ticker,
-            "price": row.get("price"),
-            "change": row.get("change"),
-            "currency": row.get("currency"),
-            "source": row.get("source") or "Yahoo Chart",
-        })
-    now_kst = datetime.utcnow() + timedelta(hours=9)
-    return {
-        "results": results,
-        "errors": errors,
-        "timestamp": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
-        "date": now_kst.strftime("%Y-%m-%d"),
-        "basis": "previous_close",
-        "source": "Yahoo Finance Chart",
-    }
+async def market_now(fresh: bool = False):
+    """Return shared market cache immediately; revalidate stale data in the background."""
+    data = MARKET_NOW_CACHE.get("data")
+    if fresh:
+        try:
+            data = await _refresh_market_now(force=True) or data
+        except Exception as exc:
+            print(f"[MARKET NOW] foreground refresh failed: {exc}")
+    elif not data:
+        try:
+            data = await _refresh_market_now(force=True)
+        except Exception as exc:
+            print(f"[MARKET NOW] first refresh failed: {exc}")
+    else:
+        age = time.time() - MARKET_NOW_CACHE.get("timestamp", 0)
+        if age >= MARKET_NOW_TTL and not MARKET_NOW_CACHE.get("refreshing"):
+            asyncio.create_task(_refresh_market_now(force=False))
+
+    payload = dict(data or {"results": [], "errors": []})
+    payload["cacheAgeSec"] = round(max(0.0, time.time() - MARKET_NOW_CACHE.get("timestamp", 0)), 1)
+    payload["refreshing"] = bool(MARKET_NOW_CACHE.get("refreshing"))
+    payload["cacheMode"] = "stale-while-revalidate"
+    return payload
 
 @app.get("/api/heatmap")
 async def heatmap_data():
