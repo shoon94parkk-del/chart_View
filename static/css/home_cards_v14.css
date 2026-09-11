@@ -23,7 +23,7 @@
 .home14-watch-item>b{display:block;margin-top:2px;font-size:13px;font-variant-numeric:tabular-nums}
 .home14-watch-item>b.up{color:#e24a4a}.home14-watch-item>b.down{color:#2673d9}
 
-.home14-logo{display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#f2f4f6;color:#68727d;font-weight:850;vertical-align:middle}
+.home14-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#f2f4f6;color:#68727d;font-weight:850;vertical-align:middle}
 .home14-logo.square{width:100%;height:100%;border-radius:15px;background:#fff}
 .home14-logo.mini{flex:0 0 38px;width:38px;height:38px;border:1px solid #edf0f2;background:#fff}
 .home14-logo img{position:relative;z-index:2;width:72%;height:72%;object-fit:contain}

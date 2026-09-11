@@ -280,7 +280,7 @@
     try {
       const [screener, consensus, valuation, macro] = await loadSources();
       if (!document.body.contains(root)) return false;
-      qsa('[data-home14-section]', root).forEach((node) => node.remove());
+      qsa('.home14-stack', root).forEach((node) => node.remove());
       const wrap = document.createElement('div');
       wrap.className = 'home14-stack';
       wrap.innerHTML = watchHtml(watchItems(screener, consensus, valuation)) + issuesHtml(buildIssues(screener, consensus, macro)) + signalsHtml(buildSignals(screener));
@@ -310,7 +310,7 @@
     const timer = setInterval(() => {
       attempts += 1;
       installNavIcons();
-      if (qs('#home-v8-body')) renderHome14();
+      if (qs('#home-v8-body') && !qs('#home-v8-body .home14-stack')) renderHome14();
       if (attempts >= 30) clearInterval(timer);
     }, 300);
 
