@@ -1,0 +1,51 @@
+name: App V30 Cache Bump
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-v30-cache-bump.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump app shell assets and validate V30
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          ux = Path('static/js/ux_patch.js')
+          s = ux.read_text(encoding='utf-8')
+          s = s.replace('/static/css/bottom_nav_v6.css?v=20260911v6', '/static/css/bottom_nav_v6.css?v=20260912v30')
+          ux.write_text(s, encoding='utf-8')
+
+          html = Path('templates/index.html')
+          h = html.read_text(encoding='utf-8')
+          h = h.replace('/static/js/ux_patch.js?v=20260912v29', '/static/js/ux_patch.js?v=20260912v30')
+          html.write_text(h, encoding='utf-8')
+          PY
+          node --check static/js/watchlist_v30.js
+          node --check static/js/ux_v3.js
+          node --check static/js/ux_patch.js
+          grep -q 'data-app-mode="watchlist"' static/js/ux_v3.js
+          grep -q 'data-app-mode="analysis"' static/js/ux_v3.js
+          grep -q 'data-app-mode="market"' static/js/ux_v3.js
+          grep -q 'repeat(5, minmax(0, 1fr))' static/css/bottom_nav_v6.css
+          grep -q 'ux_patch.js?v=20260912v30' templates/index.html
+          grep -q 'bottom_nav_v6.css?v=20260912v30' static/js/ux_patch.js
+      - name: Commit V30 cache bump
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'No cache bump needed'
+          else
+            git commit -m 'fix: force app shell v30 assets'
+            git push origin HEAD:main
+          fi
