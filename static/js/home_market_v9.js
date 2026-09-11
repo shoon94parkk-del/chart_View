@@ -33,22 +33,10 @@
   }
 
   function installHomeChromeObserver() {
+    // Mobile stability: navigation click handlers already keep this state in sync.
     syncHomeChrome();
-    const watched = new WeakSet();
-    const watchTargets = () => {
-      [
-        document.getElementById('home-tab'),
-        document.querySelector('.app-bottom-btn[data-app-mode="home"]'),
-      ].filter(Boolean).forEach((node) => {
-        if (watched.has(node)) return;
-        watched.add(node);
-        new MutationObserver(syncHomeChrome).observe(node, { attributes: true, attributeFilter: ['class'] });
-      });
-      syncHomeChrome();
-    };
-    watchTargets();
-    setTimeout(watchTargets, 250);
-    setTimeout(watchTargets, 1000);
+    setTimeout(syncHomeChrome, 300);
+    setTimeout(syncHomeChrome, 1200);
   }
 
   function formatValue(item, row) {
@@ -197,22 +185,21 @@
 
   function init() {
     installHomeChromeObserver();
-    let attempts = 0;
-    const timer = setInterval(() => {
-      attempts += 1;
+
+    const tryInit = (attempt = 0) => {
       syncHomeChrome();
       const panel = ensurePanel();
       if (panel) {
-        clearInterval(timer);
         const local = readMarketLocal();
         if (local) paintMarket(panel, local);
         loadMarket(false);
-        setTimeout(() => loadMarket(true), 450);
+        setTimeout(() => loadMarket(true), 600);
         startRefreshLoop();
-      } else if (attempts >= 40) {
-        clearInterval(timer);
+        return;
       }
-    }, 150);
+      if (attempt < 10) setTimeout(() => tryInit(attempt + 1), 300);
+    };
+    tryInit();
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && isHomeActive()) loadMarket(true);

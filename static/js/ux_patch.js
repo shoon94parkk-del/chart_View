@@ -30,14 +30,14 @@
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
   ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260911v22', 'investmentToolsV22');
   ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260911v22', 'investmentToolsV22');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v22', 'uxV3');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v25', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260911v6', 'bottomNavV6');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
   ensureScript('script[data-decision-ux-v7]', '/static/js/decision_ux_v7.js?v=20260911v7', 'decisionUxV7');
   ensureStyle('link[data-app-header-v5]', '/static/css/app_header_v5.css?v=20260911v5', 'appHeaderV5');
   ensureScript('script[data-app-header-v5]', '/static/js/app_header_v5.js?v=20260911v5', 'appHeaderV5');
   ensureStyle('link[data-home-market-v9]', '/static/css/home_market_v9.css?v=20260911v21', 'homeMarketV9');
-  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260911v24', 'homeMarketV9');
+  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260911v25', 'homeMarketV9');
   ensureStyle('link[data-home-priority-v10]', '/static/css/home_priority_v10.css?v=20260911v10', 'homePriorityV10');
   ensureScript('script[data-home-priority-v10]', '/static/js/home_priority_v10.js?v=20260911v10', 'homePriorityV10');
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');
@@ -47,7 +47,7 @@
   ensureScript('script[data-ux-interactions-v13]', '/static/js/ux_interactions_v13.js?v=20260911v13', 'uxInteractionsV13');
   ensureStyle('link[data-analysis-ui-v20]', '/static/css/analysis_ui_v20.css?v=20260911v20', 'analysisUiV20');
   ensureStyle('link[data-home-ux-v23]', '/static/css/home_ux_v23.css?v=20260911v23', 'homeUxV23');
-  ensureScript('script[data-home-ux-v23]', '/static/js/home_ux_v23.js?v=20260911v24', 'homeUxV23');
+  ensureScript('script[data-home-ux-v23]', '/static/js/home_ux_v23.js?v=20260911v25', 'homeUxV23');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
@@ -162,9 +162,9 @@
   function watchValuationTable() {
     const container = document.getElementById('per-table-container');
     if (!container) return;
+    // Mobile stability: valuation labels are best-effort, never continuously observed.
     enhanceValuationTable();
-    const observer = new MutationObserver(() => enhanceValuationTable());
-    observer.observe(container, { childList: true, subtree: true });
+    setTimeout(enhanceValuationTable, 900);
   }
 
   function fitMainChart() {
@@ -195,7 +195,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadUniverse();
+    // KRX universe is lazy-loaded only when the user searches.
     watchValuationTable();
     enhanceTabUX();
     setTimeout(fitMainChart, 0);

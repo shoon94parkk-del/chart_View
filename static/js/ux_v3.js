@@ -208,24 +208,17 @@
   }
 
   function observeLateUI() {
-    let attempts = 0;
-    const timer = setInterval(() => {
+    // Mobile stability: no document.body-wide observer and no rapid polling loop.
+    const settle = () => {
       wrapSwitchTab();
       installAppNavigation();
       revealAllValuationMetrics();
       revealAllDateControls();
       restoreScreenerControls();
-      attempts += 1;
-      if (attempts >= 20) clearInterval(timer);
-    }, 250);
-
-    const observer = new MutationObserver(() => {
-      restoreScreenerControls();
-      revealAllValuationMetrics();
-      wrapSwitchTab();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 7000);
+    };
+    queueMicrotask(settle);
+    setTimeout(settle, 350);
+    setTimeout(settle, 1200);
   }
 
   function init() {

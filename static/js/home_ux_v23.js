@@ -69,20 +69,14 @@
   }
 
   function boot() {
-    // Bounded retries only while late-loaded home/status elements appear.
-    // No MutationObserver: opening the market detail can never create a render loop.
-    let tries = 0;
-    const timer = setInterval(() => {
-      tries += 1;
-      const marketReady = enhanceMarket();
-      const orderReady = enforceOrder();
-      const statusReady = compactDataStatus();
-      if ((marketReady && orderReady && statusReady) || tries >= 32) clearInterval(timer);
-    }, 200);
+    // Mobile stability: a few scheduled idempotent passes, never a rapid interval.
+    requestAnimationFrame(stabilizeHome);
+    setTimeout(stabilizeHome, 400);
+    setTimeout(stabilizeHome, 1200);
 
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) {
-        setTimeout(stabilizeHome, 120);
+        setTimeout(stabilizeHome, 100);
       }
     });
   }
