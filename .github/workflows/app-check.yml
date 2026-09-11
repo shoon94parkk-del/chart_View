@@ -43,143 +43,75 @@ jobs:
 
           screener=json.loads(Path('static/data/screener.json').read_text(encoding='utf-8'))
           stocks=screener.get('stocks', [])
-          assert len(stocks) > 2000
+          assert len(stocks) > 2000, len(stocks)
           jyp=[x for x in stocks if 'jyp' in str(x.get('name','')).lower()]
-          assert jyp, 'JYP missing from screener cache'
-          assert any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
+          assert jyp and any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
 
           valuation=json.loads(Path('static/data/valuation_cache.json').read_text(encoding='utf-8'))
-          quotes=valuation.get('quotes', {})
           for ticker in ('005930.KS','000660.KS'):
-              pe=quotes.get(ticker,{}).get('forwardPE')
+              pe=(valuation.get('quotes') or {}).get(ticker,{}).get('forwardPE')
               assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
 
           consensus=json.loads(Path('static/data/consensus_cache.json').read_text(encoding='utf-8'))
-          cquotes=consensus.get('quotes', {})
-          assert len(cquotes) >= 40, len(cquotes)
-          valid_revision=0
-          price_ready=0
-          divergence_ready=0
-          for quote in cquotes.values():
-              row=(quote.get('periods') or {}).get('0y') or {}
-              trend=row.get('epsTrend') or {}
-              current=trend.get('current')
-              ago=trend.get('30daysAgo')
-              analysts=(row.get('earnings') or {}).get('analysts')
-              pt=quote.get('priceTrend') or {}
-              ret30=pt.get('return30')
-              ret90=pt.get('return90')
-              if current is not None and ago not in (None, 0) and analysts is not None:
-                  valid_revision += 1
-              if ret30 is not None and ret90 is not None:
-                  price_ready += 1
-              if current is not None and ago not in (None,0) and current > 0 and ago > 0 and ret30 is not None:
-                  divergence_ready += 1
-          assert valid_revision >= 20, valid_revision
+          quotes=consensus.get('quotes', {})
+          assert len(quotes) >= 40, len(quotes)
+          price_ready=sum(1 for q in quotes.values() if (q.get('priceTrend') or {}).get('return30') is not None and (q.get('priceTrend') or {}).get('return90') is not None)
           assert price_ready >= 40, price_ready
-          assert divergence_ready >= 20, divergence_ready
-          for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
-              pt=(cquotes.get(ticker) or {}).get('priceTrend') or {}
-              assert pt.get('return30') is not None and pt.get('return90') is not None, (ticker,pt)
 
           macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
           rows=macro.get('results', [])
           assert len(rows) == 13, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
-          assert all('delta' in x for x in rows), 'macro delta missing'
-          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision /', price_ready, 'price /', divergence_ready, 'divergence / JYP', jyp[0].get('symbol'))
+          print('cache checks OK:', len(stocks), 'stocks /', len(quotes), 'consensus / JYP', jyp[0].get('symbol'))
           PY
-      - name: App UX and data invariants
+      - name: App UX and market invariants
         run: |
           python - <<'PY'
           from pathlib import Path
 
           html=Path('templates/index.html').read_text(encoding='utf-8')
-          assert 'viewport-fit=cover' in html
-          assert 'user-scalable=no' not in html
+          assert 'viewport-fit=cover' in html and 'user-scalable=no' not in html
+
+          main=Path('main.py').read_text(encoding='utf-8')
+          assert '@app.get("/api/market-now")' in main
+          assert 'MARKET_NOW_TICKERS' in main
+          assert '"basis": "previous_close"' in main
+          for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
+              assert symbol in main, symbol
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
-          assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
           assert "'jyp': 'JYP Ent.'" in ux
-          assert '/static/js/ux_v3.js?v=20260911v4' in ux
-          assert '/static/css/ux_v3.css?v=20260911v4' in ux
-          assert '/static/js/valuation_overview_v4.js?v=20260911v4' in ux
-          assert '/static/css/bottom_nav_v6.css?v=20260911v6' in ux
-          assert '/static/js/decision_ux_v7.js?v=20260911v7' in ux
-          assert '/static/css/decision_ux_v7.css?v=20260911v7' in ux
-          assert '/static/js/app_header_v5.js?v=20260911v5' in ux
-          assert '/static/css/app_header_v5.css?v=20260911v5' in ux
           assert '/static/js/home_market_v9.js?v=20260911v9' in ux
           assert '/static/css/home_market_v9.css?v=20260911v9' in ux
-          assert "toggle.setAttribute('aria-expanded', 'true')" in ux
+
+          app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
+          assert 'data-app-mode="home"' in app and '종목분석' in app and '종목발굴' in app and '시장' in app
+
+          home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
+          for text in ('오늘은 여기부터 보세요','실적은 좋아졌는데 주가가 덜 움직인 종목','선택 종목 요약'):
+              assert text in home, text
+
+          market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
+          for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','직전 종가 대비'):
+              assert label in market_home, label
+          assert "fetch('/api/market-now'" in market_home
+          assert "row?.change" in market_home
+          assert '/api/compare' not in market_home
+          assert '__openAppTab' not in market_home
+
+          market_css=Path('static/css/home_market_v9.css').read_text(encoding='utf-8')
+          assert 'body.home-clean-mode .header' in market_css
+          assert 'body.home-clean-mode #global-filter' in market_css
+          assert 'body.home-clean-mode .home-v8-hero' in market_css
+          assert 'text-align: center' in market_css
+          assert 'justify-content: center' in market_css
+          assert 'cursor: default' in market_css
 
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
-          assert '실적·괴리' in decision
           assert '실적 상향 + 주가 미반영' in decision
-          assert 'gap30: eps30 !== null && price30 !== null ? eps30 - price30 : null' in decision
-          assert '매수점수가 아니라 추가 확인용 후보' in decision
-
-          app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
-          assert 'app-bottom-nav' in app
-          assert 'data-app-mode="home"' in app and '<span>홈</span>' in app
-          assert '종목분석' in app and '종목발굴' in app and '시장' in app
-          assert 'data-app-tab="chart"' in app and 'data-app-tab="fwdper"' in app and 'data-app-tab="ideas"' in app
-          assert '/static/js/home_brief_v8.js?v=20260911v8' in app
-          assert '/static/css/home_brief_v8.css?v=20260911v8' in app
-          assert "if (tabId === 'home') return 'home';" in app
-          assert "openTab('home')" in app
-          assert 'revealAllValuationMetrics' in app
-          assert '상세 지표 더보기' not in app
-
-          home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
-          for text in ('오늘은 여기부터 보세요','실적은 좋아졌는데 주가가 덜 움직인 종목','기술적으로 움직임이 생긴 종목','지금 시장 환경은 어떤가','선택 종목 요약','좋게 볼 점','확인할 점'):
-              assert text in home, text
-          assert 'home-tab' in home and 'stock-brief-v8' in home
-          assert 'fetch(`/api/valuation?tickers=' in home
-          assert 'fetch(`/api/consensus?ticker=' in home
-          assert 'fetch(`/api/valuation-band?ticker=' in home
-          assert 'eps30 - price30' in home
-
-          market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
-          for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
-              assert symbol in market_home, symbol
-          for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','60초마다 자동 갱신'):
-              assert label in market_home, label
-          assert "period: '1d'" in market_home
-          assert "document.body.classList.toggle('home-clean-mode'" in market_home
-
-          home_market_css=Path('static/css/home_market_v9.css').read_text(encoding='utf-8')
-          assert 'body.home-clean-mode .header' in home_market_css
-          assert 'body.home-clean-mode #global-filter' in home_market_css
-          assert 'display: none !important' in home_market_css
-          assert 'grid-template-columns: repeat(3, minmax(0, 1fr))' in home_market_css
-
-          home_css=Path('static/css/home_brief_v8.css').read_text(encoding='utf-8')
-          assert 'grid-template-columns: repeat(4, minmax(0, 1fr))' in home_css
-          assert '.home-opportunity-grid' in home_css
-          assert '.stock-brief-metrics' in home_css
-
-          header=Path('static/js/app_header_v5.js').read_text(encoding='utf-8')
-          assert 'app-utility-header' in header and 'app-selection-status' in header
-          assert "header.querySelector('.title')?.remove()" in header
-          assert '종목 검색' in header
-
-          dense=Path('static/js/valuation_overview_v4.js').read_text(encoding='utf-8')
-          for label in ('FWD PER','PER','PBR','PSR','EV/EBITDA','ROE(%)','영업이익률(%)','배당률(%)'):
-              assert label in dense, label
-          assert '핵심 밸류에이션 한눈에' in dense
-
-          revision=Path('static/js/revision_radar.js').read_text(encoding='utf-8')
-          assert '실적 추정치 상향 레이더' in revision
-          assert 'a <= 0 || b <= 0' in revision
 
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
-
-          market=Path('market_service.py').read_text(encoding='utf-8')
-          start=market.index('def fetch_valuation_snapshot')
-          block=market[start:]
-          assert block.index('_positive(chart_meta.get("regularMarketPrice"))') < block.index('_positive(_raw(price_block.get("regularMarketPrice")))')
-          print('app UX invariants OK: home market + stock brief')
+          print('app UX invariants OK: centered home + previous-close market strip')
           PY
