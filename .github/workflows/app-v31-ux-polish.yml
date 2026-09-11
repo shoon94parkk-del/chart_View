@@ -24,6 +24,7 @@ jobs:
           node --check static/js/ux_patch.js
           grep -q 'screen-watch' static/js/screener.js
           grep -q 'home-watchlist-v30' static/js/watchlist_v30.js
+          grep -q 'Make the in-memory defaults and persisted state identical' static/js/watchlist_v30.js
           grep -q 'watchlist-action-v31' static/css/screener.css
           grep -q 'home-watchlist-v31' static/css/watchlist_v30.css
           grep -q 'ux_patch.js?v=20260912v31' templates/index.html
@@ -35,6 +36,6 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No changes'
           else
-            git commit -m 'feat: connect watchlist across home and screener'
+            git commit -m 'fix: persist initial watchlist state'
             git push origin HEAD:main
           fi
