@@ -1,0 +1,183 @@
+/* Decision UX v7: keep valuation navigation focused and surface revision-price gaps. */
+.decision-valuation-nav .metric-label {
+  margin-bottom: 8px;
+  color: #4e5968;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.decision-valuation-nav .metric-chips {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px !important;
+  overflow: visible !important;
+}
+
+.decision-valuation-nav .metric-chip {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  border: 1px solid #e5e8eb !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #59636f !important;
+  font-size: 12.5px !important;
+  font-weight: 760 !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.decision-valuation-nav .metric-chip.active {
+  border-color: #191f28 !important;
+  background: #191f28 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 7px rgba(15,23,42,.14);
+}
+
+.revision-gap-panel {
+  margin: 0 0 20px;
+  padding: 15px;
+  border: 1px solid #dbe8fb;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+}
+
+.revision-gap-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.revision-gap-head h3 {
+  margin: 0 0 4px;
+  color: #191f28;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.revision-gap-head p {
+  margin: 0;
+  color: #6b7684;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.revision-gap-count {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eaf3ff;
+  color: #1769d2;
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.revision-gap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.revision-gap-card {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #e5eaf1;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15,23,42,.035);
+}
+
+.revision-gap-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 11px 0;
+}
+
+.revision-gap-metrics > div {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 9px;
+  background: #f7f8fa;
+}
+
+.revision-gap-metrics span {
+  display: block;
+  margin-bottom: 4px;
+  overflow: hidden;
+  color: #7b8490;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.revision-gap-metrics strong {
+  display: block;
+  color: #191f28;
+  font-size: 12.5px;
+  font-weight: 820;
+}
+
+.revision-gap-highlight {
+  background: #edf5ff !important;
+}
+
+.revision-gap-highlight span,
+.revision-gap-highlight strong {
+  color: #1769d2 !important;
+}
+
+.revision-gap-note {
+  margin-top: 11px;
+  color: #7b8490;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .decision-valuation-nav .metric-chips {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: 0 !important;
+  }
+
+  .decision-valuation-nav .metric-chip {
+    min-height: 40px;
+    padding: 0 5px !important;
+    font-size: 11.5px !important;
+    letter-spacing: -0.15px;
+  }
+
+  .revision-gap-panel {
+    margin: 0 0 16px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .revision-gap-head {
+    display: block;
+  }
+
+  .revision-gap-count {
+    display: inline-block;
+    margin-top: 8px;
+  }
+
+  .revision-gap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .revision-gap-card {
+    padding: 12px;
+  }
+
+  .revision-gap-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
