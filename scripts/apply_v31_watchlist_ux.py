@@ -94,6 +94,17 @@ patch_once(
   window.__renderHomeWatchlist = renderHomeShortcut;''',
     'watchlist export',
 )
+patch_once(
+    'static/js/watchlist_v30.js',
+    '''  function init() {
+    installTab();''',
+    '''  function init() {
+    // Make the in-memory defaults and persisted state identical from first launch.
+    saveWatchlist();
+    saveRecents();
+    installTab();''',
+    'persist initial defaults',
+)
 
 # CSS additions.
 p = Path('static/css/screener.css')
