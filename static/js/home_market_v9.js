@@ -48,18 +48,18 @@
     return price.toLocaleString('ko-KR', { maximumFractionDigits: 1 });
   }
 
-  function previousFromReturn(price, ret) {
-    if (price === null || ret === null || Math.abs(100 + ret) < 0.0001) return null;
-    return price / (1 + ret / 100);
+  function previousFromPercentChange(price, changePct) {
+    if (price === null || changePct === null || Math.abs(100 + changePct) < 0.0001) return null;
+    return price / (1 + changePct / 100);
   }
 
   function formatChange(item, row) {
     const price = num(row?.price);
-    const ret = num(row?.return);
-    if (ret === null) return { text: '-', dir: 'flat' };
+    const changePct = num(row?.change);
+    if (changePct === null) return { text: '-', dir: 'flat' };
 
     if (item.kind === 'yield' && price !== null) {
-      const prev = previousFromReturn(price, ret);
+      const prev = previousFromPercentChange(price, changePct);
       if (prev !== null) {
         const bp = (price - prev) * 100;
         return { text: `${bp > 0 ? '+' : ''}${bp.toFixed(Math.abs(bp) < 1 ? 1 : 0)}bp`, dir: bp > 0 ? 'up' : bp < 0 ? 'down' : 'flat' };
@@ -67,14 +67,14 @@
     }
 
     if (item.kind === 'vix' && price !== null) {
-      const prev = previousFromReturn(price, ret);
+      const prev = previousFromPercentChange(price, changePct);
       if (prev !== null) {
         const pt = price - prev;
         return { text: `${pt > 0 ? '+' : ''}${pt.toFixed(1)}pt`, dir: pt > 0 ? 'up' : pt < 0 ? 'down' : 'flat' };
       }
     }
 
-    return { text: `${ret > 0 ? '+' : ''}${ret.toFixed(2)}%`, dir: ret > 0 ? 'up' : ret < 0 ? 'down' : 'flat' };
+    return { text: `${changePct > 0 ? '+' : ''}${changePct.toFixed(2)}%`, dir: changePct > 0 ? 'up' : changePct < 0 ? 'down' : 'flat' };
   }
 
   function ensurePanel() {
@@ -100,12 +100,19 @@
             <span>${item.label}</span><strong>-</strong><small>확인 중</small>
           </div>`).join('')}
       </div>
-      <div class="home-market-v9-foot">60초마다 자동 갱신 · 장외/휴장 시 최근 거래값</div>`;
+      <div class="home-market-v9-foot">등락은 직전 종가 대비 · 60초마다 갱신 · 휴장/장외에는 최근 거래값</div>`;
     home.insertBefore(panel, home.firstChild);
-    panel.addEventListener('click', () => {
-      if (typeof window.__openAppTab === 'function') window.__openAppTab('macro');
-    });
     return panel;
+  }
+
+  function formatCheckedAt(data) {
+    const raw = String(data?.timestamp || '').trim();
+    if (raw) {
+      const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}:\d{2})/);
+      if (match) return `${match[2]}.${match[3]} ${match[4]} KST`;
+    }
+    const now = new Date();
+    return `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
   }
 
   async function loadMarket(force = false) {
@@ -116,16 +123,12 @@
 
     const seq = ++marketLoadSeq;
     try {
-      const params = new URLSearchParams({
-        tickers: MARKET_ITEMS.map((x) => x.symbol).join(','),
-        period: '1d',
-      });
-      const response = await fetch(`/api/compare?${params.toString()}`, { cache: 'no-store' });
+      const response = await fetch('/api/market-now', { cache: 'no-store' });
       if (!response.ok) throw new Error(`market HTTP ${response.status}`);
       const data = await response.json();
       if (seq !== marketLoadSeq) return;
 
-      const rows = new Map((data.stocks || []).map((row) => [row.ticker, row]));
+      const rows = new Map((data.results || []).map((row) => [row.ticker, row]));
       MARKET_ITEMS.forEach((item) => {
         const node = panel.querySelector(`[data-market-symbol="${CSS.escape(item.symbol)}"]`);
         if (!node) return;
@@ -138,9 +141,8 @@
           <small class="${change.dir}">${change.text}</small>`;
       });
 
-      const now = new Date();
       const time = panel.querySelector('#home-market-v9-time');
-      if (time) time.textContent = `${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })} 확인`;
+      if (time) time.textContent = `${formatCheckedAt(data)} 기준`;
       lastLoadedAt = Date.now();
     } catch (error) {
       console.warn('home market snapshot failed', error);
