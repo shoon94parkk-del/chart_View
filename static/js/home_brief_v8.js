@@ -69,7 +69,7 @@
 
   function majorRows(heatmap) {
     const map = new Map((heatmap?.results || []).map((row) => [row.ticker, row]));
-    return HOME_MAJOR_STOCKS.map((item) => ({ ...item, ...(map.get(item.symbol) || {}) }));
+    return HOME_MAJOR_STOCKS.map((item) => ({ ...(map.get(item.symbol) || {}), ...item }));
   }
 
   function majorStocksHtml(rows) {
