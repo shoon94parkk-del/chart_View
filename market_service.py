@@ -363,9 +363,9 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         else:
             current = _positive(meta.get("regularMarketPrice")) or good[-1]
             previous = (
-                _positive(meta.get("chartPreviousClose"))
+                (good[-2] if len(good) > 1 else None)
                 or _positive(meta.get("previousClose"))
-                or (good[-2] if len(good) > 1 else None)
+                or _positive(meta.get("chartPreviousClose"))
             )
             change = ((current - previous) / previous * 100) if previous else 0.0
             detail = _local_detail_cache().get(symbol, {})
