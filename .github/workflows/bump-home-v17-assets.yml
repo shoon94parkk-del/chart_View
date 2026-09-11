@@ -1,0 +1,56 @@
+name: Bump Home V17 Assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bump-home-v17-assets.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump cache-busting chain
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          patches = {
+              'templates/index.html': [
+                  ('/static/js/ux_patch.js?v=20260911v15', '/static/js/ux_patch.js?v=20260911v17'),
+              ],
+              'static/js/ux_patch.js': [
+                  ("/static/js/ux_v3.js?v=20260911v5", "/static/js/ux_v3.js?v=20260911v17"),
+              ],
+              'static/js/ux_v3.js': [
+                  ("/static/js/home_brief_v8.js?v=20260911v16", "/static/js/home_brief_v8.js?v=20260911v17"),
+              ],
+          }
+          for name, reps in patches.items():
+              p = Path(name)
+              s = p.read_text(encoding='utf-8')
+              for old, new in reps:
+                  if old not in s and new not in s:
+                      raise SystemExit(f'{name}: target not found: {old}')
+                  s = s.replace(old, new)
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Validate JS
+        run: |
+          node --check static/js/ux_patch.js
+          node --check static/js/ux_v3.js
+          node --check static/js/home_brief_v8.js
+          grep -q 'home_brief_v8.js?v=20260911v17' static/js/ux_v3.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html static/js/ux_patch.js static/js/ux_v3.js
+          git commit -m 'chore: bust browser cache for home v17'
+          git push
