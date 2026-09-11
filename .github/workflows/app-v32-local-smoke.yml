@@ -41,8 +41,8 @@ jobs:
             const browser=await chromium.launch({headless:true});
             const context=await browser.newContext({viewport:{width:384,height:824},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 16; SAMSUNG SM-S931N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'});
             const page=await context.newPage();
-            const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
-            const r=await page.goto('http://127.0.0.1:8080/?v32=1',{waitUntil:'domcontentloaded',timeout:60000});
+            const errors=[]; page.on('pageerror',e=>errors.push(e.stack || String(e)));
+            const r=await page.goto('http://127.0.0.1:8080/?v32=2',{waitUntil:'domcontentloaded',timeout:60000});
             assert(r&&r.status()===200);
             await page.waitForSelector('.app-bottom-nav',{timeout:20000});
             assert.strictEqual(await page.locator('.app-bottom-btn').count(),5,'bottom nav should have 5 tabs');
@@ -92,7 +92,7 @@ jobs:
               await page.waitForSelector('#home-tab',{state:'visible',timeout:5000});
             }
 
-            if(errors.length) throw new Error(errors.join(' | '));
+            if(errors.length) throw new Error(errors.join('\n---PAGEERROR---\n'));
             console.log('APP V32 LOCAL SMOKE PASSED');
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
