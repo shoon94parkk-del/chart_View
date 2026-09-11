@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'main.py'
+      - 'market_service.py'
       - 'static/js/ux_patch.js'
       - 'static/js/ux_v3.js'
       - 'static/js/home_brief_v8.js'
@@ -30,6 +31,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
+      - name: Verify source invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          market=Path('market_service.py').read_text(encoding='utf-8')
+          start=market.index('def fetch_quote_snapshot')
+          block=market[start:market.index('def fetch_history_series', start)]
+          assert block.index('(good[-2] if len(good) > 1 else None)') < block.index('_positive(meta.get("chartPreviousClose"))')
+          main=Path('main.py').read_text(encoding='utf-8')
+          assert '@app.get("/api/market-now")' in main and '"basis": "previous_close"' in main
+          print('source market invariants OK')
+          PY
       - name: Wait for app build and verify public assets
         run: |
           set -euo pipefail
@@ -97,6 +111,11 @@ jobs:
           for ticker in required:
               assert market_rows[ticker].get('change') is not None, (ticker, market_rows[ticker])
 
+          # Sanity bands catch stale range-baseline errors without hard-coding market values.
+          assert abs(float(market_rows['^GSPC']['change'])) < 10
+          assert abs(float(market_rows['^IXIC']['change'])) < 10
+          assert abs(float(market_rows['KRW=X']['change'])) < 10
+
           screener=json.load(open('/tmp/screener.json'))
           stocks=screener.get('stocks', [])
           assert len(stocks) > 2000
@@ -121,5 +140,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed'
           assert len(macro.get('results', [])) == 13
 
-          print('Current-date home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
+          print('True previous-close home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
           PY
