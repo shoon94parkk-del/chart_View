@@ -14,7 +14,7 @@
     }
     if (!document.querySelector('script[data-home-v8]')) {
       const script = document.createElement('script');
-      script.src = '/static/js/home_brief_v8.js?v=20260911v19';
+      script.src = '/static/js/home_brief_v8.js?v=20260911v22';
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
@@ -26,6 +26,7 @@
 
   function modeFor(tabId) {
     if (tabId === 'home') return 'home';
+    if (tabId === 'tools') return 'tools';
     if (['chart', 'fwdper', 'ideas'].includes(tabId)) return 'analysis';
     if (['screener', 'revision'].includes(tabId)) return 'discover';
     return 'market';
@@ -44,7 +45,7 @@
       nav.hidden = mode === 'home' || nav.dataset.appContext !== mode;
     });
     const shell = document.querySelector('.app-context-shell');
-    if (shell) shell.hidden = mode === 'home';
+    if (shell) shell.hidden = mode === 'home' || mode === 'tools';
 
     // 종목 선택 UI는 실제로 종목을 비교하는 '종목분석'에서만 노출한다.
     const utilityHeader = document.querySelector('.header');
@@ -131,8 +132,8 @@
       <button type="button" class="app-bottom-btn" data-app-mode="discover">
         <span class="app-bottom-icon">⌕</span><span>종목발굴</span>
       </button>
-      <button type="button" class="app-bottom-btn" data-app-mode="market">
-        <span class="app-bottom-icon">◎</span><span>시장</span>
+      <button type="button" class="app-bottom-btn" data-app-mode="tools">
+        <span class="app-bottom-icon">▦</span><span>도구</span>
       </button>`;
     document.body.appendChild(bottom);
 
@@ -145,6 +146,7 @@
         if (mode === 'home') openTab('home');
         else if (mode === 'analysis') openTab(lastAnalysis);
         else if (mode === 'discover') openTab(lastDiscover);
+        else if (mode === 'tools') openTab('tools');
         else openTab('macro');
       });
     });

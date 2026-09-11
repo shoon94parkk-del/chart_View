@@ -28,7 +28,9 @@
   ensureScript('script[data-dense-valuation]', '/static/js/valuation_overview_v4.js?v=20260911v4', 'denseValuation');
   ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v4', 'uxV3');
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v19', 'uxV3');
+  ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260911v22', 'investmentToolsV22');
+  ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260911v22', 'investmentToolsV22');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v22', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260911v6', 'bottomNavV6');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
   ensureScript('script[data-decision-ux-v7]', '/static/js/decision_ux_v7.js?v=20260911v7', 'decisionUxV7');

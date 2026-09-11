@@ -213,7 +213,7 @@
 
   function paintHome(root, snapshot) {
     const rows = majorRows(snapshot?.heatmap || { results: [] });
-    root.innerHTML = majorStocksHtml(rows, snapshot?.generatedAt) + moversHtml(rows) + marketSummaryHtml(snapshot?.macro);
+    root.innerHTML = majorStocksHtml(rows, snapshot?.generatedAt) + marketSummaryHtml(snapshot?.macro);
     bindHomeActions(root);
   }
 
