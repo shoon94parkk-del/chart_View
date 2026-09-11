@@ -22,7 +22,7 @@ jobs:
           npm init -y >/dev/null 2>&1
           npm install playwright@1.55.0 --silent
           npx playwright install --with-deps chromium >/dev/null
-      - name: Verify live V32
+      - name: Verify live V32b
         run: |
           cat > smoke.cjs <<'JS'
           const { chromium } = require('playwright');
@@ -36,18 +36,26 @@ jobs:
             const page=await context.newPage();
             const errors=[];
             page.on('pageerror',e=>errors.push(String(e)));
-            const response=await page.goto('https://chart-view-bsg6.onrender.com/?livev32=1',{waitUntil:'domcontentloaded',timeout:60000});
+            const t0=Date.now();
+            const response=await page.goto('https://chart-view-bsg6.onrender.com/?livev32b=1',{waitUntil:'domcontentloaded',timeout:60000});
             assert(response && response.status()===200,'production HTTP failed');
             await page.waitForSelector('.app-bottom-nav',{timeout:20000});
             assert.strictEqual(await page.locator('.app-bottom-btn').count(),5,'bottom nav should have 5 tabs');
-            await page.waitForSelector('#home-market-v9',{timeout:10000});
-            await page.waitForSelector('#home-watchlist-v30',{timeout:10000});
+            await page.waitForSelector('#home-market-v9',{state:'visible',timeout:20000});
+            const marketReady=Date.now()-t0;
+            console.log('market_ready_ms=',marketReady);
+            assert(marketReady<15000,'home market took too long to appear');
+            await page.waitForSelector('#home-watchlist-v30',{state:'visible',timeout:10000});
             const defaultNames=await page.locator('#home-watchlist-v30 strong').allTextContents();
+            console.log('default_watchlist=',defaultNames.join(', '));
             assert(defaultNames.some(x=>x.includes('삼성전자')),'home watchlist missing Samsung Electronics');
+            assert(defaultNames.some(x=>x.includes('엔비디아')),'home watchlist missing Nvidia');
+            assert(defaultNames.some(x=>x.includes('애플')),'home watchlist missing Apple');
 
             await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').tap();
             await page.waitForSelector('#watchlist-tab',{state:'visible',timeout:7000});
             assert.strictEqual(await page.evaluate(()=>history.state?.tab),'watchlist','watchlist history missing');
+            assert((await page.locator('.watchlist-v30-card').count())>=3,'watchlist should show default stocks');
 
             await page.locator('.app-bottom-btn[data-app-mode="discover"]').tap();
             await page.waitForSelector('#screener-results .screen-add',{timeout:20000});
@@ -58,6 +66,8 @@ jobs:
             await page.locator('#screener-results .screen-add').first().tap();
             await page.waitForSelector('#chart-tab',{state:'visible',timeout:10000});
             assert.strictEqual(await page.evaluate(()=>history.state?.tab),'chart','screener -> chart history missing');
+            const sector=page.locator('.sector-section');
+            assert(await sector.evaluate(el=>el.classList.contains('ux-collapsed')),'recommended stocks should start collapsed');
 
             await page.goBack().catch(()=>null);
             await page.waitForSelector('#screener-tab',{state:'visible',timeout:10000});
@@ -69,12 +79,12 @@ jobs:
             const toolsBtn=page.locator('.app-context-btn[data-app-tab="tools"]');
             await toolsBtn.tap();
             await page.waitForSelector('#tools-tab',{state:'visible',timeout:7000});
-            assert((await page.locator('.investment-tool-card').count())===12,'investment tools count should be 12');
+            const toolCount=await page.locator('.investment-tool-card').count();
+            console.log('tool_count=',toolCount);
+            assert(toolCount===12,'investment tools count should be 12');
 
             if(errors.length) throw new Error('browser errors: '+errors.join(' | '));
-            console.log('LIVE V32 PRODUCTION SMOKE PASSED');
-            console.log('default_watchlist=',defaultNames.join(', '));
-            console.log('tools=',await page.locator('.investment-tool-card strong').allTextContents());
+            console.log('LIVE V32B PRODUCTION SMOKE PASSED');
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
