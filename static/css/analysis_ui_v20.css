@@ -1,0 +1,258 @@
+/* V20 — unified stock-analysis controls
+   Rule: local selection = dark, primary action = blue, inactive = soft gray. */
+
+:root{
+  --analysis-selected:#191f28;
+  --analysis-selected-text:#fff;
+  --analysis-primary:#3182f6;
+  --analysis-surface:#f2f4f6;
+  --analysis-surface-2:#f7f8fa;
+  --analysis-border:#e5e8eb;
+  --analysis-text:#4e5968;
+  --analysis-muted:#8b95a1;
+}
+
+/* 1) Chart / Valuation / Investment decision — common segmented control */
+.app-context-nav[data-app-context="analysis"]{
+  gap:5px;
+  padding:5px;
+  border:1px solid var(--analysis-border);
+  border-radius:15px;
+  background:var(--analysis-surface);
+}
+.app-context-nav[data-app-context="analysis"] .app-context-btn{
+  min-height:46px;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  color:var(--analysis-text);
+  font-weight:780;
+  box-shadow:none;
+}
+.app-context-nav[data-app-context="analysis"] .app-context-btn:hover{
+  background:#fff;
+  color:var(--analysis-selected);
+}
+.app-context-nav[data-app-context="analysis"] .app-context-btn.active{
+  background:var(--analysis-selected);
+  color:var(--analysis-selected-text);
+  box-shadow:0 3px 10px rgba(15,23,42,.16);
+}
+
+/* 2) Valuation sub tabs — use exactly the same selected/inactive language */
+#fwdper-tab .decision-valuation-nav .metric-chips{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px !important;
+  padding:5px !important;
+  border:1px solid var(--analysis-border);
+  border-radius:15px;
+  background:var(--analysis-surface);
+  overflow:visible !important;
+}
+#fwdper-tab .decision-valuation-nav .metric-chip{
+  min-height:44px !important;
+  padding:0 8px !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:transparent !important;
+  color:var(--analysis-text) !important;
+  font-weight:780 !important;
+  box-shadow:none !important;
+}
+#fwdper-tab .decision-valuation-nav .metric-chip:hover{
+  background:#fff !important;
+  color:var(--analysis-selected) !important;
+}
+#fwdper-tab .decision-valuation-nav .metric-chip.active{
+  background:var(--analysis-selected) !important;
+  color:var(--analysis-selected-text) !important;
+  box-shadow:0 3px 10px rgba(15,23,42,.16) !important;
+}
+
+/* 3) Historical-valuation internal switches and sort switches follow the same rule. */
+#fwdper-tab .sort-btn,
+#fwdper-tab [role="tab"],
+#fwdper-tab button[data-band-metric]{
+  border-color:var(--analysis-border);
+}
+#fwdper-tab .sort-btn.active,
+#fwdper-tab [role="tab"].active,
+#fwdper-tab [role="tab"][aria-selected="true"],
+#fwdper-tab button[data-band-metric].active{
+  border-color:var(--analysis-selected) !important;
+  background:var(--analysis-selected) !important;
+  color:#fff !important;
+}
+
+/* 4) Date range — symmetric 1:1 fields, centered as a block. */
+#chart-tab .date-section{
+  padding:20px;
+}
+#chart-tab .date-row{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  align-items:end;
+  gap:12px !important;
+  width:100%;
+  max-width:620px;
+  margin:0 auto 14px !important;
+}
+#chart-tab .date-sep{
+  display:none !important;
+}
+#chart-tab .date-field{
+  width:100%;
+  min-width:0;
+  text-align:center;
+}
+#chart-tab .date-field label{
+  margin-bottom:7px;
+  color:var(--analysis-muted);
+  font-size:12px;
+  font-weight:650;
+  text-align:center;
+}
+#chart-tab .date-field input{
+  width:100%;
+  height:52px;
+  padding:0 12px;
+  border:1px solid var(--analysis-border);
+  border-radius:12px;
+  background:var(--analysis-surface-2);
+  color:var(--analysis-selected);
+  font-size:15px;
+  font-weight:600;
+  text-align:center;
+}
+#chart-tab .date-field input:focus{
+  outline:none;
+  border-color:var(--analysis-primary);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(49,130,246,.10);
+}
+#chart-tab #apply-date-btn{
+  grid-column:1 / -1;
+  width:100%;
+  height:48px;
+  margin-top:2px;
+  border-radius:12px;
+  background:var(--analysis-primary);
+  color:#fff;
+  font-size:14px;
+  font-weight:800;
+  box-shadow:0 3px 8px rgba(49,130,246,.16);
+}
+#chart-tab #apply-date-btn:active{
+  transform:translateY(1px);
+}
+
+/* 5) Period preset buttons — six equal widths and same selected state as local tabs. */
+#chart-tab .quick-periods{
+  display:grid !important;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:6px !important;
+  width:100%;
+  max-width:620px;
+  margin:0 auto;
+  padding:0 !important;
+  overflow:visible !important;
+}
+#chart-tab .period-chip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:44px;
+  padding:0 4px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:var(--analysis-surface);
+  color:var(--analysis-muted);
+  font-size:12.5px;
+  font-weight:760;
+  transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+#chart-tab .period-chip:hover{
+  color:var(--analysis-selected);
+  background:#e9edf1;
+}
+#chart-tab .period-chip.active{
+  border-color:var(--analysis-selected);
+  background:var(--analysis-selected);
+  color:#fff;
+  box-shadow:0 3px 9px rgba(15,23,42,.14);
+}
+#chart-tab .period-chip:active{
+  transform:scale(.98);
+}
+
+/* Consistent keyboard focus throughout the analysis area. */
+.app-context-btn:focus-visible,
+#fwdper-tab .metric-chip:focus-visible,
+#fwdper-tab .sort-btn:focus-visible,
+#chart-tab .period-chip:focus-visible,
+#chart-tab #apply-date-btn:focus-visible{
+  outline:2px solid var(--analysis-primary);
+  outline-offset:2px;
+}
+
+@media(max-width:720px){
+  .app-context-nav[data-app-context="analysis"]{
+    min-height:54px;
+    padding:5px;
+  }
+  .app-context-nav[data-app-context="analysis"] .app-context-btn{
+    min-height:44px;
+    font-size:13.5px;
+  }
+
+  #fwdper-tab .decision-valuation-nav .metric-chips{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    padding:5px !important;
+  }
+  #fwdper-tab .decision-valuation-nav .metric-chip{
+    min-height:42px !important;
+    font-size:12px !important;
+  }
+
+  #chart-tab .date-section{
+    margin-left:16px;
+    margin-right:16px;
+    padding:18px 16px 16px;
+  }
+  #chart-tab .date-row{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #chart-tab .date-field input{
+    height:50px;
+    padding:0 8px;
+    font-size:14px;
+  }
+  #chart-tab #apply-date-btn{
+    height:48px;
+  }
+  #chart-tab .quick-periods{
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:5px !important;
+  }
+  #chart-tab .period-chip{
+    min-height:42px;
+    padding:0 2px;
+    border-radius:11px;
+    font-size:11.5px;
+    letter-spacing:-.15px;
+  }
+}
+
+@media(max-width:390px){
+  #chart-tab .date-section{
+    margin-left:12px;
+    margin-right:12px;
+    padding-left:14px;
+    padding-right:14px;
+  }
+  #chart-tab .date-row{gap:8px !important;}
+  #chart-tab .period-chip{font-size:11px;}
+}
