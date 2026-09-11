@@ -1,4 +1,4 @@
-name: Phase 3 UX Live Smoke
+name: App UX Live Smoke
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Wait for Phase 3 build and verify public assets
+      - name: Wait for app build and verify public assets
         run: |
           set -euo pipefail
           BASE='https://chart-view-bsg6.onrender.com'
@@ -27,35 +27,38 @@ jobs:
           ready=0
           for i in $(seq 1 42); do
             code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
-            if [ "$code" = '200' ] && grep -q '/static/js/revision_radar.js?v=20260911v3' /tmp/ux_patch.js; then
+            if [ "$code" = '200' ] && grep -q '/static/js/ux_v3.js?v=20260911v4' /tmp/ux_patch.js; then
               ready=1
-              echo "phase 3 build detected on attempt=$i"
+              echo "app UX build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i status=$code: waiting for phase 3 deploy"
+            echo "attempt=$i status=$code: waiting for app UX deploy"
             sleep 10
           done
           test "$ready" = '1'
 
-          curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v3" -o /tmp/ux_v3.js
+          curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
           curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
-          curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v3" -o /tmp/ux_v3.css
+          curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v4" -o /tmp/app_ux.css
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
           curl -fsSL "$BASE/health" -o /tmp/health.json
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' "$BASE/api/valuation" -o /tmp/valuation.json
           curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
 
-          node --check /tmp/ux_v3.js
+          node --check /tmp/app_ux.js
           node --check /tmp/revision_radar.js
-          grep -q '종목 분석' /tmp/ux_v3.js
-          grep -q '종목 발굴' /tmp/ux_v3.js
-          grep -q 'data-ux-tab="revision"' /tmp/ux_v3.js
-          grep -q '상세 지표 더보기' /tmp/ux_v3.js
-          grep -q '고급 필터' /tmp/ux_v3.js
+          grep -q 'app-bottom-nav' /tmp/app_ux.js
+          grep -q '종목분석' /tmp/app_ux.js
+          grep -q '종목발굴' /tmp/app_ux.js
+          grep -q 'data-app-tab="fwdper"' /tmp/app_ux.js
+          grep -q 'revealAllValuationMetrics' /tmp/app_ux.js
+          ! grep -q '상세 지표 더보기' /tmp/app_ux.js
+          grep -q 'restoreScreenerControls' /tmp/app_ux.js
           grep -q '실적 추정치 상향 레이더' /tmp/revision_radar.js
-          grep -q 'a <= 0 || b <= 0' /tmp/revision_radar.js
-          grep -q '.ux-primary-nav' /tmp/ux_v3.css
-          grep -q '.revision-grid' /tmp/ux_v3.css
+          grep -q '.app-bottom-nav' /tmp/app_ux.css
+          grep -q 'position: fixed' /tmp/app_ux.css
+          grep -q '.app-context-shell' /tmp/app_ux.css
+          grep -q 'display: inline-flex !important' /tmp/app_ux.css
 
           python - <<'PY'
           import json
@@ -86,5 +89,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed', macro.get('cacheMode')
           assert len(macro.get('results', [])) == 13
 
-          print('Phase 3 live smoke OK:', len(quotes), 'consensus /', revision_ready, 'revision-ready')
+          print('App UX live smoke OK:', len(quotes), 'consensus /', revision_ready, 'revision-ready')
           PY
