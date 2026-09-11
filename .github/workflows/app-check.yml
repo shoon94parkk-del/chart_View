@@ -31,7 +31,7 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js static/js/home_brief_v8.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js static/js/home_brief_v8.js static/js/home_market_v9.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -109,6 +109,8 @@ jobs:
           assert '/static/css/decision_ux_v7.css?v=20260911v7' in ux
           assert '/static/js/app_header_v5.js?v=20260911v5' in ux
           assert '/static/css/app_header_v5.css?v=20260911v5' in ux
+          assert '/static/js/home_market_v9.js?v=20260911v9' in ux
+          assert '/static/css/home_market_v9.css?v=20260911v9' in ux
           assert "toggle.setAttribute('aria-expanded', 'true')" in ux
 
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
@@ -139,6 +141,20 @@ jobs:
           assert 'fetch(`/api/valuation-band?ticker=' in home
           assert 'eps30 - price30' in home
 
+          market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
+          for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
+              assert symbol in market_home, symbol
+          for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','60초마다 자동 갱신'):
+              assert label in market_home, label
+          assert "period: '1d'" in market_home
+          assert "document.body.classList.toggle('home-clean-mode'" in market_home
+
+          home_market_css=Path('static/css/home_market_v9.css').read_text(encoding='utf-8')
+          assert 'body.home-clean-mode .header' in home_market_css
+          assert 'body.home-clean-mode #global-filter' in home_market_css
+          assert 'display: none !important' in home_market_css
+          assert 'grid-template-columns: repeat(3, minmax(0, 1fr))' in home_market_css
+
           home_css=Path('static/css/home_brief_v8.css').read_text(encoding='utf-8')
           assert 'grid-template-columns: repeat(4, minmax(0, 1fr))' in home_css
           assert '.home-opportunity-grid' in home_css
@@ -165,5 +181,5 @@ jobs:
           start=market.index('def fetch_valuation_snapshot')
           block=market[start:]
           assert block.index('_positive(chart_meta.get("regularMarketPrice"))') < block.index('_positive(_raw(price_block.get("regularMarketPrice")))')
-          print('app UX invariants OK: home + stock brief')
+          print('app UX invariants OK: home market + stock brief')
           PY
