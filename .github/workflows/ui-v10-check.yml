@@ -7,6 +7,7 @@ on:
       - 'static/js/home_priority_v10.js'
       - 'static/css/home_priority_v10.css'
       - 'static/css/valuation_matrix_v10.css'
+      - 'static/js/valuation_meta.js'
       - 'static/js/valuation_overview_v4.js'
       - 'static/js/ux_patch.js'
       - '.github/workflows/ui-v10-check.yml'
@@ -26,6 +27,7 @@ jobs:
           set -euo pipefail
           node --check static/js/home_priority_v10.js
           node --check static/js/valuation_overview_v4.js
+          node --check static/js/valuation_meta.js
           node --check static/js/ux_patch.js
           grep -q 'EPS 상향 <b>30%</b>' static/js/home_priority_v10.js
           grep -q '상향 의견 폭 <b>15%</b>' static/js/home_priority_v10.js
@@ -36,41 +38,42 @@ jobs:
           grep -q 'grid-template-columns:repeat(5' static/css/home_priority_v10.css
           grep -q 'position:sticky' static/css/valuation_matrix_v10.css
           grep -q 'left:0!important' static/css/valuation_matrix_v10.css
-          grep -q 'display:table-cell!important' static/css/valuation_matrix_v10.css
-          grep -q 'home_priority_v10.js?v=20260911v10' static/js/ux_patch.js
-          grep -q 'valuation_matrix_v10.css?v=20260911v10' static/js/ux_patch.js
+          grep -q 'width:608px!important' static/css/valuation_matrix_v10.css
+          grep -q 'metric-provenance{display:none' static/css/valuation_matrix_v10.css
+          grep -q 'valuation-compact-cell' static/js/valuation_meta.js
+          grep -q 'valuation_meta.js?v=20260911v2' static/js/ux_patch.js
+          grep -q 'valuation_matrix_v10.css?v=20260911v11' static/js/ux_patch.js
           grep -q '밸류에이션 비교표' static/js/valuation_overview_v4.js
-          echo 'UI v10 source checks OK'
+          echo 'UI compact valuation source checks OK'
       - name: Wait for production and smoke
         run: |
           set -euo pipefail
           BASE='https://chart-view-bsg6.onrender.com'
           ready=0
           for i in $(seq 1 45); do
-            hp=$(curl -sS -o /tmp/home_priority.js -w '%{http_code}' "$BASE/static/js/home_priority_v10.js?v=20260911v10" || true)
-            vm=$(curl -sS -o /tmp/valuation_matrix.css -w '%{http_code}' "$BASE/static/css/valuation_matrix_v10.css?v=20260911v10" || true)
+            vm=$(curl -sS -o /tmp/valuation_matrix.css -w '%{http_code}' "$BASE/static/css/valuation_matrix_v10.css?v=20260911v11" || true)
+            meta=$(curl -sS -o /tmp/valuation_meta.js -w '%{http_code}' "$BASE/static/js/valuation_meta.js?v=20260911v2" || true)
             up=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
-            if [ "$hp" = '200' ] && [ "$vm" = '200' ] && [ "$up" = '200' ] \
-              && grep -q '우선검토 점수는 매수 점수가 아니라' /tmp/home_priority.js \
-              && grep -q 'left:0!important' /tmp/valuation_matrix.css \
-              && grep -q 'home_priority_v10.js?v=20260911v10' /tmp/ux_patch.js; then
+            if [ "$vm" = '200' ] && [ "$meta" = '200' ] && [ "$up" = '200' ] \
+              && grep -q 'width:608px!important' /tmp/valuation_matrix.css \
+              && grep -q 'valuation-compact-cell' /tmp/valuation_meta.js \
+              && grep -q 'valuation_matrix_v10.css?v=20260911v11' /tmp/ux_patch.js; then
               ready=1
-              echo "UI v10 production build detected attempt=$i"
+              echo "compact valuation production build detected attempt=$i"
               break
             fi
-            echo "attempt=$i home=$hp matrix=$vm loader=$up waiting"
+            echo "attempt=$i matrix=$vm meta=$meta loader=$up waiting"
             sleep 10
           done
           test "$ready" = '1'
-          curl -fsSL --get --data-urlencode 'ticker=005930.KS' --data-urlencode 'years=3' "$BASE/api/valuation-band" -o /tmp/band.json
           curl -fsSL --get --data-urlencode 'tickers=005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/valuation.json
           python - <<'PY'
           import json
-          band=json.load(open('/tmp/band.json'))
-          pct=((band.get('per') or {}).get('stats') or {}).get('percentile')
-          assert pct is not None, band
           val=json.load(open('/tmp/valuation.json'))
           rows=val.get('stocks') or []
           assert len(rows) >= 2, val
-          print('UI v10 production smoke OK', {'samsung_per_percentile': pct, 'stocks': len(rows)})
+          for row in rows[:2]:
+              assert row.get('price') is not None
+              assert row.get('forwardPE') is not None
+          print('compact valuation production smoke OK', {'stocks': len(rows)})
           PY
