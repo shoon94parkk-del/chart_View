@@ -61,8 +61,9 @@ jobs:
           s=json.load(open('/tmp/screener.json'))
           c=json.load(open('/tmp/consensus.json'))
           m=json.load(open('/tmp/macro.json'))
-          assert len(s.get('stocks') or []) > 2000
-          assert int(c.get('count') or 0) >= 40
-          assert int(m.get('count') or 0) == 13
-          print('UI v12 production smoke OK', {'stocks':len(s['stocks']), 'consensus':c['count'], 'macro':m['count']})
+          macro_rows=m.get('results') or []
+          assert len(s.get('stocks') or []) > 2000, len(s.get('stocks') or [])
+          assert int(c.get('count') or 0) >= 40, c.get('count')
+          assert len(macro_rows) == 13, len(macro_rows)
+          print('UI v12 production smoke OK', {'stocks':len(s['stocks']), 'consensus':c['count'], 'macro':len(macro_rows)})
           PY
