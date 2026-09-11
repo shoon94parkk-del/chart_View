@@ -4,23 +4,26 @@
   let lastAnalysis = 'chart';
   let lastDiscover = 'screener';
 
-  function activeMode(tabId) {
+  function modeFor(tabId) {
     if (['chart', 'fwdper', 'ideas'].includes(tabId)) return 'analysis';
     if (['screener', 'revision'].includes(tabId)) return 'discover';
     return 'market';
   }
 
-  function syncNav(tabId) {
-    const mode = activeMode(tabId);
-    document.querySelectorAll('[data-ux-mode]').forEach((button) => {
-      button.classList.toggle('active', button.dataset.uxMode === mode);
+  function syncNavigation(tabId) {
+    const mode = modeFor(tabId);
+    document.querySelectorAll('[data-app-mode]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.appMode === mode);
+      button.setAttribute('aria-current', button.dataset.appMode === mode ? 'page' : 'false');
     });
-    document.querySelectorAll('[data-ux-tab]').forEach((button) => {
-      button.classList.toggle('active', button.dataset.uxTab === tabId);
+    document.querySelectorAll('[data-app-tab]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.appTab === tabId);
     });
-    document.querySelectorAll('.ux-subnav').forEach((nav) => {
-      nav.hidden = nav.dataset.uxSubnav !== mode;
+    document.querySelectorAll('.app-context-nav').forEach((nav) => {
+      nav.hidden = nav.dataset.appContext !== mode;
     });
+    const shell = document.querySelector('.app-context-shell');
+    if (shell) shell.hidden = false;
 
     if (mode === 'analysis') lastAnalysis = tabId;
     if (mode === 'discover') lastDiscover = tabId;
@@ -33,14 +36,12 @@
       else if (typeof window.switchTab === 'function') window.switchTab('fwdper');
       return;
     }
-
     if (tabId === 'screener') {
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
       else if (typeof window.switchTab === 'function') window.switchTab('screener');
       return;
     }
-
     if (typeof window.switchTab === 'function') window.switchTab(tabId);
     if (tabId === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
@@ -48,186 +49,150 @@
   }
 
   function wrapSwitchTab() {
-    if (typeof window.switchTab !== 'function' || window.__uxV3Wrapped) return;
+    if (typeof window.switchTab !== 'function' || window.__appNavWrapped) return;
     const base = window.switchTab;
     window.switchTab = function (tabId) {
       base(tabId);
-      syncNav(tabId);
+      syncNavigation(tabId);
     };
-    window.__uxV3Wrapped = true;
+    window.__appNavWrapped = true;
   }
 
-  function installPrimaryNav() {
-    if (document.querySelector('.ux-primary-shell')) return;
+  function installAppNavigation() {
+    if (document.querySelector('.app-bottom-nav')) return;
     const oldNav = document.querySelector('.tab-nav');
     if (!oldNav) return;
 
-    const shell = document.createElement('div');
-    shell.className = 'ux-primary-shell';
-    shell.innerHTML = `
-      <nav class="ux-primary-nav" aria-label="주요 기능">
-        <button type="button" class="ux-primary-btn active" data-ux-mode="analysis">📊 종목 분석</button>
-        <button type="button" class="ux-primary-btn" data-ux-mode="discover">🔎 종목 발굴</button>
-        <button type="button" class="ux-primary-btn" data-ux-mode="market">🌐 시장</button>
+    const context = document.createElement('div');
+    context.className = 'app-context-shell';
+    context.innerHTML = `
+      <nav class="app-context-nav" data-app-context="analysis" aria-label="종목 분석 세부 기능">
+        <button type="button" class="app-context-btn active" data-app-tab="chart">차트</button>
+        <button type="button" class="app-context-btn" data-app-tab="fwdper">밸류에이션</button>
+        <button type="button" class="app-context-btn" data-app-tab="ideas">투자판단</button>
       </nav>
-      <nav class="ux-subnav" data-ux-subnav="analysis" aria-label="종목 분석 기능">
-        <button type="button" class="ux-sub-btn active" data-ux-tab="chart">차트</button>
-        <button type="button" class="ux-sub-btn" data-ux-tab="fwdper">밸류에이션</button>
-        <button type="button" class="ux-sub-btn" data-ux-tab="ideas">투자판단</button>
+      <nav class="app-context-nav" data-app-context="discover" aria-label="종목 발굴 세부 기능" hidden>
+        <button type="button" class="app-context-btn active" data-app-tab="screener">스크리너</button>
+        <button type="button" class="app-context-btn" data-app-tab="revision">실적 상향</button>
       </nav>
-      <nav class="ux-subnav" data-ux-subnav="discover" aria-label="종목 발굴 기능" hidden>
-        <button type="button" class="ux-sub-btn active" data-ux-tab="screener">추천 스크리너</button>
-        <button type="button" class="ux-sub-btn" data-ux-tab="revision">실적 상향</button>
+      <nav class="app-context-nav app-context-single" data-app-context="market" aria-label="시장 세부 기능" hidden>
+        <span class="app-context-title">시장 환경</span>
       </nav>`;
+    oldNav.insertAdjacentElement('beforebegin', context);
 
-    oldNav.insertAdjacentElement('beforebegin', shell);
+    const bottom = document.createElement('nav');
+    bottom.className = 'app-bottom-nav';
+    bottom.setAttribute('aria-label', '주요 메뉴');
+    bottom.innerHTML = `
+      <button type="button" class="app-bottom-btn active" data-app-mode="analysis">
+        <span class="app-bottom-icon">▥</span><span>종목분석</span>
+      </button>
+      <button type="button" class="app-bottom-btn" data-app-mode="discover">
+        <span class="app-bottom-icon">⌕</span><span>종목발굴</span>
+      </button>
+      <button type="button" class="app-bottom-btn" data-app-mode="market">
+        <span class="app-bottom-icon">◎</span><span>시장</span>
+      </button>`;
+    document.body.appendChild(bottom);
 
-    shell.querySelectorAll('[data-ux-mode]').forEach((button) => {
+    context.querySelectorAll('[data-app-tab]').forEach((button) => {
+      button.addEventListener('click', () => openTab(button.dataset.appTab));
+    });
+    bottom.querySelectorAll('[data-app-mode]').forEach((button) => {
       button.addEventListener('click', () => {
-        const mode = button.dataset.uxMode;
+        const mode = button.dataset.appMode;
         if (mode === 'analysis') openTab(lastAnalysis);
         else if (mode === 'discover') openTab(lastDiscover);
         else openTab('macro');
       });
     });
 
-    shell.querySelectorAll('[data-ux-tab]').forEach((button) => {
-      button.addEventListener('click', () => openTab(button.dataset.uxTab));
-    });
-
-    document.body.classList.add('ux-v3-ready');
-    syncNav('chart');
+    document.body.classList.add('app-shell-ready');
+    syncNavigation('chart');
   }
 
-  function simplifyDateControls() {
-    const section = document.querySelector('.date-section');
-    const row = section?.querySelector('.date-row');
-    if (!section || !row || section.dataset.uxSimplified === '1') return;
-    section.dataset.uxSimplified = '1';
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'ux-direct-date-toggle';
-    button.textContent = '직접 기간 설정';
-    button.setAttribute('aria-expanded', 'false');
-    row.insertAdjacentElement('beforebegin', button);
-
-    button.addEventListener('click', () => {
-      const open = section.classList.toggle('ux-date-open');
-      button.setAttribute('aria-expanded', String(open));
-      button.textContent = open ? '직접 기간 닫기' : '직접 기간 설정';
-    });
-
-    row.querySelector('#apply-date-btn')?.addEventListener('click', () => {
-      section.classList.remove('ux-date-open');
-      button.setAttribute('aria-expanded', 'false');
-      button.textContent = '직접 기간 설정';
-    });
-  }
-
-  function simplifyMetricControls() {
+  function revealAllValuationMetrics() {
     const section = document.querySelector('.metric-section');
-    const chips = section?.querySelector('.metric-chips');
-    if (!section || !chips || section.dataset.uxSimplified === '1') return;
-    section.dataset.uxSimplified = '1';
-
-    const primary = new Set(['overview', 'fwd_per', 'pbr', 'profitability']);
-    chips.querySelectorAll('.metric-chip').forEach((button) => {
-      if (!primary.has(button.dataset.metric)) button.classList.add('ux-advanced-metric');
-    });
-
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'ux-more-metrics';
-    toggle.textContent = '상세 지표 더보기';
-    toggle.setAttribute('aria-expanded', 'false');
-    chips.insertAdjacentElement('afterend', toggle);
-
-    toggle.addEventListener('click', () => {
-      const open = section.classList.toggle('ux-metrics-open');
-      toggle.setAttribute('aria-expanded', String(open));
-      toggle.textContent = open ? '상세 지표 접기' : '상세 지표 더보기';
-    });
+    if (!section) return;
+    section.classList.remove('ux-metrics-open');
+    section.querySelectorAll('.ux-advanced-metric').forEach((button) => button.classList.remove('ux-advanced-metric'));
+    section.querySelectorAll('.ux-more-metrics').forEach((button) => button.remove());
+    section.dataset.uxSimplified = '0';
   }
 
-  function simplifyScreener() {
+  function revealAllDateControls() {
+    const section = document.querySelector('.date-section');
+    if (!section) return;
+    section.classList.add('app-date-visible');
+    section.querySelectorAll('.ux-direct-date-toggle').forEach((button) => button.remove());
+    section.dataset.uxSimplified = '0';
+  }
+
+  function restoreScreenerControls() {
     const controls = document.querySelector('#screener-tab .screener-controls');
-    if (!controls || controls.dataset.uxSimplified === '1') return;
-    controls.dataset.uxSimplified = '1';
+    if (!controls) return;
 
-    const mainRow = controls.querySelector('.screener-main-row');
-    const marketRow = controls.querySelector('[data-screen-market]')?.closest('.screener-row');
-    const presetButtons = Array.from(controls.querySelectorAll('[data-screen-preset]'));
-    const quickButtons = presetButtons.filter((button) => ['candidate', 'momentum', 'oversold'].includes(button.dataset.screenPreset));
-    const advancedButtons = presetButtons.filter((button) => !['candidate', 'momentum', 'oversold'].includes(button.dataset.screenPreset));
-    const valueSelect = document.getElementById('screener-value');
-    const sortSelect = document.getElementById('screener-sort');
-
-    const quick = document.createElement('div');
-    quick.className = 'ux-screener-quick';
-    const quickLabel = document.createElement('span');
-    quickLabel.className = 'ux-control-label';
-    quickLabel.textContent = '빠른 조건';
-    quick.appendChild(quickLabel);
-    quickButtons.forEach((button) => quick.appendChild(button));
-
-    const details = document.createElement('details');
-    details.className = 'ux-screener-advanced';
-    details.innerHTML = '<summary>고급 필터</summary><div class="ux-screener-advanced-body"></div>';
-    const body = details.querySelector('.ux-screener-advanced-body');
-
-    if (marketRow) body.appendChild(marketRow);
-
-    if (valueSelect || sortSelect) {
-      const selects = document.createElement('div');
-      selects.className = 'ux-screener-selects';
-      if (valueSelect) selects.appendChild(valueSelect);
-      if (sortSelect) selects.appendChild(sortSelect);
-      body.appendChild(selects);
+    const advanced = controls.querySelector('.ux-screener-advanced');
+    const quick = controls.querySelector('.ux-screener-quick');
+    if (advanced || quick) {
+      const body = advanced?.querySelector('.ux-screener-advanced-body');
+      const mainRow = controls.querySelector('.screener-main-row');
+      if (body) {
+        const marketRow = body.querySelector('[data-screen-market]')?.closest('.screener-row');
+        if (marketRow) controls.appendChild(marketRow);
+        const selects = body.querySelector('.ux-screener-selects');
+        if (selects && mainRow) selects.querySelectorAll('select').forEach((select) => mainRow.appendChild(select));
+        const presetRow = body.querySelector('[data-screen-preset]')?.closest('.screener-row');
+        if (presetRow) controls.appendChild(presetRow);
+      }
+      if (quick) {
+        const row = document.createElement('div');
+        row.className = 'screener-row screen-scroll-row app-restored-presets';
+        quick.querySelectorAll('[data-screen-preset]').forEach((button) => row.appendChild(button));
+        controls.appendChild(row);
+        quick.remove();
+      }
+      advanced?.remove();
     }
+    controls.dataset.uxSimplified = '0';
+  }
 
-    if (advancedButtons.length) {
-      const row = document.createElement('div');
-      row.className = 'screener-row screen-scroll-row';
-      advancedButtons.forEach((button) => row.appendChild(button));
-      body.appendChild(row);
-    }
-
-    if (mainRow) {
-      mainRow.querySelectorAll('select').forEach((select) => select.remove());
-      mainRow.insertAdjacentElement('afterend', quick);
-      quick.insertAdjacentElement('afterend', details);
-    } else {
-      controls.prepend(quick);
-      controls.appendChild(details);
-    }
+  function keepActiveContextVisible() {
+    const active = document.querySelector('.app-context-btn.active');
+    active?.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
 
   function observeLateUI() {
     let attempts = 0;
     const timer = setInterval(() => {
       wrapSwitchTab();
-      installPrimaryNav();
-      simplifyScreener();
+      installAppNavigation();
+      revealAllValuationMetrics();
+      revealAllDateControls();
+      restoreScreenerControls();
       attempts += 1;
-      if (attempts >= 12) clearInterval(timer);
+      if (attempts >= 20) clearInterval(timer);
     }, 250);
 
     const observer = new MutationObserver(() => {
-      simplifyScreener();
-      if (document.querySelector('.tab-nav [data-tab="ideas"]')) wrapSwitchTab();
+      restoreScreenerControls();
+      revealAllValuationMetrics();
+      wrapSwitchTab();
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 5000);
+    setTimeout(() => observer.disconnect(), 7000);
   }
 
   function init() {
     wrapSwitchTab();
-    installPrimaryNav();
-    simplifyDateControls();
-    simplifyMetricControls();
-    setTimeout(simplifyScreener, 600);
+    installAppNavigation();
+    revealAllValuationMetrics();
+    revealAllDateControls();
+    restoreScreenerControls();
     observeLateUI();
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.app-context-btn')) requestAnimationFrame(keepActiveContextVisible);
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
