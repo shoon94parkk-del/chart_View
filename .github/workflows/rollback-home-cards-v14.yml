@@ -1,0 +1,37 @@
+name: Rollback Home Cards V14
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/rollback_home_cards_v14.py'
+      - '.github/workflows/rollback-home-cards-v14.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove V14 loader
+        run: python scripts/rollback_home_cards_v14.py
+      - name: Validate rollback
+        run: |
+          set -euo pipefail
+          node --check static/js/ux_patch.js
+          ! grep -q 'data-home-cards-v14' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v15' templates/index.html
+      - name: Commit rollback
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'V14 loader already removed'
+          else
+            git commit -m 'fix: rollback unstable home cards v14'
+            git push
+          fi
