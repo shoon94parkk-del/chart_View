@@ -1,0 +1,100 @@
+name: App V32 Local Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-v32-local-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: |
+          pip install -r requirements.txt >/dev/null
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --silent
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Start app
+        run: |
+          uvicorn main:app --host 127.0.0.1 --port 8080 >/tmp/chartview.log 2>&1 &
+          for i in $(seq 1 50); do curl -fsS http://127.0.0.1:8080/health >/dev/null && exit 0; sleep 1; done
+          cat /tmp/chartview.log; exit 1
+      - name: Verify V32 navigation
+        run: |
+          cat > smoke.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const assert = require('assert');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:384,height:824},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 16; SAMSUNG SM-S931N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'});
+            const page=await context.newPage();
+            const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+            const r=await page.goto('http://127.0.0.1:8080/?v32=1',{waitUntil:'domcontentloaded',timeout:60000});
+            assert(r&&r.status()===200);
+            await page.waitForSelector('.app-bottom-nav',{timeout:20000});
+            assert.strictEqual(await page.locator('.app-bottom-btn').count(),5,'bottom nav should have 5 tabs');
+            await page.waitForSelector('#home-watchlist-v30',{timeout:7000});
+
+            const order=await page.evaluate(()=>{
+              const market=document.querySelector('.home-market-v9');
+              const watch=document.querySelector('#home-watchlist-v30');
+              const body=document.querySelector('#home-v8-body');
+              const pos=(a,b)=>a&&b?Boolean(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING):false;
+              return {marketBeforeWatch:pos(market,watch),watchBeforeBody:pos(watch,body)};
+            });
+            console.log('home_order=',order);
+            assert(order.watchBeforeBody,'watchlist should be above generic home body');
+
+            await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').tap();
+            await page.waitForSelector('#watchlist-tab',{state:'visible',timeout:5000});
+            assert.strictEqual(await page.evaluate(()=>history.state?.tab),'watchlist');
+
+            await page.locator('.app-bottom-btn[data-app-mode="discover"]').tap();
+            await page.waitForSelector('#screener-results .screen-add',{timeout:15000});
+            assert.strictEqual(await page.evaluate(()=>history.state?.tab),'screener');
+
+            const add=page.locator('#screener-results .screen-add').first();
+            await add.tap();
+            await page.waitForSelector('#chart-tab',{state:'visible',timeout:8000});
+            assert.strictEqual(await page.evaluate(()=>history.state?.tab),'chart','screener -> analysis history missing');
+
+            await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>null);
+            await page.waitForSelector('#screener-tab',{state:'visible',timeout:8000});
+            assert.strictEqual(await page.evaluate(()=>history.state?.tab),'screener','back should return to screener');
+
+            await page.evaluate(()=>window.switchTab('macro'));
+            await page.waitForSelector('#macro-tab',{state:'visible',timeout:5000});
+            assert.strictEqual(await page.evaluate(()=>history.state?.tab),'macro','legacy switchTab should bridge into history');
+            await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>null);
+            await page.waitForSelector('#screener-tab',{state:'visible',timeout:8000});
+
+            await page.locator('.app-bottom-btn[data-app-mode="home"]').tap();
+            await page.waitForSelector('#home-tab',{state:'visible',timeout:5000});
+            const homeMarket=page.locator('[data-home-market]').first();
+            if(await homeMarket.count()){
+              await homeMarket.tap();
+              await page.waitForSelector('#macro-tab',{state:'visible',timeout:5000});
+              assert.strictEqual(await page.evaluate(()=>history.state?.tab),'macro','home -> market history missing');
+              await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>null);
+              await page.waitForSelector('#home-tab',{state:'visible',timeout:5000});
+            }
+
+            if(errors.length) throw new Error(errors.join(' | '));
+            console.log('APP V32 LOCAL SMOKE PASSED');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node smoke.cjs
