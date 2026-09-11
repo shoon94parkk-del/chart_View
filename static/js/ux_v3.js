@@ -4,6 +4,26 @@
   let lastAnalysis = 'chart';
   let lastDiscover = 'screener';
 
+  function ensureHomeAssets() {
+    if (!document.querySelector('link[data-home-v8]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/home_brief_v8.css?v=20260911v8';
+      link.dataset.homeV8 = '1';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-home-v8]')) {
+      const script = document.createElement('script');
+      script.src = '/static/js/home_brief_v8.js?v=20260911v8';
+      script.async = false;
+      script.dataset.homeV8 = '1';
+      script.addEventListener('load', () => {
+        if (document.querySelector('.app-bottom-nav')) openTab('home');
+      }, { once: true });
+      document.head.appendChild(script);
+    }
+  }
+
   function modeFor(tabId) {
     if (tabId === 'home') return 'home';
     if (['chart', 'fwdper', 'ideas'].includes(tabId)) return 'analysis';
@@ -197,6 +217,7 @@
   }
 
   function init() {
+    ensureHomeAssets();
     wrapSwitchTab();
     installAppNavigation();
     revealAllValuationMetrics();
