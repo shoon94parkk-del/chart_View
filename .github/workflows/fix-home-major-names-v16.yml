@@ -1,0 +1,36 @@
+name: Fix Home Major Names V16
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/fix_home_major_names_v16.py'
+      - '.github/workflows/fix-home-major-names-v16.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix concise stock labels
+        run: python scripts/fix_home_major_names_v16.py
+      - name: Validate
+        run: |
+          set -euo pipefail
+          node --check static/js/home_brief_v8.js
+          grep -q "{ ...(map.get(item.symbol) || {}), ...item }" static/js/home_brief_v8.js
+      - name: Commit generated fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/home_brief_v8.js
+          if git diff --cached --quiet; then
+            echo 'already fixed'
+          else
+            git commit -m 'fix: keep concise names in home market cards'
+            git push
+          fi
