@@ -23,10 +23,10 @@ jobs:
           from pathlib import Path
           patches = {
               'templates/index.html': [
-                  ('/static/js/ux_patch.js?v=20260911v15', '/static/js/ux_patch.js?v=20260911v17'),
+                  ('/static/js/ux_patch.js?v=20260911v16', '/static/js/ux_patch.js?v=20260911v17'),
               ],
               'static/js/ux_patch.js': [
-                  ("/static/js/ux_v3.js?v=20260911v5", "/static/js/ux_v3.js?v=20260911v17"),
+                  ("/static/js/ux_v3.js?v=20260911v16", "/static/js/ux_v3.js?v=20260911v17"),
               ],
               'static/js/ux_v3.js': [
                   ("/static/js/home_brief_v8.js?v=20260911v16", "/static/js/home_brief_v8.js?v=20260911v17"),
