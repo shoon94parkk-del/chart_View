@@ -338,6 +338,42 @@ STOCK_DATABASE = [
 ]
 
 
+
+MARKET_NOW_TICKERS = ["^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
+
+@app.get("/api/market-now")
+async def market_now():
+    """Latest market snapshot using current/latest trade versus the previous close."""
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
+        return_exceptions=True,
+    )
+    results, errors = [], []
+    for ticker, row in zip(MARKET_NOW_TICKERS, fetched):
+        if isinstance(row, Exception):
+            errors.append({"ticker": ticker, "message": str(row)})
+            continue
+        if not row:
+            errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
+            continue
+        results.append({
+            "ticker": ticker,
+            "name": row.get("name") or ticker,
+            "price": row.get("price"),
+            "change": row.get("change"),
+            "currency": row.get("currency"),
+            "source": row.get("source") or "Yahoo Chart",
+        })
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+    return {
+        "results": results,
+        "errors": errors,
+        "timestamp": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+        "date": now_kst.strftime("%Y-%m-%d"),
+        "basis": "previous_close",
+        "source": "Yahoo Finance Chart",
+    }
+
 @app.get("/api/heatmap")
 async def heatmap_data():
     """Heatmap snapshots via the lightweight chart endpoint (no yfinance.info)."""
