@@ -50,7 +50,6 @@
     const shell = document.querySelector('.app-context-shell');
     if (shell) shell.hidden = mode === 'home' || mode === 'watchlist';
 
-    // 종목 선택 UI는 실제로 종목을 비교하는 '종목분석'에서만 노출한다.
     const utilityHeader = document.querySelector('.header');
     if (utilityHeader) {
       const showStockSearch = mode === 'analysis';
@@ -161,7 +160,10 @@
         <span class="app-bottom-icon">⌂</span><span>홈</span>
       </button>
       <button type="button" class="app-bottom-btn" data-app-mode="watchlist">
-        <span class="app-bottom-icon">☆</span><span>관심종목</span>
+        <span class="app-bottom-icon">☆</span><span>관심</span>
+      </button>
+      <button type="button" class="app-bottom-btn" data-app-mode="analysis">
+        <span class="app-bottom-icon">▥</span><span>종목분석</span>
       </button>
       <button type="button" class="app-bottom-btn" data-app-mode="discover">
         <span class="app-bottom-icon">⌕</span><span>종목발굴</span>
@@ -179,6 +181,7 @@
         const mode = button.dataset.appMode;
         if (mode === 'home') openTab('home');
         else if (mode === 'watchlist') openTab('watchlist');
+        else if (mode === 'analysis') openTab(lastAnalysis);
         else if (mode === 'discover') openTab(lastDiscover);
         else if (mode === 'market') openTab(lastMarket);
       });
@@ -242,7 +245,6 @@
   }
 
   function observeLateUI() {
-    // Mobile stability: no document.body-wide observer and no rapid polling loop.
     const settle = () => {
       wrapSwitchTab();
       installAppNavigation();
