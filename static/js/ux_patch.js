@@ -43,8 +43,6 @@
   ensureScript('script[data-ux-patterns-v12]', '/static/js/ux_patterns_v12.js?v=20260911v12', 'uxPatternsV12');
   ensureStyle('link[data-ux-interactions-v13]', '/static/css/ux_interactions_v13.css?v=20260911v13', 'uxInteractionsV13');
   ensureScript('script[data-ux-interactions-v13]', '/static/js/ux_interactions_v13.js?v=20260911v13', 'uxInteractionsV13');
-  ensureStyle('link[data-home-cards-v14]', '/static/css/home_cards_v14.css?v=20260911v14a', 'homeCardsV14');
-  ensureScript('script[data-home-cards-v14]', '/static/js/home_cards_v14.js?v=20260911v14a', 'homeCardsV14');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
