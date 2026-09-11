@@ -44,35 +44,14 @@ jobs:
 
           replace('static/css/home_market_v9.css', 'grid-template-columns: repeat(6, minmax(0, 1fr));', 'grid-template-columns: repeat(4, minmax(0, 1fr));', 1)
           replace('static/css/home_market_v9.css', 'grid-template-columns: repeat(3, minmax(0, 1fr));', 'grid-template-columns: repeat(2, minmax(0, 1fr));', 1)
-
           replace('static/js/ux_patch.js', '/static/css/home_market_v9.css?v=20260911v9', '/static/css/home_market_v9.css?v=20260911v10')
           replace('static/js/ux_patch.js', '/static/js/home_market_v9.js?v=20260911v9', '/static/js/home_market_v9.js?v=20260911v10')
-
-          replace(
-              '.github/workflows/app-check.yml',
-              "for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):",
-              "for symbol in ('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):"
-          )
-          replace(
-              '.github/workflows/app-check.yml',
-              "for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','직전 종가 대비'):",
-              "for label in ('오늘의 시장','KOSPI','KOSDAQ','미 10년물','WTI 유가','원/달러','직전 종가 대비'):"
-          )
-          replace('.github/workflows/app-check.yml', '/static/js/home_market_v9.js?v=20260911v9', '/static/js/home_market_v9.js?v=20260911v10')
-          replace('.github/workflows/app-check.yml', '/static/css/home_market_v9.css?v=20260911v9', '/static/css/home_market_v9.css?v=20260911v10')
-
-          smoke = Path('.github/workflows/phase3-live-smoke.yml')
-          text = smoke.read_text(encoding='utf-8')
-          text = text.replace('?v=20260911v9', '?v=20260911v10')
-          text = text.replace("required=('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')", "required=('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')")
-          text = text.replace("grep -q '오늘의 시장' /tmp/home_market.js", "grep -q '오늘의 시장' /tmp/home_market.js\n          grep -q 'KOSPI' /tmp/home_market.js\n          grep -q 'KOSDAQ' /tmp/home_market.js")
-          smoke.write_text(text, encoding='utf-8')
           PY
       - name: Commit patch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add main.py static/js/home_market_v9.js static/css/home_market_v9.css static/js/ux_patch.js .github/workflows/app-check.yml .github/workflows/phase3-live-smoke.yml
+          git add main.py static/js/home_market_v9.js static/css/home_market_v9.css static/js/ux_patch.js
           if git diff --cached --quiet; then
             echo 'No patch needed'
           else
