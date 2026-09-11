@@ -1,0 +1,44 @@
+name: Apply Mobile Home Cards V14
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_home_cards_v14.py'
+      - '.github/workflows/apply-home-cards-v14.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V14 loader
+        run: python scripts/apply_home_cards_v14.py
+      - name: Validate V14 assets
+        run: |
+          set -euo pipefail
+          node --check static/js/home_cards_v14.js
+          node --check static/js/ux_patch.js
+          grep -q 'data-home-cards-v14' static/js/ux_patch.js
+          grep -q 'home_cards_v14.css?v=20260911v14' static/js/ux_patch.js
+          grep -q 'home_cards_v14.js?v=20260911v14' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v14' templates/index.html
+          grep -q '내 관심 브리핑' static/js/home_cards_v14.js
+          grep -q '오늘 주요 이슈' static/js/home_cards_v14.js
+          grep -q '새로 포착된 시그널' static/js/home_cards_v14.js
+          grep -q 'app-bottom-btn.active .app-bottom-icon' static/css/home_cards_v14.css
+      - name: Commit generated V14 loader changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'V14 loader already applied'
+          else
+            git commit -m 'feat: load mobile home cards v14'
+            git push
+          fi
