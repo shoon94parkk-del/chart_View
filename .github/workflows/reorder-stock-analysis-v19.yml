@@ -1,0 +1,47 @@
+name: Reorder Stock Analysis V19
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/reorder_stock_analysis_v19.py'
+      - '.github/workflows/reorder-stock-analysis-v19.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reorder stock analysis
+        run: python scripts/reorder_stock_analysis_v19.py
+      - name: Validate
+        run: |
+          python -m py_compile scripts/reorder_stock_analysis_v19.py
+          node --check static/js/home_brief_v8.js
+          node --check static/js/ux_v3.js
+          node --check static/js/ux_patch.js
+          grep -q "querySelector('.chart-section')" static/js/home_brief_v8.js
+          grep -q "insertAdjacentElement('afterend', section)" static/js/home_brief_v8.js
+          grep -q 'home_brief_v8.js?v=20260911v19' static/js/ux_v3.js
+          grep -q 'ux_v3.js?v=20260911v19' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v19' templates/index.html
+      - name: Commit generated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/home_brief_v8.js static/js/ux_v3.js static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'already applied'
+          else
+            git commit -m 'feat: show return chart before stock summary'
+            git push
+          fi
