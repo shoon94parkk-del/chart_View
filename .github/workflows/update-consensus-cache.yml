@@ -31,15 +31,23 @@ jobs:
           from pathlib import Path
           c=json.loads(Path('static/data/consensus_cache.json').read_text(encoding='utf-8'))
           h=json.loads(Path('static/data/consensus_history.json').read_text(encoding='utf-8'))
+          price_ready=0
+          for ticker,row in c.get('quotes',{}).items():
+              pt=row.get('priceTrend') or {}
+              if pt.get('return30') is not None and pt.get('return90') is not None:
+                  price_ready += 1
+          assert price_ready >= 40, price_ready
           for t in ('AAPL','NVDA','005930.KS','000660.KS'):
               row=c['quotes'][t]
               for p in ('0q','+1q','0y','+1y'):
                   x=row['periods'][p]
                   assert x['earnings']['avg'] is not None, (t,p,'eps')
                   assert x['revenue']['avg'] is not None, (t,p,'revenue')
-              assert row['periods']['0y']['epsTrend']['90daysAgo'] is not None, (t,'90d')
+              assert row['periods']['0y']['epsTrend']['90daysAgo'] is not None, (t,'90d eps')
+              assert row['priceTrend']['return30'] is not None, (t,'30d price')
+              assert row['priceTrend']['return90'] is not None, (t,'90d price')
               assert h['history'][t]['0y'], (t,'history')
-          print('consensus cache OK',c.get('count'),'symbols')
+          print('consensus cache OK',c.get('count'),'symbols / price-ready',price_ready)
           PY
       - name: Commit refreshed cache
         run: |
