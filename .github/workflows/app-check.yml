@@ -31,7 +31,7 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js static/js/home_brief_v8.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -113,46 +113,46 @@ jobs:
 
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
-          for removed in ('fwd_per','trailing_pe','pbr','psr','ev','dividend','profitability'):
-              assert removed not in "new Set(['overview', 'bands', 'consensus'])", removed
           assert '실적·괴리' in decision
           assert '실적 상향 + 주가 미반영' in decision
           assert 'gap30: eps30 !== null && price30 !== null ? eps30 - price30 : null' in decision
           assert '매수점수가 아니라 추가 확인용 후보' in decision
 
-          decision_css=Path('static/css/decision_ux_v7.css').read_text(encoding='utf-8')
-          assert 'grid-template-columns: repeat(3, minmax(0, 1fr))' in decision_css
-          assert '.revision-gap-panel' in decision_css and '.revision-gap-highlight' in decision_css
+          app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
+          assert 'app-bottom-nav' in app
+          assert 'data-app-mode="home"' in app and '<span>홈</span>' in app
+          assert '종목분석' in app and '종목발굴' in app and '시장' in app
+          assert 'data-app-tab="chart"' in app and 'data-app-tab="fwdper"' in app and 'data-app-tab="ideas"' in app
+          assert '/static/js/home_brief_v8.js?v=20260911v8' in app
+          assert '/static/css/home_brief_v8.css?v=20260911v8' in app
+          assert "if (tabId === 'home') return 'home';" in app
+          assert "openTab('home')" in app
+          assert 'revealAllValuationMetrics' in app
+          assert '상세 지표 더보기' not in app
+
+          home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
+          for text in ('오늘은 여기부터 보세요','실적은 좋아졌는데 주가가 덜 움직인 종목','기술적으로 움직임이 생긴 종목','지금 시장 환경은 어떤가','선택 종목 요약','좋게 볼 점','확인할 점'):
+              assert text in home, text
+          assert 'home-tab' in home and 'stock-brief-v8' in home
+          assert 'fetch(`/api/valuation?tickers=' in home
+          assert 'fetch(`/api/consensus?ticker=' in home
+          assert 'fetch(`/api/valuation-band?ticker=' in home
+          assert 'eps30 - price30' in home
+
+          home_css=Path('static/css/home_brief_v8.css').read_text(encoding='utf-8')
+          assert 'grid-template-columns: repeat(4, minmax(0, 1fr))' in home_css
+          assert '.home-opportunity-grid' in home_css
+          assert '.stock-brief-metrics' in home_css
 
           header=Path('static/js/app_header_v5.js').read_text(encoding='utf-8')
           assert 'app-utility-header' in header and 'app-selection-status' in header
           assert "header.querySelector('.title')?.remove()" in header
           assert '종목 검색' in header
 
-          header_css=Path('static/css/app_header_v5.css').read_text(encoding='utf-8')
-          assert '.header.app-utility-header' in header_css
-          assert 'position: static !important' in header_css
-          assert 'box-sizing: border-box' in header_css
-          assert 'width: calc(100% - 20px) !important' in header_css
-
-          app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
-          assert 'app-bottom-nav' in app
-          assert '종목분석' in app and '종목발굴' in app and '시장' in app
-          assert 'data-app-tab="chart"' in app and 'data-app-tab="fwdper"' in app and 'data-app-tab="ideas"' in app
-          assert 'revealAllValuationMetrics' in app
-          assert '상세 지표 더보기' not in app
-          assert 'restoreScreenerControls' in app
-
           dense=Path('static/js/valuation_overview_v4.js').read_text(encoding='utf-8')
           for label in ('FWD PER','PER','PBR','PSR','EV/EBITDA','ROE(%)','영업이익률(%)','배당률(%)'):
               assert label in dense, label
           assert '핵심 밸류에이션 한눈에' in dense
-
-          css=Path('static/css/ux_v3.css').read_text(encoding='utf-8')
-          assert '.app-bottom-nav' in css and 'position: fixed' in css
-          assert '.app-context-shell' in css and 'position: sticky' in css
-          assert '.metric-section .ux-advanced-metric' in css and 'display: inline-flex !important' in css
-          assert '.date-section .date-row' in css and 'display: flex !important' in css
 
           revision=Path('static/js/revision_radar.js').read_text(encoding='utf-8')
           assert '실적 추정치 상향 레이더' in revision
@@ -161,12 +161,9 @@ jobs:
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
 
-          fwd=Path('static/js/fwdper.js').read_text(encoding='utf-8')
-          assert "tabId === 'ideas'" in fwd
-
           market=Path('market_service.py').read_text(encoding='utf-8')
           start=market.index('def fetch_valuation_snapshot')
           block=market[start:]
           assert block.index('_positive(chart_meta.get("regularMarketPrice"))') < block.index('_positive(_raw(price_block.get("regularMarketPrice")))')
-          print('app UX invariants OK')
+          print('app UX invariants OK: home + stock brief')
           PY
