@@ -1,0 +1,46 @@
+name: Apply Home Cache V17
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_home_cache_v17.py'
+      - '.github/workflows/apply-home-cache-v17.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply HOME V17 cache and logo patch
+        run: python scripts/apply_home_cache_v17.py
+      - name: Validate Python
+        run: python -m py_compile main.py
+      - name: Validate JS syntax
+        run: node --check static/js/home_brief_v8.js
+      - name: Verify markers
+        run: |
+          grep -q '/api/home-snapshot' main.py
+          grep -q 'stale-while-revalidate' main.py
+          grep -q 'cdn.simpleicons.org/samsung' static/js/home_brief_v8.js
+          grep -q 'chartview-home-snapshot-v17' static/js/home_brief_v8.js
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py static/js/home_brief_v8.js
+          git commit -m 'feat: shared cached home snapshot and clean brand logos'
+          git push
