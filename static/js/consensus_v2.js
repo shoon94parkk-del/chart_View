@@ -26,7 +26,7 @@
 
   const esc = (v) => String(v ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
   const num = (v) => Number.isFinite(Number(v)) ? Number(v) : null;
-  const fmt = (v, d=2) => num(v) === null ? '-' : Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+  const fmt = (v, d=2) => num(v) === null ? '-' : Number(v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const tickers = () => (typeof perTickers !== 'undefined' && Array.isArray(perTickers)) ? [...perTickers] : [];
   const nameOf = (t) => { try { return (typeof perTickerNameMap !== 'undefined' && perTickerNameMap[t]) || t; } catch { return t; } };
   const periodLabel = { '0q':'이번 분기', '+1q':'다음 분기', '0y':'올해', '+1y':'내년' };
@@ -39,7 +39,7 @@
   function fmtEps(v){
     const n=num(v); if(n===null)return '-';
     const kr=payload?.currency==='KRW'||ticker?.includes('.KS')||ticker?.includes('.KQ');
-    return kr ? `₩${Math.round(n).toLocaleString()}` : `$${n.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+    return kr ? `₩${Math.round(n).toLocaleString()}` : `$${n.toLocaleString('ko-KR',{maximumFractionDigits:2})}`;
   }
   function fmtRevenue(v){
     const n=num(v); if(n===null)return '-';
@@ -52,7 +52,7 @@
     if(Math.abs(n)>=1e12)return `$${(n/1e12).toFixed(2)}T`;
     if(Math.abs(n)>=1e9)return `$${(n/1e9).toFixed(1)}B`;
     if(Math.abs(n)>=1e6)return `$${(n/1e6).toFixed(1)}M`;
-    return `$${n.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+    return `$${n.toLocaleString('ko-KR',{maximumFractionDigits:0})}`;
   }
   function pct(v){const n=num(v);return n===null?'-':`${(n*100).toFixed(1)}%`;}
   function changePct(current, old){const c=num(current),o=num(old);return c===null||o===null||o===0?null:(c-o)/Math.abs(o)*100;}

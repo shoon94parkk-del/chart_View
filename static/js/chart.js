@@ -20,6 +20,7 @@ const COLORS = ['#3182F6', '#00C853', '#FF5252', '#FF9800', '#9C27B0', '#00BCD4'
 
 // 차트 옵션
 const chartOptions = {
+    localization: { locale: 'ko-KR' },
     layout: {
         background: { type: 'solid', color: '#FFFFFF' },
         textColor: '#191F28',

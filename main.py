@@ -111,7 +111,12 @@ async def startup_event():
 
 @app.get("/")
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    response = templates.TemplateResponse("index.html", {"request": request})
+    # Always fetch the current HTML shell; versioned static assets remain cacheable.
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 @app.head("/")
 async def home_head():

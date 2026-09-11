@@ -182,7 +182,7 @@ function formatValue(val, format, isKR) {
         if (isKR) return `${(val / 100000000).toFixed(0)}억`;
         return `$${(val / 1000000000).toFixed(1)}B`;
     }
-    return val.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    return val.toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
 }
 
 function renderPerTable() {
@@ -227,7 +227,7 @@ function renderPerTable() {
     sortedData.forEach(stock => {
         const isKR = stock.ticker.includes('.KS') || stock.ticker.includes('.KQ');
         const hasPrice = stock.price != null && Number(stock.price) > 0;
-        const priceStr = !hasPrice ? '-' : (isKR ? `₩${Math.round(Number(stock.price)).toLocaleString()}` : `$${Number(stock.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+        const priceStr = !hasPrice ? '-' : (isKR ? `₩${Math.round(Number(stock.price)).toLocaleString()}` : `$${Number(stock.price).toLocaleString('ko-KR', { maximumFractionDigits: 2 })}`);
         html += `<tr>
             <td class="stock-info-cell">
                 <div class="stock-name">${perTickerNameMap[stock.ticker] || stock.name || stock.ticker}</div>
