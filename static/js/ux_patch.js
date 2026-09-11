@@ -25,9 +25,9 @@
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v1', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
-  ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v3', 'uxV3');
+  ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v4', 'uxV3');
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v3', 'uxV3');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v4', 'uxV3');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
@@ -38,8 +38,6 @@
   let localTimer = null;
 
   const hasKorean = (text) => /[가-힣]/.test(text);
-  // Korean exchange codes are numeric six-digit strings. Treating any six
-  // alphanumeric characters as a KRX code swallowed valid overseas tickers.
   const isSixCharCode = (text) => /^\d{6}$/.test(text);
   const isTickerLike = (text) => /^[A-Z][A-Z0-9.^=-]{0,11}$/.test(text);
 
@@ -97,13 +95,11 @@
   function renderLocalResults(rows, raw) {
     const box = document.getElementById('search-results');
     if (!box) return;
-
     if (!rows.length) {
       box.innerHTML = `<div class="search-result-item"><span class="name">검색 결과 없음</span><span class="symbol">${raw}</span></div>`;
       box.classList.remove('hidden');
       return;
     }
-
     box.innerHTML = '';
     rows.forEach((row) => {
       const item = document.createElement('div');
@@ -165,24 +161,15 @@
   function enhanceTabUX() {
     const nav = document.querySelector('.tab-nav');
     if (!nav) return;
-
     if (typeof window.switchTab === 'function' && !window.__chartViewSwitchWrapped) {
       const baseSwitch = window.switchTab;
       window.switchTab = function (tabId) {
         baseSwitch(tabId);
         const globalFilter = document.getElementById('global-filter');
         if (globalFilter) globalFilter.style.display = ['chart', 'fwdper', 'ideas'].includes(tabId) ? 'block' : 'none';
-        requestAnimationFrame(() => {
-          nav.querySelector(`[data-tab="${tabId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        });
       };
       window.__chartViewSwitchWrapped = true;
     }
-
-    nav.addEventListener('click', (event) => {
-      const button = event.target.closest('.tab-btn');
-      if (button) requestAnimationFrame(() => button.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }));
-    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -197,10 +184,9 @@
       const toggle = document.createElement('button');
       toggle.className = 'ux-sector-toggle';
       toggle.type = 'button';
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">펼치기 ↓</span>';
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">접기 ↑</span>';
       sector.insertBefore(toggle, sector.firstChild);
-      sector.classList.add('ux-collapsed');
       toggle.addEventListener('click', () => {
         const collapsed = sector.classList.toggle('ux-collapsed');
         toggle.setAttribute('aria-expanded', String(!collapsed));
@@ -220,7 +206,6 @@
     const box = document.getElementById('search-results');
     const addButton = document.getElementById('add-btn');
     if (!input || !box) return;
-
     input.setAttribute('aria-label', '종목명, 6자리 종목코드 또는 해외 티커 검색');
 
     input.addEventListener('input', (event) => {
