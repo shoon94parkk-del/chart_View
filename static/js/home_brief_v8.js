@@ -168,18 +168,18 @@
   function installBrief() {
     if (document.getElementById('stock-brief-v8')) return;
     const chartTab = document.getElementById('chart-tab');
-    const anchor = chartTab?.querySelector('.date-section');
+    const anchor = chartTab?.querySelector('.chart-section');
     if (!chartTab || !anchor) return;
     const section = document.createElement('section');
     section.id = 'stock-brief-v8';
     section.className = 'stock-brief-v8';
     section.innerHTML = `
       <div class="stock-brief-head">
-        <div><span class="stock-brief-kicker">한눈에 판단</span><h2>선택 종목 요약</h2><p>차트·밸류·실적을 따로 열기 전에 핵심 상태부터 확인합니다.</p></div>
+        <div><span class="stock-brief-kicker">한눈에 판단</span><h2>선택 종목 요약</h2><p>수익률 흐름을 먼저 확인한 뒤 밸류·실적 상태를 이어서 봅니다.</p></div>
       </div>
       <div id="stock-brief-tabs" class="stock-brief-tabs"></div>
       <div id="stock-brief-body" class="stock-brief-body"><div class="stock-brief-empty">상단에서 종목을 선택해 주세요.</div></div>`;
-    anchor.insertAdjacentElement('beforebegin', section);
+    anchor.insertAdjacentElement('afterend', section);
     renderBriefTabs();
   }
 
