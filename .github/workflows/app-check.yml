@@ -27,10 +27,10 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: |
-          python -m py_compile main.py market_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py
+          python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -49,12 +49,26 @@ jobs:
               pe=quotes.get(ticker,{}).get('forwardPE')
               assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
 
+          consensus=json.loads(Path('static/data/consensus_cache.json').read_text(encoding='utf-8'))
+          cquotes=consensus.get('quotes', {})
+          assert len(cquotes) >= 40, len(cquotes)
+          valid_revision=0
+          for quote in cquotes.values():
+              row=(quote.get('periods') or {}).get('0y') or {}
+              trend=row.get('epsTrend') or {}
+              current=trend.get('current')
+              ago=trend.get('30daysAgo')
+              analysts=(row.get('earnings') or {}).get('analysts')
+              if current is not None and ago not in (None, 0) and analysts is not None:
+                  valid_revision += 1
+          assert valid_revision >= 20, valid_revision
+
           macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
           rows=macro.get('results', [])
           assert len(rows) == 13, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
           assert all('delta' in x for x in rows), 'macro delta missing'
-          print('cache checks OK')
+          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision-ready')
           PY
       - name: UX and data freshness invariants
         run: |
@@ -68,6 +82,19 @@ jobs:
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
+          assert '/static/js/revision_radar.js?v=20260911v3' in ux
+          assert '/static/js/ux_v3.js?v=20260911v3' in ux
+          assert '/static/css/ux_v3.css?v=20260911v3' in ux
+          assert 'script.async = false' in ux
+
+          ux3=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
+          assert '종목 분석' in ux3 and '종목 발굴' in ux3 and 'data-ux-tab="revision"' in ux3
+          assert '상세 지표 더보기' in ux3 and '고급 필터' in ux3
+
+          revision=Path('static/js/revision_radar.js').read_text(encoding='utf-8')
+          assert '실적 추정치 상향 레이더' in revision
+          assert "currentPeriod = '0y'" in revision
+          assert '숨은 매수점수는 사용하지 않습니다' in revision
 
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
