@@ -7,6 +7,7 @@
   let market = 'ALL';
   let minValue = 1000000000;
   let sortKey = 'score';
+  let quickFilter = 'none';
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -98,6 +99,10 @@
     if (market !== 'ALL' && row.market !== market) return false;
     if ((row.avgValue20 || 0) < minValue) return false;
 
+    if (quickFilter === 'up' && !((row.change1d || 0) > 0)) return false;
+    if (quickFilter === 'rsi35' && !(row.rsi14 !== null && row.rsi14 !== undefined && Number(row.rsi14) <= 35)) return false;
+    if (quickFilter === 'volume2x' && !((row.volumeRatio || 0) >= 2)) return false;
+
     const query = (document.getElementById('screener-search')?.value || '').trim().toLowerCase();
     if (query && !`${row.name} ${row.code} ${row.symbol}`.toLowerCase().includes(query)) return false;
 
@@ -141,7 +146,8 @@
     const shown = Math.min(total, 200);
     rows = rows.slice(0, 200);
 
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}`;
+    const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
+    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -247,6 +253,16 @@
       render();
     });
   }
+
+  window.__setScreenerQuickFilter = function (value = 'none') {
+    const allowed = new Set(['none', 'up', 'rsi35', 'volume2x']);
+    quickFilter = allowed.has(value) ? value : 'none';
+    render();
+    document.dispatchEvent(new CustomEvent('screener:quickfilter', { detail: { value: quickFilter } }));
+    return quickFilter;
+  };
+
+  window.__getScreenerQuickFilter = function () { return quickFilter; };
 
   function init() {
     installTab();

@@ -21,7 +21,7 @@
   }
 
   ensureStyle('link[data-fast-screener]', '/static/css/screener.css?v=20260911v3', 'fastScreener');
-  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260911v1', 'fastScreener');
+  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260911v13', 'fastScreener');
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v2', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
@@ -41,6 +41,8 @@
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');
   ensureStyle('link[data-ux-patterns-v12]', '/static/css/ux_patterns_v12.css?v=20260911v12', 'uxPatternsV12');
   ensureScript('script[data-ux-patterns-v12]', '/static/js/ux_patterns_v12.js?v=20260911v12', 'uxPatternsV12');
+  ensureStyle('link[data-ux-interactions-v13]', '/static/css/ux_interactions_v13.css?v=20260911v13', 'uxInteractionsV13');
+  ensureScript('script[data-ux-interactions-v13]', '/static/js/ux_interactions_v13.js?v=20260911v13', 'uxInteractionsV13');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',

@@ -1,0 +1,27 @@
+/* V13: Plausible-style direct interaction on screener KPIs. */
+.ux12-screener-kpis>.ux13-kpi{
+  position:relative;
+  min-width:0;
+  padding:9px 10px 8px;
+  border:1px solid #edf0f2;
+  border-radius:11px;
+  background:#fbfcfd;
+  color:inherit;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+.ux12-screener-kpis>.ux13-kpi:hover{border-color:#d5e4fb;background:#f7faff}
+.ux12-screener-kpis>.ux13-kpi:active{transform:translateY(1px)}
+.ux12-screener-kpis>.ux13-kpi:focus-visible{outline:2px solid #3182f6;outline-offset:2px}
+.ux12-screener-kpis>.ux13-kpi.active{border-color:#9fc4ff;background:#f1f6ff;box-shadow:0 0 0 1px rgba(49,130,246,.06)}
+.ux12-screener-kpis>.ux13-kpi.active span{color:#1769d2}
+.ux12-screener-kpis>.ux13-kpi.active strong{color:#1769d2}
+.ux12-screener-kpis>.ux13-kpi em{display:block;margin-top:3px;color:#a0a8b1;font-size:8px;font-style:normal;font-weight:750;line-height:1.1}
+.ux12-screener-kpis>.ux13-kpi.active em{color:#3182f6}
+
+@media(max-width:720px){
+  .ux12-screener-kpis>.ux13-kpi{padding:7px 5px 6px;border-radius:9px;text-align:center}
+  .ux12-screener-kpis>.ux13-kpi em{margin-top:2px;font-size:7px}
+}
