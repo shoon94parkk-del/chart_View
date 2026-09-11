@@ -1,0 +1,40 @@
+name: Apply Interactive KPI UX V13
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_interactive_kpis_v13.py'
+      - '.github/workflows/apply-interactive-kpis-v13.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply interactive KPI patch
+        run: python scripts/apply_interactive_kpis_v13.py
+      - name: Validate JavaScript and hooks
+        run: |
+          set -euo pipefail
+          node --check static/js/screener.js
+          node --check static/js/ux_interactions_v13.js
+          grep -q '__setScreenerQuickFilter' static/js/screener.js
+          grep -q 'data-ux-interactions-v13' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v13' templates/index.html
+          grep -q 'RSI 35↓' static/js/ux_interactions_v13.js
+      - name: Commit generated UX changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/screener.js static/js/ux_patch.js static/js/ux_interactions_v13.js static/css/ux_interactions_v13.css templates/index.html
+          if git diff --cached --quiet; then
+            echo 'interactive KPI UX already applied'
+          else
+            git commit -m 'feat: make screener KPIs interactive'
+            git push
+          fi
