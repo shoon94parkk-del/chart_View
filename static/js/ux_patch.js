@@ -25,6 +25,7 @@
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v1', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
+  ensureScript('script[data-dense-valuation]', '/static/js/valuation_overview_v4.js?v=20260911v4', 'denseValuation');
   ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v4', 'uxV3');
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
   ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v4', 'uxV3');
