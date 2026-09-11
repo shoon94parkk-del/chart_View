@@ -1,0 +1,68 @@
+name: UI V12 Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'static/js/ux_patterns_v12.js'
+      - 'static/css/ux_patterns_v12.css'
+      - 'static/js/ux_patch.js'
+      - '.github/workflows/ui-v12-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source checks
+        run: |
+          set -euo pipefail
+          node --check static/js/ux_patterns_v12.js
+          node --check static/js/ux_patch.js
+          grep -q 'ux12-filter-sheet' static/js/ux_patterns_v12.js
+          grep -q 'ux12-screener-kpis' static/js/ux_patterns_v12.js
+          grep -q 'DATA STATUS' static/js/ux_patterns_v12.js
+          grep -q 'ux_patterns_v12.css?v=20260911v12' static/js/ux_patch.js
+          grep -q 'ux_patterns_v12.js?v=20260911v12' static/js/ux_patch.js
+          grep -q 'grid-template-columns:repeat(4' static/css/ux_patterns_v12.css
+          echo 'UI v12 source checks OK'
+      - name: Wait for production and smoke
+        run: |
+          set -euo pipefail
+          BASE='https://chart-view-bsg6.onrender.com'
+          ready=0
+          for i in $(seq 1 50); do
+            js=$(curl -sS -o /tmp/v12.js -w '%{http_code}' "$BASE/static/js/ux_patterns_v12.js?v=20260911v12" || true)
+            css=$(curl -sS -o /tmp/v12.css -w '%{http_code}' "$BASE/static/css/ux_patterns_v12.css?v=20260911v12" || true)
+            loader=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
+            if [ "$js" = '200' ] && [ "$css" = '200' ] && [ "$loader" = '200' ] \
+              && grep -q 'ux12-filter-sheet' /tmp/v12.js \
+              && grep -q 'ux12-screener-kpis' /tmp/v12.js \
+              && grep -q 'DATA STATUS' /tmp/v12.js \
+              && grep -q 'ux_patterns_v12.js?v=20260911v12' /tmp/ux_patch.js; then
+              ready=1
+              echo "UI v12 production detected attempt=$i"
+              break
+            fi
+            echo "attempt=$i js=$js css=$css loader=$loader waiting"
+            sleep 10
+          done
+          test "$ready" = '1'
+          curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
+          curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
+          curl -fsSL "$BASE/api/macro" -o /tmp/macro.json
+          python - <<'PY'
+          import json
+          s=json.load(open('/tmp/screener.json'))
+          c=json.load(open('/tmp/consensus.json'))
+          m=json.load(open('/tmp/macro.json'))
+          assert len(s.get('stocks') or []) > 2000
+          assert int(c.get('count') or 0) >= 40
+          assert int(m.get('count') or 0) == 13
+          print('UI v12 production smoke OK', {'stocks':len(s['stocks']), 'consensus':c['count'], 'macro':m['count']})
+          PY
