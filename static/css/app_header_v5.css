@@ -202,9 +202,9 @@
   }
 
   .app-context-shell {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-top: 4px !important;
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    margin: 4px 10px 12px !important;
   }
 
   .app-bottom-nav {
