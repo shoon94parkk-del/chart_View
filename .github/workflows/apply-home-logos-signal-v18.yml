@@ -1,0 +1,199 @@
+name: Apply Home Logos Signal V18
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-home-logos-signal-v18.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect representative brand logos locally
+        run: |
+          set -euo pipefail
+          mkdir -p static/logos
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Samsung_Electronics_logo_(english).svg' -o static/logos/samsung.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/SK_Hynix.svg' -o static/logos/skhynix.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/NVIDIA_logo.svg' -o static/logos/nvidia.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Apple_logo_black.svg' -o static/logos/apple.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Microsoft_logo.svg' -o static/logos/microsoft.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Meta_Platforms_logo.svg' -o static/logos/meta.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tesla_T_symbol.svg' -o static/logos/tesla.svg
+          curl -L --fail --retry 3 --user-agent 'Mozilla/5.0 ChartView/1.0' 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Google_%22G%22_logo.svg' -o static/logos/google.svg
+          for f in static/logos/*.svg; do
+            test -s "$f"
+            grep -qi '<svg' "$f"
+          done
+
+      - name: Patch home logos and signal UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('static/js/home_brief_v8.js')
+          js = js_path.read_text(encoding='utf-8')
+
+          old_stocks = """  const HOME_MAJOR_STOCKS = [
+              { symbol: '005930.KS', name: '삼성전자', logo: 'https://cdn.simpleicons.org/samsung/1428A0', fallback: '삼성' },
+              { symbol: '000660.KS', name: 'SK하이닉스', logo: null, fallback: 'SK', fallbackColor: '#e8522f' },
+              { symbol: 'NVDA', name: '엔비디아', logo: 'https://cdn.simpleicons.org/nvidia/76B900', fallback: 'NV' },
+              { symbol: 'AAPL', name: '애플', logo: 'https://cdn.simpleicons.org/apple/111111', fallback: 'A' },
+              { symbol: 'MSFT', name: '마이크로소프트', logo: 'https://cdn.simpleicons.org/microsoft/5E5E5E', fallback: 'MS' },
+              { symbol: 'META', name: '메타', logo: 'https://cdn.simpleicons.org/meta/0866FF', fallback: 'M' },
+              { symbol: 'TSLA', name: '테슬라', logo: 'https://cdn.simpleicons.org/tesla/E82127', fallback: 'T' },
+              { symbol: 'GOOGL', name: '알파벳', logo: 'https://cdn.simpleicons.org/google/4285F4', fallback: 'G' },
+            ];""".replace('    {', '    {')
+          # exact block with two-space indentation
+          old_stocks = """  const HOME_MAJOR_STOCKS = [
+    { symbol: '005930.KS', name: '삼성전자', logo: 'https://cdn.simpleicons.org/samsung/1428A0', fallback: '삼성' },
+    { symbol: '000660.KS', name: 'SK하이닉스', logo: null, fallback: 'SK', fallbackColor: '#e8522f' },
+    { symbol: 'NVDA', name: '엔비디아', logo: 'https://cdn.simpleicons.org/nvidia/76B900', fallback: 'NV' },
+    { symbol: 'AAPL', name: '애플', logo: 'https://cdn.simpleicons.org/apple/111111', fallback: 'A' },
+    { symbol: 'MSFT', name: '마이크로소프트', logo: 'https://cdn.simpleicons.org/microsoft/5E5E5E', fallback: 'MS' },
+    { symbol: 'META', name: '메타', logo: 'https://cdn.simpleicons.org/meta/0866FF', fallback: 'M' },
+    { symbol: 'TSLA', name: '테슬라', logo: 'https://cdn.simpleicons.org/tesla/E82127', fallback: 'T' },
+    { symbol: 'GOOGL', name: '알파벳', logo: 'https://cdn.simpleicons.org/google/4285F4', fallback: 'G' },
+  ];"""
+          new_stocks = """  const HOME_MAJOR_STOCKS = [
+    { symbol: '005930.KS', name: '삼성전자', logo: '/static/logos/samsung.svg', fallback: '삼성' },
+    { symbol: '000660.KS', name: 'SK하이닉스', logo: '/static/logos/skhynix.svg', fallback: 'SK' },
+    { symbol: 'NVDA', name: '엔비디아', logo: '/static/logos/nvidia.svg', fallback: 'NV' },
+    { symbol: 'AAPL', name: '애플', logo: '/static/logos/apple.svg', fallback: 'A' },
+    { symbol: 'MSFT', name: '마이크로소프트', logo: '/static/logos/microsoft.svg', fallback: 'MS' },
+    { symbol: 'META', name: '메타', logo: '/static/logos/meta.svg', fallback: 'M' },
+    { symbol: 'TSLA', name: '테슬라', logo: '/static/logos/tesla.svg', fallback: 'T' },
+    { symbol: 'GOOGL', name: '알파벳', logo: '/static/logos/google.svg', fallback: 'G' },
+  ];"""
+          if old_stocks not in js:
+            raise SystemExit('HOME_MAJOR_STOCKS target not found')
+          js = js.replace(old_stocks, new_stocks, 1)
+
+          old_summary = """  function marketSummaryHtml(macro) {
+    const summary = typeof macro?.summary === 'string' ? macro.summary : macro?.summary?.text;
+    const stale = Number(macro?.staleCount || 0);
+    return `
+      <section class=\"home-v8-block home16-summary-card\">
+        <div class=\"home-block-head home16-head\"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type=\"button\" data-home-market>시장 자세히 →</button></div>
+        <p>${esc(summary || '주요 지수와 종목별 움직임을 확인해 주세요.')}</p>
+        <div class=\"home16-summary-foot\"><span class=\"${stale ? 'warn' : 'ok'}\"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 갱신'}</div>
+      </section>`;
+  }"""
+          new_summary = """  function marketSummaryHtml(macro) {
+    const summary = typeof macro?.summary === 'string' ? macro.summary : macro?.summary?.text;
+    const rawLevel = typeof macro?.summary === 'object' ? macro?.summary?.level : null;
+    const level = ['green', 'yellow', 'red'].includes(rawLevel) ? rawLevel : 'yellow';
+    const state = level === 'green'
+      ? { label: '시장 우호적', desc: '위험 지표가 비교적 안정적입니다.' }
+      : level === 'red'
+        ? { label: '리스크 경계', desc: '방어적으로 확인할 구간입니다.' }
+        : { label: '중립 · 주의', desc: '지표가 엇갈려 선별 접근이 필요합니다.' };
+    const stale = Number(macro?.staleCount || 0);
+    return `
+      <section class=\"home-v8-block home16-summary-card home18-summary-${level}\">
+        <div class=\"home-block-head home16-head\"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type=\"button\" data-home-market>시장 자세히 →</button></div>
+        <div class=\"home18-summary-main\">
+          <div class=\"home18-state-card\">
+            <div class=\"home18-traffic\" aria-label=\"현재 시장 신호 ${esc(state.label)}\">
+              <i class=\"red ${level === 'red' ? 'active' : ''}\"></i>
+              <i class=\"yellow ${level === 'yellow' ? 'active' : ''}\"></i>
+              <i class=\"green ${level === 'green' ? 'active' : ''}\"></i>
+            </div>
+            <div><span>현재 시장 상태</span><strong>${esc(state.label)}</strong><small>${esc(state.desc)}</small></div>
+          </div>
+          <p>${esc(summary || '주요 지수와 종목별 움직임을 확인해 주세요.')}</p>
+        </div>
+        <div class=\"home16-summary-foot\"><span class=\"${stale ? 'warn' : 'ok'}\"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 갱신'}</div>
+      </section>`;
+  }"""
+          if old_summary not in js:
+            raise SystemExit('marketSummaryHtml target not found')
+          js = js.replace(old_summary, new_summary, 1)
+          js_path.write_text(js, encoding='utf-8')
+
+          css_path = Path('static/css/home_brief_v8.css')
+          css = css_path.read_text(encoding='utf-8')
+          anchor = ".home16-logo-fallback{position:absolute;z-index:1;font-size:12px;letter-spacing:-.04em}\n"
+          addition = anchor + ".home16-logo img+.home16-logo-fallback{display:none}\n"
+          if '.home16-logo img+.home16-logo-fallback{display:none}' not in css:
+            if anchor not in css:
+              raise SystemExit('logo fallback CSS anchor not found')
+            css = css.replace(anchor, addition, 1)
+
+          summary_anchor = ".home16-summary-card .home-block-head button{border:0;background:transparent;color:#3182f6;font-size:10px;font-weight:800;cursor:pointer}\n"
+          summary_css = summary_anchor + """
+
+/* HOME V18: local brand assets + macro traffic-light state */
+.home18-summary-main{display:grid;grid-template-columns:190px minmax(0,1fr);gap:10px;align-items:stretch}
+.home18-state-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:15px;background:#f7f9fa}
+.home18-traffic{display:flex;flex-direction:column;gap:4px;flex:0 0 auto;padding:6px 7px;border-radius:10px;background:#26313c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.home18-traffic i{display:block;width:11px;height:11px;border-radius:50%;opacity:.18;box-shadow:none}
+.home18-traffic i.red{background:#ff4d57}.home18-traffic i.yellow{background:#ffc43d}.home18-traffic i.green{background:#31c96b}
+.home18-traffic i.active{opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 10px currentColor}
+.home18-state-card span{display:block;color:#8b95a1;font-size:9px;font-weight:750}
+.home18-state-card strong{display:block;margin-top:2px;color:#202632;font-size:14px;font-weight:900;letter-spacing:-.03em}
+.home18-state-card small{display:block;margin-top:3px;color:#8b95a1;font-size:9px;line-height:1.35}
+.home18-summary-green .home18-state-card{background:#effaf3}.home18-summary-yellow .home18-state-card{background:#fff8e8}.home18-summary-red .home18-state-card{background:#fff0f1}
+.home18-summary-main>p{height:100%;box-sizing:border-box}
+"""
+          if 'HOME V18: local brand assets' not in css:
+            if summary_anchor not in css:
+              raise SystemExit('summary CSS anchor not found')
+            css = css.replace(summary_anchor, summary_css, 1)
+
+          mobile_anchor = "  .home16-caption{text-align:left}\n"
+          mobile_add = mobile_anchor + "  .home18-summary-main{grid-template-columns:1fr}\n  .home18-state-card{padding:11px 12px}\n  .home18-traffic{flex-direction:row}\n"
+          if '  .home18-summary-main{grid-template-columns:1fr}' not in css:
+            if mobile_anchor not in css:
+              raise SystemExit('mobile CSS anchor not found')
+            css = css.replace(mobile_anchor, mobile_add, 1)
+          css_path.write_text(css, encoding='utf-8')
+
+          # Bust the complete lazy-loaded asset chain so mobile browsers cannot reuse V17.
+          patches = {
+            Path('static/js/ux_v3.js'): [
+              ('/static/css/home_brief_v8.css?v=20260911v16', '/static/css/home_brief_v8.css?v=20260911v18'),
+              ('/static/js/home_brief_v8.js?v=20260911v17', '/static/js/home_brief_v8.js?v=20260911v18'),
+            ],
+            Path('static/js/ux_patch.js'): [
+              ('/static/js/ux_v3.js?v=20260911v17', '/static/js/ux_v3.js?v=20260911v18'),
+            ],
+            Path('templates/index.html'): [
+              ('/static/js/ux_patch.js?v=20260911v17', '/static/js/ux_patch.js?v=20260911v18'),
+            ],
+          }
+          for path, reps in patches.items():
+            text = path.read_text(encoding='utf-8')
+            for old, new in reps:
+              if old not in text and new not in text:
+                raise SystemExit(f'{path}: cache-bust target missing: {old}')
+              text = text.replace(old, new)
+            path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check static/js/home_brief_v8.js
+          node --check static/js/ux_v3.js
+          node --check static/js/ux_patch.js
+          grep -q "'/static/logos/skhynix.svg'" static/js/home_brief_v8.js
+          grep -q 'home18-traffic' static/js/home_brief_v8.js
+          grep -q 'home_brief_v8.js?v=20260911v18' static/js/ux_v3.js
+          grep -q 'ux_patch.js?v=20260911v18' templates/index.html
+
+      - name: Commit generated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/logos static/js/home_brief_v8.js static/css/home_brief_v8.css static/js/ux_v3.js static/js/ux_patch.js templates/index.html
+          git commit -m 'feat: use local brand logos and market signal light'
+          git push
