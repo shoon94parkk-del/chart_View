@@ -39,7 +39,10 @@ jobs:
           market=Path('market_service.py').read_text(encoding='utf-8')
           start=market.index('def fetch_quote_snapshot')
           block=market[start:market.index('def fetch_history_series', start)]
-          assert block.index('(good[-2] if len(good) > 1 else None)') < block.index('_positive(meta.get("chartPreviousClose"))')
+          assert 'period="1d", interval="5m"' in block
+          assert 'current = good[-1] if good else' in block
+          assert '_positive(meta.get("chartPreviousClose")) or _positive(meta.get("previousClose"))' in block
+          assert '"source": "Yahoo Chart 5m"' in block
           main=Path('main.py').read_text(encoding='utf-8')
           assert '@app.get("/api/market-now")' in main and '"basis": "previous_close"' in main
           print('source market invariants OK')
@@ -55,12 +58,13 @@ jobs:
             api_code=$(curl -sS -o /tmp/market_now.json -w '%{http_code}' "$BASE/api/market-now" || true)
             if [ "$code" = '200' ] && [ "$api_code" = '200' ] \
               && grep -q "fetch('/api/market-now'" /tmp/home_market.js \
-              && grep -q '직전 종가 대비' /tmp/home_market.js; then
+              && grep -q '직전 종가 대비' /tmp/home_market.js \
+              && grep -q 'Yahoo Chart 5m' /tmp/market_now.json; then
               ready=1
-              echo "current market home build detected on attempt=$i"
+              echo "intraday market home build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i assets=$code api=$api_code: waiting for deploy"
+            echo "attempt=$i assets=$code api=$api_code: waiting for intraday deploy"
             sleep 10
           done
           test "$ready" = '1'
@@ -110,6 +114,7 @@ jobs:
           assert not missing, ('market snapshot missing', missing, market.get('errors'))
           for ticker in required:
               assert market_rows[ticker].get('change') is not None, (ticker, market_rows[ticker])
+              assert market_rows[ticker].get('source') == 'Yahoo Chart 5m', (ticker, market_rows[ticker])
 
           # Sanity bands catch stale range-baseline errors without hard-coding market values.
           assert abs(float(market_rows['^GSPC']['change'])) < 10
@@ -140,5 +145,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed'
           assert len(macro.get('results', [])) == 13
 
-          print('True previous-close home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
+          print('Intraday home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
           PY
