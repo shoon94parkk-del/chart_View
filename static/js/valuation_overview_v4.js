@@ -4,8 +4,8 @@
   function applyDenseOverview() {
     try {
       if (typeof METRIC_CONFIG === 'undefined' || !METRIC_CONFIG.overview) return false;
-      METRIC_CONFIG.overview.title = '핵심 밸류에이션 한눈에';
-      METRIC_CONFIG.overview.description = '전망·실적·자산·매출·수익성을 한 화면에서 먼저 비교하고, 위 세부 지표 탭에서 깊게 확인합니다.';
+      METRIC_CONFIG.overview.title = '밸류에이션 비교표';
+      METRIC_CONFIG.overview.description = '종목을 행으로, 핵심 지표를 열로 배치해 여러 종목을 한눈에 비교합니다. 모바일에서는 표를 좌우로 밀어 확인하세요.';
       METRIC_CONFIG.overview.columns = [
         { key: 'forwardPE', label: 'FWD PER', format: 'number', color: true },
         { key: 'trailingPE', label: 'PER', format: 'number', color: true },
