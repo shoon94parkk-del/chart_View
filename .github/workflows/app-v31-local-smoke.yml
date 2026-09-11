@@ -42,13 +42,15 @@ jobs:
             const context=await browser.newContext({viewport:{width:384,height:824},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 16; SAMSUNG SM-S931N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'});
             const page=await context.newPage();
             const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
-            const r=await page.goto('http://127.0.0.1:8080/?v31=1',{waitUntil:'domcontentloaded',timeout:60000});
+            const r=await page.goto('http://127.0.0.1:8080/?v31=2',{waitUntil:'domcontentloaded',timeout:60000});
             assert(r&&r.status()===200);
             await page.waitForSelector('.app-bottom-nav',{timeout:20000});
             await page.waitForSelector('#home-watchlist-v30',{timeout:5000});
             const homeNames=await page.locator('#home-watchlist-v30 strong').allTextContents();
             console.log('home_watch=',homeNames);
             assert(homeNames.some(x=>x.includes('삼성전자')),'default home watchlist missing');
+            const initialStored=await page.evaluate(()=>JSON.parse(localStorage.getItem('chartview-watchlist-v1')||'[]').length);
+            assert.strictEqual(initialStored,3,'defaults not persisted on first load');
 
             await page.locator('[data-home-watch-all]').tap();
             await page.waitForSelector('#watchlist-tab',{state:'visible',timeout:5000});
