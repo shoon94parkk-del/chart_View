@@ -1,0 +1,47 @@
+name: Apply Analysis UI V20
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'static/css/analysis_ui_v20.css'
+      - 'scripts/apply_analysis_ui_v20.py'
+      - '.github/workflows/apply-analysis-ui-v20.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply unified analysis UI
+        run: python scripts/apply_analysis_ui_v20.py
+      - name: Validate
+        run: |
+          python -m py_compile scripts/apply_analysis_ui_v20.py
+          node --check static/js/ux_patch.js
+          grep -q 'data-analysis-ui-v20' static/js/ux_patch.js
+          grep -q 'analysis_ui_v20.css?v=20260911v20' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v20' templates/index.html
+          grep -q 'grid-template-columns:repeat(2,minmax(0,1fr))' static/css/analysis_ui_v20.css
+          grep -q 'period-chip.active' static/css/analysis_ui_v20.css
+          grep -q 'decision-valuation-nav .metric-chip.active' static/css/analysis_ui_v20.css
+      - name: Commit generated loader changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'Analysis UI V20 already applied'
+          else
+            git commit -m 'style: load unified analysis controls v20'
+            git push
+          fi
