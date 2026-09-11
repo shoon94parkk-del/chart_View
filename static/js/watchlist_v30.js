@@ -148,7 +148,7 @@
       section = document.createElement('section');
       section.id = 'home-watchlist-v30';
       section.className = 'home-v8-block home-watchlist-v30';
-      body.insertAdjacentElement('afterend', section);
+      body.insertAdjacentElement('beforebegin', section);
     }
     const visible = watchlist.slice(0, 4);
     section.innerHTML = `

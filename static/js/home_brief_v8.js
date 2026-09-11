@@ -338,7 +338,8 @@
   function openAnalysis(symbol, name) {
     if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
     activeBriefTicker = symbol;
-    if (typeof window.switchTab === 'function') window.switchTab('chart');
+    if (typeof window.__openAppTab === 'function') window.__openAppTab('chart');
+    else if (typeof window.switchTab === 'function') window.switchTab('chart');
     renderBriefTabs();
     loadBrief(symbol);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -347,13 +348,15 @@
   function bindHomeActions(root) {
     root.querySelectorAll('[data-home-symbol]').forEach((button) => button.addEventListener('click', () => openAnalysis(button.dataset.homeSymbol, button.dataset.homeName)));
     root.querySelector('[data-home-discover]')?.addEventListener('click', () => {
-      if (typeof window.switchTab === 'function') window.switchTab('revision');
+      if (typeof window.__openAppTab === 'function') window.__openAppTab('revision');
+      else if (typeof window.switchTab === 'function') window.switchTab('revision');
       if (typeof window.__loadRevisionRadar === 'function') window.__loadRevisionRadar();
     });
     root.querySelector('[data-home-screener]')?.addEventListener('click', () => {
-      const b = document.querySelector('.tab-nav [data-tab="screener"]'); if (b) b.click(); else if (typeof window.switchTab === 'function') window.switchTab('screener');
+      if (typeof window.__openAppTab === 'function') window.__openAppTab('screener');
+      else { const b = document.querySelector('.tab-nav [data-tab="screener"]'); if (b) b.click(); else if (typeof window.switchTab === 'function') window.switchTab('screener'); }
     });
-    root.querySelector('[data-home-market]')?.addEventListener('click', () => { if (typeof window.switchTab === 'function') window.switchTab('macro'); });
+    root.querySelector('[data-home-market]')?.addEventListener('click', () => { if (typeof window.__openAppTab === 'function') window.__openAppTab('macro'); else if (typeof window.switchTab === 'function') window.switchTab('macro'); });
   }
 
   function renderBriefTabs() {
@@ -454,8 +457,8 @@
       <div class="stock-brief-actions"><button type="button" data-brief-action="fwdper">밸류 자세히</button><button type="button" data-brief-action="ideas">투자판단 보기</button></div>`;
     body.querySelectorAll('[data-brief-action]').forEach((button) => button.addEventListener('click', () => {
       const target = button.dataset.briefAction;
-      const appButton = document.querySelector(`[data-app-tab="${target}"]`);
-      if (appButton) appButton.click(); else if (typeof window.switchTab === 'function') window.switchTab(target);
+      if (typeof window.__openAppTab === 'function') window.__openAppTab(target);
+      else { const appButton = document.querySelector(`[data-app-tab="${target}"]`); if (appButton) appButton.click(); else if (typeof window.switchTab === 'function') window.switchTab(target); }
     }));
   }
 

@@ -174,7 +174,8 @@
         const symbol = button.dataset.symbol;
         const name = button.dataset.name;
         if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
-        if (typeof window.switchTab === 'function') window.switchTab('chart');
+        if (typeof window.__openAppTab === 'function') window.__openAppTab('chart');
+        else if (typeof window.switchTab === 'function') window.switchTab('chart');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
@@ -194,9 +195,8 @@
         const symbol = button.dataset.symbol;
         const name = button.dataset.name;
         if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
-        const ideasTab = document.querySelector('[data-tab="ideas"]');
-        if (ideasTab) ideasTab.click();
-        else if (typeof window.switchTab === 'function') window.switchTab('fwdper');
+        if (typeof window.__openAppTab === 'function') window.__openAppTab('ideas');
+        else { const ideasTab = document.querySelector('[data-tab="ideas"]'); if (ideasTab) ideasTab.click(); else if (typeof window.switchTab === 'function') window.switchTab('fwdper'); }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });

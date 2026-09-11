@@ -1,0 +1,72 @@
+/* App state UX V32: consistent loading/empty surfaces across features. */
+.home-v8-loading,
+.stock-brief-loading,
+.screener-loading,
+.macro-loading-inner,
+.per-empty,
+.home-v8-empty,
+.stock-brief-empty,
+.screener-empty,
+.watchlist-v30-empty {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #edf0f3;
+  border-radius: 16px;
+  background: #f8fafc;
+  color: #6b7684;
+}
+
+.home-v8-loading,
+.stock-brief-loading,
+.screener-loading,
+.macro-loading-inner {
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px 18px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.home-v8-empty,
+.stock-brief-empty,
+.screener-empty,
+.watchlist-v30-empty,
+.per-empty {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 18px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.watchlist-v30-empty strong { color: #333d4b; font-size: 13px; }
+.watchlist-v30-empty p { margin: 0; color: #8b95a1; }
+
+.home-v8-loading .spinner,
+.stock-brief-loading .spinner,
+.screener-loading .spinner,
+.macro-loading-inner .spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+@media (max-width: 720px) {
+  .home-v8-loading,
+  .stock-brief-loading,
+  .screener-loading,
+  .macro-loading-inner { min-height: 86px; padding: 16px 14px; border-radius: 14px; }
+  .home-v8-empty,
+  .stock-brief-empty,
+  .screener-empty,
+  .watchlist-v30-empty,
+  .per-empty { min-height: 78px; padding: 14px; border-radius: 14px; }
+}

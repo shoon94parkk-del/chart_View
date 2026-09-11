@@ -5,6 +5,7 @@
   let lastDiscover = 'screener';
   let lastMarket = 'macro';
   let handlingPopState = false;
+  let openingAppTab = 0;
 
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
@@ -16,7 +17,7 @@
     }
     if (!document.querySelector('script[data-home-v8]')) {
       const script = document.createElement('script');
-      script.src = '/static/js/home_brief_v8.js?v=20260912v29';
+      script.src = '/static/js/home_brief_v8.js?v=20260912v32';
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
@@ -75,19 +76,26 @@
     } catch (_) { }
   }
 
+  function callLegacySwitch(tabId) {
+    if (typeof window.switchTab !== 'function') return;
+    openingAppTab += 1;
+    try { window.switchTab(tabId); }
+    finally { openingAppTab = Math.max(0, openingAppTab - 1); }
+  }
+
   function openTab(tabId, options = {}) {
     const pushHistory = options.history !== false;
     const resolved = tabId === 'market' ? 'macro' : tabId;
 
     if (resolved === 'home') {
-      if (typeof window.switchTab === 'function') window.switchTab('home');
+      callLegacySwitch('home');
       if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (pushHistory) commitHistory('home');
       return;
     }
     if (resolved === 'watchlist') {
       if (typeof window.__installWatchlist === 'function') window.__installWatchlist();
-      if (typeof window.switchTab === 'function') window.switchTab('watchlist');
+      callLegacySwitch('watchlist');
       if (typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
       if (pushHistory) commitHistory('watchlist');
       return;
@@ -95,18 +103,18 @@
     if (resolved === 'ideas') {
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
-      else if (typeof window.switchTab === 'function') window.switchTab('fwdper');
+      else callLegacySwitch('fwdper');
       if (pushHistory) commitHistory('ideas');
       return;
     }
     if (resolved === 'screener') {
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
-      else if (typeof window.switchTab === 'function') window.switchTab('screener');
+      else callLegacySwitch('screener');
       if (pushHistory) commitHistory('screener');
       return;
     }
-    if (typeof window.switchTab === 'function') window.switchTab(resolved);
+    callLegacySwitch(resolved);
     if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
     }
@@ -125,6 +133,7 @@
       if (tabId === 'home' && typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (tabId === 'chart' && typeof window.__refreshStockBrief === 'function') window.__refreshStockBrief();
       if (tabId === 'watchlist' && typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
+      if (!openingAppTab && !handlingPopState && tabId) commitHistory(tabId);
     };
     window.__appNavWrapped = true;
   }
@@ -179,6 +188,10 @@
     bottom.querySelectorAll('[data-app-mode]').forEach((button) => {
       button.addEventListener('click', () => {
         const mode = button.dataset.appMode;
+        if (button.classList.contains('active')) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
         if (mode === 'home') openTab('home');
         else if (mode === 'watchlist') openTab('watchlist');
         else if (mode === 'analysis') openTab(lastAnalysis);
