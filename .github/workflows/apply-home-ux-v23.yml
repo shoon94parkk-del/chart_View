@@ -1,0 +1,43 @@
+name: Apply Home UX V23
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_home_ux_v23.py'
+      - '.github/workflows/apply-home-ux-v23.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply home UX cache patch
+        run: python scripts/apply_home_ux_v23.py
+      - name: Validate V23 assets
+        run: |
+          python -m py_compile scripts/apply_home_ux_v23.py
+          node --check static/js/home_ux_v23.js
+          node --check static/js/ux_patch.js
+          grep -q 'data-home-ux-v23' static/js/ux_patch.js
+          grep -q '4개 더보기' static/js/home_ux_v23.js
+          grep -q 'home23-data-status' static/css/home_ux_v23.css
+          grep -q 'ux_patch.js?v=20260911v23' templates/index.html
+      - name: Commit cache-bust
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html
+          if git diff --cached --quiet; then
+            echo 'V23 already applied'
+          else
+            git commit -m 'feat: finalize home hierarchy ux v23'
+            git push
+          fi
