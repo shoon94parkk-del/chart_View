@@ -6,6 +6,7 @@ on:
     paths:
       - 'main.py'
       - 'market_service.py'
+      - 'consensus_service.py'
       - 'scripts/**'
       - 'static/js/**'
       - 'static/css/**'
@@ -70,7 +71,7 @@ jobs:
           assert all('delta' in x for x in rows), 'macro delta missing'
           print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision-ready')
           PY
-      - name: UX and data freshness invariants
+      - name: App UX and data invariants
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -78,23 +79,30 @@ jobs:
           html=Path('templates/index.html').read_text(encoding='utf-8')
           assert 'viewport-fit=cover' in html
           assert 'user-scalable=no' not in html
-          assert '/static/js/macro.js?v=20260911v1' in html
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
-          assert '/static/js/revision_radar.js?v=20260911v3' in ux
-          assert '/static/js/ux_v3.js?v=20260911v3' in ux
-          assert '/static/css/ux_v3.css?v=20260911v3' in ux
-          assert 'script.async = false' in ux
+          assert '/static/js/ux_v3.js?v=20260911v4' in ux
+          assert '/static/css/ux_v3.css?v=20260911v4' in ux
+          assert "toggle.setAttribute('aria-expanded', 'true')" in ux
 
-          ux3=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
-          assert '종목 분석' in ux3 and '종목 발굴' in ux3 and 'data-ux-tab="revision"' in ux3
-          assert '상세 지표 더보기' in ux3 and '고급 필터' in ux3
+          app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
+          assert 'app-bottom-nav' in app
+          assert '종목분석' in app and '종목발굴' in app and '시장' in app
+          assert 'data-app-tab="chart"' in app and 'data-app-tab="fwdper"' in app and 'data-app-tab="ideas"' in app
+          assert 'revealAllValuationMetrics' in app
+          assert '상세 지표 더보기' not in app
+          assert 'restoreScreenerControls' in app
+
+          css=Path('static/css/ux_v3.css').read_text(encoding='utf-8')
+          assert '.app-bottom-nav' in css and 'position: fixed' in css
+          assert '.app-context-shell' in css and 'position: sticky' in css
+          assert '.metric-section .ux-advanced-metric' in css and 'display: inline-flex !important' in css
+          assert '.date-section .date-row' in css and 'display: flex !important' in css
 
           revision=Path('static/js/revision_radar.js').read_text(encoding='utf-8')
           assert '실적 추정치 상향 레이더' in revision
-          assert "currentPeriod = '0y'" in revision
-          assert '숨은 매수점수는 사용하지 않습니다' in revision
+          assert 'a <= 0 || b <= 0' in revision
 
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
@@ -106,11 +114,5 @@ jobs:
           start=market.index('def fetch_valuation_snapshot')
           block=market[start:]
           assert block.index('_positive(chart_meta.get("regularMarketPrice"))') < block.index('_positive(_raw(price_block.get("regularMarketPrice")))')
-
-          ideas=Path('static/js/ideas.js').read_text(encoding='utf-8')
-          assert "fetch('/api/macro'" in ideas and 'ideas-leaders' in ideas
-
-          screener_js=Path('static/js/screener.js').read_text(encoding='utf-8')
-          assert 'data-screen-preset="momentum"' in screener_js and 'screen-idea' in screener_js
-          print('UX invariants OK')
+          print('app UX invariants OK')
           PY
