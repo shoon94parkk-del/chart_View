@@ -8,7 +8,9 @@ on:
       - 'static/js/ux_v3.js'
       - 'static/js/valuation_overview_v4.js'
       - 'static/js/revision_radar.js'
+      - 'static/js/app_header_v5.js'
       - 'static/css/ux_v3.css'
+      - 'static/css/app_header_v5.css'
       - '.github/workflows/phase3-live-smoke.yml'
   workflow_dispatch:
 
@@ -29,13 +31,13 @@ jobs:
           for i in $(seq 1 42); do
             code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
             if [ "$code" = '200' ] \
-              && grep -q '/static/js/ux_v3.js?v=20260911v4' /tmp/ux_patch.js \
-              && grep -q '/static/js/valuation_overview_v4.js?v=20260911v4' /tmp/ux_patch.js; then
+              && grep -q '/static/js/app_header_v5.js?v=20260911v5' /tmp/ux_patch.js \
+              && grep -q "'jyp': 'JYP Ent.'" /tmp/ux_patch.js; then
               ready=1
-              echo "app UX build detected on attempt=$i"
+              echo "JYP/header build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i status=$code: waiting for app UX deploy"
+            echo "attempt=$i status=$code: waiting for JYP/header deploy"
             sleep 10
           done
           test "$ready" = '1'
@@ -43,7 +45,10 @@ jobs:
           curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
           curl -fsSL "$BASE/static/js/valuation_overview_v4.js?v=20260911v4" -o /tmp/dense_valuation.js
           curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
+          curl -fsSL "$BASE/static/js/app_header_v5.js?v=20260911v5" -o /tmp/app_header.js
           curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v4" -o /tmp/app_ux.css
+          curl -fsSL "$BASE/static/css/app_header_v5.css?v=20260911v5" -o /tmp/app_header.css
+          curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
           curl -fsSL "$BASE/health" -o /tmp/health.json
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' "$BASE/api/valuation" -o /tmp/valuation.json
@@ -52,6 +57,7 @@ jobs:
           node --check /tmp/app_ux.js
           node --check /tmp/dense_valuation.js
           node --check /tmp/revision_radar.js
+          node --check /tmp/app_header.js
           grep -q 'app-bottom-nav' /tmp/app_ux.js
           grep -q '종목분석' /tmp/app_ux.js
           grep -q '종목발굴' /tmp/app_ux.js
@@ -63,16 +69,28 @@ jobs:
           grep -q 'EV/EBITDA' /tmp/dense_valuation.js
           grep -q '영업이익률(%)' /tmp/dense_valuation.js
           grep -q '실적 추정치 상향 레이더' /tmp/revision_radar.js
+          grep -q 'app-utility-header' /tmp/app_header.js
+          grep -q 'app-selection-status' /tmp/app_header.js
+          grep -q '종목 검색' /tmp/app_header.js
           grep -q '.app-bottom-nav' /tmp/app_ux.css
           grep -q 'position: fixed' /tmp/app_ux.css
           grep -q '.app-context-shell' /tmp/app_ux.css
           grep -q 'display: inline-flex !important' /tmp/app_ux.css
+          grep -q '.header.app-utility-header' /tmp/app_header.css
+          grep -q 'position: static !important' /tmp/app_header.css
+          grep -q 'box-sizing: border-box' /tmp/app_header.css
 
           python - <<'PY'
           import json
 
           health=json.load(open('/tmp/health.json'))
           assert health.get('status') == 'ok', health
+
+          screener=json.load(open('/tmp/screener.json'))
+          stocks=screener.get('stocks', [])
+          jyp=[x for x in stocks if 'jyp' in str(x.get('name','')).lower()]
+          assert jyp, 'JYP missing from live screener cache'
+          assert any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
 
           consensus=json.load(open('/tmp/consensus.json'))
           quotes=consensus.get('quotes', {})
@@ -97,5 +115,5 @@ jobs:
           assert macro.get('cacheMode') == 'precomputed', macro.get('cacheMode')
           assert len(macro.get('results', [])) == 13
 
-          print('App UX live smoke OK:', len(quotes), 'consensus /', revision_ready, 'revision-ready')
+          print('App UX live smoke OK:', len(quotes), 'consensus /', revision_ready, 'revision-ready / JYP', jyp[0].get('symbol'), jyp[0].get('name'))
           PY
