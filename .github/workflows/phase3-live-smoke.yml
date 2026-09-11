@@ -6,6 +6,7 @@ on:
     paths:
       - 'static/js/ux_patch.js'
       - 'static/js/ux_v3.js'
+      - 'static/js/valuation_overview_v4.js'
       - 'static/js/revision_radar.js'
       - 'static/css/ux_v3.css'
       - '.github/workflows/phase3-live-smoke.yml'
@@ -27,7 +28,9 @@ jobs:
           ready=0
           for i in $(seq 1 42); do
             code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
-            if [ "$code" = '200' ] && grep -q '/static/js/ux_v3.js?v=20260911v4' /tmp/ux_patch.js; then
+            if [ "$code" = '200' ] \
+              && grep -q '/static/js/ux_v3.js?v=20260911v4' /tmp/ux_patch.js \
+              && grep -q '/static/js/valuation_overview_v4.js?v=20260911v4' /tmp/ux_patch.js; then
               ready=1
               echo "app UX build detected on attempt=$i"
               break
@@ -38,6 +41,7 @@ jobs:
           test "$ready" = '1'
 
           curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
+          curl -fsSL "$BASE/static/js/valuation_overview_v4.js?v=20260911v4" -o /tmp/dense_valuation.js
           curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
           curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v4" -o /tmp/app_ux.css
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
@@ -46,6 +50,7 @@ jobs:
           curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
 
           node --check /tmp/app_ux.js
+          node --check /tmp/dense_valuation.js
           node --check /tmp/revision_radar.js
           grep -q 'app-bottom-nav' /tmp/app_ux.js
           grep -q '종목분석' /tmp/app_ux.js
@@ -54,6 +59,9 @@ jobs:
           grep -q 'revealAllValuationMetrics' /tmp/app_ux.js
           ! grep -q '상세 지표 더보기' /tmp/app_ux.js
           grep -q 'restoreScreenerControls' /tmp/app_ux.js
+          grep -q '핵심 밸류에이션 한눈에' /tmp/dense_valuation.js
+          grep -q 'EV/EBITDA' /tmp/dense_valuation.js
+          grep -q '영업이익률(%)' /tmp/dense_valuation.js
           grep -q '실적 추정치 상향 레이더' /tmp/revision_radar.js
           grep -q '.app-bottom-nav' /tmp/app_ux.css
           grep -q 'position: fixed' /tmp/app_ux.css
