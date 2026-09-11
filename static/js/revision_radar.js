@@ -23,7 +23,9 @@
   function changePct(current, previous) {
     const a = asNum(current);
     const b = asNum(previous);
-    if (a === null || b === null || b === 0) return null;
+    // Percentage revisions are only comparable while both estimates are positive.
+    // Crossing zero (loss -> profit or vice versa) makes a ratio misleading.
+    if (a === null || b === null || a <= 0 || b <= 0) return null;
     return (a / b - 1) * 100;
   }
 
@@ -181,7 +183,7 @@
           <div><span>하향 주의</span><strong>${down}</strong></div>
           <div><span>분석 가능</span><strong>${rows.length}</strong></div>
         </div>
-        <div class="revision-method">정렬 기준: 강한 상향 → EPS 30일 변화율 → 상향·하향 의견 차이. 숨은 매수점수는 사용하지 않습니다.</div>
+        <div class="revision-method">정렬 기준: 강한 상향 → EPS 30일 변화율 → 상향·하향 의견 차이. 적자↔흑자처럼 EPS가 0을 가로지르는 구간은 왜곡을 막기 위해 순위에서 제외합니다. 숨은 매수점수는 사용하지 않습니다.</div>
         ${section('🇰🇷 한국 상향 후보', kr, '현재 조건에서 한국 상향 후보가 없습니다.')}
         ${section('🇺🇸 미국 상향 후보', us, '현재 조건에서 미국 상향 후보가 없습니다.')}
         <div class="revision-source">Yahoo Finance earningsTrend · 현재 컨센서스 캐시 ${Object.keys(quotes).length}종목 · ${esc(String(consensus.generatedAt || '').slice(0, 10))} 갱신</div>`;
