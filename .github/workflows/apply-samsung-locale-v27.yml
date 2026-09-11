@@ -1,0 +1,48 @@
+name: Apply Samsung Locale V27
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_samsung_locale_v27.py'
+      - '.github/workflows/apply-samsung-locale-v27.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply Samsung locale patch
+        run: python scripts/apply_samsung_locale_v27.py
+      - name: Validate
+        run: |
+          python -m py_compile scripts/apply_samsung_locale_v27.py main.py
+          node --check static/js/chart.js
+          node --check static/js/valuation_bands.js
+          grep -q "localization: { locale: 'ko-KR' }" static/js/chart.js
+          grep -q "localization:{locale:'ko-KR'}" static/js/valuation_bands.js
+          grep -q 'chart.js?v=20260911v27' templates/index.html
+          grep -q 'valuation_bands.js?v=20260911v27' templates/index.html
+          grep -q 'ux_patch.js?v=20260911v27' templates/index.html
+          grep -q 'no-store, no-cache, must-revalidate' main.py
+      - name: Commit generated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py templates/index.html static/js scripts/apply_samsung_locale_v27.py
+          if git diff --cached --quiet; then
+            echo 'V27 already applied'
+          else
+            git commit -m 'fix: stabilize Samsung Internet locale v27'
+            git push
+          fi
