@@ -1,0 +1,90 @@
+name: Phase 3 UX Live Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'static/js/ux_patch.js'
+      - 'static/js/ux_v3.js'
+      - 'static/js/revision_radar.js'
+      - 'static/css/ux_v3.css'
+      - '.github/workflows/phase3-live-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Wait for Phase 3 build and verify public assets
+        run: |
+          set -euo pipefail
+          BASE='https://chart-view-bsg6.onrender.com'
+
+          ready=0
+          for i in $(seq 1 42); do
+            code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
+            if [ "$code" = '200' ] && grep -q '/static/js/revision_radar.js?v=20260911v3' /tmp/ux_patch.js; then
+              ready=1
+              echo "phase 3 build detected on attempt=$i"
+              break
+            fi
+            echo "attempt=$i status=$code: waiting for phase 3 deploy"
+            sleep 10
+          done
+          test "$ready" = '1'
+
+          curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v3" -o /tmp/ux_v3.js
+          curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
+          curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v3" -o /tmp/ux_v3.css
+          curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
+          curl -fsSL "$BASE/health" -o /tmp/health.json
+          curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' "$BASE/api/valuation" -o /tmp/valuation.json
+          curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
+
+          node --check /tmp/ux_v3.js
+          node --check /tmp/revision_radar.js
+          grep -q '종목 분석' /tmp/ux_v3.js
+          grep -q '종목 발굴' /tmp/ux_v3.js
+          grep -q 'data-ux-tab="revision"' /tmp/ux_v3.js
+          grep -q '상세 지표 더보기' /tmp/ux_v3.js
+          grep -q '고급 필터' /tmp/ux_v3.js
+          grep -q '실적 추정치 상향 레이더' /tmp/revision_radar.js
+          grep -q 'a <= 0 || b <= 0' /tmp/revision_radar.js
+          grep -q '.ux-primary-nav' /tmp/ux_v3.css
+          grep -q '.revision-grid' /tmp/ux_v3.css
+
+          python - <<'PY'
+          import json
+
+          health=json.load(open('/tmp/health.json'))
+          assert health.get('status') == 'ok', health
+
+          consensus=json.load(open('/tmp/consensus.json'))
+          quotes=consensus.get('quotes', {})
+          assert len(quotes) >= 40, len(quotes)
+          revision_ready=0
+          for quote in quotes.values():
+              row=(quote.get('periods') or {}).get('0y') or {}
+              trend=row.get('epsTrend') or {}
+              cur=trend.get('current')
+              prev=trend.get('30daysAgo')
+              analysts=(row.get('earnings') or {}).get('analysts')
+              if cur is not None and prev is not None and cur > 0 and prev > 0 and (analysts or 0) >= 2:
+                  revision_ready += 1
+          assert revision_ready >= 20, revision_ready
+
+          valuation=json.load(open('/tmp/valuation.json'))
+          rows={x.get('ticker'):x for x in valuation.get('stocks', [])}
+          for ticker in ('AAPL','005930.KS'):
+              assert ticker in rows and rows[ticker].get('price'), (ticker, rows.get(ticker))
+
+          macro=json.load(open('/tmp/macro.json'))
+          assert macro.get('cacheMode') == 'precomputed', macro.get('cacheMode')
+          assert len(macro.get('results', [])) == 13
+
+          print('Phase 3 live smoke OK:', len(quotes), 'consensus /', revision_ready, 'revision-ready')
+          PY
