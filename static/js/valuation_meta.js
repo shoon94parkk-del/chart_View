@@ -1,8 +1,9 @@
-// Field-level valuation provenance for transparency.
+// Field-level valuation provenance for transparency without sacrificing mobile comparison density.
 (() => {
   'use strict';
 
   let cachePromise = null;
+  const MOBILE_BREAKPOINT = 720;
   const ymd = (value) => {
     if (!value) return '';
     const d = new Date(value);
@@ -10,6 +11,7 @@
     return d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
   };
   const today = () => ymd(new Date());
+  const compactMode = () => window.matchMedia(`(max-width:${MOBILE_BREAKPOINT}px)`).matches;
 
   function loadQuoteCache() {
     if (!cachePromise) {
@@ -54,25 +56,39 @@
     return `${today()} 조회 · ${sourceText || 'Yahoo Finance'}`;
   }
 
+  function rawCellText(cell) {
+    const main = cell.querySelector(':scope > .metric-value-wrap > .metric-value-main');
+    if (main) return main.textContent?.trim() || '-';
+    return Array.from(cell.childNodes)
+      .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && !node.classList?.contains('metric-provenance')))
+      .map((node) => node.textContent || '')
+      .join('')
+      .trim() || '-';
+  }
+
   function ensureValueWrap(cell) {
     let wrap = cell.querySelector(':scope > .metric-value-wrap');
     if (wrap) return wrap;
-    const rawText = Array.from(cell.childNodes)
-      .filter((n) => n.nodeType === Node.TEXT_NODE)
-      .map((n) => n.textContent || '')
-      .join('')
-      .trim();
-    Array.from(cell.childNodes).forEach((n) => n.remove());
+    const text = rawCellText(cell);
+    cell.replaceChildren();
     wrap = document.createElement('div');
     wrap.className = 'metric-value-wrap';
     const value = document.createElement('div');
     value.className = 'metric-value-main';
-    value.textContent = rawText || '-';
+    value.textContent = text;
     const meta = document.createElement('div');
     meta.className = 'metric-provenance';
     wrap.append(value, meta);
     cell.appendChild(wrap);
     return wrap;
+  }
+
+  function applyCompactCell(cell, text) {
+    const valueText = rawCellText(cell);
+    cell.replaceChildren(document.createTextNode(valueText));
+    cell.dataset.provenance = text;
+    cell.title = text;
+    cell.classList.add('valuation-compact-cell');
   }
 
   async function annotateTable() {
@@ -84,7 +100,9 @@
     const config = METRIC_CONFIG[currentMetric] || METRIC_CONFIG.overview;
     const keys = ['stock', 'price', ...config.columns.map((c) => c.key)];
     const headers = ['종목', '현재가', ...config.columns.map((c) => c.label)];
+    const compact = compactMode();
 
+    table.classList.toggle('valuation-compact-table', compact);
     table.querySelectorAll('tbody tr').forEach((row) => {
       const ticker = row.querySelector('.stock-ticker')?.textContent?.trim();
       const stock = perData.find((s) => s.ticker === ticker);
@@ -94,15 +112,26 @@
         cell.dataset.label = headers[index] || '';
         if (index === 0) return;
         const key = keys[index];
-        const wrap = ensureValueWrap(cell);
-        const meta = wrap.querySelector('.metric-provenance');
         const text = provenance(stock, key, quoteRow, payload.generatedAt);
-        if (meta && meta.textContent !== text) meta.textContent = text;
+        if (compact) {
+          applyCompactCell(cell, text);
+        } else {
+          cell.classList.remove('valuation-compact-cell');
+          cell.removeAttribute('title');
+          const wrap = ensureValueWrap(cell);
+          const meta = wrap.querySelector('.metric-provenance');
+          if (meta && meta.textContent !== text) meta.textContent = text;
+        }
       });
     });
 
     const src = document.querySelector('.per-source');
-    if (src) src.textContent = '각 수치 아래에 데이터 기준과 출처를 표시합니다 · 없는 값은 - 표시';
+    if (src) {
+      const date = ymd(payload.generatedAt) || today();
+      src.textContent = compact
+        ? `${date} 기준 · 가격/컨센서스: Yahoo 캐시 · 재무지표: Yahoo Fundamentals/Naver 보완 · 셀별 출처는 길게 눌러 확인`
+        : '각 수치 아래에 데이터 기준과 출처를 표시합니다 · 없는 값은 - 표시';
+    }
   }
 
   function init() {
@@ -110,16 +139,18 @@
     if (!target) return;
     annotateTable();
     let queued = false;
-    const observer = new MutationObserver(() => {
+    const queue = () => {
       if (queued) return;
       queued = true;
       requestAnimationFrame(() => {
         queued = false;
         annotateTable();
       });
-    });
+    };
+    const observer = new MutationObserver(queue);
     observer.observe(target, { childList: true, subtree: true });
     document.querySelectorAll('.metric-chip, .sort-btn').forEach((el) => el.addEventListener('click', () => setTimeout(annotateTable, 0)));
+    window.addEventListener('resize', queue, { passive: true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
