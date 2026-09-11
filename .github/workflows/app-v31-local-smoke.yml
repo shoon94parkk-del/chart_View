@@ -42,7 +42,7 @@ jobs:
             const context=await browser.newContext({viewport:{width:384,height:824},isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 16; SAMSUNG SM-S931N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'});
             const page=await context.newPage();
             const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
-            const r=await page.goto('http://127.0.0.1:8080/?v31=2',{waitUntil:'domcontentloaded',timeout:60000});
+            const r=await page.goto('http://127.0.0.1:8080/?v31=3',{waitUntil:'domcontentloaded',timeout:60000});
             assert(r&&r.status()===200);
             await page.waitForSelector('.app-bottom-nav',{timeout:20000});
             await page.waitForSelector('#home-watchlist-v30',{timeout:5000});
@@ -66,7 +66,9 @@ jobs:
             const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('chartview-watchlist-v1')||'[]').length);
             console.log('screener_added=',symbol,name,before,'->',after);
             assert.strictEqual(after,before+1,'screener star did not save');
-            assert(await candidate.evaluate(x=>x.classList.contains('active')),'screener star not active');
+            const savedStar=page.locator(`#screener-results .screen-watch[data-symbol="${symbol}"]`).first();
+            assert(await savedStar.evaluate(x=>x.classList.contains('active')),'screener star not active');
+            assert.strictEqual((await savedStar.textContent()).trim(),'★','screener star glyph not updated');
 
             await page.locator('.app-bottom-btn[data-app-mode="home"]').tap();
             await page.waitForSelector('#home-watchlist-v30',{timeout:5000});
