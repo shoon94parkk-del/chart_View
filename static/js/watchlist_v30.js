@@ -115,7 +115,9 @@
       watchlist.unshift(row);
     }
     saveWatchlist();
+    document.dispatchEvent(new CustomEvent('chartview:watchlist-change'));
     render();
+    renderHomeShortcut();
     enhanceTickerStars();
     return index < 0;
   }
@@ -136,6 +138,30 @@
     const n = Number(value);
     if (!Number.isFinite(n)) return '-';
     return `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
+  }
+
+  function renderHomeShortcut() {
+    const body = document.getElementById('home-v8-body');
+    if (!body) return false;
+    let section = document.getElementById('home-watchlist-v30');
+    if (!section) {
+      section = document.createElement('section');
+      section.id = 'home-watchlist-v30';
+      section.className = 'home-v8-block home-watchlist-v30';
+      body.insertAdjacentElement('afterend', section);
+    }
+    const visible = watchlist.slice(0, 4);
+    section.innerHTML = `
+      <div class="home-block-head home-watchlist-v30-head">
+        <div><span>MY STOCKS</span><h3>내 관심종목</h3></div>
+        <button type="button" data-home-watch-all>전체보기 →</button>
+      </div>
+      ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => `<button type="button" data-home-watch-open="${esc(row.symbol)}" data-home-watch-name="${esc(row.name)}"><strong>${esc(row.name)}</strong><small>${esc(row.symbol)}</small></button>`).join('')}</div>` : '<p class="home-watchlist-v30-empty">관심종목을 추가하면 홈에서 바로 이동할 수 있습니다.</p>'}`;
+    section.querySelector('[data-home-watch-all]')?.addEventListener('click', () => {
+      if (typeof window.__openAppTab === 'function') window.__openAppTab('watchlist');
+    });
+    section.querySelectorAll('[data-home-watch-open]').forEach((button) => button.addEventListener('click', () => openAnalysis(button.dataset.homeWatchOpen, button.dataset.homeWatchName)));
+    return true;
   }
 
   function installTab() {
@@ -376,6 +402,7 @@
   window.__isWatchlisted = isWatchlisted;
   window.__toggleWatchlist = toggleWatchlist;
   window.__recordRecentTicker = recordRecent;
+  window.__renderHomeWatchlist = renderHomeShortcut;
 
   function init() {
     installTab();
@@ -385,7 +412,11 @@
       if (typeof window.loadData === 'function') window.loadData();
     } catch (_) { }
     render();
+    setTimeout(renderHomeShortcut, 500);
+    setTimeout(renderHomeShortcut, 1800);
+    document.addEventListener('chartview:watchlist-change', renderHomeShortcut);
     document.addEventListener('click', (event) => {
+      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(renderHomeShortcut, 250);
       const symbolNode = event.target.closest('[data-home-symbol], .screen-add[data-symbol], .screen-idea[data-symbol]');
       if (!symbolNode) return;
       const symbol = symbolNode.dataset.homeSymbol || symbolNode.dataset.symbol;

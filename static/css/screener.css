@@ -107,3 +107,12 @@
   .screener-table td:nth-child(2)>div:first-child,.screener-table td:nth-child(3)>strong,.screener-table td:nth-child(4)>strong,.screener-table td:nth-child(6),.screener-table td:nth-child(7)>strong{font-size:12px}
   .screener-table td:nth-child(8){right:10px;top:9px}
 }
+
+
+/* watchlist-action-v31 */
+.screen-watch{border:1px solid #e5e8eb;border-radius:9px;min-width:34px;padding:7px 9px;background:#fff;color:#b0b8c1;font-size:15px;font-weight:800;cursor:pointer}
+.screen-watch.active{border-color:#f7cf78;background:#fff8e1;color:#f5a623}
+@media(max-width:720px){
+  .screen-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px!important}
+  .screen-watch{width:38px;min-width:38px;min-height:34px;padding:4px;font-size:16px}
+}

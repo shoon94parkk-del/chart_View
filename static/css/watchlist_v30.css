@@ -182,3 +182,18 @@
   .watchlist-v30-open { padding:14px; }
   .watchlist-v30-searchbox { border-radius:16px; }
 }
+
+
+/* home-watchlist-v31 */
+.home-watchlist-v30{margin-top:12px;padding:18px;border:1px solid #e5e8eb;border-radius:20px;background:#fff;box-shadow:0 8px 26px rgba(15,23,42,.04)}
+.home-watchlist-v30-head{margin-bottom:12px}
+.home-watchlist-v30-head button{border:0;background:transparent;color:#3182f6;font-size:12px;font-weight:800;cursor:pointer}
+.home-watchlist-v30-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.home-watchlist-v30-chips button{min-width:0;padding:12px 10px;border:1px solid #edf0f3;border-radius:14px;background:#f7f9fb;text-align:left;cursor:pointer}
+.home-watchlist-v30-chips strong,.home-watchlist-v30-chips small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-watchlist-v30-chips strong{font-size:13px;color:#191f28}.home-watchlist-v30-chips small{margin-top:4px;font-size:9.5px;color:#8b95a1}
+.home-watchlist-v30-empty{margin:0;color:#8b95a1;font-size:12px}
+@media(max-width:720px){
+  .home-watchlist-v30{margin:10px 0 0;padding:15px;border-radius:18px}
+  .home-watchlist-v30-chips{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

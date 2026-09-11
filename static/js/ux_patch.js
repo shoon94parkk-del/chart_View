@@ -20,8 +20,8 @@
     document.head.appendChild(script);
   }
 
-  ensureStyle('link[data-fast-screener]', '/static/css/screener.css?v=20260911v3', 'fastScreener');
-  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260912v29', 'fastScreener');
+  ensureStyle('link[data-fast-screener]', '/static/css/screener.css?v=20260912v31', 'fastScreener');
+  ensureScript('script[data-fast-screener]', '/static/js/screener.js?v=20260912v31', 'fastScreener');
   ensureStyle('link[data-ideas-ui]', '/static/css/ideas.css?v=20260911v1', 'ideasUi');
   ensureScript('script[data-valuation-meta]', '/static/js/valuation_meta.js?v=20260911v2', 'valuationMeta');
   ensureScript('script[data-investment-ideas]', '/static/js/ideas.js?v=20260911v1', 'investmentIdeas');
@@ -30,8 +30,8 @@
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
   ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260912v28', 'investmentToolsV22');
   ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260912v28', 'investmentToolsV22');
-  ensureStyle('link[data-watchlist-v30]', '/static/css/watchlist_v30.css?v=20260912v30', 'watchlistV30');
-  ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912v30', 'watchlistV30');
+  ensureStyle('link[data-watchlist-v30]', '/static/css/watchlist_v30.css?v=20260912v31', 'watchlistV30');
+  ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912v31', 'watchlistV30');
   ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v30', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260912v30', 'bottomNavV6');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');

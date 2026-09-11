@@ -166,7 +166,7 @@
           <td data-label="20일" class="${(row.ret20 || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.ret20)}</td>
           <td data-label="평균 거래대금"><strong>${money(row.avgValue20)}</strong><div class="screen-sub">5일 ${pct(row.ret5)} · 60일 ${pct(row.ret60)}</div></td>
           <td data-label="기술점수"><span class="screen-score">${num(row.score, 0)}</span></td>
-          <td data-label="액션"><div class="screen-actions"><button class="screen-add" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">비교+</button><button class="screen-idea" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">아이디어</button></div></td>
+          <td data-label="액션"><div class="screen-actions"><button class="screen-add" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">비교+</button><button class="screen-idea" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}">아이디어</button><button class="screen-watch ${typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(row.symbol) ? 'active' : ''}" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}" aria-label="${esc(row.name)} 관심종목">${typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(row.symbol) ? '★' : '☆'}</button></div></td>
         </tr>`).join('')}</tbody></table></div>`;
 
     results.querySelectorAll('.screen-add').forEach((button) => {
@@ -176,6 +176,16 @@
         if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
         if (typeof window.switchTab === 'function') window.switchTab('chart');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    results.querySelectorAll('.screen-watch').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (typeof window.__toggleWatchlist !== 'function') return;
+        window.__toggleWatchlist(button.dataset.symbol, button.dataset.name);
+        const active = typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(button.dataset.symbol);
+        button.classList.toggle('active', active);
+        button.textContent = active ? '★' : '☆';
       });
     });
 
