@@ -1,0 +1,45 @@
+name: Apply Home Toggle Hotfix V24
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_home_toggle_hotfix_v24.py'
+      - '.github/workflows/apply-home-toggle-hotfix-v24.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply cache-bust patch
+        run: python scripts/apply_home_toggle_hotfix_v24.py
+      - name: Validate hotfix
+        run: |
+          python -m py_compile scripts/apply_home_toggle_hotfix_v24.py
+          node --check static/js/home_ux_v23.js
+          node --check static/js/home_market_v9.js
+          node --check static/js/ux_patch.js
+          grep -q 'home_market_v9.js?v=20260911v24' static/js/ux_patch.js
+          grep -q 'home_ux_v23.js?v=20260911v24' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v24' templates/index.html
+          ! grep -q 'observer.observe(document.body' static/js/home_ux_v23.js
+          ! grep -q 'bodyObserver.observe(document.body' static/js/home_market_v9.js
+      - name: Commit generated change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html
+          if git diff --cached --quiet; then
+            echo 'V24 already applied'
+          else
+            git commit -m 'fix: stabilize market more toggle v24'
+            git push
+          fi
