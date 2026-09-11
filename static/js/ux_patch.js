@@ -39,6 +39,8 @@
   ensureStyle('link[data-home-priority-v10]', '/static/css/home_priority_v10.css?v=20260911v10', 'homePriorityV10');
   ensureScript('script[data-home-priority-v10]', '/static/js/home_priority_v10.js?v=20260911v10', 'homePriorityV10');
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');
+  ensureStyle('link[data-ux-patterns-v12]', '/static/css/ux_patterns_v12.css?v=20260911v12', 'uxPatternsV12');
+  ensureScript('script[data-ux-patterns-v12]', '/static/js/ux_patterns_v12.js?v=20260911v12', 'uxPatternsV12');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
