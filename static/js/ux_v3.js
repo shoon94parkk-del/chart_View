@@ -8,13 +8,13 @@
     if (!document.querySelector('link[data-home-v8]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = '/static/css/home_brief_v8.css?v=20260911v16';
+      link.href = '/static/css/home_brief_v8.css?v=20260911v18';
       link.dataset.homeV8 = '1';
       document.head.appendChild(link);
     }
     if (!document.querySelector('script[data-home-v8]')) {
       const script = document.createElement('script');
-      script.src = '/static/js/home_brief_v8.js?v=20260911v17';
+      script.src = '/static/js/home_brief_v8.js?v=20260911v18';
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {

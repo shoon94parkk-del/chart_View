@@ -30,22 +30,22 @@
   };
 
   const HOME_MAJOR_STOCKS = [
-    { symbol: '005930.KS', name: '삼성전자', logo: 'https://cdn.simpleicons.org/samsung/1428A0', fallback: '삼성' },
-    { symbol: '000660.KS', name: 'SK하이닉스', logo: null, fallback: 'SK', fallbackColor: '#e8522f' },
-    { symbol: 'NVDA', name: '엔비디아', logo: 'https://cdn.simpleicons.org/nvidia/76B900', fallback: 'NV' },
-    { symbol: 'AAPL', name: '애플', logo: 'https://cdn.simpleicons.org/apple/111111', fallback: 'A' },
-    { symbol: 'MSFT', name: '마이크로소프트', logo: 'https://cdn.simpleicons.org/microsoft/5E5E5E', fallback: 'MS' },
-    { symbol: 'META', name: '메타', logo: 'https://cdn.simpleicons.org/meta/0866FF', fallback: 'M' },
-    { symbol: 'TSLA', name: '테슬라', logo: 'https://cdn.simpleicons.org/tesla/E82127', fallback: 'T' },
-    { symbol: 'GOOGL', name: '알파벳', logo: 'https://cdn.simpleicons.org/google/4285F4', fallback: 'G' },
+    { symbol: '005930.KS', name: '삼성전자', logo: '/static/logos/samsung.svg', fallback: '삼성', logoClass: 'wide' },
+    { symbol: '000660.KS', name: 'SK하이닉스', logo: '/static/logos/skhynix.svg', fallback: 'SK', logoClass: 'wide' },
+    { symbol: 'NVDA', name: '엔비디아', logo: '/static/logos/nvidia.svg', fallback: 'NV' },
+    { symbol: 'AAPL', name: '애플', logo: '/static/logos/apple.svg', fallback: 'A', logoClass: 'tall' },
+    { symbol: 'MSFT', name: '마이크로소프트', logo: '/static/logos/microsoft.svg', fallback: 'MS', logoClass: 'square' },
+    { symbol: 'META', name: '메타', logo: '/static/logos/meta.svg', fallback: 'M' },
+    { symbol: 'TSLA', name: '테슬라', logo: '/static/logos/tesla.svg', fallback: 'T', logoClass: 'tall' },
+    { symbol: 'GOOGL', name: '알파벳', logo: '/static/logos/google.svg', fallback: 'G', logoClass: 'square' },
   ];
 
   function homeLogo(item) {
     const label = esc(item.fallback || String(item.name || item.symbol || '?').slice(0, 2));
-    const color = item.fallbackColor ? ` style="color:${esc(item.fallbackColor)}"` : '';
-    const fallback = `<span class="home16-logo-fallback"${color}>${label}</span>`;
+    const fallback = `<span class="home16-logo-fallback">${label}</span>`;
     if (!item.logo) return `<span class="home16-logo">${fallback}</span>`;
-    return `<span class="home16-logo"><img src="${esc(item.logo)}" alt="" loading="eager" decoding="async" onerror="this.remove()">${fallback}</span>`;
+    const logoClass = item.logoClass ? ` logo-${esc(item.logoClass)}` : '';
+    return `<span class="home16-logo"><img class="${logoClass.trim()}" src="${esc(item.logo)}" alt="${esc(item.name)} 로고" loading="eager" decoding="async" onerror="this.remove()">${fallback}</span>`;
   }
 
   function homePrice(symbol, value) {
@@ -111,10 +111,25 @@
 
   function marketSummaryHtml(macro) {
     const summary = typeof macro?.summary === 'string' ? macro.summary : macro?.summary?.text;
+    const rawLevel = typeof macro?.summary === 'object' ? macro?.summary?.level : null;
+    const level = ['green', 'yellow', 'red'].includes(rawLevel) ? rawLevel : 'yellow';
+    const state = level === 'green'
+      ? { label: '시장 우호적', desc: '위험 지표가 비교적 안정적입니다.' }
+      : level === 'red'
+        ? { label: '리스크 경계', desc: '방어적으로 확인할 구간입니다.' }
+        : { label: '중립 · 주의', desc: '지표가 엇갈려 선별 접근이 필요합니다.' };
     const stale = Number(macro?.staleCount || 0);
     return `
-      <section class="home-v8-block home16-summary-card">
+      <section class="home-v8-block home16-summary-card home18-summary-${level}">
         <div class="home-block-head home16-head"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
+        <div class="home18-state-card">
+          <div class="home18-traffic" aria-label="현재 시장 신호 ${esc(state.label)}">
+            <i class="red ${level === 'red' ? 'active' : ''}"></i>
+            <i class="yellow ${level === 'yellow' ? 'active' : ''}"></i>
+            <i class="green ${level === 'green' ? 'active' : ''}"></i>
+          </div>
+          <div class="home18-state-copy"><span>현재 시장 상태</span><strong>${esc(state.label)}</strong><small>${esc(state.desc)}</small></div>
+        </div>
         <p>${esc(summary || '주요 지수와 종목별 움직임을 확인해 주세요.')}</p>
         <div class="home16-summary-foot"><span class="${stale ? 'warn' : 'ok'}"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 갱신'}</div>
       </section>`;

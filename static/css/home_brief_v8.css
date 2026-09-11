@@ -136,6 +136,10 @@
 .home16-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#fff;color:#68727d;font-weight:850}
 .home16-logo img{position:relative;z-index:2;width:72%;height:72%;object-fit:contain}
 .home16-logo-fallback{position:absolute;z-index:1;font-size:12px;letter-spacing:-.04em}
+.home16-logo img+.home16-logo-fallback{display:none}
+.home16-logo img.logo-wide{width:86%;height:62%}
+.home16-logo img.logo-tall{width:58%;height:72%}
+.home16-logo img.logo-square{width:62%;height:62%}
 .home16-stock>strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3a4652;font-size:12px;font-weight:800}
 .home16-stock>small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;color:#9aa3ad;font-size:9px}
 .home16-stock>b{display:block;margin-top:3px;font-size:13px;font-variant-numeric:tabular-nums}
@@ -172,3 +176,14 @@
   .home16-stock>b{font-size:12px}
   .home16-caption{text-align:left}
 }
+
+
+/* HOME V18: local brand logos + traffic-light market state */
+.home18-state-card{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:12px 14px;border-radius:15px;background:#f7f9fa}
+.home18-summary-green .home18-state-card{background:#effaf3}.home18-summary-yellow .home18-state-card{background:#fff8e8}.home18-summary-red .home18-state-card{background:#fff0f1}
+.home18-traffic{display:flex;gap:5px;flex:0 0 auto;padding:7px 8px;border-radius:999px;background:#26313c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.home18-traffic i{display:block;width:11px;height:11px;border-radius:50%;opacity:.2}
+.home18-traffic i.red{background:#ff4d57}.home18-traffic i.yellow{background:#ffc43d}.home18-traffic i.green{background:#31c96b}
+.home18-traffic i.active{opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 9px rgba(0,0,0,.18)}
+.home18-state-copy{min-width:0}.home18-state-copy span{display:block;color:#8b95a1;font-size:9px;font-weight:800}.home18-state-copy strong{display:block;margin-top:1px;color:#202632;font-size:15px;font-weight:900;letter-spacing:-.03em}.home18-state-copy small{display:block;margin-top:2px;color:#8b95a1;font-size:9px;line-height:1.35}
+@media(max-width:720px){.home18-state-card{padding:11px 12px}.home18-state-copy strong{font-size:14px}}
