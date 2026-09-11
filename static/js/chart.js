@@ -6,14 +6,14 @@
 
 let chart = null;
 let series = {};
-let selectedTickers = ['AAPL', 'NVDA'];
+let selectedTickers = ['AAPL', 'NVDA', '005930.KS'];
 let currentPeriod = '1mo';
 let customDateRange = null;
 let chartRequestController = null;
 let chartLoadSeq = 0;
 
 // 티커 → 기업명 매핑 (검색/추가 시 저장)
-const tickerNameMap = {};
+const tickerNameMap = { '005930.KS': '삼성전자' };
 
 // 토스 색상 팔레트
 const COLORS = ['#3182F6', '#00C853', '#FF5252', '#FF9800', '#9C27B0', '#00BCD4'];

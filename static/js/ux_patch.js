@@ -28,8 +28,8 @@
   ensureScript('script[data-dense-valuation]', '/static/js/valuation_overview_v4.js?v=20260911v4', 'denseValuation');
   ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v4', 'uxV3');
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
-  ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260911v22', 'investmentToolsV22');
-  ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260911v22', 'investmentToolsV22');
+  ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260912v28', 'investmentToolsV22');
+  ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260912v28', 'investmentToolsV22');
   ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v26', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260911v6', 'bottomNavV6');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
@@ -206,8 +206,9 @@
       const toggle = document.createElement('button');
       toggle.className = 'ux-sector-toggle';
       toggle.type = 'button';
-      toggle.setAttribute('aria-expanded', 'true');
-      toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">접기 ↑</span>';
+      sector.classList.add('ux-collapsed');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.innerHTML = '<span>추천 종목</span><span class="ux-sector-arrow">펼치기 ↓</span>';
       sector.insertBefore(toggle, sector.firstChild);
       toggle.addEventListener('click', () => {
         const collapsed = sector.classList.toggle('ux-collapsed');

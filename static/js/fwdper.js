@@ -6,10 +6,10 @@
 let perData = [];
 let currentSort = 'default';
 let currentMetric = 'overview';
-let perTickers = ['AAPL', 'NVDA'];
+let perTickers = ['AAPL', 'NVDA', '005930.KS'];
 
 // 티커 -> 기업명 매핑
-const perTickerNameMap = {};
+const perTickerNameMap = { '005930.KS': '삼성전자' };
 let perRequestController = null;
 let perLoadSeq = 0;
 
