@@ -34,10 +34,21 @@
 
   function installHomeChromeObserver() {
     syncHomeChrome();
-    const bodyObserver = new MutationObserver(syncHomeChrome);
-    bodyObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    setTimeout(syncHomeChrome, 250);
-    setTimeout(syncHomeChrome, 1000);
+    const watched = new WeakSet();
+    const watchTargets = () => {
+      [
+        document.getElementById('home-tab'),
+        document.querySelector('.app-bottom-btn[data-app-mode="home"]'),
+      ].filter(Boolean).forEach((node) => {
+        if (watched.has(node)) return;
+        watched.add(node);
+        new MutationObserver(syncHomeChrome).observe(node, { attributes: true, attributeFilter: ['class'] });
+      });
+      syncHomeChrome();
+    };
+    watchTargets();
+    setTimeout(watchTargets, 250);
+    setTimeout(watchTargets, 1000);
   }
 
   function formatValue(item, row) {
