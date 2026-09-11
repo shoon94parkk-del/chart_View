@@ -31,7 +31,7 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -84,6 +84,7 @@ jobs:
           assert "const isSixCharCode = (text) => /^\\d{6}$/.test(text);" in ux
           assert '/static/js/ux_v3.js?v=20260911v4' in ux
           assert '/static/css/ux_v3.css?v=20260911v4' in ux
+          assert '/static/js/valuation_overview_v4.js?v=20260911v4' in ux
           assert "toggle.setAttribute('aria-expanded', 'true')" in ux
 
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
@@ -93,6 +94,11 @@ jobs:
           assert 'revealAllValuationMetrics' in app
           assert '상세 지표 더보기' not in app
           assert 'restoreScreenerControls' in app
+
+          dense=Path('static/js/valuation_overview_v4.js').read_text(encoding='utf-8')
+          for label in ('FWD PER','PER','PBR','PSR','EV/EBITDA','ROE(%)','영업이익률(%)','배당률(%)'):
+              assert label in dense, label
+          assert '핵심 밸류에이션 한눈에' in dense
 
           css=Path('static/css/ux_v3.css').read_text(encoding='utf-8')
           assert '.app-bottom-nav' in css and 'position: fixed' in css
