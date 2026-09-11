@@ -339,7 +339,7 @@ STOCK_DATABASE = [
 
 
 
-MARKET_NOW_TICKERS = ["^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
+MARKET_NOW_TICKERS = ["^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
 
 @app.get("/api/market-now")
 async def market_now():

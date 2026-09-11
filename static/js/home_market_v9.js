@@ -2,6 +2,8 @@
   'use strict';
 
   const MARKET_ITEMS = [
+    { symbol: '^KS11', label: 'KOSPI', kind: 'index' },
+    { symbol: '^KQ11', label: 'KOSDAQ', kind: 'index' },
     { symbol: '^GSPC', label: 'S&P 500', kind: 'index' },
     { symbol: '^IXIC', label: 'NASDAQ', kind: 'index' },
     { symbol: '^TNX', label: '미 10년물', kind: 'yield' },
