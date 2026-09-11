@@ -29,10 +29,14 @@
   ensureStyle('link[data-ux-v3]', '/static/css/ux_v3.css?v=20260911v4', 'uxV3');
   ensureScript('script[data-revision-radar]', '/static/js/revision_radar.js?v=20260911v3', 'revisionRadar');
   ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260911v4', 'uxV3');
+  ensureStyle('link[data-app-header-v5]', '/static/css/app_header_v5.css?v=20260911v5', 'appHeaderV5');
+  ensureScript('script[data-app-header-v5]', '/static/js/app_header_v5.js?v=20260911v5', 'appHeaderV5');
 
   const aliases = {
     '삼전': '삼성전자', '하닉': 'SK하이닉스', '삼바': '삼성바이오로직스',
-    '엘전': 'LG전자', '현차': '현대차', '네이버': 'NAVER'
+    '엘전': 'LG전자', '현차': '현대차', '네이버': 'NAVER', 'naver': 'NAVER',
+    'jyp': 'JYP Ent.', 'jypent': 'JYP Ent.', 'jyp ent': 'JYP Ent.',
+    'jyp entertainment': 'JYP Ent.'
   };
 
   let universePromise = null;
@@ -40,7 +44,7 @@
 
   const hasKorean = (text) => /[가-힣]/.test(text);
   const isSixCharCode = (text) => /^\d{6}$/.test(text);
-  const isTickerLike = (text) => /^[A-Z][A-Z0-9.^=-]{0,11}$/.test(text);
+  const isTickerLike = (text) => /^[A-Z][A-Z0-9.^=-]{0,11}$/.test(String(text || '').trim().toUpperCase());
 
   function loadUniverse() {
     if (!universePromise) {
@@ -243,13 +247,14 @@
       const raw = input.value.trim();
       if (!isTickerLike(raw) || wantsLocalSearch(raw)) return;
       event.stopImmediatePropagation();
+      const symbol = raw.toUpperCase();
       box.innerHTML = '';
       const item = document.createElement('div');
       item.className = 'search-result-item';
       item.innerHTML = '<span class="name">티커로 바로 추가</span><span class="symbol"></span>';
-      item.querySelector('.symbol').textContent = raw;
+      item.querySelector('.symbol').textContent = symbol;
       item.addEventListener('click', () => {
-        if (typeof window.selectSearchResult === 'function') window.selectSearchResult(raw, raw);
+        if (typeof window.selectSearchResult === 'function') window.selectSearchResult(symbol, symbol);
       });
       box.appendChild(item);
       box.classList.remove('hidden');
