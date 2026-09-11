@@ -1,5 +1,6 @@
 /* Bottom navigation v6: stronger selection visibility without reducing information density. */
 .app-bottom-nav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   border-top: 1px solid #dfe3e8;
@@ -7,9 +8,16 @@
   box-shadow: 0 -10px 30px rgba(15,23,42,.10);
 }
 
+.app-context-nav[data-app-context="market"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .app-bottom-btn {
   position: relative;
+  min-width: 0;
   min-height: 54px;
+  padding-left: 2px;
+  padding-right: 2px;
   border: 1px solid transparent;
   border-radius: 14px;
   color: #5f6b7a;
@@ -54,15 +62,21 @@
 
 @media (max-width: 720px) {
   .app-bottom-nav {
-    gap: 4px;
-    padding-left: 6px;
-    padding-right: 6px;
+    gap: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 
   .app-bottom-btn {
     min-height: 56px;
-    font-size: 11px;
+    font-size: 10.5px;
   }
 
-  .app-bottom-btn .app-bottom-icon { font-size: 21px; }
+  .app-bottom-btn .app-bottom-icon { font-size: 20px; }
+}
+
+@media (max-width: 380px) {
+  .app-bottom-nav { gap: 2px; padding-left: 3px; padding-right: 3px; }
+  .app-bottom-btn { font-size: 9.8px; border-radius: 11px; }
+  .app-bottom-btn .app-bottom-icon { font-size: 19px; }
 }
