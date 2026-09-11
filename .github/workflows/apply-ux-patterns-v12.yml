@@ -1,0 +1,41 @@
+name: Apply UX Patterns V12
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_ux_patterns_v12.py'
+      - '.github/workflows/apply-ux-patterns-v12.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply loader patch
+        run: python scripts/apply_ux_patterns_v12.py
+      - name: Validate sources
+        run: |
+          set -euo pipefail
+          node --check static/js/ux_patterns_v12.js
+          node --check static/js/ux_patch.js
+          grep -q 'ux_patterns_v12.css?v=20260911v12' static/js/ux_patch.js
+          grep -q 'ux_patterns_v12.js?v=20260911v12' static/js/ux_patch.js
+          grep -q 'ux12-screener-kpis' static/js/ux_patterns_v12.js
+          grep -q 'ux12-filter-sheet' static/js/ux_patterns_v12.js
+          grep -q 'DATA STATUS' static/js/ux_patterns_v12.js
+      - name: Commit loader
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js
+          if git diff --cached --quiet; then
+            echo 'loader already applied'
+          else
+            git commit -m 'feat: load UX patterns v12'
+            git push
+          fi
