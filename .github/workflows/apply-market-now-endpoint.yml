@@ -1,4 +1,4 @@
-name: Apply Market Now Endpoint
+name: Apply Home Market Korea Indices
 
 on:
   push:
@@ -14,27 +14,68 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use current intraday market snapshots
+      - name: Add KOSPI and KOSDAQ to home market
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          market_path = Path('market_service.py')
-          market = market_path.read_text(encoding='utf-8')
-          start = market.index('def fetch_quote_snapshot')
-          end = market.index('def fetch_history_series', start)
-          replacement = '''def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:\n    \"\"\"Current quote using today's intraday chart and the prior trading close.\"\"\"\n    symbol = symbol.strip().upper()\n    if not symbol:\n        return None\n    now = time.time()\n    with _cache_lock:\n        cached = _quote_cache.get(symbol)\n        if cached and now - cached[0] < 60:\n            return cached[1]\n\n    value = None\n    try:\n        # 5-minute bars give much fresher futures/FX/yield values than the 5-day daily meta.\n        result = _chart_result(symbol, period=\"1d\", interval=\"5m\")\n        meta = result.get(\"meta\", {})\n        closes = ((result.get(\"indicators\", {}).get(\"quote\") or [{}])[0].get(\"close\") or [])\n        good = [float(v) for v in closes if v is not None and float(v) > 0]\n        current = good[-1] if good else _positive(meta.get(\"regularMarketPrice\"))\n        previous = _positive(meta.get(\"chartPreviousClose\")) or _positive(meta.get(\"previousClose\"))\n\n        # Some symbols can have sparse intraday bars. Fall back to daily bars only as needed.\n        if current is None or previous is None:\n            daily = _chart_result(symbol, period=\"5d\", interval=\"1d\")\n            daily_meta = daily.get(\"meta\", {})\n            daily_closes = ((daily.get(\"indicators\", {}).get(\"quote\") or [{}])[0].get(\"close\") or [])\n            daily_good = [float(v) for v in daily_closes if v is not None and float(v) > 0]\n            if current is None:\n                current = _positive(daily_meta.get(\"regularMarketPrice\")) or (daily_good[-1] if daily_good else None)\n            if previous is None:\n                previous = (daily_good[-2] if len(daily_good) > 1 else None) or _positive(daily_meta.get(\"previousClose\")) or _positive(daily_meta.get(\"chartPreviousClose\"))\n            if not meta:\n                meta = daily_meta\n\n        if current is not None:\n            change = ((current - previous) / previous * 100) if previous else 0.0\n            detail = _local_detail_cache().get(symbol, {})\n            value = {\n                \"ticker\": symbol,\n                \"name\": _local_names().get(symbol) or meta.get(\"shortName\") or meta.get(\"longName\") or detail.get(\"shortName\") or symbol,\n                \"price\": round(float(current), 4),\n                \"change\": round(float(change), 2),\n                \"marketCap\": _number(detail.get(\"marketCap\")),\n                \"currency\": meta.get(\"currency\") or detail.get(\"currency\"),\n                \"source\": \"Yahoo Chart 5m\",\n            }\n    except Exception as exc:\n        print(f\"[MarketData] quote failed {symbol}: {exc}\")\n        value = None\n\n    with _cache_lock:\n        _quote_cache[symbol] = (now, value)\n    return value\n\n\n'''
-          market = market[:start] + replacement + market[end:]
-          market_path.write_text(market, encoding='utf-8')
+          def replace(path, old, new, count=0):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  if new in text:
+                      return False
+                  raise SystemExit(f'pattern not found in {path}: {old[:100]}')
+              text = text.replace(old, new, count) if count else text.replace(old, new)
+              p.write_text(text, encoding='utf-8')
+              return True
+
+          replace(
+              'main.py',
+              'MARKET_NOW_TICKERS = ["^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]',
+              'MARKET_NOW_TICKERS = ["^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]'
+          )
+
+          replace(
+              'static/js/home_market_v9.js',
+              """  const MARKET_ITEMS = [\n    { symbol: '^GSPC', label: 'S&P 500', kind: 'index' },\n    { symbol: '^IXIC', label: 'NASDAQ', kind: 'index' },\n    { symbol: '^TNX', label: '미 10년물', kind: 'yield' },\n    { symbol: '^VIX', label: 'VIX', kind: 'vix' },\n    { symbol: 'CL=F', label: 'WTI 유가', kind: 'oil' },\n    { symbol: 'KRW=X', label: '원/달러', kind: 'fx' },\n  ];""",
+              """  const MARKET_ITEMS = [\n    { symbol: '^KS11', label: 'KOSPI', kind: 'index' },\n    { symbol: '^KQ11', label: 'KOSDAQ', kind: 'index' },\n    { symbol: '^GSPC', label: 'S&P 500', kind: 'index' },\n    { symbol: '^IXIC', label: 'NASDAQ', kind: 'index' },\n    { symbol: '^TNX', label: '미 10년물', kind: 'yield' },\n    { symbol: '^VIX', label: 'VIX', kind: 'vix' },\n    { symbol: 'CL=F', label: 'WTI 유가', kind: 'oil' },\n    { symbol: 'KRW=X', label: '원/달러', kind: 'fx' },\n  ];"""
+          )
+
+          replace('static/css/home_market_v9.css', 'grid-template-columns: repeat(6, minmax(0, 1fr));', 'grid-template-columns: repeat(4, minmax(0, 1fr));', 1)
+          replace('static/css/home_market_v9.css', 'grid-template-columns: repeat(3, minmax(0, 1fr));', 'grid-template-columns: repeat(2, minmax(0, 1fr));', 1)
+
+          replace('static/js/ux_patch.js', '/static/css/home_market_v9.css?v=20260911v9', '/static/css/home_market_v9.css?v=20260911v10')
+          replace('static/js/ux_patch.js', '/static/js/home_market_v9.js?v=20260911v9', '/static/js/home_market_v9.js?v=20260911v10')
+
+          replace(
+              '.github/workflows/app-check.yml',
+              "for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):",
+              "for symbol in ('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):"
+          )
+          replace(
+              '.github/workflows/app-check.yml',
+              "for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','직전 종가 대비'):",
+              "for label in ('오늘의 시장','KOSPI','KOSDAQ','미 10년물','WTI 유가','원/달러','직전 종가 대비'):"
+          )
+          replace('.github/workflows/app-check.yml', '/static/js/home_market_v9.js?v=20260911v9', '/static/js/home_market_v9.js?v=20260911v10')
+          replace('.github/workflows/app-check.yml', '/static/css/home_market_v9.css?v=20260911v9', '/static/css/home_market_v9.css?v=20260911v10')
+
+          smoke = Path('.github/workflows/phase3-live-smoke.yml')
+          text = smoke.read_text(encoding='utf-8')
+          text = text.replace('?v=20260911v9', '?v=20260911v10')
+          text = text.replace("required=('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')", "required=('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')")
+          text = text.replace("grep -q '오늘의 시장' /tmp/home_market.js", "grep -q '오늘의 시장' /tmp/home_market.js\n          grep -q 'KOSPI' /tmp/home_market.js\n          grep -q 'KOSDAQ' /tmp/home_market.js")
+          smoke.write_text(text, encoding='utf-8')
           PY
       - name: Commit patch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add market_service.py
+          git add main.py static/js/home_market_v9.js static/css/home_market_v9.css static/js/ux_patch.js .github/workflows/app-check.yml .github/workflows/phase3-live-smoke.yml
           if git diff --cached --quiet; then
             echo 'No patch needed'
           else
-            git commit -m 'fix: use intraday bars for current market snapshots'
+            git commit -m 'feat: add KOSPI and KOSDAQ to home market'
             git push
           fi
