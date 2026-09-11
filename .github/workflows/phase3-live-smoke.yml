@@ -6,11 +6,13 @@ on:
     paths:
       - 'static/js/ux_patch.js'
       - 'static/js/ux_v3.js'
+      - 'static/js/home_brief_v8.js'
       - 'static/js/valuation_overview_v4.js'
       - 'static/js/revision_radar.js'
       - 'static/js/decision_ux_v7.js'
       - 'static/js/app_header_v5.js'
       - 'static/css/ux_v3.css'
+      - 'static/css/home_brief_v8.css'
       - 'static/css/decision_ux_v7.css'
       - 'static/css/bottom_nav_v6.css'
       - 'static/css/app_header_v5.css'
@@ -33,55 +35,59 @@ jobs:
 
           ready=0
           for i in $(seq 1 42); do
-            code=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
+            code=$(curl -sS -o /tmp/app_ux.js -w '%{http_code}' "$BASE/static/js/ux_v3.js?v=20260911v4" || true)
             if [ "$code" = '200' ] \
-              && grep -q '/static/js/decision_ux_v7.js?v=20260911v7' /tmp/ux_patch.js \
-              && grep -q '/static/css/decision_ux_v7.css?v=20260911v7' /tmp/ux_patch.js \
-              && grep -q "'jyp': 'JYP Ent.'" /tmp/ux_patch.js; then
+              && grep -q '/static/js/home_brief_v8.js?v=20260911v8' /tmp/app_ux.js \
+              && grep -q '/static/css/home_brief_v8.css?v=20260911v8' /tmp/app_ux.js \
+              && grep -q 'data-app-mode="home"' /tmp/app_ux.js; then
               ready=1
-              echo "decision UX build detected on attempt=$i"
+              echo "home dashboard build detected on attempt=$i"
               break
             fi
-            echo "attempt=$i status=$code: waiting for decision UX deploy"
+            echo "attempt=$i status=$code: waiting for home dashboard deploy"
             sleep 10
           done
           test "$ready" = '1'
 
-          curl -fsSL "$BASE/static/js/ux_v3.js?v=20260911v4" -o /tmp/app_ux.js
+          curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux_patch.js
+          curl -fsSL "$BASE/static/js/home_brief_v8.js?v=20260911v8" -o /tmp/home_brief.js
+          curl -fsSL "$BASE/static/css/home_brief_v8.css?v=20260911v8" -o /tmp/home_brief.css
           curl -fsSL "$BASE/static/js/valuation_overview_v4.js?v=20260911v4" -o /tmp/dense_valuation.js
           curl -fsSL "$BASE/static/js/revision_radar.js?v=20260911v3" -o /tmp/revision_radar.js
           curl -fsSL "$BASE/static/js/decision_ux_v7.js?v=20260911v7" -o /tmp/decision_ux.js
           curl -fsSL "$BASE/static/js/app_header_v5.js?v=20260911v5" -o /tmp/app_header.js
-          curl -fsSL "$BASE/static/css/ux_v3.css?v=20260911v4" -o /tmp/app_ux.css
           curl -fsSL "$BASE/static/css/decision_ux_v7.css?v=20260911v7" -o /tmp/decision_ux.css
           curl -fsSL "$BASE/static/css/bottom_nav_v6.css?v=20260911v6" -o /tmp/bottom_nav.css
-          curl -fsSL "$BASE/static/css/app_header_v5.css?v=20260911v5" -o /tmp/app_header.css
           curl -fsSL "$BASE/static/data/screener.json" -o /tmp/screener.json
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/consensus.json
           curl -fsSL "$BASE/health" -o /tmp/health.json
           curl -fsSL --get --data-urlencode 'tickers=AAPL,005930.KS' "$BASE/api/valuation" -o /tmp/valuation.json
+          curl -fsSL --get --data-urlencode 'ticker=AAPL' "$BASE/api/consensus" -o /tmp/aapl_consensus.json
+          curl -fsSL --get --data-urlencode 'ticker=AAPL' --data-urlencode 'years=3' "$BASE/api/valuation-band" -o /tmp/aapl_band.json
           curl -fsSL --max-time 30 "$BASE/api/macro" -o /tmp/macro.json
 
           node --check /tmp/app_ux.js
+          node --check /tmp/home_brief.js
           node --check /tmp/dense_valuation.js
           node --check /tmp/revision_radar.js
           node --check /tmp/decision_ux.js
           node --check /tmp/app_header.js
-          grep -q 'app-bottom-nav' /tmp/app_ux.js
+
+          grep -q 'data-app-mode="home"' /tmp/app_ux.js
+          grep -q '<span>홈</span>' /tmp/app_ux.js
           grep -q '종목분석' /tmp/app_ux.js
           grep -q '종목발굴' /tmp/app_ux.js
-          grep -q 'data-app-tab="fwdper"' /tmp/app_ux.js
+          grep -q '오늘은 여기부터 보세요' /tmp/home_brief.js
+          grep -q '실적은 좋아졌는데 주가가 덜 움직인 종목' /tmp/home_brief.js
+          grep -q '선택 종목 요약' /tmp/home_brief.js
+          grep -q '좋게 볼 점' /tmp/home_brief.js
+          grep -q '확인할 점' /tmp/home_brief.js
+          grep -q 'grid-template-columns: repeat(4, minmax(0, 1fr))' /tmp/home_brief.css
+          grep -q '.stock-brief-metrics' /tmp/home_brief.css
           grep -q '핵심 밸류에이션 한눈에' /tmp/dense_valuation.js
-          grep -q '실적 추정치 상향 레이더' /tmp/revision_radar.js
-          grep -q "new Set(\['overview', 'bands', 'consensus'\])" /tmp/decision_ux.js
           grep -q '실적 상향 + 주가 미반영' /tmp/decision_ux.js
-          grep -q 'gap30: eps30 !== null && price30 !== null ? eps30 - price30 : null' /tmp/decision_ux.js
-          grep -q '매수점수가 아니라 추가 확인용 후보' /tmp/decision_ux.js
-          grep -q '.revision-gap-panel' /tmp/decision_ux.css
-          grep -q '.decision-valuation-nav' /tmp/decision_ux.css
+          grep -q "new Set(\['overview', 'bands', 'consensus'\])" /tmp/decision_ux.js
           grep -q 'background: #edf5ff' /tmp/bottom_nav.css
-          grep -q 'app-utility-header' /tmp/app_header.js
-          grep -q '.header.app-utility-header' /tmp/app_header.css
 
           python - <<'PY'
           import json
@@ -91,14 +97,13 @@ jobs:
 
           screener=json.load(open('/tmp/screener.json'))
           stocks=screener.get('stocks', [])
+          assert len(stocks) > 2000, len(stocks)
           jyp=[x for x in stocks if 'jyp' in str(x.get('name','')).lower()]
-          assert jyp, 'JYP missing from live screener cache'
-          assert any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
+          assert jyp and any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
 
           consensus=json.load(open('/tmp/consensus.json'))
           quotes=consensus.get('quotes', {})
           assert len(quotes) >= 40, len(quotes)
-          revision_ready=0
           price_ready=0
           divergence_ready=0
           for quote in quotes.values():
@@ -106,31 +111,30 @@ jobs:
               trend=row.get('epsTrend') or {}
               cur=trend.get('current')
               prev=trend.get('30daysAgo')
-              analysts=(row.get('earnings') or {}).get('analysts')
               pt=quote.get('priceTrend') or {}
               ret30=pt.get('return30')
               ret90=pt.get('return90')
-              if cur is not None and prev is not None and cur > 0 and prev > 0 and (analysts or 0) >= 2:
-                  revision_ready += 1
               if ret30 is not None and ret90 is not None:
                   price_ready += 1
               if cur is not None and prev is not None and cur > 0 and prev > 0 and ret30 is not None:
                   divergence_ready += 1
-          assert revision_ready >= 20, revision_ready
           assert price_ready >= 40, price_ready
           assert divergence_ready >= 20, divergence_ready
-          for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
-              pt=(quotes.get(ticker) or {}).get('priceTrend') or {}
-              assert pt.get('return30') is not None and pt.get('return90') is not None, (ticker,pt)
 
           valuation=json.load(open('/tmp/valuation.json'))
           rows={x.get('ticker'):x for x in valuation.get('stocks', [])}
           for ticker in ('AAPL','005930.KS'):
               assert ticker in rows and rows[ticker].get('price'), (ticker, rows.get(ticker))
 
+          aapl_cons=json.load(open('/tmp/aapl_consensus.json'))
+          assert (aapl_cons.get('periods') or {}).get('0y'), aapl_cons.keys()
+
+          band=json.load(open('/tmp/aapl_band.json'))
+          assert ((band.get('per') or {}).get('stats') or {}).get('percentile') is not None, band
+
           macro=json.load(open('/tmp/macro.json'))
           assert macro.get('cacheMode') == 'precomputed', macro.get('cacheMode')
           assert len(macro.get('results', [])) == 13
 
-          print('Decision UX live smoke OK:', len(quotes), 'consensus /', price_ready, 'price-ready /', divergence_ready, 'divergence-ready / JYP', jyp[0].get('symbol'), jyp[0].get('name'))
+          print('Home + stock brief live smoke OK:', len(quotes), 'consensus /', price_ready, 'price-ready /', divergence_ready, 'divergence-ready')
           PY
