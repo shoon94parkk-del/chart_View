@@ -33,7 +33,6 @@
   }
 
   function installHomeChromeObserver() {
-    // Mobile stability: navigation click handlers already keep this state in sync.
     syncHomeChrome();
     setTimeout(syncHomeChrome, 300);
     setTimeout(syncHomeChrome, 1200);
@@ -197,7 +196,9 @@
         startRefreshLoop();
         return;
       }
-      if (attempt < 10) setTimeout(() => tryInit(attempt + 1), 300);
+      // On slow mobile/Render cold starts, the Home module can arrive several seconds later.
+      // Keep this lightweight retry alive for up to about a minute instead of giving up at 3s.
+      if (attempt < 120) setTimeout(() => tryInit(attempt + 1), 500);
     };
     tryInit();
 
