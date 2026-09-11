@@ -1,0 +1,44 @@
+name: Apply Compact Market Cache V21
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_compact_market_cache_v21.py'
+      - '.github/workflows/apply-compact-market-cache-v21.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply compact cached market UI
+        run: python scripts/apply_compact_market_cache_v21.py
+      - name: Validate
+        run: |
+          python -m py_compile main.py scripts/apply_compact_market_cache_v21.py
+          node --check static/js/home_market_v9.js
+          node --check static/js/ux_patch.js
+          grep -q 'stale-while-revalidate' main.py
+          grep -q 'chartview-market-now-v21' static/js/home_market_v9.js
+          grep -q 'HOME MARKET V21' static/css/home_market_v9.css
+          grep -q 'home_market_v9.js?v=20260911v21' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260911v21' templates/index.html
+      - name: Commit generated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add main.py static/js/home_market_v9.js static/css/home_market_v9.css static/js/ux_patch.js templates/index.html
+          if git diff --cached --quiet; then
+            echo 'V21 already applied'
+          else
+            git commit -m 'feat: compact and cache market-now panel'
+            git push
+          fi
