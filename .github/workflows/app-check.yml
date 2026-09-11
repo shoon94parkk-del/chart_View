@@ -31,7 +31,7 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js; do
+          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js; do
             echo "checking $f"
             node --check "$f"
           done
@@ -58,22 +58,36 @@ jobs:
           cquotes=consensus.get('quotes', {})
           assert len(cquotes) >= 40, len(cquotes)
           valid_revision=0
+          price_ready=0
+          divergence_ready=0
           for quote in cquotes.values():
               row=(quote.get('periods') or {}).get('0y') or {}
               trend=row.get('epsTrend') or {}
               current=trend.get('current')
               ago=trend.get('30daysAgo')
               analysts=(row.get('earnings') or {}).get('analysts')
+              pt=quote.get('priceTrend') or {}
+              ret30=pt.get('return30')
+              ret90=pt.get('return90')
               if current is not None and ago not in (None, 0) and analysts is not None:
                   valid_revision += 1
+              if ret30 is not None and ret90 is not None:
+                  price_ready += 1
+              if current is not None and ago not in (None,0) and current > 0 and ago > 0 and ret30 is not None:
+                  divergence_ready += 1
           assert valid_revision >= 20, valid_revision
+          assert price_ready >= 40, price_ready
+          assert divergence_ready >= 20, divergence_ready
+          for ticker in ('AAPL','NVDA','005930.KS','000660.KS'):
+              pt=(cquotes.get(ticker) or {}).get('priceTrend') or {}
+              assert pt.get('return30') is not None and pt.get('return90') is not None, (ticker,pt)
 
           macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
           rows=macro.get('results', [])
           assert len(rows) == 13, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
           assert all('delta' in x for x in rows), 'macro delta missing'
-          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision-ready / JYP', jyp[0].get('symbol'))
+          print('cache checks OK:', len(cquotes), 'consensus /', valid_revision, 'revision /', price_ready, 'price /', divergence_ready, 'divergence / JYP', jyp[0].get('symbol'))
           PY
       - name: App UX and data invariants
         run: |
@@ -90,9 +104,25 @@ jobs:
           assert '/static/js/ux_v3.js?v=20260911v4' in ux
           assert '/static/css/ux_v3.css?v=20260911v4' in ux
           assert '/static/js/valuation_overview_v4.js?v=20260911v4' in ux
+          assert '/static/css/bottom_nav_v6.css?v=20260911v6' in ux
+          assert '/static/js/decision_ux_v7.js?v=20260911v7' in ux
+          assert '/static/css/decision_ux_v7.css?v=20260911v7' in ux
           assert '/static/js/app_header_v5.js?v=20260911v5' in ux
           assert '/static/css/app_header_v5.css?v=20260911v5' in ux
           assert "toggle.setAttribute('aria-expanded', 'true')" in ux
+
+          decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
+          assert "new Set(['overview', 'bands', 'consensus'])" in decision
+          for removed in ('fwd_per','trailing_pe','pbr','psr','ev','dividend','profitability'):
+              assert removed not in "new Set(['overview', 'bands', 'consensus'])", removed
+          assert '실적·괴리' in decision
+          assert '실적 상향 + 주가 미반영' in decision
+          assert 'gap30: eps30 !== null && price30 !== null ? eps30 - price30 : null' in decision
+          assert '매수점수가 아니라 추가 확인용 후보' in decision
+
+          decision_css=Path('static/css/decision_ux_v7.css').read_text(encoding='utf-8')
+          assert 'grid-template-columns: repeat(3, minmax(0, 1fr))' in decision_css
+          assert '.revision-gap-panel' in decision_css and '.revision-gap-highlight' in decision_css
 
           header=Path('static/js/app_header_v5.js').read_text(encoding='utf-8')
           assert 'app-utility-header' in header and 'app-selection-status' in header
