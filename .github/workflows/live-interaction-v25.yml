@@ -23,7 +23,7 @@ jobs:
       - name: Test live mobile interactions
         shell: bash
         run: |
-          cat > /tmp/live-ui.cjs <<'JS'
+          cat > live-ui.cjs <<'JS'
           const { chromium } = require('playwright');
           const assert = require('assert');
           (async() => {
@@ -55,7 +55,6 @@ jobs:
               console.log(label, 'heartbeat OK');
             }
 
-            // 1) market more toggle must be a pure UI interaction.
             const more = page.locator('[data-home23-market-toggle]');
             await more.waitFor({state:'visible',timeout:15000});
             await more.tap({timeout:5000});
@@ -68,7 +67,6 @@ jobs:
             await heartbeat('market-collapse');
             console.log('market toggle OK');
 
-            // 2) major stock must navigate to analysis.
             const stock = page.locator('.home16-stock').first();
             await stock.tap({timeout:5000});
             await page.waitForTimeout(250);
@@ -76,7 +74,6 @@ jobs:
             await heartbeat('stock-analysis');
             console.log('major stock tap OK');
 
-            // 3) return Home.
             const home = page.locator('.app-bottom-btn[data-app-mode="home"]');
             await home.tap({timeout:5000});
             await page.waitForTimeout(250);
@@ -84,7 +81,6 @@ jobs:
             await heartbeat('home-return');
             console.log('home nav OK');
 
-            // 4) Tools nav must show the tools tab.
             const tools = page.locator('.app-bottom-btn[data-app-mode="tools"]');
             await tools.tap({timeout:5000});
             await page.waitForTimeout(250);
@@ -95,7 +91,6 @@ jobs:
             await heartbeat('tools-open');
             console.log('tools nav OK');
 
-            // 5) External tool card must be a usable link that opens a new tab.
             const finviz = page.locator('a.investment-tool-card', {hasText:'Finviz'}).first();
             assert.equal(await finviz.getAttribute('target'), '_blank', 'Finviz does not target a new tab');
             assert((await finviz.getAttribute('href')).startsWith('https://finviz.com'), 'Finviz href is wrong');
@@ -114,4 +109,4 @@ jobs:
             await browser.close();
           })().catch(err => { console.error(err); process.exit(1); });
           JS
-          node /tmp/live-ui.cjs
+          node live-ui.cjs
