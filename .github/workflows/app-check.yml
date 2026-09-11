@@ -76,13 +76,13 @@ jobs:
           assert '@app.get("/api/market-now")' in main
           assert 'MARKET_NOW_TICKERS' in main
           assert '"basis": "previous_close"' in main
-          for symbol in ('^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
+          for symbol in ('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
               assert symbol in main, symbol
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "'jyp': 'JYP Ent.'" in ux
-          assert '/static/js/home_market_v9.js?v=20260911v9' in ux
-          assert '/static/css/home_market_v9.css?v=20260911v9' in ux
+          assert '/static/js/home_market_v9.js?v=20260911v10' in ux
+          assert '/static/css/home_market_v9.css?v=20260911v10' in ux
 
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
           assert 'data-app-mode="home"' in app and '종목분석' in app and '종목발굴' in app and '시장' in app
@@ -92,7 +92,7 @@ jobs:
               assert text in home, text
 
           market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
-          for label in ('오늘의 시장','미 10년물','WTI 유가','원/달러','직전 종가 대비'):
+          for label in ('오늘의 시장','KOSPI','KOSDAQ','미 10년물','WTI 유가','원/달러','직전 종가 대비'):
               assert label in market_home, label
           assert "fetch('/api/market-now'" in market_home
           assert "row?.change" in market_home
@@ -106,6 +106,8 @@ jobs:
           assert 'text-align: center' in market_css
           assert 'justify-content: center' in market_css
           assert 'cursor: default' in market_css
+          assert 'grid-template-columns: repeat(4, minmax(0, 1fr))' in market_css
+          assert 'grid-template-columns: repeat(2, minmax(0, 1fr))' in market_css
 
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
@@ -113,5 +115,5 @@ jobs:
 
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
-          print('app UX invariants OK: centered home + previous-close market strip')
+          print('app UX invariants OK: Korea + global home market strip')
           PY
