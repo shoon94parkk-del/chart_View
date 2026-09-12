@@ -70,6 +70,7 @@ jobs:
                 sectorCollapsed: document.querySelector('.sector-section')?.classList.contains('ux-collapsed')
               };
             });
+            console.log('::notice title=V34 Phase2 Metrics::' + JSON.stringify(metrics));
 
             assert.deepEqual(metrics.viewport, { width: 384, height: 824 }, 'viewport');
             assert(metrics.scrollWidth <= 384, 'no horizontal overflow');
@@ -101,6 +102,7 @@ jobs:
             console.log('V34_PHASE2_SAMSUNG_PASS');
             await browser.close();
           })().catch(error => {
+            console.log('::error title=V34 Phase2 Failure::' + String(error.stack || error).replaceAll('\n', '%0A'));
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### V34 Phase 2 Samsung FAIL\n\n${String(error.stack || error)}\n`);
             console.error(error);
             process.exit(1);
