@@ -7,7 +7,7 @@ def test_v392_asset_is_loaded_and_versioned():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/ui_polish_v39_2.css?v=20260913v392" in boot
     assert "data-ui-polish-v392" in boot
-    assert "home.dataset.uiVersion = 'v39.2'" in boot
+    assert "home.dataset.uiVersion = 'v39.3'" in boot
     assert "home.dataset.visualPatch = 'v39.1'" in boot
 
 
