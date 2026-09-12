@@ -1,0 +1,116 @@
+name: V34 Phase 2 Mobile Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v34-phase2-mobile-smoke.yml'
+
+jobs:
+  samsung-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install app
+        run: pip install -r requirements.txt
+      - name: Start app
+        run: |
+          uvicorn main:app --host 127.0.0.1 --port 8000 > /tmp/chartview.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:8000/ >/dev/null && exit 0; sleep 2; done
+          cat /tmp/chartview.log
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --silent
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Verify compact summary at 384x824
+        run: |
+          cat > v34-phase2-smoke.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const assert = require('assert');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              viewport: { width: 384, height: 824 },
+              isMobile: true,
+              hasTouch: true,
+              userAgent: 'Mozilla/5.0 (Linux; Android 14; SAMSUNG SM-T735N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'
+            });
+            const page = await context.newPage();
+            const pageErrors = [];
+            page.on('pageerror', error => pageErrors.push(String(error)));
+            const response = await page.goto('http://127.0.0.1:8000/?v34_phase2_smoke=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
+            assert(response && response.status() === 200, 'root HTTP 200');
+            await page.waitForSelector('.app-bottom-nav', { timeout: 30000 });
+            await page.locator('.app-bottom-btn[data-app-mode="analysis"]').tap();
+            await page.waitForSelector('.stock-brief-v34', { state: 'visible', timeout: 30000 });
+            await page.waitForFunction(() => !document.querySelector('.stock-brief-loading'), null, { timeout: 60000 });
+
+            const metrics = await page.evaluate(() => {
+              const rect = selector => {
+                const node = document.querySelector(selector);
+                if (!node) return null;
+                const r = node.getBoundingClientRect();
+                return { top: Math.round(r.top), height: Math.round(r.height) };
+              };
+              const nav = [...document.querySelectorAll('.app-bottom-btn')];
+              const tabs = [...document.querySelectorAll('.app-context-nav[data-app-context="analysis"] .app-context-btn')];
+              return {
+                viewport: { width: innerWidth, height: innerHeight },
+                scrollWidth: document.documentElement.scrollWidth,
+                summary: rect('.stock-brief-v34'),
+                date: rect('.date-section'),
+                chartTop: rect('#chart-container')?.top,
+                navCount: nav.length,
+                navRows: [...new Set(nav.map(n => Math.round(n.getBoundingClientRect().top)))].length,
+                tabCount: tabs.length,
+                tabRows: [...new Set(tabs.map(n => Math.round(n.getBoundingClientRect().top)))].length,
+                summaryText: document.querySelector('.stock-brief-v34')?.innerText || '',
+                price: document.querySelector('.stock-brief-identity > b')?.textContent?.trim() || '',
+                dateDisplay: getComputedStyle(document.querySelector('#custom-date-fields')).display,
+                sectorCollapsed: document.querySelector('.sector-section')?.classList.contains('ux-collapsed')
+              };
+            });
+
+            assert.deepEqual(metrics.viewport, { width: 384, height: 824 }, 'viewport');
+            assert(metrics.scrollWidth <= 384, 'no horizontal overflow');
+            assert.equal(metrics.navCount, 5, 'five bottom tabs');
+            assert.equal(metrics.navRows, 1, 'bottom tabs one row');
+            assert.equal(metrics.tabCount, 3, 'three analysis tabs');
+            assert.equal(metrics.tabRows, 1, 'analysis tabs one row');
+            assert(metrics.summary.top < metrics.date.top, 'summary before period controls');
+            assert(metrics.summary.height <= 180, 'compact summary height');
+            assert(metrics.chartTop <= 680, 'chart begins in first mobile viewport');
+            assert(metrics.summaryText.includes('1달 수익률'), 'explicit one-month label');
+            assert(metrics.summaryText.includes('FWD PER'), 'forward PER');
+            assert(metrics.summaryText.includes('EPS 컨센서스 · 30일'), 'consensus signal');
+            assert(metrics.price && metrics.price !== '-', 'current price');
+            assert.equal(metrics.dateDisplay, 'none', 'custom dates hidden');
+            assert(metrics.sectorCollapsed, 'recommendations collapsed');
+
+            const star = page.locator('[data-brief-watch]');
+            const before = await star.getAttribute('aria-label');
+            await star.tap();
+            const after = await star.getAttribute('aria-label');
+            assert.notEqual(before, after, 'summary watchlist toggles');
+            assert(await page.evaluate(() => Boolean(localStorage.getItem('chartview-watchlist-v1'))), 'watchlist key unchanged');
+            await star.tap();
+
+            assert.equal(pageErrors.length, 0, 'page errors: ' + pageErrors.join(' | '));
+            console.log('V34_PHASE2_METRICS', JSON.stringify(metrics));
+            console.log('V34_PHASE2_SAMSUNG_PASS');
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          JS
+          node v34-phase2-smoke.cjs
