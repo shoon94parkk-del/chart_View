@@ -22,19 +22,19 @@
     }
   }
 
-  function ensureV37Assets() {
-    if (!document.querySelector('link[data-personalized-news-v37]')) {
+  function ensureV38Assets() {
+    if (!document.querySelector('link[data-personalized-news-v38]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = '/static/css/personalized_news_v37.css?v=20260912v37';
-      link.dataset.personalizedNewsV37 = '1';
+      link.href = '/static/css/personalized_news_v38.css?v=20260913v38';
+      link.dataset.personalizedNewsV38 = '1';
       document.head.appendChild(link);
     }
-    if (!document.querySelector('script[data-personalized-news-v37]')) {
+    if (!document.querySelector('script[data-personalized-news-v38]')) {
       const script = document.createElement('script');
-      script.src = '/static/js/personalized_news_v37.js?v=20260912v37';
+      script.src = '/static/js/personalized_news_v38.js?v=20260913v38';
       script.async = false;
-      script.dataset.personalizedNewsV37 = '1';
+      script.dataset.personalizedNewsV38 = '1';
       document.head.appendChild(script);
     }
   }
@@ -58,12 +58,7 @@
     const news = document.getElementById('home-personal-news-v37');
     const status = document.getElementById('ux12-data-status');
 
-    // V37 canonical Home order:
-    // 1) 시장 현황 -> 2) 내 관심종목 -> 3) 관심종목 주요 뉴스
-    // -> 4) 전체 시장/주요 종목 -> 5) 데이터 상태.
-    if (market && home.firstElementChild !== market) {
-      home.insertBefore(market, home.firstElementChild);
-    }
+    if (market && home.firstElementChild !== market) home.insertBefore(market, home.firstElementChild);
 
     let anchor = market || null;
     if (watchlist) {
@@ -91,6 +86,7 @@
     }
 
     home.dataset.homeOrder = 'market-watchlist-news-body-status';
+    home.dataset.newsVersion = 'v38';
     return Boolean(market && body);
   }
 
@@ -106,7 +102,7 @@
 
   function ensureWatchlist(attempt = 0) {
     ensureV36Assets();
-    ensureV37Assets();
+    ensureV38Assets();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
@@ -128,7 +124,7 @@
 
   function restartSoon() {
     ensureV36Assets();
-    ensureV37Assets();
+    ensureV38Assets();
     setTimeout(() => ensureWatchlist(0), 50);
     setTimeout(enforceHomeOrder, 300);
     setTimeout(enforceHomeOrder, 1200);
@@ -139,9 +135,6 @@
     if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon();
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', restartSoon, { once: true });
-  } else {
-    restartSoon();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restartSoon, { once: true });
+  else restartSoon();
 })();

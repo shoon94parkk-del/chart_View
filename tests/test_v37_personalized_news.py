@@ -36,17 +36,26 @@ def test_v37_dedupe_prefers_higher_scored_duplicate():
     assert [row["url"] for row in deduped] == ["https://example.com/b", "https://example.com/c"]
 
 
-def test_v37_frontend_assets_and_home_order_are_wired():
+def test_v38_frontend_assets_and_home_order_are_wired():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
-    frontend = (ROOT / "static/js/personalized_news_v37.js").read_text(encoding="utf-8")
+    frontend = (ROOT / "static/js/personalized_news_v38.js").read_text(encoding="utf-8")
+    css = (ROOT / "static/css/personalized_news_v38.css").read_text(encoding="utf-8")
     backend = (ROOT / "news_service_v37.py").read_text(encoding="utf-8")
     main = (ROOT / "main.py").read_text(encoding="utf-8")
 
-    assert "/static/js/personalized_news_v37.js?v=20260912v37" in boot
-    assert "/static/css/personalized_news_v37.css?v=20260912v37" in boot
+    assert "/static/js/personalized_news_v38.js?v=20260913v38" in boot
+    assert "/static/css/personalized_news_v38.css?v=20260913v38" in boot
     assert "market-watchlist-news-body-status" in boot
+    assert "home.dataset.newsVersion = 'v38'" in boot
     assert "home-personal-news-v37" in frontend
-    assert "기사 제목·출처·게시시각만 표시" in frontend
+    assert "Impact Score" in frontend
+    assert "왜 중요?" in frontend
+    assert "차트에서 보기" in frontend
+    assert "window.__openStockDetail" in frontend
+    assert "period=5d" in frontend
+    assert "@media(max-width:720px)" in css
+    assert "@media(max-width:390px)" in css
+    assert "min-height:44px" in css
     assert "app.include_router(news_router_v37)" in main
     assert "description" not in backend.split("items.append({", 1)[1].split("})", 1)[0]
     assert '"image"' not in backend
