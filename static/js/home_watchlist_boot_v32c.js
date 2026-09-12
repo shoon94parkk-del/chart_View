@@ -107,7 +107,8 @@
 
     home.dataset.homeOrder = 'market-watchlist-news-body-status';
     home.dataset.newsVersion = 'v38';
-    home.dataset.visualVersion = 'v39.1';
+    home.dataset.visualVersion = 'v39';
+    home.dataset.visualPatch = 'v39.1';
     return Boolean(market && body);
   }
 
