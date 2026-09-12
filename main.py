@@ -3,7 +3,7 @@
 FastAPI 서버 (토스 가이드라인 준수)
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -18,6 +18,7 @@ import base64
 import asyncio
 import os
 import threading
+import re
 from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
 from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
@@ -69,7 +70,8 @@ templates = Jinja2Templates(directory="templates")
 @app.get("/health")
 async def health_check():
     """Health check 엔드포인트"""
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    return {"status": "ok", "timestamp": datetime.now().isoformat(),
+            "revision": os.environ.get("RENDER_GIT_COMMIT", "local")}
 
 def self_ping_worker():
     """14분마다 자기 서버에 Ping 전송 (Render 슬립 방지)"""
@@ -193,7 +195,7 @@ def load_krx_stock_list():
 
 
 @app.get("/api/search")
-async def search_stocks(q: str):
+def search_stocks(q: str = Query(max_length=100)):
     """Unified fast search: local KRX universe + local aliases, no yfinance.info."""
     query = (q or "").strip()
     if not query:
@@ -231,11 +233,11 @@ async def search_stocks(q: str):
     # Full KRX lookup is read from local screener.json; no network on normal operation.
     has_korean = any('가' <= c <= '힣' for c in lookup)
     is_code = lookup.isdigit() and len(lookup) == 6
-    if has_korean or is_code:
+    if has_korean or is_code or query.isascii():
         for stock in load_krx_stock_list():
             name = stock["name"]
             code = stock["code"]
-            if (is_code and code == lookup) or (has_korean and lookup in name):
+            if (is_code and code == lookup) or ll in name.lower():
                 score = 0 if (name == lookup or code == lookup) else (1 if name.startswith(lookup) else 2)
                 put(f"{code}{stock.get('suffix', '.KS')}", name, "KRX", code, stock.get("market"), score)
 
@@ -244,7 +246,7 @@ async def search_stocks(q: str):
         row.pop("score", None)
 
     # Unknown ASCII ticker: add immediately and let /api/compare validate it.
-    if not results and all(c.isalnum() or c in '.^-=' for c in lookup) and not is_code:
+    if not results and re.fullmatch(r"[A-Za-z^][A-Za-z0-9.^=\-]{0,19}", lookup) and not is_code:
         results = [{"symbol": lookup.upper(), "name": lookup.upper(), "type": "DIRECT"}]
 
     return {"results": results}
@@ -268,11 +270,29 @@ def get_korean_stock_name(ticker):
     return None
 
 
+def validated_tickers(raw: str) -> list[str]:
+    symbols = list(dict.fromkeys(t.strip().upper() for t in raw.split(",") if t.strip()))
+    if not symbols or len(symbols) > 6:
+        raise HTTPException(400, "종목은 1개 이상 6개 이하로 입력해주세요.")
+    if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
+        raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
+    return symbols
+
+
 @app.get("/api/compare")
 async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, end: str = None):
-    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
-    if not ticker_list:
-        return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+    ticker_list = validated_tickers(tickers)
+    if period not in {"1d", "5d", "1mo", "3mo", "6mo", "ytd", "1y", "2y", "5y", "10y", "max"}:
+        raise HTTPException(400, "지원하지 않는 조회 기간입니다.")
+    if bool(start) != bool(end):
+        raise HTTPException(400, "시작일과 종료일을 함께 입력해주세요.")
+    if start and end:
+        try:
+            first, last = [datetime.strptime(value, "%Y-%m-%d") for value in (start, end)]
+            if first > last:
+                raise ValueError("reversed range")
+        except ValueError:
+            raise HTTPException(400, "조회 날짜와 시작일·종료일 순서를 확인해주세요.")
     fetched = await asyncio.gather(*[asyncio.to_thread(fetch_compare_stock, t, period, start, end) for t in ticker_list], return_exceptions=True)
     by_ticker, errors = {}, []
     for ticker, item in zip(ticker_list, fetched):
@@ -403,7 +423,7 @@ async def _refresh_market_now(force: bool = False):
                 if isinstance(row, Exception) or not row:
                     old = previous.get(ticker)
                     if old:
-                        results.append(old)
+                        results.append({**old, "stale": True})
                     errors.append({"ticker": ticker, "message": str(row) if isinstance(row, Exception) else "시세 데이터를 가져오지 못했습니다."})
                     continue
                 results.append({
@@ -412,6 +432,8 @@ async def _refresh_market_now(force: bool = False):
                     "price": row.get("price"),
                     "change": row.get("change"),
                     "currency": row.get("currency"),
+                    "asOf": row.get("asOf"),
+                    "stale": False,
                     "source": row.get("source") or "Yahoo Chart",
                 })
 
@@ -758,7 +780,8 @@ def _seed_home_snapshot_from_disk():
         import json as _json
         cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
         with open(cache_path, "r", encoding="utf-8") as f:
-            quotes = (_json.load(f).get("quotes") or {})
+            disk_payload = _json.load(f)
+            quotes = disk_payload.get("quotes") or {}
         for ticker in HOME_MAJOR_TICKERS:
             row = quotes.get(ticker) or {}
             price = row.get("regularMarketPrice")
@@ -775,6 +798,8 @@ def _seed_home_snapshot_from_disk():
                 "price": price,
                 "change": change,
                 "marketCap": row.get("marketCap") or 0,
+                "asOf": disk_payload.get("generatedAt"),
+                "stale": True,
             })
     except Exception as exc:
         print(f"[HOME] disk seed unavailable: {exc}")
@@ -784,7 +809,7 @@ def _seed_home_snapshot_from_disk():
         HOME_SNAPSHOT_CACHE["data"] = {
             "heatmap": {"results": results},
             "macro": MACRO_CACHE.get("data"),
-            "generatedAt": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+            "generatedAt": disk_payload.get("generatedAt"),
             "source": "disk-seed",
         }
         HOME_SNAPSHOT_CACHE["timestamp"] = time.time()
@@ -820,7 +845,7 @@ async def _refresh_home_snapshot(force: bool = False):
                 if isinstance(row, Exception) or not row:
                     old = previous_rows.get(ticker)
                     if old:
-                        results.append(old)
+                        results.append({**old, "stale": True})
                     continue
                 results.append({
                     "ticker": ticker,
@@ -828,6 +853,8 @@ async def _refresh_home_snapshot(force: bool = False):
                     "change": row.get("change"),
                     "price": row.get("price"),
                     "marketCap": row.get("marketCap") or 0,
+                    "asOf": row.get("asOf"),
+                    "stale": False,
                 })
 
             if not results and cached:
@@ -886,8 +913,7 @@ async def home_snapshot(fresh: bool = False):
 @app.get("/api/fwd-per")
 @app.get("/api/valuation")
 async def valuation_data(tickers: str):
-    ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()][:6]
-    if not ticker_list: return {"stocks": []}
+    ticker_list = validated_tickers(tickers)
     fetched = await asyncio.gather(*[asyncio.to_thread(fetch_valuation_snapshot, t) for t in ticker_list], return_exceptions=True)
     stocks, errors = [], []
     for ticker, item in zip(ticker_list, fetched):
@@ -899,10 +925,8 @@ async def valuation_data(tickers: str):
 
 
 @app.get("/api/valuation-band")
-async def valuation_band_data(ticker: str, years: int = 3):
-    symbol = (ticker or "").strip().upper()
-    if not symbol:
-        return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+async def valuation_band_data(ticker: str, years: int = Query(default=3, ge=1, le=10)):
+    symbol = validated_tickers(ticker)[0]
     try:
         data = await asyncio.to_thread(fetch_valuation_bands, symbol, years)
         return data
@@ -916,9 +940,7 @@ async def valuation_band_data(ticker: str, years: int = 3):
 
 @app.get("/api/consensus")
 async def consensus_data(ticker: str):
-    symbol = (ticker or "").strip().upper()
-    if not symbol:
-        return JSONResponse({"error": "종목을 입력해주세요"}, status_code=400)
+    symbol = validated_tickers(ticker)[0]
     try:
         return await asyncio.to_thread(fetch_consensus, symbol)
     except Exception as exc:

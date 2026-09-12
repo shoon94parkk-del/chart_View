@@ -10,6 +10,7 @@ Design goals:
 from __future__ import annotations
 
 import json
+import math
 import os
 import threading
 import time
@@ -130,14 +131,15 @@ def _raw(value: Any) -> Any:
 def _positive(value: Any) -> float | None:
     try:
         n = float(value)
-        return n if n > 0 else None
+        return n if math.isfinite(n) and n > 0 else None
     except (TypeError, ValueError):
         return None
 
 
 def _number(value: Any) -> float | None:
     try:
-        return float(value)
+        n = float(value)
+        return n if math.isfinite(n) else None
     except (TypeError, ValueError):
         return None
 
@@ -190,7 +192,7 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         timestamps = result.get("timestamp") or []
         quote = (result.get("indicators", {}).get("quote") or [{}])[0]
         closes = quote.get("close") or []
-        points = [(int(ts), float(close)) for ts, close in zip(timestamps, closes) if close is not None and float(close) > 0]
+        points = [(int(ts), float(close)) for ts, close in zip(timestamps, closes) if _positive(close) is not None]
         if not points:
             value = None
         else:
@@ -213,6 +215,8 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         value = None
 
     with _cache_lock:
+        if key not in _compare_cache and len(_compare_cache) >= 64:
+            _compare_cache.pop(min(_compare_cache, key=lambda k: _compare_cache[k][0]))
         _compare_cache[key] = (now, value)
     return value
 
@@ -360,7 +364,7 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         result = _chart_result(symbol, period="1d", interval="5m")
         meta = result.get("meta", {})
         closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-        good = [float(v) for v in closes if v is not None and float(v) > 0]
+        good = [_positive(v) for v in closes if _positive(v) is not None]
         current = good[-1] if good else _positive(meta.get("regularMarketPrice"))
         previous = _positive(meta.get("chartPreviousClose")) or _positive(meta.get("previousClose"))
 
@@ -369,7 +373,7 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
             daily = _chart_result(symbol, period="5d", interval="1d")
             daily_meta = daily.get("meta", {})
             daily_closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-            daily_good = [float(v) for v in daily_closes if v is not None and float(v) > 0]
+            daily_good = [_positive(v) for v in daily_closes if _positive(v) is not None]
             if current is None:
                 current = _positive(daily_meta.get("regularMarketPrice")) or (daily_good[-1] if daily_good else None)
             if previous is None:
@@ -378,13 +382,14 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
                 meta = daily_meta
 
         if current is not None:
-            change = ((current - previous) / previous * 100) if previous else 0.0
+            change = ((current - previous) / previous * 100) if previous else None
             detail = _local_detail_cache().get(symbol, {})
             value = {
                 "ticker": symbol,
                 "name": _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or detail.get("shortName") or symbol,
                 "price": round(float(current), 4),
-                "change": round(float(change), 2),
+                "change": round(float(change), 2) if change is not None else None,
+                "asOf": datetime.fromtimestamp(int(meta["regularMarketTime"]), tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
                 "marketCap": _number(detail.get("marketCap")),
                 "currency": meta.get("currency") or detail.get("currency"),
                 "source": "Yahoo Chart 5m",
@@ -394,6 +399,8 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         value = None
 
     with _cache_lock:
+        if symbol not in _quote_cache and len(_quote_cache) >= 256:
+            _quote_cache.pop(min(_quote_cache, key=lambda k: _quote_cache[k][0]))
         _quote_cache[symbol] = (now, value)
     return value
 
@@ -429,7 +436,7 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
         chart = _chart_result(symbol, period="5d", interval="1d")
         chart_meta = chart.get("meta", {})
         closes = ((chart.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-        good = [float(v) for v in closes if v is not None and float(v) > 0]
+        good = [_positive(v) for v in closes if _positive(v) is not None]
         last_close = good[-1] if good else None
     except Exception as exc:
         print(f"[MarketData] valuation chart failed {symbol}: {exc}")
@@ -457,7 +464,9 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     market_cap = _positive(_raw(summary.get("marketCap"))) or _positive(_raw(price_block.get("marketCap"))) or _positive(fund.get("trailingMarketCap"))
     trailing_pe = _positive(_raw(summary.get("trailingPE"))) or _positive(fund.get("trailingPeRatio"))
     forward_pe = _positive(_raw(summary.get("forwardPE"))) or _positive(_raw(stats.get("forwardPE")))
-    trailing_eps = _number(_raw(stats.get("trailingEps"))) or _number(fund.get("trailingDilutedEPS")) or _number(fund.get("trailingBasicEPS"))
+    trailing_eps = next((v for v in (
+        _number(_raw(stats.get("trailingEps"))), _number(fund.get("trailingDilutedEPS")),
+        _number(fund.get("trailingBasicEPS"))) if v is not None), None)
     forward_eps = _number(_raw(stats.get("forwardEps")))
     psr = _positive(_raw(summary.get("priceToSalesTrailing12Months"))) or _positive(fund.get("trailingPsRatio"))
 
@@ -540,5 +549,7 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
         "dataSource": "Yahoo Chart + Fundamentals" + (" + Daily Quote Cache" if cached_detail else (" + QuoteSummary" if detail else "")) + (" + Naver" if naver else ""),
     }
     with _cache_lock:
+        if symbol not in _valuation_cache and len(_valuation_cache) >= 256:
+            _valuation_cache.pop(min(_valuation_cache, key=lambda k: _valuation_cache[k][0]))
         _valuation_cache[symbol] = (now, data)
     return data

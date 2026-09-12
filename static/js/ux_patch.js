@@ -31,8 +31,8 @@
   ensureStyle('link[data-investment-tools-v22]', '/static/css/investment_tools_v22.css?v=20260912v28', 'investmentToolsV22');
   ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260912v28', 'investmentToolsV22');
   ensureStyle('link[data-watchlist-v30]', '/static/css/watchlist_v30.css?v=20260912v33', 'watchlistV30');
-  ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912v33a', 'watchlistV30');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v35', 'uxV3');
+  ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912audit1', 'watchlistV30');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912audit1', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260912v32e', 'bottomNavV6');
   ensureStyle('link[data-app-states-v32]', '/static/css/app_states_v32.css?v=20260912v32', 'appStatesV32');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
@@ -40,7 +40,7 @@
   ensureStyle('link[data-app-header-v5]', '/static/css/app_header_v5.css?v=20260911v5', 'appHeaderV5');
   ensureScript('script[data-app-header-v5]', '/static/js/app_header_v5.js?v=20260911v5', 'appHeaderV5');
   ensureStyle('link[data-home-market-v9]', '/static/css/home_market_v9.css?v=20260911v21', 'homeMarketV9');
-  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260912v32b', 'homeMarketV9');
+  ensureScript('script[data-home-market-v9]', '/static/js/home_market_v9.js?v=20260912audit1', 'homeMarketV9');
   ensureStyle('link[data-home-priority-v10]', '/static/css/home_priority_v10.css?v=20260911v10', 'homePriorityV10');
   ensureScript('script[data-home-priority-v10]', '/static/js/home_priority_v10.js?v=20260911v10', 'homePriorityV10');
   ensureStyle('link[data-valuation-matrix-v10]', '/static/css/valuation_matrix_v10.css?v=20260911v11', 'valuationMatrixV10');
@@ -243,7 +243,10 @@
         box.classList.add('hidden');
         return;
       }
-      localTimer = setTimeout(async () => renderLocalResults(rankKorean(await loadUniverse(), raw), raw), 60);
+      localTimer = setTimeout(async () => {
+        const rows = rankKorean(await loadUniverse(), raw);
+        if (input.value.trim() === raw) renderLocalResults(rows, raw);
+      }, 60);
     }, true);
 
     input.addEventListener('keypress', (event) => {
