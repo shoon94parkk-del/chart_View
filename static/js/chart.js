@@ -332,9 +332,29 @@ function showLoading(show) {
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
 
+    const dateSection = document.querySelector('#chart-tab .date-section');
+    const customDateToggle = document.getElementById('custom-date-toggle');
+    const customDateFields = document.getElementById('custom-date-fields');
+
+    function setCustomDateOpen(open) {
+        if (!dateSection || !customDateToggle || !customDateFields) return;
+        dateSection.classList.toggle('custom-range-open', open);
+        customDateToggle.setAttribute('aria-expanded', String(open));
+        customDateFields.hidden = !open;
+        const arrow = customDateToggle.querySelector('.custom-date-arrow');
+        if (arrow) arrow.textContent = open ? '⌃' : '⌄';
+    }
+
+    if (customDateToggle) {
+        customDateToggle.addEventListener('click', () => {
+            setCustomDateOpen(customDateToggle.getAttribute('aria-expanded') !== 'true');
+        });
+    }
+
     // 기간 선택 칩
     document.querySelectorAll('.period-chip').forEach(btn => {
         btn.addEventListener('click', () => {
+            setCustomDateOpen(false);
             document.querySelectorAll('.period-chip').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentPeriod = btn.dataset.period;

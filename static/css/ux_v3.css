@@ -124,10 +124,6 @@ body.app-shell-ready { padding-bottom: calc(78px + env(safe-area-inset-bottom));
 }
 .app-shell-ready .ux-more-metrics { display: none !important; }
 
-/* Information-first chart controls: presets and exact dates stay available. */
-.app-shell-ready .date-section .date-row { display: flex !important; }
-.app-shell-ready .ux-direct-date-toggle { display: none !important; }
-
 /* Information-first screener: no collapsed advanced section. */
 .app-shell-ready .ux-screener-advanced,
 .app-shell-ready .ux-screener-quick { display: none !important; }
@@ -279,13 +275,6 @@ body.app-shell-ready { padding-bottom: calc(78px + env(safe-area-inset-bottom));
     flex: 0 0 auto;
     scroll-snap-align: start;
   }
-
-  .app-shell-ready .date-section .date-row {
-    display: grid !important;
-    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
-    gap: 6px;
-  }
-  .app-shell-ready .date-section #apply-date-btn { grid-column: 1 / -1; width: 100%; }
 
   .app-shell-ready .screener-main-row {
     display: grid !important;

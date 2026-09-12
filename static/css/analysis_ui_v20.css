@@ -85,18 +85,23 @@
   color:#fff !important;
 }
 
-/* 4) Date range — symmetric 1:1 fields, centered as a block. */
+/* 4) Date range — presets first, exact dates on demand. */
 #chart-tab .date-section{
-  padding:20px;
+  padding:14px 16px;
 }
 #chart-tab .date-row{
-  display:grid !important;
+  display:none !important;
   grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   align-items:end;
   gap:12px !important;
   width:100%;
   max-width:620px;
-  margin:0 auto 14px !important;
+  margin:12px auto 0 !important;
+  padding-top:12px;
+  border-top:1px solid var(--analysis-border);
+}
+#chart-tab .date-section.custom-range-open .date-row{
+  display:grid !important;
 }
 #chart-tab .date-sep{
   display:none !important;
@@ -147,6 +152,28 @@
   transform:translateY(1px);
 }
 
+#chart-tab .custom-date-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:100%;
+  max-width:620px;
+  min-height:38px;
+  margin:8px auto 0;
+  padding:0 10px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:var(--analysis-text);
+  font:inherit;
+  font-size:12.5px;
+  font-weight:720;
+  cursor:pointer;
+}
+#chart-tab .custom-date-toggle:hover{background:var(--analysis-surface-2);}
+#chart-tab .custom-date-arrow{color:var(--analysis-muted);font-size:16px;line-height:1;}
+
 /* 5) Period preset buttons — six equal widths and same selected state as local tabs. */
 #chart-tab .quick-periods{
   display:grid !important;
@@ -192,19 +219,62 @@
 #fwdper-tab .metric-chip:focus-visible,
 #fwdper-tab .sort-btn:focus-visible,
 #chart-tab .period-chip:focus-visible,
+#chart-tab .custom-date-toggle:focus-visible,
 #chart-tab #apply-date-btn:focus-visible{
   outline:2px solid var(--analysis-primary);
   outline-offset:2px;
 }
 
 @media(max-width:720px){
+  .header.app-utility-header{
+    padding:6px 10px 2px !important;
+  }
+  .header.app-utility-header .app-utility-top{
+    margin-bottom:5px;
+  }
+  .header.app-utility-header .app-utility-copy strong{
+    font-size:13px;
+  }
+  .header.app-utility-header .app-selection-status{
+    padding:4px 8px;
+    font-size:10px;
+  }
+  .header.app-utility-header #unified-input{
+    height:42px !important;
+    padding:0 13px !important;
+    font-size:13.5px !important;
+  }
+  .header.app-utility-header .btn-add{
+    flex-basis:42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    font-size:24px;
+  }
+  .header.app-utility-header .search-hint{
+    display:none;
+  }
+  .header.app-utility-header .ticker-tags{
+    min-height:29px;
+    margin-top:5px !important;
+    gap:5px;
+  }
+  .header.app-utility-header .ticker-tag{
+    min-height:29px;
+    padding:3px 5px 3px 9px;
+  }
+  .header.app-utility-header .tag-remove{
+    min-width:22px;
+    min-height:22px;
+  }
+
   .app-context-nav[data-app-context="analysis"]{
-    min-height:54px;
-    padding:5px;
+    min-height:48px;
+    padding:4px;
   }
   .app-context-nav[data-app-context="analysis"] .app-context-btn{
-    min-height:44px;
-    font-size:13.5px;
+    min-height:38px;
+    font-size:13px;
   }
 
   #fwdper-tab .decision-valuation-nav .metric-chips{
@@ -217,32 +287,46 @@
   }
 
   #chart-tab .date-section{
-    margin-left:16px;
-    margin-right:16px;
-    padding:18px 16px 16px;
+    margin-top:6px !important;
+    margin-bottom:6px !important;
+    margin-left:10px;
+    margin-right:10px;
+    padding:10px 10px 7px;
   }
   #chart-tab .date-row{
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-    gap:10px !important;
+    gap:8px !important;
+    margin-top:8px !important;
+    padding-top:10px;
   }
+  #chart-tab .date-field label{margin-bottom:5px;font-size:11px;}
   #chart-tab .date-field input{
-    height:50px;
+    height:42px;
     padding:0 8px;
-    font-size:14px;
+    font-size:13px;
   }
   #chart-tab #apply-date-btn{
-    height:48px;
+    height:42px;
   }
   #chart-tab .quick-periods{
     grid-template-columns:repeat(6,minmax(0,1fr));
     gap:5px !important;
   }
   #chart-tab .period-chip{
-    min-height:42px;
+    min-height:38px;
     padding:0 2px;
-    border-radius:11px;
+    border-radius:10px;
     font-size:11.5px;
     letter-spacing:-.15px;
+  }
+  #chart-tab .custom-date-toggle{
+    min-height:34px;
+    margin-top:5px;
+    font-size:12px;
+  }
+  #chart-tab + .chart-section,
+  #chart-tab .chart-section{
+    margin-top:6px !important;
   }
 }
 

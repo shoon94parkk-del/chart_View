@@ -147,7 +147,19 @@
         <div id="chart-tab" class="tab-content active">
             <!-- 기간 선택 -->
             <section class="date-section">
-                <div class="date-row">
+                <div class="quick-periods" aria-label="차트 기간 선택">
+                    <button class="period-chip active" data-period="1mo">1달</button>
+                    <button class="period-chip" data-period="3mo">3달</button>
+                    <button class="period-chip" data-period="6mo">6달</button>
+                    <button class="period-chip" data-period="ytd">YTD</button>
+                    <button class="period-chip" data-period="1y">1년</button>
+                    <button class="period-chip" data-period="max">전체</button>
+                </div>
+                <button type="button" id="custom-date-toggle" class="custom-date-toggle"
+                    aria-expanded="false" aria-controls="custom-date-fields">
+                    <span>직접 기간 설정</span><span class="custom-date-arrow" aria-hidden="true">⌄</span>
+                </button>
+                <div id="custom-date-fields" class="date-row" hidden>
                     <div class="date-field">
                         <label>시작일</label>
                         <input type="date" id="start-date">
@@ -158,14 +170,6 @@
                         <input type="date" id="end-date">
                     </div>
                     <button id="apply-date-btn" class="btn-apply">적용</button>
-                </div>
-                <div class="quick-periods">
-                    <button class="period-chip active" data-period="1mo">1개월</button>
-                    <button class="period-chip" data-period="3mo">3개월</button>
-                    <button class="period-chip" data-period="6mo">6개월</button>
-                    <button class="period-chip" data-period="ytd">YTD</button>
-                    <button class="period-chip" data-period="1y">1년</button>
-                    <button class="period-chip" data-period="max">전체</button>
                 </div>
             </section>
 
@@ -259,11 +263,11 @@
         </div>
     </div>
 
-    <script src="/static/js/chart.js?v=20260912v28"></script>
+    <script src="/static/js/chart.js?v=20260912v34"></script>
     <script src="/static/js/fwdper.js?v=20260912v28"></script>
     <script src="/static/js/valuation_bands.js?v=20260911v27"></script>
     <script src="/static/js/macro.js?v=20260911v1"></script>
-    <script src="/static/js/ux_patch.js?v=20260912v33a"></script>
+    <script src="/static/js/ux_patch.js?v=20260912v34"></script>
     <script src="/static/js/home_watchlist_boot_v32c.js?v=20260912v32c"></script>
     <script src="/static/js/consensus_v2.js?v=20260911v1"></script>
 </body>

@@ -215,14 +215,6 @@
     section.dataset.uxSimplified = '0';
   }
 
-  function revealAllDateControls() {
-    const section = document.querySelector('.date-section');
-    if (!section) return;
-    section.classList.add('app-date-visible');
-    section.querySelectorAll('.ux-direct-date-toggle').forEach((button) => button.remove());
-    section.dataset.uxSimplified = '0';
-  }
-
   function restoreScreenerControls() {
     const controls = document.querySelector('#screener-tab .screener-controls');
     if (!controls) return;
@@ -262,7 +254,6 @@
       wrapSwitchTab();
       installAppNavigation();
       revealAllValuationMetrics();
-      revealAllDateControls();
       restoreScreenerControls();
     };
     queueMicrotask(settle);
@@ -275,7 +266,6 @@
     wrapSwitchTab();
     installAppNavigation();
     revealAllValuationMetrics();
-    revealAllDateControls();
     restoreScreenerControls();
     observeLateUI();
     document.addEventListener('click', (event) => {
