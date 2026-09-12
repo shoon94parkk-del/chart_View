@@ -237,6 +237,7 @@
 
   function openStock(symbol, name) {
     if (typeof window.addGlobalTicker === 'function') window.addGlobalTicker(symbol, name);
+    if (typeof window.__focusStockBrief === 'function') window.__focusStockBrief(symbol);
     if (typeof window.__openAppTab === 'function') window.__openAppTab('chart');
     else if (typeof window.switchTab === 'function') window.switchTab('chart');
     window.scrollTo({ top: 0, behavior: 'smooth' });

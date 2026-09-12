@@ -38,11 +38,12 @@ _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 # disk-valuation-detail-cache-v3
 _detail_cache_lock = threading.Lock()
 _detail_cache: dict[str, dict[str, Any]] | None = None
+_detail_cache_generated_at: str | None = None
 
 
 def _local_detail_cache() -> dict[str, dict[str, Any]]:
     """Read the daily GitHub-generated quote cache once per process."""
-    global _detail_cache
+    global _detail_cache, _detail_cache_generated_at
     if _detail_cache is not None:
         return _detail_cache
     with _detail_cache_lock:
@@ -53,6 +54,7 @@ def _local_detail_cache() -> dict[str, dict[str, Any]]:
             path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
             with open(path, "r", encoding="utf-8") as f:
                 payload = json.load(f)
+            _detail_cache_generated_at = payload.get("generatedAt")
             raw_rows = payload.get("quotes") or {}
             if isinstance(raw_rows, dict):
                 rows = {str(k).upper(): v for k, v in raw_rows.items() if isinstance(v, dict)}
@@ -75,6 +77,7 @@ def _cached_quote_summary(symbol: str) -> dict[str, Any] | None:
     # v7/quote exposes dividendYield in percentage units (e.g. 0.34 == 0.34%).
     dividend_fraction = dividend / 100 if dividend is not None else None
     return {
+        "_cacheGeneratedAt": _detail_cache_generated_at,
         "price": {
             "shortName": row.get("shortName"),
             "currency": row.get("currency"),
@@ -152,7 +155,7 @@ def _http_json(url: str, params: dict[str, Any] | None = None, timeout: float = 
 
 def _chart_result(symbol: str, *, period: str = "5d", interval: str = "1d", start: str | None = None, end: str | None = None, events: str | None = None) -> dict[str, Any]:
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
-    params: dict[str, Any] = {"interval": interval, "includePrePost": "false"}
+    params: dict[str, Any] = {"interval": interval, "includePrePost": "false", "includeAdjustedClose": "true"}
     if start and end:
         # Yahoo period2 is exclusive, so include the user's end date by adding one day.
         start_dt = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
@@ -175,7 +178,7 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         return None
 
     interval_map = {
-        "1d": "5m", "5d": "15m", "1mo": "1h",
+        "1d": "5m", "5d": "15m", "1mo": "1d",
         "3mo": "1d", "6mo": "1d", "1y": "1d", "max": "1d",
     }
     interval = "1d" if start and end else interval_map.get(period, "1d")
@@ -190,9 +193,13 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         result = _chart_result(symbol, period=period, interval=interval, start=start, end=end)
         meta = result.get("meta", {})
         timestamps = result.get("timestamp") or []
-        quote = (result.get("indicators", {}).get("quote") or [{}])[0]
+        indicators = result.get("indicators", {})
+        quote = (indicators.get("quote") or [{}])[0]
         closes = quote.get("close") or []
-        points = [(int(ts), float(close)) for ts, close in zip(timestamps, closes) if _positive(close) is not None]
+        adjusted = (indicators.get("adjclose") or [{}])[0].get("adjclose") or []
+        values = adjusted if len(adjusted) == len(timestamps) else closes
+        price_basis = "adjusted_close" if values is adjusted else "close"
+        points = [(int(ts), float(value)) for ts, value in zip(timestamps, values) if _positive(value) is not None]
         if not points:
             value = None
         else:
@@ -209,6 +216,11 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
                 "data": line_data,
                 "currency": meta.get("currency"),
                 "source": "Yahoo Chart",
+                "priceBasis": price_basis,
+                "requestedPeriod": period,
+                "startDate": datetime.fromtimestamp(points[0][0], tz=timezone.utc).date().isoformat(),
+                "endDate": datetime.fromtimestamp(points[-1][0], tz=timezone.utc).date().isoformat(),
+                "observations": len(points),
             }
     except Exception as exc:
         print(f"[MarketData] chart failed {symbol}: {exc}")
@@ -449,6 +461,8 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
 
     cached_detail = _cached_quote_summary(symbol)
     detail = cached_detail or _quote_summary(symbol) or {}
+    detail_source = "Yahoo daily quote cache" if cached_detail else "Yahoo QuoteSummary"
+    detail_as_of = detail.get("_cacheGeneratedAt") if cached_detail else None
     summary = detail.get("summaryDetail") or {}
     stats = detail.get("defaultKeyStatistics") or {}
     financial = detail.get("financialData") or {}
@@ -520,13 +534,70 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     )
 
     # Last fallback for Korean ratios when Yahoo has a sparse record.
-    naver = _naver_valuation(symbol) if (trailing_pe is None or pbr is None or dividend_yield is None) else {}
+    missing_before_naver = {
+        "trailingPE": trailing_pe is None,
+        "pbr": pbr is None,
+        "dividendYield": dividend_yield is None,
+    }
+    naver = _naver_valuation(symbol) if any(missing_before_naver.values()) else {}
     trailing_pe = trailing_pe or _positive(naver.get("trailingPE"))
     pbr = pbr or _positive(naver.get("pbr"))
     if dividend_yield is None:
         dividend_yield = _number(naver.get("dividendYield"))
     if naver.get("name") and name == symbol:
         name = naver["name"]
+
+    chart_as_of = None
+    if chart_meta.get("regularMarketTime"):
+        chart_as_of = datetime.fromtimestamp(int(chart_meta["regularMarketTime"]), tz=timezone.utc).isoformat()
+    chart_has_price = _positive(chart_meta.get("regularMarketPrice")) is not None or last_close is not None
+
+    def meta(source: str, *, as_of: str | None = None, period: str | None = None,
+             method: str = "provider") -> dict[str, Any]:
+        return {"source": source, "asOf": as_of, "period": period, "method": method}
+
+    def sourced(source: str, *, period: str, method: str = "provider") -> dict[str, Any]:
+        # The daily quote cache has a known collection timestamp. Fundamentals
+        # and Naver fallbacks do not expose an equally precise field date here.
+        return meta(source, as_of=detail_as_of if source == detail_source else None,
+                    period=period, method=method)
+
+    detail_has = lambda block, key, positive=False: (
+        _positive(_raw(block.get(key))) is not None if positive
+        else _number(_raw(block.get(key))) is not None
+    )
+    market_cap_source = detail_source if detail_has(summary, "marketCap", True) or detail_has(price_block, "marketCap", True) else "Yahoo Fundamentals"
+    trailing_pe_source = ("Naver Finance" if missing_before_naver["trailingPE"] and trailing_pe is not None else
+                          (detail_source if detail_has(summary, "trailingPE", True) else "Yahoo Fundamentals"))
+    trailing_eps_source = detail_source if detail_has(stats, "trailingEps") else "Yahoo Fundamentals"
+    psr_source = detail_source if detail_has(summary, "priceToSalesTrailing12Months", True) else "Yahoo Fundamentals"
+    book_value_source = detail_source if detail_has(stats, "bookValue") else "Yahoo Fundamentals"
+    pbr_source = ("Naver Finance" if missing_before_naver["pbr"] and pbr is not None else
+                  (detail_source if detail_has(stats, "priceToBook", True) else "Yahoo Fundamentals"))
+    ev_ebitda_source = detail_source if detail_has(financial, "ebitda", True) and detail_has(stats, "enterpriseValue", True) else "Yahoo Fundamentals"
+    dividend_source = "Naver Finance" if missing_before_naver["dividendYield"] and dividend_yield is not None else detail_source
+    roe_source = detail_source if detail_has(financial, "returnOnEquity") else "Yahoo Fundamentals"
+    margin_source = detail_source if detail_has(financial, "operatingMargins") else "Yahoo Fundamentals"
+
+    field_meta: dict[str, dict[str, Any]] = {
+        "price": meta("Yahoo Chart" if chart_has_price else detail_source,
+                      as_of=chart_as_of if chart_has_price else detail_as_of,
+                      period="latest trading value"),
+        "marketCap": sourced(market_cap_source, period="latest available"),
+        "trailingPE": sourced(trailing_pe_source, period="TTM"),
+        "forwardPE": sourced(detail_source, period="provider forward period (not independently verified)"),
+        "trailingEPS": sourced(trailing_eps_source, period="TTM"),
+        "forwardEPS": sourced(detail_source, period="provider forward period (not independently verified)"),
+        "psr": sourced(psr_source, period="TTM"),
+        "bookValue": sourced(book_value_source, period="latest reported",
+                            method="provider" if detail_has(stats, "bookValue") else "equity / shares"),
+        "pbr": sourced(pbr_source, period="latest reported",
+                      method="provider" if detail_has(stats, "priceToBook", True) else "price / book value"),
+        "evEbitda": sourced(ev_ebitda_source, period="TTM/latest reported", method="provider or reconstructed"),
+        "dividendYield": sourced(dividend_source, period="latest indicated/reported"),
+        "roe": sourced(roe_source, period="TTM/latest reported", method="provider or net income / equity"),
+        "operatingMargin": sourced(margin_source, period="TTM", method="provider or operating income / revenue"),
+    }
 
     data = {
         "ticker": symbol,
@@ -547,6 +618,8 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
         "roe": round(roe, 2) if roe is not None else None,
         "operatingMargin": round(operating_margin, 2) if operating_margin is not None else None,
         "dataSource": "Yahoo Chart + Fundamentals" + (" + Daily Quote Cache" if cached_detail else (" + QuoteSummary" if detail else "")) + (" + Naver" if naver else ""),
+        "fieldMeta": field_meta,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
     }
     with _cache_lock:
         if symbol not in _valuation_cache and len(_valuation_cache) >= 256:

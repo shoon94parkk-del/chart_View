@@ -130,6 +130,8 @@
       const change = formatChange(item, row);
       node.classList.remove('is-loading', 'home23-up', 'home23-down', 'home23-flat');
       node.classList.add(`home23-${change.dir}`);
+      const basisDate = String(row.asOf || '').slice(0, 10);
+      node.title = basisDate ? `${item.label} 원자료 기준 ${basisDate}` : `${item.label} 기준일 확인 필요`;
       node.innerHTML = `
         <span>${item.label}</span>
         <strong>${formatValue(item, row)}</strong>
@@ -137,7 +139,7 @@
       painted += 1;
     });
     const time = panel.querySelector('#home-market-v9-time');
-    if (time && painted) time.textContent = `${formatCheckedAt(data)} 조회${data.errors?.length ? ' · 일부 갱신 지연' : ''}`;
+    if (time && painted) time.textContent = `${formatCheckedAt(data)} 수집${data.errors?.length ? ' · 일부 갱신 지연' : ''}`;
     return painted > 0;
   }
 

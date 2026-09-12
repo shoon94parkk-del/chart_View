@@ -246,6 +246,8 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
 
     per_daily: list[dict[str, Any]] = []
     pbr_daily: list[dict[str, Any]] = []
+    per_candidates = 0
+    pbr_candidates = 0
     for row in prices:
         date = row["date"]
         if date < cutoff:
@@ -254,6 +256,7 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
 
         eps = _latest(ttm_eps, eps_dates, date)
         if eps and eps["value"] > 0:
+            per_candidates += 1
             # Yahoo historical Close is split-adjusted and Yahoo's reported EPS
             # history is restated on the same per-share basis.
             per = price / eps["value"]
@@ -263,6 +266,7 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
         sh = _latest(shares, sh_dates, date)
         eq = _latest(equity, eq_dates, date)
         if sh and eq and sh["value"] > 0 and eq["value"] > 0:
+            pbr_candidates += 1
             normalized_shares = _split_normalized_shares(sh["value"], sh["asOf"], splits)
             market_cap = price * normalized_shares
             pbr = market_cap / eq["value"]
@@ -295,6 +299,14 @@ def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
         "source": "Yahoo Finance Chart + Fundamentals Timeseries",
         "method": f"PER=당시 종가/당시 TTM 희석EPS · PBR=당시 시가총액/당시 자본 · 재무값 {FINANCIAL_LAG_DAYS}일 보수적 지연",
         "financialLagDays": FINANCIAL_LAG_DAYS,
+        "reconstruction": True,
+        "effectiveDateBasis": "period end + 45 days (estimated availability; not the actual filing date)",
+        "excluded": {
+            "perOutOfRange": max(0, per_candidates - len(per_daily)),
+            "pbrOutOfRange": max(0, pbr_candidates - len(pbr_daily)),
+            "perAcceptedDaily": len(per_daily),
+            "pbrAcceptedDaily": len(pbr_daily),
+        },
         "perValidation": validation,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
     }

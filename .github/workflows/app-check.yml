@@ -32,7 +32,7 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: |
-          python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
+          python -m py_compile main.py market_service.py consensus_service.py valuation_band_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
           for f in static/js/*.js; do
@@ -119,7 +119,12 @@ jobs:
 
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
-          assert '실적 상향 + 주가 미반영' in decision
+          assert 'EPS 상향 · 주가 약세 후보' in decision
+          assert '%p' in decision
+
+          service=Path('market_service.py').read_text(encoding='utf-8')
+          assert '"priceBasis": price_basis' in service
+          assert '"fieldMeta": field_meta' in service
 
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart

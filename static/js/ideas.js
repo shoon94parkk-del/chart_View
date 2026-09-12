@@ -152,34 +152,39 @@
   function buildSignals(stock, screenRow, quote, compareStock) {
     const positives = [];
     const cautions = [];
+    const positiveAxes = new Set();
+    const cautionAxes = new Set();
+    const addPositive = (axis, label) => { positives.push(label); positiveAxes.add(axis); };
+    const addCaution = (axis, label) => { cautions.push(label); cautionAxes.add(axis); };
     const pe = asNum(stock.trailingPE), pbr = asNum(stock.pbr), roe = asNum(stock.roe), margin = asNum(stock.operatingMargin);
     const momentum = calcMomentum(screenRow, compareStock);
     const outlookInfo = outlook(stock, quote);
 
-    if (pe !== null && pe > 0 && pe <= 15) positives.push(`PER ${pe.toFixed(1)}배 · 절대값 낮음`);
-    else if (pe !== null && pe >= 40) cautions.push(`PER ${pe.toFixed(1)}배 · 절대값 높음`);
-    if (pbr !== null && pbr > 0 && pbr <= 2) positives.push(`PBR ${pbr.toFixed(1)}배`);
-    if (roe !== null && roe >= 15) positives.push(`ROE ${roe.toFixed(1)}%`);
-    else if (roe !== null && roe < 5) cautions.push(`ROE ${roe.toFixed(1)}%`);
-    if (margin !== null && margin >= 15) positives.push(`영업이익률 ${margin.toFixed(1)}%`);
+    if (pe !== null && pe > 0 && pe <= 15) addPositive('value', `PER ${pe.toFixed(1)}배 · 절대값 낮음`);
+    else if (pe !== null && pe >= 40) addCaution('value', `PER ${pe.toFixed(1)}배 · 절대값 높음`);
+    if (pbr !== null && pbr > 0 && pbr <= 2) addPositive('value', `PBR ${pbr.toFixed(1)}배`);
+    if (roe !== null && roe >= 15) addPositive('profitability', `ROE ${roe.toFixed(1)}%`);
+    else if (roe !== null && roe < 5) addCaution('profitability', `ROE ${roe.toFixed(1)}%`);
+    if (margin !== null && margin >= 15) addPositive('profitability', `영업이익률 ${margin.toFixed(1)}%`);
 
-    if (momentum.aligned) positives.push('20·60·120일 정배열');
-    else if (momentum.cross20) positives.push('20일선 돌파');
-    if (momentum.ret20 !== null && momentum.ret20 >= 8) positives.push(`20일 ${pct(momentum.ret20)}`);
-    if (momentum.ret20 !== null && momentum.ret20 <= -12) cautions.push(`20일 ${pct(momentum.ret20)}`);
-    if (momentum.rsi !== null && momentum.rsi >= 70) cautions.push(`RSI ${momentum.rsi.toFixed(1)} 과열`);
-    if (momentum.rsi !== null && momentum.rsi <= 35) positives.push(`RSI ${momentum.rsi.toFixed(1)} 과매도권`);
-    if (outlookInfo.tone === 'good') positives.push(outlookInfo.label);
-    if (outlookInfo.tone === 'warn') cautions.push(outlookInfo.label);
+    if (momentum.aligned) addPositive('momentum', '20·60·120일 정배열');
+    else if (momentum.cross20) addPositive('momentum', '20일선 돌파');
+    if (momentum.ret20 !== null && momentum.ret20 >= 8) addPositive('momentum', `20일 ${pct(momentum.ret20)}`);
+    if (momentum.ret20 !== null && momentum.ret20 <= -12) addCaution('momentum', `20일 ${pct(momentum.ret20)}`);
+    if (momentum.rsi !== null && momentum.rsi >= 70) addCaution('momentum', `RSI ${momentum.rsi.toFixed(1)} 과열`);
+    if (momentum.rsi !== null && momentum.rsi <= 35) addPositive('momentum', `RSI ${momentum.rsi.toFixed(1)} 과매도권`);
+    if (outlookInfo.tone === 'good') addPositive('outlook', outlookInfo.label);
+    if (outlookInfo.tone === 'warn') addCaution('outlook', outlookInfo.label);
 
     const fields = ['trailingPE', 'pbr', 'roe', 'operatingMargin', 'forwardPE'];
     const complete = fields.filter((k) => asNum(stock[k] ?? (k === 'forwardPE' ? quote?.forwardPE : null)) !== null).length;
     const completeness = Math.round(complete / fields.length * 100);
+    const coverage = `${complete}/${fields.length}`;
 
-    let status = '조건 혼재', tone = 'neutral';
-    if (positives.length >= 3 && cautions.length <= 1) { status = '관찰 우선'; tone = 'good'; }
-    if (cautions.length >= 3) { status = '주의 필요'; tone = 'warn'; }
-    return { positives, cautions, momentum, completeness, status, tone };
+    let status = '근거 혼재', tone = 'neutral';
+    if (positiveAxes.size >= 3 && cautionAxes.size === 0) { status = '긍정 근거 우세'; tone = 'good'; }
+    if (cautionAxes.size >= 2) { status = '주의 근거 우세'; tone = 'warn'; }
+    return { positives, cautions, momentum, completeness, coverage, status, tone };
   }
 
   function renderMarketContext(macro) {
@@ -199,11 +204,12 @@
     const credit = rows.get('BAMLH0A0HYM2');
     const fed = rows.get('FEDFUNDS');
     const stale = Number(macro.staleCount || 0);
+    const basis = summary.latestBasisDate || macro?.basis?.latest || '';
 
     el.innerHTML = `
       <div class="ideas-market-top">
         <div><span class="ideas-kicker">현재 시장환경</span><strong class="ideas-market-state ${tone}">${label}</strong></div>
-        <span class="ideas-market-date">${stale ? `stale ${stale}개` : '13개 지표 정상'} · ${esc(String(macro.generatedAt || '').slice(0, 10))}</span>
+        <span class="ideas-market-date">${stale ? `갱신 지연 ${stale}개` : '13개 지표 수집 성공'}${basis ? ` · 최근 원자료 ${esc(basis)}` : ''}</span>
       </div>
       <div class="ideas-market-metrics">
         <div><span>VIX</span><strong>${num(vix?.value, 1)}</strong></div>
@@ -241,7 +247,7 @@
       fwd && ['낮은 FWD PER', fwd.item.stock.name || fwd.item.stock.ticker, `${num(fwd.value, 1)}x`],
       roe && ['높은 ROE', roe.item.stock.name || roe.item.stock.ticker, `${num(roe.value, 1)}%`],
       mom && ['강한 20일 모멘텀', mom.item.stock.name || mom.item.stock.ticker, pct(mom.value)],
-      quality && ['데이터 완성도', quality.item.stock.name || quality.item.stock.ticker, `${Math.round(quality.value)}%`],
+      quality && ['필수 재무지표', quality.item.stock.name || quality.item.stock.ticker, quality.item.signal.coverage],
     ].filter(Boolean);
 
     el.innerHTML = cards.length ? `
@@ -255,7 +261,7 @@
     const s = buildSignals(stock, screenRow, quote, compareStock);
     const analyst = quote?.averageAnalystRating ? esc(quote.averageAnalystRating) : '없음';
     const positiveHtml = s.positives.length ? s.positives.slice(0, 5).map((x) => `<span class="idea-chip good">${esc(x)}</span>`).join('') : '<span class="idea-chip neutral">강한 긍정 신호 없음</span>';
-    const cautionHtml = s.cautions.length ? s.cautions.slice(0, 4).map((x) => `<span class="idea-chip warn">${esc(x)}</span>`).join('') : '<span class="idea-chip neutral">뚜렷한 경고 신호 없음</span>';
+    const cautionHtml = s.cautions.length ? s.cautions.slice(0, 4).map((x) => `<span class="idea-chip warn">${esc(x)}</span>`).join('') : '<span class="idea-chip neutral">현재 확인한 지표에서 경고 조건 미충족</span>';
     return `
       <article class="idea-card">
         <div class="idea-card-top">
@@ -272,7 +278,7 @@
         </div>
         <div class="idea-block"><div class="idea-block-title">볼 이유</div><div class="idea-chips">${positiveHtml}</div></div>
         <div class="idea-block"><div class="idea-block-title">확인할 위험</div><div class="idea-chips">${cautionHtml}</div></div>
-        <div class="idea-foot"><span>애널리스트: ${analyst}</span><span>데이터 완성도 ${s.completeness}%</span><span>${esc(s.momentum.source)}</span></div>
+        <div class="idea-foot"><span>애널리스트: ${analyst}</span><span>필수 재무지표 ${s.coverage} 제공</span><span>${esc(s.momentum.source)}</span></div>
       </article>`;
   }
 
