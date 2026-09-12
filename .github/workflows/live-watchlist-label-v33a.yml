@@ -36,7 +36,7 @@ jobs:
             const page = await context.newPage();
             const errors=[];
             page.on('pageerror', e=>errors.push(String(e)));
-            const res=await page.goto('https://chart-view-bsg6.onrender.com/?label33a=1',{waitUntil:'domcontentloaded',timeout:60000});
+            const res=await page.goto('https://chart-view-bsg6.onrender.com/?label33a=2',{waitUntil:'domcontentloaded',timeout:60000});
             assert(res && res.status()===200,'HTTP failed');
             await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]',{state:'visible',timeout:20000});
             await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').tap();
@@ -46,11 +46,10 @@ jobs:
             assert(text.includes('현재가와 1달 수익률'),'header not explicit');
             assert(text.includes('1달 상승'),'1-month up summary missing');
             assert(text.includes('1달 하락'),'1-month down summary missing');
-            assert(text.includes('1달 수익률↑'),'1-month asc/desc label missing');
-            assert(text.includes('1달 수익률↓'),'1-month asc/desc label missing');
+            assert(text.includes('1달 수익률↑'),'1-month high sort label missing');
+            assert(text.includes('1달 수익률↓'),'1-month low sort label missing');
             assert(!text.includes('1개월 수익률'),'old ambiguous wording remains');
             await page.waitForFunction(()=>[...document.querySelectorAll('#watchlist-v30-grid .watchlist-v30-meta')].some(x=>x.textContent.includes('1달 수익률')),null,{timeout:15000});
-            assert.strictEqual(document.querySelectorAll?.length, undefined);
             if(errors.length) throw new Error('browser errors: '+errors.join(' | '));
             console.log('LIVE WATCHLIST LABEL V33A PASSED');
             await browser.close();
