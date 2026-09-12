@@ -69,12 +69,30 @@
     }
   }
 
+  function ensureV393Assets() {
+    if (!document.querySelector('link[data-clarity-v393]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/clarity_v39_3.css?v=20260913v393';
+      link.dataset.clarityV393 = '1';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-clarity-v393]')) {
+      const script = document.createElement('script');
+      script.src = '/static/js/clarity_v39_3.js?v=20260913v393';
+      script.async = false;
+      script.dataset.clarityV393 = '1';
+      document.head.appendChild(script);
+    }
+  }
+
   function ensureAllAssets() {
     ensureV36Assets();
     ensureV38Assets();
     ensureV39Assets();
     ensureV391Assets();
     ensureV392Assets();
+    ensureV393Assets();
   }
 
   function scheduleOrder() {
@@ -127,7 +145,7 @@
     home.dataset.newsVersion = 'v38';
     home.dataset.visualVersion = 'v39';
     home.dataset.visualPatch = 'v39.1';
-    home.dataset.uiVersion = 'v39.2';
+    home.dataset.uiVersion = 'v39.3';
     return Boolean(market && body);
   }
 
