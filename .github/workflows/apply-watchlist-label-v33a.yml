@@ -1,0 +1,43 @@
+name: Apply Watchlist Label V33a
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-watchlist-label-v33a.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply label patch
+        run: python scripts/apply_watchlist_label_v33a.py
+      - name: Validate JavaScript
+        run: |
+          node --check static/js/watchlist_v30.js
+          node --check static/js/ux_patch.js
+      - name: Verify labels
+        run: |
+          grep -q '현재가와 1달 수익률' static/js/watchlist_v30.js
+          grep -q '1달 상승' static/js/watchlist_v30.js
+          grep -q '1달 수익률↑' static/js/watchlist_v30.js
+          grep -q 'watchlist_v30.js?v=20260912v33a' static/js/ux_patch.js
+          grep -q 'ux_patch.js?v=20260912v33a' templates/index.html
+      - name: Commit generated label patch
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/watchlist_v30.js static/js/ux_patch.js templates/index.html
+          git commit -m 'ux: clarify watchlist one-month returns'
+          git push
