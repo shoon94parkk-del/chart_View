@@ -5,7 +5,8 @@ def test_v36_personalization_assets_are_loaded():
     boot = Path('static/js/home_watchlist_boot_v32c.js').read_text(encoding='utf-8')
     assert '/static/js/personalization_v36.js?v=20260912v36' in boot
     assert '/static/css/personalization_v36.css?v=20260912v36' in boot
-    assert "home.dataset.homeOrder = 'market-watchlist-body-status'" in boot
+    # V37 inserts personalized news between the watchlist and broader Home body.
+    assert "home.dataset.homeOrder = 'market-watchlist-news-body-status'" in boot
 
 
 def test_single_stock_detail_does_not_auto_mutate_compare_list():
