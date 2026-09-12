@@ -33,7 +33,7 @@
   ensureStyle('link[data-watchlist-v30]', '/static/css/watchlist_v30.css?v=20260912v31', 'watchlistV30');
   ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912v32', 'watchlistV30');
   ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v32', 'uxV3');
-  ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260912v30', 'bottomNavV6');
+  ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260912v32e', 'bottomNavV6');
   ensureStyle('link[data-app-states-v32]', '/static/css/app_states_v32.css?v=20260912v32', 'appStatesV32');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');
   ensureScript('script[data-decision-ux-v7]', '/static/js/decision_ux_v7.js?v=20260911v7', 'decisionUxV7');
@@ -49,7 +49,7 @@
   ensureStyle('link[data-ux-interactions-v13]', '/static/css/ux_interactions_v13.css?v=20260911v13', 'uxInteractionsV13');
   ensureScript('script[data-ux-interactions-v13]', '/static/js/ux_interactions_v13.js?v=20260911v13', 'uxInteractionsV13');
   ensureStyle('link[data-analysis-ui-v20]', '/static/css/analysis_ui_v20.css?v=20260911v20', 'analysisUiV20');
-  ensureStyle('link[data-home-ux-v23]', '/static/css/home_ux_v23.css?v=20260911v23', 'homeUxV23');
+  ensureStyle('link[data-home-ux-v23]', '/static/css/home_ux_v23.css?v=20260912v32e', 'homeUxV23');
   ensureScript('script[data-home-ux-v23]', '/static/js/home_ux_v23.js?v=20260911v25', 'homeUxV23');
 
   const aliases = {
