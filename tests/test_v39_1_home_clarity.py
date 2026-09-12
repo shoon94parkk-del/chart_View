@@ -7,7 +7,8 @@ def test_v391_asset_is_loaded_and_versioned():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/home_visual_v39_1.css?v=20260913v391" in boot
     assert "data-home-visual-v391" in boot
-    assert "home.dataset.visualVersion = 'v39.1'" in boot
+    assert "home.dataset.visualVersion = 'v39'" in boot
+    assert "home.dataset.visualPatch = 'v39.1'" in boot
 
 
 def test_v391_news_range_is_explicit_and_watchlist_is_emphasized():
