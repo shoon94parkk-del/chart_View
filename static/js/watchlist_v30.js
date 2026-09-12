@@ -166,10 +166,10 @@
   function sortRows(rows) {
     const copy = [...rows];
     if (sortMode === 'return-desc') {
-      return copy.sort((a, b) => (Number(quoteFor(b.symbol)?.return) || -Infinity) - (Number(quoteFor(a.symbol)?.return) || -Infinity));
+      return copy.sort((a, b) => (Number.isFinite(Number(quoteFor(b.symbol)?.return)) ? Number(quoteFor(b.symbol)?.return) : -Infinity) - (Number.isFinite(Number(quoteFor(a.symbol)?.return)) ? Number(quoteFor(a.symbol)?.return) : -Infinity));
     }
     if (sortMode === 'return-asc') {
-      return copy.sort((a, b) => (Number(quoteFor(a.symbol)?.return) || Infinity) - (Number(quoteFor(b.symbol)?.return) || Infinity));
+      return copy.sort((a, b) => (Number.isFinite(Number(quoteFor(a.symbol)?.return)) ? Number(quoteFor(a.symbol)?.return) : Infinity) - (Number.isFinite(Number(quoteFor(b.symbol)?.return)) ? Number(quoteFor(b.symbol)?.return) : Infinity));
     }
     if (sortMode === 'name') return copy.sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
     return copy;
