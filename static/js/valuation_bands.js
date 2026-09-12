@@ -28,7 +28,7 @@
   }
 
   const esc=(v)=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-  const fmt=(v,d=2)=>Number.isFinite(Number(v))?Number(v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}):'-';
+  const fmt=(v,d=2)=>v!=null&&v!==''&&Number.isFinite(Number(v))?Number(v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}):'-';
   function tickers(){return (typeof perTickers!=='undefined'&&Array.isArray(perTickers))?[...perTickers]:[];}
   function nameOf(t){try{return (typeof perTickerNameMap!=='undefined'&&perTickerNameMap[t])||t;}catch{return t;}}
 
@@ -87,7 +87,7 @@
 
   function ensureTickerAndLoad(){
     const list=tickers();
-    if(!list.length){bandTicker=null;bandPayload=null;destroyChart();document.getElementById('band-cards').innerHTML='';document.getElementById('band-chart').innerHTML='<div class="band-empty">상단에서 종목을 먼저 선택해 주세요.</div>';return;}
+    if(!list.length){++requestSeq;if(requestController)requestController.abort();const loading=document.getElementById('band-loading');if(loading)loading.style.display='none';document.getElementById('band-chart').style.visibility='visible';bandTicker=null;bandPayload=null;destroyChart();document.getElementById('band-cards').innerHTML='';document.getElementById('band-chart').innerHTML='<div class="band-empty">상단에서 종목을 먼저 선택해 주세요.</div>';return;}
     if(!bandTicker||!list.includes(bandTicker)) bandTicker=list[0];
     load();
   }
@@ -101,7 +101,7 @@
       const r=await fetch(`/api/valuation-band?ticker=${encodeURIComponent(bandTicker)}&years=3`,{cache:'no-store',signal:requestController.signal});
       if(!r.ok){let msg='';try{msg=(await r.json()).error||'';}catch{}throw new Error(msg||`HTTP ${r.status}`);}
       const data=await r.json();if(seq!==requestSeq)return;bandPayload=data;render();
-    }catch(e){if(e?.name==='AbortError')return;console.error('valuation band error',e);bandPayload=null;destroyChart();if(chartEl){chartEl.style.visibility='visible';chartEl.innerHTML=`<div class="band-empty">${esc(e.message||'역사적 밸류 데이터를 불러오지 못했습니다.')}</div>`;}document.getElementById('band-cards').innerHTML='';}
+    }catch(e){if(e?.name==='AbortError'||seq!==requestSeq)return;console.error('valuation band error',e);bandPayload=null;destroyChart();if(chartEl){chartEl.style.visibility='visible';chartEl.innerHTML=`<div class="band-empty">${esc(e.message||'역사적 밸류 데이터를 불러오지 못했습니다.')}</div>`;}document.getElementById('band-cards').innerHTML='';}
     finally{if(seq===requestSeq){if(loading)loading.style.display='none';if(chartEl)chartEl.style.visibility='visible';}}
   }
 
@@ -128,9 +128,9 @@
     const series=bandChart.addLineSeries({color:'#3182f6',lineWidth:2,priceLineVisible:false,lastValueVisible:true});
     series.setData(pack.points.map(p=>({time:p.time,value:Number(p.value)})));
     const s=pack.stats;
-    if(Number.isFinite(Number(s.p20)))series.createPriceLine({price:Number(s.p20),color:'#00a86b',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'20%'});
-    if(Number.isFinite(Number(s.median)))series.createPriceLine({price:Number(s.median),color:'#8b95a1',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dotted,axisLabelVisible:true,title:'중앙'});
-    if(Number.isFinite(Number(s.p80)))series.createPriceLine({price:Number(s.p80),color:'#f04452',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'80%'});
+    if(s.p20!=null&&Number.isFinite(Number(s.p20)))series.createPriceLine({price:Number(s.p20),color:'#00a86b',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'20%'});
+    if(s.median!=null&&Number.isFinite(Number(s.median)))series.createPriceLine({price:Number(s.median),color:'#8b95a1',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dotted,axisLabelVisible:true,title:'중앙'});
+    if(s.p80!=null&&Number.isFinite(Number(s.p80)))series.createPriceLine({price:Number(s.p80),color:'#f04452',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'80%'});
     bandChart.timeScale().fitContent();
     resizeObserver=new ResizeObserver(()=>{if(bandChart&&el.clientWidth>0)bandChart.applyOptions({width:el.clientWidth,height:el.clientHeight||340});});resizeObserver.observe(el);
   }

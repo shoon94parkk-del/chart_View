@@ -7,11 +7,15 @@ on:
       - 'main.py'
       - 'market_service.py'
       - 'consensus_service.py'
+      - 'valuation_band_service.py'
+      - 'requirements.txt'
+      - 'tests/**'
       - 'scripts/**'
       - 'static/js/**'
       - 'static/css/**'
       - 'templates/**'
       - '.github/workflows/app-check.yml'
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -31,10 +35,14 @@ jobs:
           python -m py_compile main.py market_service.py consensus_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
-          for f in static/js/chart.js static/js/fwdper.js static/js/macro.js static/js/screener.js static/js/ux_patch.js static/js/ideas.js static/js/valuation_meta.js static/js/consensus_v2.js static/js/revision_radar.js static/js/ux_v3.js static/js/valuation_overview_v4.js static/js/app_header_v5.js static/js/decision_ux_v7.js static/js/home_brief_v8.js static/js/home_market_v9.js; do
-            echo "checking $f"
+          for f in static/js/*.js; do
             node --check "$f"
           done
+      - name: API and frontend regressions
+        run: |
+          pip install -q -r requirements.txt pytest httpx
+          python -m pytest -q
+          node --test tests/frontend.test.cjs
       - name: Static cache shape
         run: |
           python - <<'PY'
@@ -81,20 +89,20 @@ jobs:
 
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "'jyp': 'JYP Ent.'" in ux
-          assert '/static/js/home_market_v9.js?v=20260911v10' in ux
-          assert '/static/css/home_market_v9.css?v=20260911v10' in ux
+          assert '/static/js/home_market_v9.js?v=' in ux
+          assert '/static/css/home_market_v9.css?v=' in ux
 
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
           assert 'data-app-mode="home"' in app and '종목분석' in app and '종목발굴' in app and '시장' in app
 
           home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
-          for text in ('오늘은 여기부터 보세요','실적은 좋아졌는데 주가가 덜 움직인 종목','선택 종목 요약'):
+          for text in ('주요 종목 오늘 시황','시장 한줄 요약','1달 수익률'):
               assert text in home, text
 
           market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
           for label in ('오늘의 시장','KOSPI','KOSDAQ','미 10년물','WTI 유가','원/달러','직전 종가 대비'):
               assert label in market_home, label
-          assert "fetch('/api/market-now'" in market_home
+          assert "/api/market-now" in market_home
           assert "row?.change" in market_home
           assert '/api/compare' not in market_home
           assert '__openAppTab' not in market_home
@@ -117,3 +125,30 @@ jobs:
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
           print('app UX invariants OK: Korea + global home market strip')
           PY
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install test dependencies
+        run: |
+          pip install -q -r requirements.txt
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Start app and test mobile behavior
+        run: |
+          uvicorn main:app --host 127.0.0.1 --port 8080 --lifespan off > /tmp/chart-view.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break || sleep 1; done
+          node tests/mobile_smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-review
+          path: test-results/

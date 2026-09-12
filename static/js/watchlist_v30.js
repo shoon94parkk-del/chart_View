@@ -21,7 +21,9 @@
   const safeParse = (key, fallback) => {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
+      const parsed = raw ? JSON.parse(raw) : fallback;
+      if (Array.isArray(fallback) && !Array.isArray(parsed)) return fallback;
+      return parsed;
     } catch (_) { return fallback; }
   };
 
@@ -137,6 +139,7 @@
   }
 
   function formatPrice(symbol, value) {
+    if (value == null || value === '') return '-';
     const price = Number(value);
     if (!Number.isFinite(price)) return '-';
     if (/\.(KS|KQ)$/.test(symbol)) return `₩${Math.round(price).toLocaleString('ko-KR')}`;
@@ -149,6 +152,7 @@
   }
 
   function returnText(value) {
+    if (value == null || value === '') return '-';
     const n = Number(value);
     if (!Number.isFinite(n)) return '-';
     return `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
@@ -166,10 +170,10 @@
   function sortRows(rows) {
     const copy = [...rows];
     if (sortMode === 'return-desc') {
-      return copy.sort((a, b) => (Number.isFinite(Number(quoteFor(b.symbol)?.return)) ? Number(quoteFor(b.symbol)?.return) : -Infinity) - (Number.isFinite(Number(quoteFor(a.symbol)?.return)) ? Number(quoteFor(a.symbol)?.return) : -Infinity));
+      return copy.sort((a, b) => (quoteFor(b.symbol)?.return ?? -Infinity) - (quoteFor(a.symbol)?.return ?? -Infinity));
     }
     if (sortMode === 'return-asc') {
-      return copy.sort((a, b) => (Number.isFinite(Number(quoteFor(a.symbol)?.return)) ? Number(quoteFor(a.symbol)?.return) : Infinity) - (Number.isFinite(Number(quoteFor(b.symbol)?.return)) ? Number(quoteFor(b.symbol)?.return) : Infinity));
+      return copy.sort((a, b) => (quoteFor(a.symbol)?.return ?? Infinity) - (quoteFor(b.symbol)?.return ?? Infinity));
     }
     if (sortMode === 'name') return copy.sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
     return copy;
@@ -196,7 +200,7 @@
     const up = document.querySelector('[data-watch-summary-up]');
     const down = document.querySelector('[data-watch-summary-down]');
     if (total) total.textContent = String(watchlist.length);
-    const values = watchlist.map((row) => Number(quoteFor(row.symbol)?.return)).filter(Number.isFinite);
+    const values = watchlist.map((row) => quoteFor(row.symbol)?.return).filter(value => value != null && value !== '').map(Number).filter(Number.isFinite);
     if (up) up.textContent = values.length ? String(values.filter((x) => x > 0).length) : '-';
     if (down) down.textContent = values.length ? String(values.filter((x) => x < 0).length) : '-';
   }
@@ -222,7 +226,7 @@
     const visible = watchlist.slice(0, 4);
     section.innerHTML = `
       <div class="home-block-head home-watchlist-v30-head">
-        <div><span>MY STOCKS</span><h3>내 관심종목</h3></div>
+        <div><span>MY STOCKS · 1달 수익률</span><h3>내 관심종목</h3></div>
         <button type="button" data-home-watch-all>전체보기 →</button>
       </div>
       ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => {
@@ -443,6 +447,7 @@
     }
 
     const chunks = [];
+    let received = 0;
     for (let i = 0; i < rows.length; i += 6) chunks.push(rows.slice(i, i + 6));
     await Promise.allSettled(chunks.map(async (chunk) => {
       const response = await fetch(`/api/compare?tickers=${encodeURIComponent(chunk.map((x) => x.symbol).join(','))}&period=1mo${force ? `&refresh=${Date.now()}` : ''}`, { cache: 'no-store' });
@@ -452,17 +457,22 @@
       (data.stocks || []).forEach((stock) => {
         const symbol = String(stock.ticker || '').toUpperCase();
         if (!symbol) return;
-        const quote = { price: Number(stock.price), return: Number(stock.return), updatedAt: Date.now() };
+        const quote = { price: stock.price == null ? null : Number(stock.price), return: stock.return == null ? null : Number(stock.return), updatedAt: Date.now() };
+        received += 1;
         quoteCache.quotes[symbol] = quote;
         applyQuote(symbol, quote, true);
       });
     }));
 
     if (seq !== quoteSeq) return;
-    quoteCache.updatedAt = Date.now();
+    if (received === rows.length) quoteCache.updatedAt = Date.now();
     saveQuoteCache();
     updateSummary();
-    updateUpdatedLabel(true);
+    updateUpdatedLabel(received === rows.length);
+    if (received < rows.length) {
+      const label = document.querySelector('[data-watch-updated]');
+      if (label) label.textContent = received ? '일부 시세 갱신 지연 · 이전값 유지' : '갱신 실패 · 이전값 유지';
+    }
     if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
     renderHomeShortcut();
     if (refresh) {

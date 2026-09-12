@@ -25,7 +25,7 @@
   `;
 
   const esc = (v) => String(v ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-  const num = (v) => Number.isFinite(Number(v)) ? Number(v) : null;
+  const num = (v) => v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v);
   const fmt = (v, d=2) => num(v) === null ? '-' : Number(v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const tickers = () => (typeof perTickers !== 'undefined' && Array.isArray(perTickers)) ? [...perTickers] : [];
   const nameOf = (t) => { try { return (typeof perTickerNameMap !== 'undefined' && perTickerNameMap[t]) || t; } catch { return t; } };
@@ -116,7 +116,7 @@
 
   function ensureTickerAndLoad(){
     const list=tickers();
-    if(!list.length){ticker=null;payload=null;destroyChart();document.getElementById('cons-cards').innerHTML='';document.getElementById('cons-chart').innerHTML='<div class="cons-empty">상단에서 종목을 먼저 선택해 주세요.</div>';return;}
+    if(!list.length){++requestSeq;if(controller)controller.abort();const loading=document.getElementById('cons-loading');if(loading)loading.style.display='none';document.getElementById('cons-chart').style.visibility='visible';ticker=null;payload=null;destroyChart();document.getElementById('cons-cards').innerHTML='';document.getElementById('cons-chart').innerHTML='<div class="cons-empty">상단에서 종목을 먼저 선택해 주세요.</div>';return;}
     if(!ticker||!list.includes(ticker))ticker=list[0]; load();
   }
 
@@ -130,7 +130,7 @@
       if(!r.ok){let msg='';try{msg=(await r.json()).error||'';}catch{}throw new Error(msg||`HTTP ${r.status}`);}
       const data=await r.json(); if(seq!==requestSeq)return; payload=data; render();
     }catch(e){
-      if(e?.name==='AbortError')return; console.error('consensus error',e); payload=null; destroyChart();
+      if(e?.name==='AbortError'||seq!==requestSeq)return; console.error('consensus error',e); payload=null; destroyChart();
       if(chartEl){chartEl.style.visibility='visible';chartEl.innerHTML=`<div class="cons-empty">${esc(e.message||'컨센서스 데이터를 불러오지 못했습니다.')}</div>`;}
       document.getElementById('cons-cards').innerHTML='';
     }finally{if(seq===requestSeq){if(loading)loading.style.display='none';if(chartEl)chartEl.style.visibility='visible';}}
@@ -144,7 +144,7 @@
     if(!row){destroyChart();cards.innerHTML='';document.getElementById('cons-chart').innerHTML='<div class="cons-empty">이 기간의 컨센서스 데이터가 없습니다.</div>';return;}
     const e=row.earnings||{}, r=row.revenue||{}, tr=row.epsTrend||{}, rev=row.revisions||{};
     if(mode==='eps'){
-      const delta=changePct(tr.current,tr['90daysAgo']??tr['30daysAgo']); const cls=delta===null?'':(delta>0?'cons-positive':delta<0?'cons-negative':'');
+      const delta=changePct(tr.current,tr['90daysAgo']); const cls=delta===null?'':(delta>0?'cons-positive':delta<0?'cons-negative':'');
       cards.innerHTML=`
         <div class="cons-card"><span>EPS 컨센서스</span><strong>${fmtEps(e.avg)}</strong><small>${periodLabel[period]} · ${esc(row.endDate||'')}</small></div>
         <div class="cons-card"><span>90일 변화</span><strong class="${cls}">${delta===null?'-':`${delta>=0?'+':''}${delta.toFixed(1)}%`}</strong><small>현재 vs 90일 전 추정치</small></div>

@@ -89,8 +89,40 @@ function setDefaultDates() {
     const monthAgo = new Date();
     monthAgo.setMonth(today.getMonth() - 1);
 
-    document.getElementById('end-date').value = today.toISOString().split('T')[0];
-    document.getElementById('start-date').value = monthAgo.toISOString().split('T')[0];
+    document.getElementById('end-date').value = localDate(today);
+    document.getElementById('start-date').value = localDate(monthAgo);
+}
+
+function localDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function clearChartData() {
+    Object.values(series).forEach(item => { try { chart.removeSeries(item); } catch (_) {} });
+    series = {};
+    updateLegend([]);
+}
+
+function chartStatus(message = '') {
+    const section = document.querySelector('.chart-section');
+    let status = document.getElementById('chart-status');
+    if (!status) {
+        status = document.createElement('div');
+        status.id = 'chart-status';
+        status.className = 'ux-data-status';
+        status.setAttribute('role', 'status');
+        section.appendChild(status);
+    }
+    status.replaceChildren();
+    status.hidden = !message;
+    if (!message) return;
+    status.append(document.createTextNode(message + ' '));
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'period-chip';
+    retry.textContent = '다시 시도';
+    retry.addEventListener('click', loadData);
+    status.appendChild(retry);
 }
 
 // 검색 API로 가장 유사한 종목 찾기
@@ -106,19 +138,19 @@ async function searchAndAdd(query) {
             // 첫 번째 결과(가장 유사한 종목) 추가
             const best = data.results[0];
             addGlobalTicker(best.symbol, best.name);
-        } else {
-            // 검색 결과 없으면 그대로 티커로 추가
+        } else if (/^[A-Za-z^][A-Za-z0-9.^=\-]{0,19}$/.test(query)) {
             addGlobalTicker(query.toUpperCase());
         }
     } catch (e) {
         console.error('Search error:', e);
-        addGlobalTicker(query.toUpperCase());
+        chartStatus('종목 검색을 완료하지 못했습니다.');
     }
 }
 
 // 직접 티커 추가 (검색 없이)
 function addTickerDirect(ticker) {
-    ticker = ticker.trim();
+    ticker = ticker.trim().toUpperCase();
+    if (!/^[A-Z0-9^][A-Z0-9.^=\-]{0,19}$/.test(ticker)) return;
     if (!ticker || selectedTickers.includes(ticker)) return;
 
     if (selectedTickers.length >= 6) {
@@ -225,11 +257,10 @@ function updateTags() {
         const tag = document.createElement('div');
         tag.className = 'ticker-tag';
         const displayName = getShortDisplayName(ticker);
-        tag.innerHTML = `
-            <span class="tag-dot" style="background:${COLORS[i % COLORS.length]}"></span>
-            <span class="tag-name">${displayName}</span>
-            <button class="tag-remove" onclick="removeTicker('${ticker}')">×</button>
-        `;
+        tag.innerHTML = `<span class="tag-dot" style="background:${COLORS[i % COLORS.length]}"></span><span class="tag-name"></span><button class="tag-remove">×</button>`;
+        tag.querySelector('.tag-name').textContent = displayName;
+        tag.querySelector('button').setAttribute('aria-label', `${displayName} 제거`);
+        tag.querySelector('button').addEventListener('click', () => removeTicker(ticker));
         container.appendChild(tag);
     });
 }
@@ -241,15 +272,17 @@ async function loadData() {
     chartRequestController = new AbortController();
 
     if (!selectedTickers.length) {
-        updateLegend([]);
+        clearChartData();
+        chartStatus();
         showLoading(false);
         return;
     }
 
     showLoading(true);
+    chartStatus();
 
     try {
-        let url = `/api/compare?tickers=${selectedTickers.join(',')}&period=${currentPeriod}&_t=${Date.now()}`;
+        let url = `/api/compare?tickers=${encodeURIComponent(selectedTickers.join(','))}&period=${currentPeriod}`;
         if (customDateRange) {
             url += `&start=${customDateRange.start}&end=${customDateRange.end}`;
         }
@@ -270,7 +303,7 @@ async function loadData() {
             if (stock.name && !tickerNameMap[stock.ticker]) tickerNameMap[stock.ticker] = stock.name;
             if (!Array.isArray(stock.data) || stock.data.length === 0) return;
             const s = chart.addLineSeries({
-                color: COLORS[i % COLORS.length],
+                color: COLORS[selectedTickers.indexOf(stock.ticker) % COLORS.length],
                 lineWidth: 2,
                 priceLineVisible: false,
             });
@@ -283,10 +316,15 @@ async function loadData() {
         updateLegend(stocks);
 
         if (!stocks.length && selectedTickers.length) {
-            console.warn('No chart data returned', data.errors || []);
+            chartStatus('시세 데이터를 가져오지 못했습니다.');
+        } else if (data.errors?.length) {
+            chartStatus('일부 종목의 시세를 가져오지 못했습니다.');
         }
     } catch (e) {
         if (e && e.name === 'AbortError') return;
+        if (seq !== chartLoadSeq) return;
+        clearChartData();
+        chartStatus('차트 조회에 실패했습니다. 연결을 확인해주세요.');
         console.error('Chart load error:', e);
     } finally {
         // An older aborted request must not hide the loader for a newer request.
@@ -305,10 +343,11 @@ function updateLegend(stocks) {
         const item = document.createElement('div');
         item.className = 'legend-item';
         item.innerHTML = `
-            <span class="legend-dot" style="background:${COLORS[i % COLORS.length]}"></span>
-            <span class="legend-name">${displayName}</span>
+            <span class="legend-dot" style="background:${COLORS[selectedTickers.indexOf(stock.ticker) % COLORS.length]}"></span>
+            <span class="legend-name"></span>
             <span class="legend-value ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${stock.return}%</span>
         `;
+        item.querySelector('.legend-name').textContent = displayName;
         container.appendChild(item);
     });
 }
@@ -364,8 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const today = new Date();
                 const yearStart = new Date(today.getFullYear(), 0, 1);
                 customDateRange = {
-                    start: yearStart.toISOString().split('T')[0],
-                    end: today.toISOString().split('T')[0]
+                    start: localDate(yearStart),
+                    end: localDate(today)
                 };
                 document.getElementById('start-date').value = customDateRange.start;
                 document.getElementById('end-date').value = customDateRange.end;
@@ -414,24 +453,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
                     const data = await res.json();
-
-                    if (data.results && data.results.length > 0) {
-                        searchResults.innerHTML = data.results.map(r => `
-                            <div class="search-result-item" onclick="selectSearchResult('${r.symbol}', '${r.name.replace(/'/g, "\\'")}')">
-                                <span class="name">${r.name}</span>
-                                <span class="symbol">${r.market ? ((r.code || r.symbol) + ' · ' + r.market) : r.symbol}</span>
-                            </div>
-                        `).join('');
-                        searchResults.classList.remove('hidden');
-                    } else {
-                        searchResults.innerHTML = `
-                            <div class="search-result-item" onclick="selectSearchResult('${query.toUpperCase()}')">
-                                <span class="name">티커로 직접 추가</span>
-                                <span class="symbol">${query.toUpperCase()}</span>
-                            </div>
-                        `;
-                        searchResults.classList.remove('hidden');
-                    }
+                    if (unifiedInput.value.trim() !== query) return;
+                    searchResults.replaceChildren();
+                    const rows = Array.isArray(data.results) ? data.results : [];
+                    rows.forEach(r => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item';
+                        const name = document.createElement('span');
+                        name.className = 'name'; name.textContent = r.name;
+                        const symbol = document.createElement('span');
+                        symbol.className = 'symbol'; symbol.textContent = r.market ? `${r.code || r.symbol} · ${r.market}` : r.symbol;
+                        item.append(name, symbol);
+                        item.addEventListener('click', () => selectSearchResult(r.symbol, r.name));
+                        searchResults.appendChild(item);
+                    });
+                    searchResults.classList.toggle('hidden', !rows.length);
                 } catch (e) {
                     console.error('Search error:', e);
                 }

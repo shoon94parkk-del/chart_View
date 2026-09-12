@@ -17,6 +17,7 @@
   let lastLoadedAt = 0;
 
   const num = (value) => {
+    if (value == null || value === '') return null;
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
   };
@@ -136,7 +137,7 @@
       painted += 1;
     });
     const time = panel.querySelector('#home-market-v9-time');
-    if (time && painted) time.textContent = `${formatCheckedAt(data)} 기준`;
+    if (time && painted) time.textContent = `${formatCheckedAt(data)} 조회${data.errors?.length ? ' · 일부 갱신 지연' : ''}`;
     return painted > 0;
   }
 

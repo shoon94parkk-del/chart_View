@@ -73,21 +73,29 @@
     return HOME_MAJOR_STOCKS.map((item) => ({ ...(map.get(item.symbol) || {}), ...item }));
   }
 
+  function quoteDate(row) {
+    if (!row.asOf) return '기준일 확인 중';
+    const date = new Date(row.asOf);
+    if (Number.isNaN(date.getTime())) return '기준일 확인 중';
+    const label = date.toLocaleDateString('ko-KR', { timeZone: /\.(KS|KQ)$/.test(row.symbol) ? 'Asia/Seoul' : 'America/New_York', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
+    return `${label} ${row.stale ? '이전값' : '거래'}`;
+  }
+
   function majorStocksHtml(rows, generatedAt) {
     return `
       <section class="home-v8-block home16-major-card">
         <div class="home-block-head home16-head">
           <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
-          <small>${esc(homeCheckedAt(generatedAt))} 기준</small>
+          <small>${esc(homeCheckedAt(generatedAt))} 조회</small>
         </div>
         <div class="home16-stock-strip">${rows.map((row) => `
           <button type="button" class="home16-stock" data-home-symbol="${esc(row.symbol)}" data-home-name="${esc(row.name)}">
             <span class="home16-ring">${homeLogo(row)}</span>
             <strong>${esc(row.name)}</strong>
             <small>${homePrice(row.symbol, row.price)}</small>
-            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b>
+            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b><small>${esc(quoteDate(row))}</small>
           </button>`).join('')}</div>
-        <div class="home16-caption">직전 종가 대비 · 캐시 즉시 표시 후 최신 시세로 자동 갱신</div>
+        <div class="home16-caption">직전 종가 대비 · 거래일은 각 시장 현지 기준 · 갱신 지연 시 이전값 표시</div>
       </section>`;
   }
 
@@ -103,7 +111,7 @@
             <span class="home16-mover-rank">${index + 1}</span>
             ${homeLogo(row)}
             <span class="home16-mover-copy"><strong>${esc(row.name)}</strong><small>${esc(row.symbol)} · ${homePrice(row.symbol, row.price)}</small></span>
-            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b><i>›</i>
+            <b class="${homeChangeClass(row.change)}">${pct(row.change, 2)}</b><small>${esc(quoteDate(row))}</small><i>›</i>
           </button>`).join('')}</div>
       </section>`;
   }

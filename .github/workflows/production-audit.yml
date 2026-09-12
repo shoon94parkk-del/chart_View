@@ -1,0 +1,53 @@
+name: Production Mobile Verification
+on:
+  workflow_run:
+    workflows: ['App Regression Check']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Wait for deployed revision
+        env:
+          EXPECTED: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.request
+          for attempt in range(24):
+              try:
+                  with urllib.request.urlopen('https://chart-view-bsg6.onrender.com/health', timeout=15) as r:
+                      if json.load(r).get('revision') == os.environ['EXPECTED']:
+                          print('Verified deployed revision:', os.environ['EXPECTED'])
+                          break
+              except Exception as exc:
+                  print(type(exc).__name__)
+              time.sleep(10)
+          else:
+              raise SystemExit('Expected commit has not deployed')
+          PY
+      - name: Verify production mobile flows
+        env:
+          APP_URL: https://chart-view-bsg6.onrender.com
+          LIVE: '1'
+        run: node tests/mobile_smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-mobile-review
+          path: test-results/
