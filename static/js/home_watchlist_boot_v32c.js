@@ -39,6 +39,16 @@
     }
   }
 
+  function ensureV39Assets() {
+    if (!document.querySelector('link[data-home-visual-v39]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/home_visual_v39.css?v=20260913v39';
+      link.dataset.homeVisualV39 = '1';
+      document.head.appendChild(link);
+    }
+  }
+
   function scheduleOrder() {
     if (orderScheduled) return;
     orderScheduled = true;
@@ -87,6 +97,7 @@
 
     home.dataset.homeOrder = 'market-watchlist-news-body-status';
     home.dataset.newsVersion = 'v38';
+    home.dataset.visualVersion = 'v39';
     return Boolean(market && body);
   }
 
@@ -103,6 +114,7 @@
   function ensureWatchlist(attempt = 0) {
     ensureV36Assets();
     ensureV38Assets();
+    ensureV39Assets();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
@@ -125,6 +137,7 @@
   function restartSoon() {
     ensureV36Assets();
     ensureV38Assets();
+    ensureV39Assets();
     setTimeout(() => ensureWatchlist(0), 50);
     setTimeout(enforceHomeOrder, 300);
     setTimeout(enforceHomeOrder, 1200);
