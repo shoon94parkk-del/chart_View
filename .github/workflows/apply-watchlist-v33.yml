@@ -26,8 +26,8 @@ jobs:
       - name: Verify V33 markers
         run: |
           grep -q 'chartview-watchlist-quotes-v33' static/js/watchlist_v30.js
-          grep -q 'watchlist-v30.js?v=20260912v33' static/js/ux_patch.js
-          grep -q 'watchlist-v30.css?v=20260912v33' static/js/ux_patch.js
+          grep -q 'watchlist_v30.js?v=20260912v33' static/js/ux_patch.js
+          grep -q 'watchlist_v30.css?v=20260912v33' static/js/ux_patch.js
           grep -q 'ux_patch.js?v=20260912v33' templates/index.html
       - name: Commit generated V33 cache bump
         run: |
