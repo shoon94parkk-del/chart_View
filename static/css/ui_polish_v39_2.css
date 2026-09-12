@@ -1,0 +1,323 @@
+/* V39.2 UI polish: unify legacy surfaces with the V39 visual language. */
+
+:root {
+  --cv392-ink: #111827;
+  --cv392-muted: #6b7280;
+  --cv392-line: rgba(15,23,42,.08);
+  --cv392-blue: #2563eb;
+  --cv392-blue-soft: #eff6ff;
+  --cv392-surface: #ffffff;
+  --cv392-soft: #f7f9fc;
+  --cv392-radius: 16px;
+  --cv392-shadow: 0 8px 24px rgba(15,23,42,.055);
+}
+
+html { scroll-behavior: smooth; }
+body { background: #f7f9fc; }
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+
+/* Header/search: make the utility layer feel intentional instead of legacy. */
+.header.app-utility-header {
+  padding-top: 14px !important;
+}
+.app-utility-top { margin-bottom: 10px; }
+.app-utility-copy strong {
+  font-size: 17px;
+  letter-spacing: -.025em;
+}
+.app-selection-status {
+  border: 1px solid rgba(37,99,235,.09);
+  background: #f4f8ff;
+  color: #48658f;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.65);
+}
+.header.app-utility-header .search-row {
+  gap: 9px !important;
+}
+.header.app-utility-header #unified-input {
+  border: 1px solid rgba(15,23,42,.09) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: var(--cv392-ink) !important;
+  box-shadow: 0 6px 18px rgba(15,23,42,.045) !important;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.header.app-utility-header #unified-input:focus {
+  border-color: rgba(37,99,235,.48) !important;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.09), 0 8px 22px rgba(37,99,235,.08) !important;
+  outline: none !important;
+}
+.header.app-utility-header .btn-add {
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg,#1d4ed8,#2563eb) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(37,99,235,.20) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+}
+.header.app-utility-header .btn-add:active { transform: translateY(1px) scale(.98); }
+.header.app-utility-header .ticker-tag {
+  border: 1px solid rgba(37,99,235,.10) !important;
+  border-radius: 999px !important;
+  background: #f5f9ff !important;
+  color: #315b9e !important;
+  font-weight: 800 !important;
+}
+
+/* Primary tab navigation: stronger active state, calmer inactive state. */
+.tab-nav {
+  gap: 6px !important;
+  padding: 5px !important;
+  border: 1px solid rgba(15,23,42,.07) !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 5px 18px rgba(15,23,42,.035) !important;
+}
+.tab-btn {
+  min-height: 42px !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  color: #667085 !important;
+  font-weight: 760 !important;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, transform .12s ease !important;
+}
+.tab-btn.active {
+  border-color: rgba(37,99,235,.13) !important;
+  background: linear-gradient(180deg,#f8fbff,#edf4ff) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 4px 12px rgba(37,99,235,.08) !important;
+}
+.tab-btn:active { transform: scale(.985); }
+
+/* Shared content surfaces */
+.date-section,
+.chart-section,
+.metric-section,
+.per-section,
+.macro-section,
+.sector-section,
+.app-context-shell {
+  border: 1px solid var(--cv392-line) !important;
+  border-radius: var(--cv392-radius) !important;
+  background: var(--cv392-surface) !important;
+  box-shadow: var(--cv392-shadow) !important;
+}
+
+.quick-periods,
+.metric-chips,
+.per-sort {
+  gap: 6px !important;
+}
+.period-chip,
+.metric-chip,
+.sort-btn,
+.custom-date-toggle,
+.btn-apply,
+.chip {
+  border-radius: 10px !important;
+}
+.period-chip,
+.metric-chip,
+.sort-btn,
+.chip {
+  border: 1px solid rgba(15,23,42,.075) !important;
+  background: #fff !important;
+  color: #596579 !important;
+  font-weight: 740 !important;
+  transition: border-color .15s ease, background .15s ease, color .15s ease, transform .12s ease, box-shadow .15s ease !important;
+}
+.period-chip.active,
+.metric-chip.active,
+.sort-btn.active {
+  border-color: rgba(37,99,235,.18) !important;
+  background: var(--cv392-blue-soft) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 3px 9px rgba(37,99,235,.07) !important;
+}
+.period-chip:active,
+.metric-chip:active,
+.sort-btn:active,
+.chip:active { transform: scale(.985); }
+
+.chart-header,
+.per-header,
+.macro-header {
+  border-bottom-color: rgba(15,23,42,.07) !important;
+}
+.chart-title,
+.per-title,
+.macro-title {
+  color: var(--cv392-ink) !important;
+  letter-spacing: -.025em;
+}
+.metric-description,
+.per-source,
+.macro-desc {
+  color: #7b8494 !important;
+}
+
+/* Search results and quick-sector area */
+.search-results {
+  border: 1px solid rgba(15,23,42,.09) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 38px rgba(15,23,42,.14) !important;
+  overflow: hidden !important;
+}
+.sector-scroll-container { gap: 12px !important; }
+.sector-group {
+  border: 1px solid rgba(15,23,42,.06) !important;
+  border-radius: 13px !important;
+  background: #fbfcfe !important;
+}
+.sector-title {
+  color: #344054 !important;
+  font-weight: 820 !important;
+}
+.chip:hover {
+  border-color: rgba(37,99,235,.20) !important;
+  background: #f8fbff !important;
+  color: #1d4ed8 !important;
+}
+
+/* Home polish: more deliberate section spacing and softer tail sections. */
+#home-tab .home-v8 > section,
+#home-tab .home-v8 > .home-v8-block { scroll-margin-top: 12px; }
+#home-tab .home-v8 .home-block-head { margin-bottom: 11px; }
+#home-tab .home-v8 .home-block-head h3 { line-height: 1.25; }
+#ux12-data-status {
+  font-size: 11px !important;
+  color: #8a94a4 !important;
+}
+
+/* Bottom navigation: visual continuity with the rest of the app. */
+.app-bottom-nav {
+  border-top-color: rgba(15,23,42,.07) !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 -12px 32px rgba(15,23,42,.09) !important;
+  backdrop-filter: blur(16px) saturate(145%);
+}
+.app-bottom-btn {
+  color: #6f7a8b !important;
+  border-radius: 12px !important;
+}
+.app-bottom-btn.active {
+  border-color: rgba(37,99,235,.12) !important;
+  background: linear-gradient(180deg,#f7fbff,#edf4ff) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 3px 10px rgba(37,99,235,.07) !important;
+}
+.app-bottom-btn.active::before {
+  top: 1px !important;
+  width: 22px !important;
+  background: linear-gradient(90deg,#2563eb,#0891b2) !important;
+}
+
+/* Keyboard and accessibility focus */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(37,99,235,.75) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 720px) {
+  body { background: #f8fafc; }
+  .header.app-utility-header { padding: 10px 10px 5px !important; }
+  .app-utility-copy strong { font-size: 15px; }
+  .app-selection-status { padding: 4px 8px; font-size: 10px; }
+  .header.app-utility-header #unified-input,
+  .header.app-utility-header .btn-add {
+    border-radius: 13px !important;
+  }
+  .tab-nav {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    padding: 4px !important;
+    gap: 3px !important;
+    border-radius: 14px !important;
+  }
+  .tab-btn {
+    min-height: 44px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+    font-size: 10.5px !important;
+  }
+  .date-section,
+  .chart-section,
+  .metric-section,
+  .per-section,
+  .macro-section,
+  .sector-section,
+  .app-context-shell {
+    border-radius: 15px !important;
+    box-shadow: 0 5px 16px rgba(15,23,42,.04) !important;
+  }
+  .period-chip,
+  .sort-btn,
+  .chip { min-height: 38px !important; }
+  .metric-chip { min-height: 42px !important; }
+  .app-bottom-btn { min-height: 50px !important; }
+}
+
+@media (max-width: 390px) {
+  .tab-btn { font-size: 9.8px !important; }
+  .app-selection-status { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cv392-ink: #f8fafc;
+    --cv392-muted: #94a3b8;
+    --cv392-line: rgba(255,255,255,.08);
+    --cv392-surface: #111827;
+    --cv392-soft: #0f172a;
+    --cv392-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  body { background: #0b1220; }
+  .app-utility-copy strong,
+  .chart-title,
+  .per-title,
+  .macro-title { color: #f8fafc !important; }
+  .app-selection-status,
+  .header.app-utility-header .ticker-tag,
+  .period-chip.active,
+  .metric-chip.active,
+  .sort-btn.active {
+    background: rgba(37,99,235,.12) !important;
+    color: #bfdbfe !important;
+    border-color: rgba(96,165,250,.16) !important;
+  }
+  .header.app-utility-header #unified-input,
+  .tab-nav,
+  .date-section,
+  .chart-section,
+  .metric-section,
+  .per-section,
+  .macro-section,
+  .sector-section,
+  .app-context-shell,
+  .period-chip,
+  .metric-chip,
+  .sort-btn,
+  .chip,
+  .sector-group {
+    background: rgba(15,23,42,.94) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255,255,255,.08) !important;
+  }
+  .tab-btn { color: #94a3b8 !important; }
+  .tab-btn.active,
+  .app-bottom-btn.active {
+    background: rgba(37,99,235,.14) !important;
+    color: #bfdbfe !important;
+    border-color: rgba(96,165,250,.14) !important;
+  }
+  .app-bottom-nav {
+    background: rgba(15,23,42,.93) !important;
+    border-top-color: rgba(255,255,255,.07) !important;
+  }
+  .sector-title { color: #dbe4f0 !important; }
+  .search-results { background: #111827 !important; border-color: rgba(255,255,255,.10) !important; }
+}
