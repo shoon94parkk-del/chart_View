@@ -22,6 +22,23 @@
     }
   }
 
+  function ensureV37Assets() {
+    if (!document.querySelector('link[data-personalized-news-v37]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/personalized_news_v37.css?v=20260912v37';
+      link.dataset.personalizedNewsV37 = '1';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-personalized-news-v37]')) {
+      const script = document.createElement('script');
+      script.src = '/static/js/personalized_news_v37.js?v=20260912v37';
+      script.async = false;
+      script.dataset.personalizedNewsV37 = '1';
+      document.head.appendChild(script);
+    }
+  }
+
   function scheduleOrder() {
     if (orderScheduled) return;
     orderScheduled = true;
@@ -38,10 +55,12 @@
     const market = document.getElementById('home-market-v9');
     const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
+    const news = document.getElementById('home-personal-news-v37');
     const status = document.getElementById('ux12-data-status');
 
-    // V36 canonical Home order:
-    // 1) 간단한 시장 현황 -> 2) 내 관심종목 -> 3) 전체 시장/주요 종목 -> 4) 데이터 상태.
+    // V37 canonical Home order:
+    // 1) 시장 현황 -> 2) 내 관심종목 -> 3) 관심종목 주요 뉴스
+    // -> 4) 전체 시장/주요 종목 -> 5) 데이터 상태.
     if (market && home.firstElementChild !== market) {
       home.insertBefore(market, home.firstElementChild);
     }
@@ -51,6 +70,12 @@
       if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist);
       else if (!anchor && home.firstElementChild !== watchlist) home.insertBefore(watchlist, home.firstElementChild);
       anchor = watchlist;
+    }
+
+    if (news) {
+      if (anchor && anchor.nextElementSibling !== news) anchor.insertAdjacentElement('afterend', news);
+      else if (!anchor && home.firstElementChild !== news) home.insertBefore(news, home.firstElementChild);
+      anchor = news;
     }
 
     if (body) {
@@ -65,7 +90,7 @@
       status.dataset.homeOrder = 'last';
     }
 
-    home.dataset.homeOrder = 'market-watchlist-body-status';
+    home.dataset.homeOrder = 'market-watchlist-news-body-status';
     return Boolean(market && body);
   }
 
@@ -81,6 +106,7 @@
 
   function ensureWatchlist(attempt = 0) {
     ensureV36Assets();
+    ensureV37Assets();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
@@ -92,20 +118,23 @@
     const market = document.getElementById('home-market-v9');
     const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
+    const news = document.getElementById('home-personal-news-v37');
     const status = document.getElementById('ux12-data-status');
 
-    if ((!market || !body || !watchlist || !status) && attempt < 120) {
+    if ((!market || !body || !watchlist || !news || !status) && attempt < 120) {
       setTimeout(() => ensureWatchlist(attempt + 1), 500);
     }
   }
 
   function restartSoon() {
     ensureV36Assets();
+    ensureV37Assets();
     setTimeout(() => ensureWatchlist(0), 50);
     setTimeout(enforceHomeOrder, 300);
     setTimeout(enforceHomeOrder, 1200);
   }
 
+  document.addEventListener('chartview:v37-news-rendered', scheduleOrder);
   document.addEventListener('click', (event) => {
     if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon();
   });
