@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_v39_visual_asset_is_loaded_and_versioned():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/home_visual_v39.css?v=20260913v39" in boot
-    assert "data-home-visual-v39" in boot
+    assert "homeVisualV39" in boot
     assert "home.dataset.visualVersion = 'v39'" in boot
 
 
