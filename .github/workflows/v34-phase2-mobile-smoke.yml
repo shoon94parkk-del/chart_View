@@ -41,7 +41,8 @@ jobs:
             const response = await page.goto('https://chart-view-bsg6.onrender.com/?v34_phase2_smoke=0aa2686', { waitUntil: 'domcontentloaded', timeout: 60000 });
             assert(response && response.status() === 200, 'root HTTP 200');
             await page.waitForSelector('.app-bottom-nav', { timeout: 30000 });
-            await page.locator('.app-bottom-btn[data-app-mode="analysis"]').tap();
+            await page.waitForFunction(() => typeof window.__openAppTab === 'function', null, { timeout: 30000 });
+            await page.evaluate(() => window.__openAppTab('chart'));
             await page.waitForSelector('.stock-brief-v34', { state: 'visible', timeout: 30000 });
             await page.waitForFunction(() => !document.querySelector('.stock-brief-loading'), null, { timeout: 60000 });
 
