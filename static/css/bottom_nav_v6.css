@@ -1,11 +1,17 @@
-/* Bottom navigation v6: stronger selection visibility without reducing information density. */
+/* Bottom navigation v6: compact five-destination mobile bar. */
 .app-bottom-nav {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  grid-auto-flow: column !important;
+  gap: 4px !important;
+  width: min(680px, 100%) !important;
+  min-height: 60px !important;
+  padding: 5px 6px calc(5px + env(safe-area-inset-bottom)) !important;
   border-top: 1px solid #dfe3e8;
   background: rgba(255,255,255,.985);
   box-shadow: 0 -10px 30px rgba(15,23,42,.10);
+  overflow: hidden !important;
 }
 
 .app-context-nav[data-app-context="market"] {
@@ -14,21 +20,28 @@
 
 .app-bottom-btn {
   position: relative;
-  min-width: 0;
-  min-height: 54px;
-  padding-left: 2px;
-  padding-right: 2px;
+  grid-row: 1 !important;
+  grid-column: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 50px !important;
+  margin: 0 !important;
+  padding: 3px 1px !important;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #5f6b7a;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 780;
+  white-space: nowrap;
+  overflow: hidden;
   transition: color .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .12s ease;
 }
 
 .app-bottom-btn .app-bottom-icon {
   color: #6b7684;
-  font-size: 21px;
+  font-size: 19px;
+  line-height: 1;
   transition: color .16s ease, transform .16s ease;
 }
 
@@ -48,9 +61,9 @@
 .app-bottom-btn.active::before {
   content: '';
   position: absolute;
-  top: 3px;
+  top: 2px;
   left: 50%;
-  width: 20px;
+  width: 18px;
   height: 3px;
   border-radius: 999px;
   background: #1769d2;
@@ -59,24 +72,28 @@
 
 .app-bottom-btn:active { transform: scale(.985); }
 .app-bottom-btn:focus-visible { outline: 2px solid #1769d2; outline-offset: 1px; }
+body.app-shell-ready { padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important; }
 
 @media (max-width: 720px) {
   .app-bottom-nav {
-    gap: 3px;
-    padding-left: 5px;
-    padding-right: 5px;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    min-height: 58px !important;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom)) !important;
   }
-
   .app-bottom-btn {
-    min-height: 56px;
-    font-size: 10.5px;
+    min-height: 49px !important;
+    padding: 2px 0 !important;
+    border-radius: 10px;
+    font-size: 9.8px;
+    letter-spacing: -.15px;
   }
-
-  .app-bottom-btn .app-bottom-icon { font-size: 20px; }
+  .app-bottom-btn .app-bottom-icon { font-size: 18px; }
+  body.app-shell-ready { padding-bottom: calc(66px + env(safe-area-inset-bottom)) !important; }
 }
 
 @media (max-width: 380px) {
-  .app-bottom-nav { gap: 2px; padding-left: 3px; padding-right: 3px; }
-  .app-bottom-btn { font-size: 9.8px; border-radius: 11px; }
-  .app-bottom-btn .app-bottom-icon { font-size: 19px; }
+  .app-bottom-nav { gap: 1px !important; padding-left: 2px !important; padding-right: 2px !important; }
+  .app-bottom-btn { font-size: 9.2px; border-radius: 9px; }
+  .app-bottom-btn .app-bottom-icon { font-size: 17px; }
 }
