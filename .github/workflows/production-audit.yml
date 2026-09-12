@@ -5,6 +5,9 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: production-mobile-verification
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

@@ -37,10 +37,10 @@ jobs:
               && grep -q '차트뷰' /tmp/home.html \
               && grep -q 'viewport-fit=cover' /tmp/home.html \
               && ! grep -q 'user-scalable=no' /tmp/home.html \
-              && grep -q '/static/js/macro.js?v=20260911v1' /tmp/home.html \
-              && grep -q '/static/js/ux_patch.js?v=20260911v1' /tmp/home.html \
-              && grep -q '/static/js/valuation_bands.js?v=20260911v1' /tmp/home.html \
-              && grep -q '/static/js/consensus_v2.js?v=20260911v1' /tmp/home.html; then
+              && grep -q '/static/js/macro.js?v=' /tmp/home.html \
+              && grep -q '/static/js/ux_patch.js?v=' /tmp/home.html \
+              && grep -q '/static/js/valuation_bands.js?v=' /tmp/home.html \
+              && grep -q '/static/js/consensus_v2.js?v=' /tmp/home.html; then
               ready=1
               echo "current mobile build detected on attempt=$i"
               break
@@ -76,11 +76,11 @@ jobs:
           curl -fsSL "$BASE/static/data/consensus_cache.json" -o /tmp/ccache.json
           curl -fsSL "$BASE/static/data/consensus_history.json" -o /tmp/chistory.json
           curl -fsSL "$BASE/static/data/macro_cache.json" -o /tmp/mcache.json
-          curl -fsSL "$BASE/static/js/ux_patch.js?v=20260911v1" -o /tmp/ux.js
-          curl -fsSL "$BASE/static/js/ideas.js?v=20260911v1" -o /tmp/ideas.js
-          curl -fsSL "$BASE/static/js/screener.js?v=20260911v1" -o /tmp/screener.js
-          curl -fsSL "$BASE/static/js/valuation_bands.js?v=20260911v1" -o /tmp/bands.js
-          curl -fsSL "$BASE/static/js/consensus_v2.js?v=20260911v1" -o /tmp/consensus.js
+          curl -fsSL "$BASE/static/js/ux_patch.js?v=${GITHUB_SHA}" -o /tmp/ux.js
+          curl -fsSL "$BASE/static/js/ideas.js?v=${GITHUB_SHA}" -o /tmp/ideas.js
+          curl -fsSL "$BASE/static/js/screener.js?v=${GITHUB_SHA}" -o /tmp/screener.js
+          curl -fsSL "$BASE/static/js/valuation_bands.js?v=${GITHUB_SHA}" -o /tmp/bands.js
+          curl -fsSL "$BASE/static/js/consensus_v2.js?v=${GITHUB_SHA}" -o /tmp/consensus.js
           grep -Fq 'const isSixCharCode = (text) => /^\d{6}$/.test(text);' /tmp/ux.js
           grep -q 'ideas-market' /tmp/ideas.js
           grep -q 'data-screen-preset="momentum"' /tmp/screener.js

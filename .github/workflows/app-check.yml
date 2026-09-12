@@ -14,7 +14,7 @@ on:
       - 'static/js/**'
       - 'static/css/**'
       - 'templates/**'
-      - '.github/workflows/app-check.yml'
+      - '.github/workflows/**'
   pull_request:
   workflow_dispatch:
 

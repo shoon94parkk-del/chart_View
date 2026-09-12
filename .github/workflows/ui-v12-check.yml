@@ -27,8 +27,8 @@ jobs:
           grep -q 'ux12-filter-sheet' static/js/ux_patterns_v12.js
           grep -q 'ux12-screener-kpis' static/js/ux_patterns_v12.js
           grep -q 'DATA STATUS' static/js/ux_patterns_v12.js
-          grep -q 'ux_patterns_v12.css?v=20260911v12' static/js/ux_patch.js
-          grep -q 'ux_patterns_v12.js?v=20260911v12' static/js/ux_patch.js
+          grep -q 'ux_patterns_v12.css?v=' static/js/ux_patch.js
+          grep -q 'ux_patterns_v12.js?v=' static/js/ux_patch.js
           grep -q 'grid-template-columns:repeat(4' static/css/ux_patterns_v12.css
           echo 'UI v12 source checks OK'
       - name: Wait for production and smoke
@@ -37,14 +37,14 @@ jobs:
           BASE='https://chart-view-bsg6.onrender.com'
           ready=0
           for i in $(seq 1 50); do
-            js=$(curl -sS -o /tmp/v12.js -w '%{http_code}' "$BASE/static/js/ux_patterns_v12.js?v=20260911v12" || true)
-            css=$(curl -sS -o /tmp/v12.css -w '%{http_code}' "$BASE/static/css/ux_patterns_v12.css?v=20260911v12" || true)
-            loader=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
+            js=$(curl -sS -o /tmp/v12.js -w '%{http_code}' "$BASE/static/js/ux_patterns_v12.js?v=${GITHUB_SHA}" || true)
+            css=$(curl -sS -o /tmp/v12.css -w '%{http_code}' "$BASE/static/css/ux_patterns_v12.css?v=${GITHUB_SHA}" || true)
+            loader=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=${GITHUB_SHA}" || true)
             if [ "$js" = '200' ] && [ "$css" = '200' ] && [ "$loader" = '200' ] \
               && grep -q 'ux12-filter-sheet' /tmp/v12.js \
               && grep -q 'ux12-screener-kpis' /tmp/v12.js \
               && grep -q 'DATA STATUS' /tmp/v12.js \
-              && grep -q 'ux_patterns_v12.js?v=20260911v12' /tmp/ux_patch.js; then
+              && grep -q 'ux_patterns_v12.js?v=' /tmp/ux_patch.js; then
               ready=1
               echo "UI v12 production detected attempt=$i"
               break
