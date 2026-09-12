@@ -232,7 +232,7 @@
           <small>${esc(row.symbol)}</small>
           <span class="home-watch-v33-quote"><b data-home-watch-price>${q.price}</b><em class="${q.cls}" data-home-watch-return>${q.ret}</em></span>
         </button>`;
-      }).join('')}</div>` : '<div class="home-watchlist-v30-empty"><strong>관심종목을 추가해 보세요</strong><span>가격과 1개월 수익률을 홈에서 바로 확인할 수 있습니다.</span></div>'}`;
+      }).join('')}</div>` : '<div class="home-watchlist-v30-empty"><strong>관심종목을 추가해 보세요</strong><span>가격과 1달 수익률을 홈에서 바로 확인할 수 있습니다.</span></div>'}`;
     section.querySelector('[data-home-watch-all]')?.addEventListener('click', () => {
       if (typeof window.__openAppTab === 'function') window.__openAppTab('watchlist');
     });
@@ -252,13 +252,13 @@
     tab.innerHTML = `
       <main class="watchlist-v30 watchlist-v33">
         <header class="watchlist-v30-head watchlist-v33-head">
-          <div><span class="watchlist-v30-eyebrow">MY STOCKS</span><h2>관심종목</h2><p>저장한 종목의 가격과 1개월 흐름을 빠르게 확인합니다.</p></div>
+          <div><span class="watchlist-v30-eyebrow">MY STOCKS</span><h2>관심종목</h2><p>저장한 종목의 현재가와 1달 수익률을 빠르게 확인합니다.</p></div>
           <div class="watchlist-v33-head-meta"><span class="watchlist-v30-count" data-watch-count>0개</span><small data-watch-updated>시세 준비 중</small></div>
         </header>
-        <section class="watchlist-v33-summary" aria-label="관심종목 요약">
+        <section class="watchlist-v33-summary" aria-label="관심종목 요약 · 1달 수익률 기준">
           <div><span>전체</span><strong data-watch-summary-total>0</strong></div>
-          <div class="up"><span>상승</span><strong data-watch-summary-up>-</strong></div>
-          <div class="down"><span>하락</span><strong data-watch-summary-down>-</strong></div>
+          <div class="up"><span>1달 상승</span><strong data-watch-summary-up>-</strong></div>
+          <div class="down"><span>1달 하락</span><strong data-watch-summary-down>-</strong></div>
         </section>
         <section class="watchlist-v30-searchbox watchlist-v33-searchbox">
           <div class="watchlist-v30-searchrow"><input id="watchlist-v30-search" type="search" placeholder="종목명 · 6자리 코드 · 해외 티커 추가" autocomplete="off" aria-label="관심종목 추가 검색"></div>
@@ -269,8 +269,8 @@
           <div class="watchlist-v33-toolbar">
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
-              <button type="button" data-watch-sort="return-desc">수익률↑</button>
-              <button type="button" data-watch-sort="return-asc">수익률↓</button>
+              <button type="button" data-watch-sort="return-desc">1달 수익률↑</button>
+              <button type="button" data-watch-sort="return-asc">1달 수익률↓</button>
               <button type="button" data-watch-sort="name">이름순</button>
             </div>
             <button type="button" class="watchlist-v33-refresh" data-watch-refresh aria-label="관심종목 시세 새로고침">↻ 새로고침</button>
@@ -353,7 +353,7 @@
     if (!grid) return;
     document.querySelectorAll('[data-watch-sort]').forEach((button) => button.classList.toggle('active', button.dataset.watchSort === sortMode));
     if (!watchlist.length) {
-      grid.innerHTML = '<div class="watchlist-v30-empty watchlist-v33-empty"><span>☆</span><strong>관심종목이 비어 있습니다.</strong><p>종목을 저장하면 가격과 1개월 수익률을 한 화면에서 비교할 수 있어요.</p><button type="button" data-watch-empty-focus>종목 추가하기</button></div>';
+      grid.innerHTML = '<div class="watchlist-v30-empty watchlist-v33-empty"><span>☆</span><strong>관심종목이 비어 있습니다.</strong><p>종목을 저장하면 가격과 1달 수익률을 한 화면에서 비교할 수 있어요.</p><button type="button" data-watch-empty-focus>종목 추가하기</button></div>';
       grid.querySelector('[data-watch-empty-focus]')?.addEventListener('click', () => {
         const input = document.getElementById('watchlist-v30-search');
         input?.focus();
@@ -373,7 +373,7 @@
             <i class="watchlist-v33-market">${marketLabel(row.symbol)}</i>
           </span>
           <span class="watchlist-v30-quote"><strong data-watch-price>${q.price}</strong><b class="watchlist-v30-return ${q.cls}" data-watch-return>${q.ret}</b></span>
-          <small class="watchlist-v30-meta">1개월 수익률 · ${quoteFor(row.symbol) ? '저장된 시세' : '시세 불러오는 중'}</small>
+          <small class="watchlist-v30-meta">1달 수익률 · ${quoteFor(row.symbol) ? '저장된 시세' : '시세 불러오는 중'}</small>
           <span class="watchlist-v33-analysis-link">종목분석 <b>›</b></span>
         </button>
         <button type="button" class="watchlist-v30-star" data-watch-remove="${esc(row.symbol)}" aria-label="${esc(row.name)} 관심종목 해제">★</button>
@@ -406,7 +406,7 @@
         ret.textContent = returnText(quote?.return);
         ret.className = `watchlist-v30-return ${returnClass(quote?.return)}`;
       }
-      if (meta) meta.textContent = `1개월 수익률 · ${fresh ? '방금 갱신' : '저장된 시세'}`;
+      if (meta) meta.textContent = `1달 수익률 · ${fresh ? '방금 갱신' : '저장된 시세'}`;
     }
     const home = document.querySelector(`[data-home-watch-open="${CSS.escape(symbol)}"]`);
     if (home) {
