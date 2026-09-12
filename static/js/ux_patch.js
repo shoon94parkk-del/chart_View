@@ -32,7 +32,7 @@
   ensureScript('script[data-investment-tools-v22]', '/static/js/investment_tools_v22.js?v=20260912v28', 'investmentToolsV22');
   ensureStyle('link[data-watchlist-v30]', '/static/css/watchlist_v30.css?v=20260912v33', 'watchlistV30');
   ensureScript('script[data-watchlist-v30]', '/static/js/watchlist_v30.js?v=20260912v33a', 'watchlistV30');
-  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v34', 'uxV3');
+  ensureScript('script[data-ux-v3]', '/static/js/ux_v3.js?v=20260912v35', 'uxV3');
   ensureStyle('link[data-bottom-nav-v6]', '/static/css/bottom_nav_v6.css?v=20260912v32e', 'bottomNavV6');
   ensureStyle('link[data-app-states-v32]', '/static/css/app_states_v32.css?v=20260912v32', 'appStatesV32');
   ensureStyle('link[data-decision-ux-v7]', '/static/css/decision_ux_v7.css?v=20260911v7', 'decisionUxV7');

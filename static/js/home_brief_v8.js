@@ -2,7 +2,6 @@
   'use strict';
 
   let homePromise = null;
-  let screenerPromise = null;
   let activeBriefTicker = null;
   let briefSeq = 0;
   const briefCache = new Map();
@@ -168,30 +167,19 @@
   function installBrief() {
     if (document.getElementById('stock-brief-v8')) return;
     const chartTab = document.getElementById('chart-tab');
-    const anchor = chartTab?.querySelector('.chart-section');
+    const anchor = chartTab?.querySelector('.date-section');
     if (!chartTab || !anchor) return;
     const section = document.createElement('section');
     section.id = 'stock-brief-v8';
-    section.className = 'stock-brief-v8';
+    section.className = 'stock-brief-v8 stock-brief-v34';
     section.innerHTML = `
       <div class="stock-brief-head">
-        <div><span class="stock-brief-kicker">한눈에 판단</span><h2>선택 종목 요약</h2><p>수익률 흐름을 먼저 확인한 뒤 밸류·실적 상태를 이어서 봅니다.</p></div>
+        <div><span class="stock-brief-kicker">한눈에 요약</span><h2>핵심만 빠르게 확인</h2></div>
       </div>
       <div id="stock-brief-tabs" class="stock-brief-tabs"></div>
       <div id="stock-brief-body" class="stock-brief-body"><div class="stock-brief-empty">상단에서 종목을 선택해 주세요.</div></div>`;
-    anchor.insertAdjacentElement('afterend', section);
+    anchor.insertAdjacentElement('beforebegin', section);
     renderBriefTabs();
-  }
-
-  function loadScreener() {
-    if (!screenerPromise) {
-      screenerPromise = fetch('/static/data/screener_meta.json', { cache: 'no-store' })
-        .then((r) => r.ok ? r.json() : null)
-        .then((meta) => fetch(`/static/data/screener.json?v=${encodeURIComponent(meta?.tradeDate || meta?.updated || 'latest')}`, { cache: 'force-cache' }))
-        .then((r) => r.ok ? r.json() : { stocks: [] })
-        .catch(() => ({ stocks: [] }));
-    }
-    return screenerPromise;
   }
 
   function loadHomeSources(fresh = false) {
@@ -383,82 +371,64 @@
   async function fetchBrief(symbol) {
     if (briefCache.has(symbol)) return briefCache.get(symbol);
     const promise = (async () => {
-      const screener = await loadScreener();
-      const local = (screener.stocks || []).find((x) => x.symbol === symbol) || null;
-      const [valuationRes, consensusRes, bandRes] = await Promise.allSettled([
+      const [compareRes, valuationRes, consensusRes] = await Promise.allSettled([
+        fetch(`/api/compare?tickers=${encodeURIComponent(symbol)}&period=1mo`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
         fetch(`/api/valuation?tickers=${encodeURIComponent(symbol)}`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
         fetch(`/api/consensus?ticker=${encodeURIComponent(symbol)}`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-        fetch(`/api/valuation-band?ticker=${encodeURIComponent(symbol)}&years=3`, { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
       ]);
+      const comparePayload = compareRes.status === 'fulfilled' ? compareRes.value : null;
       const valuationPayload = valuationRes.status === 'fulfilled' ? valuationRes.value : null;
       return {
+        quote: comparePayload?.stocks?.[0] || null,
         valuation: valuationPayload?.stocks?.[0] || null,
         consensus: consensusRes.status === 'fulfilled' ? consensusRes.value : null,
-        band: bandRes.status === 'fulfilled' ? bandRes.value : null,
-        local,
       };
     })();
     briefCache.set(symbol, promise);
     return promise;
   }
 
-  function statusPills(data) {
-    const v = data.valuation || {};
+  function compactMetrics(data) {
     const c = data.consensus || {};
     const y = (c.periods || {})['0y'] || {};
     const t = y.epsTrend || {};
     const eps30 = revisionPct(t.current ?? (y.earnings || {}).avg, t['30daysAgo']);
-    const p30 = n((c.priceTrend || {}).return30) ?? n(data.local?.ret20);
-    const perPct = n(data.band?.per?.stats?.percentile);
-    const valuation = perPct === null ? '밸류 확인 필요' : perPct <= 30 ? '과거 대비 낮은 밸류' : perPct >= 80 ? '과거 대비 높은 밸류' : '밸류 중립';
-    const earnings = eps30 === null ? '실적 추정치 없음' : eps30 >= 2 ? '실적 추정치 ↑' : eps30 <= -2 ? '실적 추정치 ↓' : '실적 추정치 보합';
-    const momentum = p30 === null ? '주가 추세 확인 필요' : p30 >= 5 ? '주가 추세 ↑' : p30 <= -5 ? '주가 추세 ↓' : '주가 추세 중립';
-    return { valuation, earnings, momentum, eps30, p30, perPct, forwardPE: n(v.forwardPE), pbr: n(v.pbr), roe: n(v.roe) };
-  }
-
-  function insightText(s) {
-    const positive = [];
-    const caution = [];
-    if (s.eps30 !== null && s.eps30 >= 2) positive.push(`EPS 컨센서스 30일 ${pct(s.eps30)} 상향`);
-    if (s.perPct !== null && s.perPct <= 30) positive.push(`PER이 3년 하위 ${s.perPct.toFixed(0)}% 구간`);
-    if (s.p30 !== null && s.p30 >= 5) positive.push(`최근 주가 흐름 ${pct(s.p30)}`);
-    if (s.eps30 !== null && s.eps30 <= -2) caution.push(`EPS 컨센서스 ${pct(s.eps30)} 하향`);
-    if (s.perPct !== null && s.perPct >= 80) caution.push(`PER이 3년 상위 ${s.perPct.toFixed(0)}% 구간`);
-    if (s.p30 !== null && s.p30 <= -5) caution.push(`최근 주가 흐름 ${pct(s.p30)}`);
     return {
-      positive: positive.length ? positive.join(' · ') : '뚜렷한 우호 신호는 아직 없습니다.',
-      caution: caution.length ? caution.join(' · ') : '현재 핵심 지표에서 강한 경고 신호는 제한적입니다.',
+      monthReturn: n(data.quote?.return),
+      forwardPE: n(data.valuation?.forwardPE),
+      eps30,
     };
   }
 
   function renderBrief(symbol, data) {
     const body = document.getElementById('stock-brief-body');
     if (!body || symbol !== activeBriefTicker) return;
-    const v = data.valuation || {};
-    const s = statusPills(data);
-    const insight = insightText(s);
-    const price = n(v.price);
+    const metrics = compactMetrics(data);
+    const price = n(data.quote?.price) ?? n(data.valuation?.price);
     const isKR = /\.(KS|KQ)$/.test(symbol);
     const priceText = price === null ? '-' : isKR ? `₩${Math.round(price).toLocaleString('ko-KR')}` : `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    const watched = typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(symbol);
+    const monthClass = metrics.monthReturn === null ? '' : metrics.monthReturn >= 0 ? 'pos' : 'neg';
+    const epsClass = metrics.eps30 === null ? '' : metrics.eps30 >= 0 ? 'pos' : 'neg';
+    const epsSignal = metrics.eps30 === null ? '-' : `${metrics.eps30 > 0 ? '상향 ' : metrics.eps30 < 0 ? '하향 ' : '보합 '}${pct(metrics.eps30)}`;
     body.innerHTML = `
       <div class="stock-brief-summary">
         <div class="stock-brief-identity"><div><strong>${esc(displayName(symbol))}</strong><span>${esc(symbol)}</span></div><b>${priceText}</b></div>
-        <div class="stock-status-row"><span>${esc(s.earnings)}</span><span>${esc(s.valuation)}</span><span>${esc(s.momentum)}</span></div>
+        <button type="button" class="stock-brief-watch ${watched ? 'active' : ''}" data-brief-watch aria-label="${esc(displayName(symbol))} ${watched ? '관심종목 해제' : '관심종목 추가'}">${watched ? '★' : '☆'}</button>
       </div>
       <div class="stock-brief-metrics">
-        <div><span>FWD PER</span><strong>${mult(s.forwardPE)}</strong><small>향후 이익 기준</small></div>
-        <div><span>3Y PER 위치</span><strong>${s.perPct === null ? '-' : `${s.perPct.toFixed(0)}%`}</strong><small>낮을수록 과거 대비 낮음</small></div>
-        <div><span>EPS 30D</span><strong class="${(s.eps30 || 0) >= 0 ? 'pos' : 'neg'}">${pct(s.eps30)}</strong><small>애널리스트 추정치 변화</small></div>
-        <div><span>주가 흐름</span><strong class="${(s.p30 || 0) >= 0 ? 'pos' : 'neg'}">${pct(s.p30)}</strong><small>30일 또는 가용 추세</small></div>
-        <div><span>PBR</span><strong>${mult(s.pbr)}</strong><small>순자산 대비 가격</small></div>
-        <div><span>ROE</span><strong>${s.roe === null ? '-' : `${s.roe.toFixed(1)}%`}</strong><small>자기자본 수익성</small></div>
+        <div><span>1달 수익률</span><strong class="${monthClass}">${pct(metrics.monthReturn, 2)}</strong></div>
+        <div><span>FWD PER</span><strong>${mult(metrics.forwardPE)}</strong></div>
+        <div><span>EPS 컨센서스 · 30일</span><strong class="${epsClass}">${epsSignal}</strong></div>
       </div>
-      <div class="stock-brief-insight"><div class="good"><span>좋게 볼 점</span><p>${esc(insight.positive)}</p></div><div class="watch"><span>확인할 점</span><p>${esc(insight.caution)}</p></div></div>
-      <div class="stock-brief-actions"><button type="button" data-brief-action="fwdper">밸류 자세히</button><button type="button" data-brief-action="ideas">투자판단 보기</button></div>`;
+      <div class="stock-brief-links"><button type="button" data-brief-action="fwdper">밸류 자세히</button><button type="button" data-brief-action="ideas">투자판단 보기</button></div>`;
+    body.querySelector('[data-brief-watch]')?.addEventListener('click', () => {
+      if (typeof window.__toggleWatchlist === 'function') window.__toggleWatchlist(symbol, displayName(symbol));
+    });
     body.querySelectorAll('[data-brief-action]').forEach((button) => button.addEventListener('click', () => {
       const target = button.dataset.briefAction;
       if (typeof window.__openAppTab === 'function') window.__openAppTab(target);
-      else { const appButton = document.querySelector(`[data-app-tab="${target}"]`); if (appButton) appButton.click(); else if (typeof window.switchTab === 'function') window.switchTab(target); }
+      else if (typeof window.switchTab === 'function') window.switchTab(target);
     }));
   }
 
@@ -466,7 +436,7 @@
     if (!symbol) return;
     const seq = ++briefSeq;
     const body = document.getElementById('stock-brief-body');
-    if (body && symbol === activeBriefTicker) body.innerHTML = '<div class="stock-brief-loading"><div class="spinner"></div><span>종목의 핵심 정보를 모으는 중...</span></div>';
+    if (body && symbol === activeBriefTicker) body.innerHTML = '<div class="stock-brief-loading"><div class="spinner"></div><span>핵심 정보를 불러오는 중...</span></div>';
     try {
       const data = await fetchBrief(symbol);
       if (seq !== briefSeq) return;
@@ -492,6 +462,9 @@
     installBrief();
     observeSelection();
     renderBriefTabs();
+    document.addEventListener('chartview:watchlist-change', () => {
+      if (activeBriefTicker && briefCache.has(activeBriefTicker)) briefCache.get(activeBriefTicker).then((data) => renderBrief(activeBriefTicker, data));
+    });
   }
 
   window.__loadHomeDashboard = renderHome;
