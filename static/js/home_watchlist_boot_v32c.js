@@ -5,6 +5,23 @@
   let observedHome = null;
   let orderScheduled = false;
 
+  function ensureV36Assets() {
+    if (!document.querySelector('link[data-personalization-v36]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/personalization_v36.css?v=20260912v36';
+      link.dataset.personalizationV36 = '1';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-personalization-v36]')) {
+      const script = document.createElement('script');
+      script.src = '/static/js/personalization_v36.js?v=20260912v36';
+      script.async = false;
+      script.dataset.personalizationV36 = '1';
+      document.head.appendChild(script);
+    }
+  }
+
   function scheduleOrder() {
     if (orderScheduled) return;
     orderScheduled = true;
@@ -23,23 +40,23 @@
     const watchlist = document.getElementById('home-watchlist-v30');
     const status = document.getElementById('ux12-data-status');
 
-    // Canonical Home order:
-    // 1) 오늘의 시장 -> 2) 주요 시황/시장 요약 -> 3) 내 관심종목 -> 4) 데이터 상태
+    // V36 canonical Home order:
+    // 1) 간단한 시장 현황 -> 2) 내 관심종목 -> 3) 전체 시장/주요 종목 -> 4) 데이터 상태.
     if (market && home.firstElementChild !== market) {
       home.insertBefore(market, home.firstElementChild);
     }
 
     let anchor = market || null;
+    if (watchlist) {
+      if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist);
+      else if (!anchor && home.firstElementChild !== watchlist) home.insertBefore(watchlist, home.firstElementChild);
+      anchor = watchlist;
+    }
+
     if (body) {
       if (anchor && anchor.nextElementSibling !== body) anchor.insertAdjacentElement('afterend', body);
       else if (!anchor && home.firstElementChild !== body) home.insertBefore(body, home.firstElementChild);
       anchor = body;
-    }
-
-    if (watchlist) {
-      if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist);
-      else if (!anchor) home.appendChild(watchlist);
-      anchor = watchlist;
     }
 
     if (status) {
@@ -48,7 +65,7 @@
       status.dataset.homeOrder = 'last';
     }
 
-    home.dataset.homeOrder = 'market-body-watchlist-status';
+    home.dataset.homeOrder = 'market-watchlist-body-status';
     return Boolean(market && body);
   }
 
@@ -63,6 +80,7 @@
   }
 
   function ensureWatchlist(attempt = 0) {
+    ensureV36Assets();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
@@ -82,6 +100,7 @@
   }
 
   function restartSoon() {
+    ensureV36Assets();
     setTimeout(() => ensureWatchlist(0), 50);
     setTimeout(enforceHomeOrder, 300);
     setTimeout(enforceHomeOrder, 1200);
