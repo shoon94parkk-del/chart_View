@@ -1,0 +1,142 @@
+name: V34 Mobile Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v34-mobile-smoke.yml'
+
+jobs:
+  samsung-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --silent
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Verify V34 at 384x824
+        shell: bash
+        run: |
+          cat > v34-smoke.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const assert = require('assert');
+
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const context = await browser.newContext({
+              viewport:{width:384,height:824},
+              isMobile:true,
+              hasTouch:true,
+              userAgent:'Mozilla/5.0 (Linux; Android 14; SAMSUNG SM-T735N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'
+            });
+            const page = await context.newPage();
+            const pageErrors=[];
+            page.on('pageerror', error => pageErrors.push(String(error)));
+
+            const response = await page.goto('https://chart-view-bsg6.onrender.com/?v34_mobile_smoke=1', {
+              waitUntil:'domcontentloaded', timeout:60000
+            });
+            assert(response && response.status() === 200, 'root HTTP status');
+            await page.waitForSelector('.app-bottom-nav', {timeout:30000});
+            await page.waitForSelector('#home-market-v9', {timeout:30000});
+
+            const assets = await page.evaluate(() => ({
+              chart:document.querySelector('script[src*="chart.js"]')?.getAttribute('src') || '',
+              patch:document.querySelector('script[src*="ux_patch.js"]')?.getAttribute('src') || ''
+            }));
+            assert(assets.chart.includes('20260912v34'), 'chart.js cache version');
+            assert(assets.patch.includes('20260912v34'), 'ux_patch.js cache version');
+
+            const bottom = page.locator('.app-bottom-nav');
+            const bottomButtons = page.locator('.app-bottom-btn');
+            assert.equal(await bottomButtons.count(), 5, 'five bottom destinations');
+            const bottomRows = await bottomButtons.evaluateAll(nodes => [...new Set(nodes.map(n => Math.round(n.getBoundingClientRect().top)))]);
+            assert.equal(bottomRows.length, 1, 'bottom nav must stay on one row');
+
+            await page.locator('.app-bottom-btn[data-app-mode="analysis"]').tap();
+            await page.waitForSelector('#chart-tab', {state:'visible', timeout:10000});
+            await page.waitForTimeout(500);
+
+            const initial = await page.evaluate(() => {
+              const rect = selector => {
+                const node=document.querySelector(selector); if(!node) return null;
+                const r=node.getBoundingClientRect(); return {top:Math.round(r.top),height:Math.round(r.height),display:getComputedStyle(node).display};
+              };
+              return {
+                viewport:{width:innerWidth,height:innerHeight},
+                scrollWidth:document.documentElement.scrollWidth,
+                chartTop:rect('#chart-container').top,
+                chartSectionTop:rect('.chart-section').top,
+                dateDisplay:rect('#custom-date-fields').display,
+                sectorCollapsed:document.querySelector('.sector-section')?.classList.contains('ux-collapsed')
+              };
+            });
+            assert.deepEqual(initial.viewport,{width:384,height:824},'viewport');
+            assert(initial.scrollWidth <= 384,'horizontal overflow');
+            assert(initial.dateDisplay === 'none','exact dates hidden initially');
+            assert(initial.sectorCollapsed,'recommendations collapsed initially');
+
+            const tabs = page.locator('.app-context-nav[data-app-context="analysis"] .app-context-btn');
+            assert.equal(await tabs.count(),3,'three analysis tabs');
+            const tabRows = await tabs.evaluateAll(nodes => [...new Set(nodes.map(n => Math.round(n.getBoundingClientRect().top)))]);
+            assert.equal(tabRows.length,1,'analysis tabs one row');
+
+            const presets = page.locator('#chart-tab .period-chip');
+            assert.equal(await presets.count(),6,'six presets');
+            assert.deepEqual(await presets.allTextContents(),['1달','3달','6달','YTD','1년','전체'],'preset labels');
+
+            const toggle = page.locator('#custom-date-toggle');
+            await toggle.tap();
+            assert(await page.locator('#custom-date-fields').isVisible(),'custom dates open');
+            assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+            await toggle.tap();
+            assert(await page.locator('#custom-date-fields').isHidden(),'custom dates close');
+
+            const threeMonth = page.waitForResponse(r => r.url().includes('/api/compare?') && r.url().includes('period=3mo'), {timeout:30000});
+            await presets.filter({hasText:'3달'}).tap();
+            assert((await threeMonth).ok(),'3mo immediate load');
+
+            const ytd = page.waitForResponse(r => r.url().includes('/api/compare?') && r.url().includes('period=1y') && r.url().includes('start='), {timeout:30000});
+            await presets.filter({hasText:'YTD'}).tap();
+            assert((await ytd).ok(),'YTD load');
+
+            await toggle.tap();
+            await page.locator('#start-date').fill('2026-08-01');
+            await page.locator('#end-date').fill('2026-09-01');
+            const custom = page.waitForResponse(r => r.url().includes('/api/compare?') && r.url().includes('start=2026-08-01') && r.url().includes('end=2026-09-01'), {timeout:30000});
+            await page.locator('#apply-date-btn').tap();
+            assert((await custom).ok(),'custom range apply');
+
+            await page.evaluate(() => window.addGlobalTicker('MSFT','Microsoft'));
+            await page.waitForTimeout(100);
+            assert((await page.locator('#ticker-tags .ticker-tag').allTextContents()).some(x => x.includes('MSFT')),'ticker add');
+            await page.locator('#ticker-tags .ticker-tag').filter({hasText:'MSFT'}).locator('.tag-remove').tap();
+            assert(!(await page.locator('#ticker-tags .ticker-tag').allTextContents()).some(x => x.includes('MSFT')),'ticker remove');
+
+            await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').tap();
+            await page.waitForSelector('#watchlist-tab', {state:'visible',timeout:10000});
+            await page.waitForSelector('[data-watch-open]', {state:'visible',timeout:15000});
+            await page.locator('[data-watch-open]').first().tap();
+            assert(await page.locator('.app-bottom-btn[data-app-mode="analysis"]').evaluate(el=>el.classList.contains('active')),'watchlist to analysis');
+            await page.goBack();
+            await page.waitForTimeout(300);
+            assert(await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').evaluate(el=>el.classList.contains('active')),'back to watchlist');
+
+            for (const mode of ['home','discover','market']) {
+              await page.locator('.app-bottom-btn[data-app-mode="'+mode+'"]').tap();
+              assert(await page.locator('.app-bottom-btn[data-app-mode="'+mode+'"]').evaluate(el=>el.classList.contains('active')),mode+' navigation');
+            }
+
+            assert.equal(pageErrors.length,0,'page errors: '+pageErrors.join(' | '));
+            console.log('V34_METRICS',JSON.stringify(initial));
+            console.log('V34_SAMSUNG_MOBILE_PASS');
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          JS
+          node v34-smoke.cjs
