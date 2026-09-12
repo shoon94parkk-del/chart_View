@@ -750,6 +750,11 @@ async def macro_data():
 
     net_liquidity = compute_net_liquidity(ordered)
     summary = generate_macro_summary(ordered, net_liquidity)
+    basis_dates = sorted(str(row.get("asOf"))[:10] for row in ordered if row.get("asOf"))
+    if isinstance(summary, dict):
+        summary = {**summary,
+                   "latestBasisDate": basis_dates[-1] if basis_dates else None,
+                   "oldestBasisDate": basis_dates[0] if basis_dates else None}
     response_data = {
         "results": ordered,
         "net_liquidity": net_liquidity,
@@ -761,6 +766,11 @@ async def macro_data():
         "errors": payload.get("errors", {}),
         "source": payload.get("source", "FRED + Yahoo Chart, precomputed by GitHub Actions"),
         "cacheMode": "precomputed",
+        "basis": {
+            "latest": basis_dates[-1] if basis_dates else None,
+            "oldest": basis_dates[0] if basis_dates else None,
+            "meaning": "source observation dates; collection time is generatedAt",
+        },
     }
     MACRO_CACHE["data"] = response_data
     MACRO_CACHE["timestamp"] = current_time

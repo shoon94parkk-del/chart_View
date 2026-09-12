@@ -19,6 +19,11 @@
     if (n === null) return '-';
     return `${n > 0 ? '+' : ''}${n.toFixed(digits)}%`;
   };
+  const pctPoint = (value, digits = 1) => {
+    const n = num(value);
+    if (n === null) return '-';
+    return `${n > 0 ? '+' : ''}${n.toFixed(digits)}%p`;
+  };
 
   function revisionPct(current, previous) {
     const a = num(current);
@@ -108,6 +113,8 @@
         analysts,
         balance,
         asOf: prices.asOf || '-',
+        priceStart: prices.date30 || '-',
+        consensusAsOf: String(consensus.generatedAt || '').slice(0, 10) || '-',
       };
     });
   }
@@ -123,9 +130,9 @@
   }
 
   function badge(row) {
-    if (row.gap30 >= 10 && row.eps30 >= 2 && row.balance > 0) return ['strong', '괴리 큼'];
-    if (row.gap30 >= 5) return ['up', '미반영'];
-    return ['neutral', '관찰'];
+    if (row.gap30 >= 10 && row.eps30 >= 2 && row.balance > 0) return ['strong', '상향·약세 뚜렷'];
+    if (row.gap30 >= 5) return ['up', '상향·주가 약세'];
+    return ['neutral', '추가 확인'];
   }
 
   function gapCard(row) {
@@ -142,11 +149,11 @@
         <div class="revision-gap-metrics">
           <div><span>EPS 30D</span><strong class="revision-up">${pct(row.eps30)}</strong></div>
           <div><span>주가 30D</span><strong class="${(row.price30 || 0) >= 0 ? 'revision-up' : 'revision-down'}">${pct(row.price30)}</strong></div>
-          <div class="revision-gap-highlight"><span>괴리</span><strong>${pct(row.gap30)}</strong></div>
-          <div><span>90D 괴리</span><strong>${pct(row.gap90)}</strong></div>
+          <div class="revision-gap-highlight"><span>변화율 차이</span><strong>${pctPoint(row.gap30)}</strong></div>
+          <div><span>90D 차이</span><strong>${pctPoint(row.gap90)}</strong></div>
         </div>
         <div class="revision-foot">
-          <span>상향-하향 의견 ${row.balance >= 0 ? '+' : ''}${Math.round(row.balance)} · 가격 ${esc(row.asOf)} 기준</span>
+          <span>상향-하향 의견 ${row.balance >= 0 ? '+' : ''}${Math.round(row.balance)} · 가격 ${esc(row.priceStart)}~${esc(row.asOf)} · 컨센서스 수집 ${esc(row.consensusAsOf)}</span>
           <button class="revision-analyze revision-gap-analyze" data-symbol="${esc(row.symbol)}" data-name="${esc(row.name)}" type="button">분석하기</button>
         </div>
       </article>`;
@@ -186,15 +193,15 @@
       panel.innerHTML = `
         <div class="revision-gap-head">
           <div>
-            <h3>🎯 실적 상향 + 주가 미반영</h3>
-            <p>올해 EPS 컨센서스는 올라가는데 같은 30일 동안 주가 반응이 더 약한 종목입니다.</p>
+            <h3>🎯 EPS 상향 · 주가 약세 후보</h3>
+            <p>EPS 예상 변화율보다 최근 주가 수익률이 낮은 종목입니다. 두 자료의 실제 기준일을 함께 확인하세요.</p>
           </div>
           <span class="revision-gap-count">${combined.length}개 표시 · ${ready}개 비교 가능</span>
         </div>
         ${combined.length
           ? `<div class="revision-gap-grid">${combined.map(gapCard).join('')}</div>`
-          : '<div class="revision-empty">현재 조건에서 뚜렷한 미반영 후보가 없습니다.</div>'}
-        <div class="revision-gap-note">괴리 = EPS 30일 변화율 − 조정주가 30일 수익률. 수치가 클수록 실적 기대 개선에 비해 주가 반응이 약했다는 뜻이며, 악재로 주가가 하락한 경우도 있으므로 매수점수가 아니라 추가 확인용 후보입니다.</div>`;
+          : '<div class="revision-empty">현재 조건에서 EPS 상향·주가 약세 후보가 없습니다.</div>'}
+        <div class="revision-gap-note">변화율 차이(%p) = EPS 30일 변화율(%) − 조정주가 30일 수익률(%). 값이 커도 악재나 전망 위험이 원인일 수 있으므로 매수점수가 아닌 추가 확인 후보입니다.</div>`;
       root.insertBefore(panel, root.firstChild);
       bindGapActions(panel);
     } catch (error) {

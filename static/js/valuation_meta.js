@@ -33,6 +33,25 @@
   };
 
   function provenance(stock, key, quoteRow, generatedAt) {
+    const exact = stock?.fieldMeta?.[key];
+    if (!present(stock?.[key])) {
+      if (key === 'forwardPE' || key === 'forwardEPS') return '예상 기간 미확인 · 컨센서스 데이터 없음';
+      return `${exact?.period || '해당 지표'} · 데이터 없음`;
+    }
+    if (exact?.source) {
+      const asOf = ymd(exact.asOf);
+      const periodMap = {
+        'provider forward period (not independently verified)': '예상 기간 미확인',
+        'latest trading value': '최근 거래값',
+        'latest available': '최근 자료',
+        'latest reported': '최근 공시',
+        'latest indicated/reported': '최근 배당',
+        'TTM/latest reported': 'TTM/최근 공시',
+      };
+      const period = periodMap[exact.period] || exact.period || '';
+      const method = exact.method && exact.method !== 'provider' ? ` · ${exact.method}` : '';
+      return [asOf, period, exact.source].filter(Boolean).join(' · ') + method;
+    }
     const cacheKey = cacheField[key];
     const cacheHas = cacheKey && quoteRow && present(quoteRow[cacheKey]);
     const cacheDate = ymd(generatedAt) || today();
@@ -40,12 +59,12 @@
     const isKR = /\.(KS|KQ)$/.test(stock.ticker || '');
 
     if (cacheHas) {
-      if (key === 'forwardPE' || key === 'forwardEPS') return `${cacheDate} · 12M 전망 · Yahoo 컨센서스 캐시`;
+      if (key === 'forwardPE' || key === 'forwardEPS') return `${cacheDate} · 예상 기간 미확인 · Yahoo 컨센서스 캐시`;
       if (key === 'dividendYield') return `${cacheDate} · 최근 배당 · Yahoo 일일 캐시`;
       return `${cacheDate} · Yahoo 일일 캐시`;
     }
-    if ((key === 'forwardPE' || key === 'forwardEPS') && !present(stock[key])) return '12M 전망 · 컨센서스 데이터 없음';
-    if (key === 'forwardPE' || key === 'forwardEPS') return `12M 전망 · ${today()} 조회 · Yahoo QuoteSummary`;
+    if ((key === 'forwardPE' || key === 'forwardEPS') && !present(stock[key])) return '예상 기간 미확인 · 컨센서스 데이터 없음';
+    if (key === 'forwardPE' || key === 'forwardEPS') return `예상 기간 미확인 · ${today()} 조회 · Yahoo QuoteSummary`;
     if (key === 'price') return `${today()} 조회 · Yahoo Chart`;
     if ((key === 'trailingPE' || key === 'pbr' || key === 'dividendYield') && isKR && sourceText.includes('Naver')) return `${today()} 조회 · Naver Finance`;
     if (key === 'trailingPE' || key === 'trailingEPS' || key === 'psr') return `TTM · ${today()} 조회 · Yahoo Fundamentals`;

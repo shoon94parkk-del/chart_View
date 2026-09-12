@@ -22,6 +22,10 @@
     const x = n(value);
     return x === null ? '-' : `${x.toFixed(digits)}x`;
   };
+  const macroBasis = (macro) => {
+    const dates = (macro?.results || []).map((row) => String(row?.asOf || '').slice(0, 10)).filter(Boolean).sort();
+    return dates.length ? dates.at(-1) : String(macro?.generatedAt || '').slice(0, 10);
+  };
   const revisionPct = (current, previous) => {
     const a = n(current), b = n(previous);
     if (a === null || b === null || a <= 0 || b <= 0) return null;
@@ -126,6 +130,7 @@
         ? { label: '리스크 경계', desc: '방어적으로 확인할 구간입니다.' }
         : { label: '중립 · 주의', desc: '지표가 엇갈려 선별 접근이 필요합니다.' };
     const stale = Number(macro?.staleCount || 0);
+    const basis = macroBasis(macro);
     return `
       <section class="home-v8-block home16-summary-card home18-summary-${level}">
         <div class="home-block-head home16-head"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
@@ -138,7 +143,7 @@
           <div class="home18-state-copy"><span>현재 시장 상태</span><strong>${esc(state.label)}</strong><small>${esc(state.desc)}</small></div>
         </div>
         <p>${esc(summary || '주요 지수와 종목별 움직임을 확인해 주세요.')}</p>
-        <div class="home16-summary-foot"><span class="${stale ? 'warn' : 'ok'}"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 갱신'}</div>
+        <div class="home16-summary-foot"><span class="${stale ? 'warn' : 'ok'}"></span>${stale ? `일부 매크로 지표 ${stale}개 갱신 지연` : '매크로 데이터 정상 수집'}${basis ? ` · 최근 기준 ${esc(basis)}` : ''}</div>
       </section>`;
   }
 
@@ -477,6 +482,11 @@
 
   window.__loadHomeDashboard = renderHome;
   window.__refreshStockBrief = renderBriefTabs;
+  window.__focusStockBrief = (symbol) => {
+    if (!selectedTickersNow().includes(symbol)) return;
+    activeBriefTicker = symbol;
+    renderBriefTabs();
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();

@@ -46,7 +46,7 @@
     const section=document.createElement('section');
     section.id='valuation-band-section';section.className='band-section';
     section.innerHTML=`
-      <div class="band-head"><div><h2 class="band-title">역사적 밸류에이션 밴드</h2><p class="band-desc">현재 PER·PBR이 자기 과거 범위에서 어느 위치인지 비교합니다. 데이터가 확보되는 최근 3년을 기준으로 재구성합니다.</p></div></div>
+      <div class="band-head"><div><h2 class="band-title">역사적 밸류에이션 밴드</h2><p class="band-desc">공시 시점을 보수적으로 추정해 재구성한 PER·PBR이 자기 과거 범위에서 어느 위치인지 비교합니다.</p></div></div>
       <div id="band-stock-tabs" class="band-stock-tabs"></div>
       <div class="band-metric-tabs"><button class="band-metric-btn active" data-band-metric="per">TTM PER</button><button class="band-metric-btn" data-band-metric="pbr">PBR</button></div>
       <div id="band-cards" class="band-cards"></div>
@@ -113,12 +113,12 @@
     if(!pack?.stats||!Array.isArray(pack.points)||!pack.points.length){destroyChart();cards.innerHTML='';document.getElementById('band-chart').innerHTML='<div class="band-empty">이 종목은 해당 역사적 지표 데이터가 충분하지 않습니다.</div>';if(range)range.textContent='';return;}
     const s=pack.stats;
     cards.innerHTML=`
-      <div class="band-card"><span>현재 ${bandMetric.toUpperCase()}</span><strong>${fmt(s.current)}x</strong><small>${esc(s.label)}</small></div>
+      <div class="band-card"><span>마지막 재구성 ${bandMetric.toUpperCase()}</span><strong>${fmt(s.current)}x</strong><small>${esc(s.end)} · ${esc(s.label)}</small></div>
       <div class="band-card"><span>3년 중앙값</span><strong>${fmt(s.median)}x</strong><small>평균 ${fmt(s.mean)}x</small></div>
-      <div class="band-card"><span>현재 백분위</span><strong>${fmt(s.percentile,1)}%</strong><small>낮을수록 과거 대비 저평가</small></div>
+      <div class="band-card"><span>과거 분포 백분위</span><strong>${fmt(s.percentile,1)}%</strong><small>낮을수록 과거 범위에서 낮은 위치</small></div>
       <div class="band-card"><span>20~80% 밴드</span><strong>${fmt(s.p20)} ~ ${fmt(s.p80)}</strong><small>${s.observations}주 관측치</small></div>`;
     if(range)range.textContent=`${s.start} ~ ${s.end}`;
-    if(note)note.textContent=`${bandPayload.method} · ${bandPayload.source}. 밴드는 상대적 위치이며 저평가/고평가만으로 매수·매도를 뜻하지 않습니다.`;
+    if(note){const ex=bandPayload.excluded||{};note.textContent=`공시 시점 근사 재구성 · ${bandPayload.method} · 실제 공시일이 없으면 결산일+${bandPayload.financialLagDays||45}일 가정 · 범위 밖 제외 PER ${ex.perOutOfRange||0}일/PBR ${ex.pbrOutOfRange||0}일 · ${bandPayload.source}. 과거 범위의 위치만 나타내며 본질가치나 매수·매도를 뜻하지 않습니다.`;}
     draw(pack);
   }
 

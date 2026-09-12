@@ -7,6 +7,11 @@
     <meta name="theme-color" content="#FFFFFF">
     <title>차트뷰 - 주식 비교 분석</title>
     <meta name="description" content="주식 수익률 비교, 밸류에이션 분석, 경제 지표와 빠른 종목 발굴을 한눈에 확인합니다.">
+    <style>
+        body.app-booting:not(.app-shell-ready) #app { visibility: hidden; }
+        body.app-booting:not(.app-shell-ready)::before { content: '차트뷰 불러오는 중…'; position: fixed; inset: 0; display: grid; place-items: center; color: #6b7684; font: 700 14px/1.5 system-ui, sans-serif; background: #f7f8fa; }
+    </style>
+    <script>setTimeout(() => document.body?.classList.remove('app-booting'), 8000);</script>
 
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <link rel="stylesheet" href="/static/css/style.css?v=20260219v2">
@@ -14,7 +19,7 @@
     <link rel="stylesheet" href="/static/css/ux_patch.css?v=20260911v1">
 </head>
 
-<body>
+<body class="app-booting">
     <div id="app">
         <!-- 헤더 -->
         <header class="header">
@@ -263,11 +268,11 @@
         </div>
     </div>
 
-    <script src="/static/js/chart.js?v=20260912audit1"></script>
+    <script src="/static/js/chart.js?v=20260912v35"></script>
     <script src="/static/js/fwdper.js?v=20260912v28"></script>
-    <script src="/static/js/valuation_bands.js?v=20260912audit1"></script>
-    <script src="/static/js/macro.js?v=20260911v1"></script>
-    <script src="/static/js/ux_patch.js?v=20260912audit1"></script>
+    <script src="/static/js/valuation_bands.js?v=20260912v35"></script>
+    <script src="/static/js/macro.js?v=20260912v35"></script>
+    <script src="/static/js/ux_patch.js?v=20260912v35"></script>
     <script src="/static/js/home_watchlist_boot_v32c.js?v=20260912v32c"></script>
     <script src="/static/js/consensus_v2.js?v=20260912audit1"></script>
 </body>

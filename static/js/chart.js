@@ -215,6 +215,7 @@ function addGlobalTicker(ticker, name) {
             addPerTickerDirect(ticker);
         }
     }
+    if (typeof window.__focusStockBrief === 'function') window.__focusStockBrief(ticker);
 }
 
 // 검색 결과 선택 (Global Filter: 양쪽 동시 반영)
@@ -228,6 +229,7 @@ function selectSearchResult(symbol, name) {
     if (typeof addPerTickerDirect === 'function' && typeof perTickers !== 'undefined' && !perTickers.includes(symbol)) {
         addPerTickerDirect(symbol);
     }
+    if (typeof window.__focusStockBrief === 'function') window.__focusStockBrief(symbol);
     const input = document.getElementById('unified-input');
     if (input) input.value = '';
     document.getElementById('search-results').classList.add('hidden');

@@ -134,6 +134,7 @@ function renderMacroFreshness(data) {
 function renderMacroSummary(summary) {
     const text = typeof summary === 'string' ? summary : summary.text;
     const level = typeof summary === 'string' ? 'green' : (summary.level || 'green');
+    const basis = typeof summary === 'object' ? summary.latestBasisDate : '';
     const config = {
         red: { label: '위험', className: 'red' },
         yellow: { label: '주의', className: 'yellow' },
@@ -154,7 +155,7 @@ function renderMacroSummary(summary) {
             <span class="tl-dot ${level === 'green' ? 'active' : ''}" style="--dot-color:#00C853"></span>
         </div>
         <div class="summary-content">
-            <span class="summary-label">시장 환경 · ${config.label}</span>
+            <span class="summary-label">시장 환경 · ${config.label}${basis ? ` · 최근 원자료 ${basis}` : ''}</span>
             <span class="summary-text">${text || '요약 데이터가 없습니다.'}</span>
         </div>`;
     if (freshness) freshness.insertAdjacentElement('afterend', box);

@@ -79,6 +79,62 @@ def test_compare_cache_is_bounded():
         assert len(market._compare_cache) == 64
 
 
+def test_compare_uses_adjusted_close_and_reports_exact_basis():
+    chart = {
+        'meta': {'regularMarketPrice': 11, 'currency': 'USD'},
+        'timestamp': [1788825600, 1788912000],
+        'indicators': {
+            'quote': [{'close': [10, 11]}],
+            'adjclose': [{'adjclose': [5, 10]}],
+        },
+    }
+    with patch.object(market, '_compare_cache', {}), patch.object(market, '_chart_result', return_value=chart):
+        result = market.fetch_compare_stock('TEST', '1mo')
+    assert result['return'] == 100
+    assert result['priceBasis'] == 'adjusted_close'
+    assert result['requestedPeriod'] == '1mo'
+    assert result['observations'] == 2
+    assert result['startDate'] == '2026-09-08'
+    assert result['endDate'] == '2026-09-09'
+
+
+def test_valuation_returns_field_level_provenance():
+    chart = {'meta': {'regularMarketPrice': 100, 'regularMarketTime': 1789142400, 'currency': 'USD'},
+             'indicators': {'quote': [{'close': [100]}]}}
+    detail = {
+        '_cacheGeneratedAt': '2026-09-12T01:00:00Z',
+        'price': {'regularMarketPrice': {'raw': 100}, 'currency': 'USD'},
+        'summaryDetail': {
+            'marketCap': {'raw': 1000}, 'trailingPE': {'raw': 20},
+            'forwardPE': {'raw': 18}, 'dividendYield': {'raw': .01},
+        },
+        'defaultKeyStatistics': {
+            'trailingEps': {'raw': 5}, 'forwardEps': {'raw': 5.5},
+            'priceToBook': {'raw': 2}, 'bookValue': {'raw': 50},
+        },
+        'financialData': {}, 'assetProfile': {},
+    }
+    with patch.object(market, '_valuation_cache', {}), \
+         patch.object(market, '_chart_result', return_value=chart), \
+         patch.object(market, '_fundamentals', return_value={}), \
+         patch.object(market, '_cached_quote_summary', return_value=detail), \
+         patch.object(market, '_naver_valuation', return_value={}):
+        result = market.fetch_valuation_snapshot('TEST')
+    assert result['fieldMeta']['price']['source'] == 'Yahoo Chart'
+    assert result['fieldMeta']['trailingPE']['source'] == 'Yahoo daily quote cache'
+    assert result['fieldMeta']['forwardPE']['period'] == 'provider forward period (not independently verified)'
+    assert result['fieldMeta']['forwardPE']['asOf'] == '2026-09-12T01:00:00Z'
+
+
+def test_macro_exposes_observation_date_range_separately_from_collection_time():
+    with patch.object(main, 'MACRO_CACHE', {'data': None, 'timestamp': 0}):
+        data = client.get('/api/macro').json()
+    dates = sorted(str(row['asOf'])[:10] for row in data['results'] if row.get('asOf'))
+    assert data['basis']['latest'] == dates[-1]
+    assert data['basis']['oldest'] == dates[0]
+    assert data['summary']['latestBasisDate'] == dates[-1]
+
+
 def test_seed_keeps_original_data_date():
     cache = {'data': None, 'timestamp': 0, 'refreshing': False}
     disk = json.loads(Path('static/data/valuation_cache.json').read_text())

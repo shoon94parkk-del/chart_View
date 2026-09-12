@@ -39,3 +39,10 @@ test('malformed saved watchlist does not crash and missing quotes stay missing',
   assert.equal(t.returnText(null), '-');
   assert.equal(t.returnText(0), '0.00%');
 });
+
+test('revision and price-return difference is shown in percentage points', () => {
+  const { pctPoint } = load('static/js/decision_ux_v7.js', 'pctPoint').window.test;
+  assert.equal(pctPoint(12.1), '+12.1%p');
+  assert.equal(pctPoint(-2), '-2.0%p');
+  assert.equal(pctPoint(null), '-');
+});
