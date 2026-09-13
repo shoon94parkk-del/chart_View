@@ -1,11 +1,9 @@
 """Best-effort article-body summarization for Chart View news.
 
-The personalized-news list stays lightweight. This module is called only for
-visible cards, fetches the original article transiently, extracts article text,
-selects the most informative sentences, and translates the compact result to
-Korean. Full article text is never returned or cached.
+Visible news cards call this module on demand. It transiently fetches the article,
+extracts a compact factual summary, and returns Korean text. Full article bodies
+are never returned or persisted.
 """
-
 from __future__ import annotations
 
 import asyncio
@@ -27,13 +25,18 @@ router = APIRouter()
 
 SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
+SUMMARY_CACHE_VERSION = "v44-ko2"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
 SUMMARY_CONCURRENCY = 3
 _SUMMARY_LOCK = threading.Lock()
 _SUMMARY_SEMAPHORE = threading.BoundedSemaphore(SUMMARY_CONCURRENCY)
 
-_TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
+_TRANSLATE_URLS = (
+    "https://translate.googleapis.com/translate_a/single",
+    "https://translate.google.com/translate_a/single",
+)
+_TRANSLATE_FALLBACK_URL = "https://api.mymemory.translated.net/get"
 _REDIRECT_CODES = {301, 302, 303, 307, 308}
 _BLOCKED_HOSTS = {"localhost", "localhost.localdomain"}
 
@@ -47,7 +50,6 @@ _STOPWORDS = {
     "its", "are", "was", "were", "company", "companies", "stock", "shares", "news", "said", "says",
     "관련", "대한", "위한", "통해", "이번", "해당", "기업", "회사", "뉴스", "기사", "시장", "것으로", "있다고",
 }
-
 _SIGNAL_WORDS = (
     "earnings", "revenue", "profit", "loss", "eps", "guidance", "forecast", "margin", "contract", "order",
     "acquisition", "merger", "investment", "capex", "dividend", "buyback", "approval", "tariff", "lawsuit",
@@ -56,7 +58,6 @@ _SIGNAL_WORDS = (
     "투자", "증설", "배당", "자사주", "승인", "규제", "관세", "소송", "출시", "출하", "생산", "판매",
     "수요", "공급", "가격", "목표가", "투자의견",
 )
-
 _NOISE_WORDS = (
     "cookie", "cookies", "privacy policy", "terms of use", "subscribe", "subscription", "sign in", "sign up",
     "newsletter", "advertisement", "all rights reserved", "javascript", "브라우저", "쿠키", "개인정보처리방침",
@@ -65,15 +66,17 @@ _NOISE_WORDS = (
 
 
 def _clean_text(value: object) -> str:
-    text = html.unescape(str(value or ""))
-    text = re.sub(r"\s+", " ", text)
-    return text.strip()
+    return re.sub(r"\s+", " ", html.unescape(str(value or ""))).strip()
 
 
 def _has_korean(text: str) -> bool:
     ko = len(_KOREAN_RE.findall(text or ""))
     latin = len(_LATIN_RE.findall(text or ""))
     return ko >= 12 and ko >= latin * 0.22
+
+
+def _looks_korean(text: str) -> bool:
+    return len(_KOREAN_RE.findall(text or "")) >= 3
 
 
 def _public_url_or_raise(raw_url: str) -> str:
@@ -89,8 +92,7 @@ def _public_url_or_raise(raw_url: str) -> str:
     except socket.gaierror as exc:
         raise ValueError("dns_error") from exc
     for info in infos:
-        address = info[4][0].split("%", 1)[0]
-        ip = ipaddress.ip_address(address)
+        ip = ipaddress.ip_address(info[4][0].split("%", 1)[0])
         if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
             raise ValueError("blocked_address")
     return url
@@ -99,7 +101,7 @@ def _public_url_or_raise(raw_url: str) -> str:
 def _safe_fetch_html(raw_url: str) -> tuple[str, str]:
     current = _public_url_or_raise(raw_url)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36 ChartView/43",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36 ChartView/44",
         "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.7",
         "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.7,en;q=0.6",
     }
@@ -112,7 +114,7 @@ def _safe_fetch_html(raw_url: str) -> tuple[str, str]:
             continue
         response.raise_for_status()
         content_type = str(response.headers.get("content-type") or "").lower()
-        if "html" not in content_type and "xhtml" not in content_type and content_type:
+        if content_type and "html" not in content_type and "xhtml" not in content_type:
             response.close()
             raise ValueError("not_html")
         chunks: list[bytes] = []
@@ -167,26 +169,18 @@ def _jsonld_article_body(soup: BeautifulSoup) -> str:
 def _extract_article(html_text: str) -> tuple[str, str]:
     soup = BeautifulSoup(html_text or "", "lxml")
     page_description = ""
-    for attrs in (
-        {"property": "og:description"},
-        {"name": "description"},
-        {"name": "twitter:description"},
-    ):
+    for attrs in ({"property": "og:description"}, {"name": "description"}, {"name": "twitter:description"}):
         node = soup.find("meta", attrs=attrs)
         value = _clean_text(node.get("content")) if node else ""
         if len(value) > len(page_description):
             page_description = value
-
     body = _jsonld_article_body(soup)
     if body:
         return body, page_description
-
     for tag in soup(["script", "style", "noscript", "nav", "footer", "aside", "form", "svg"]):
         tag.decompose()
-
-    roots = [soup.find("article"), soup.find("main"), soup.body]
     best = ""
-    for root in roots:
+    for root in (soup.find("article"), soup.find("main"), soup.body):
         if not root:
             continue
         parts: list[str] = []
@@ -211,10 +205,7 @@ def _tokens(text: str) -> set[str]:
 
 
 def _split_sentences(text: str) -> list[str]:
-    compact = _clean_text(text)
-    if not compact:
-        return []
-    rows = [_clean_text(row) for row in _SENTENCE_SPLIT_RE.split(compact)]
+    rows = [_clean_text(row) for row in _SENTENCE_SPLIT_RE.split(_clean_text(text))]
     return [row for row in rows if 28 <= len(row) <= 520 and not any(noise in row.lower() for noise in _NOISE_WORDS)]
 
 
@@ -234,21 +225,11 @@ def _pick_summary_sentences(text: str, title: str, limit: int = 2) -> str:
     if not sentences:
         return ""
     title_tokens = _tokens(title)
-    ranked = sorted(
-        enumerate(sentences),
-        key=lambda pair: (-_sentence_score(pair[1], pair[0], title_tokens), pair[0]),
-    )
+    ranked = sorted(enumerate(sentences), key=lambda pair: (-_sentence_score(pair[1], pair[0], title_tokens), pair[0]))
     chosen: list[tuple[int, str]] = []
     for index, sentence in ranked:
         tokens = _tokens(sentence)
-        duplicate = False
-        for _, prior in chosen:
-            prior_tokens = _tokens(prior)
-            union = tokens | prior_tokens
-            if union and len(tokens & prior_tokens) / len(union) > 0.62:
-                duplicate = True
-                break
-        if duplicate:
+        if any((tokens | _tokens(prior)) and len(tokens & _tokens(prior)) / len(tokens | _tokens(prior)) > 0.62 for _, prior in chosen):
             continue
         chosen.append((index, sentence))
         if len(chosen) >= limit:
@@ -257,25 +238,60 @@ def _pick_summary_sentences(text: str, title: str, limit: int = 2) -> str:
     return " ".join(sentence for _, sentence in chosen)
 
 
+def _google_translate(source: str) -> str:
+    last_error: Exception | None = None
+    for endpoint in _TRANSLATE_URLS:
+        for attempt in range(2):
+            try:
+                response = requests.get(
+                    endpoint,
+                    params={"client": "gtx", "sl": "auto", "tl": "ko", "dt": "t", "q": source[:3600]},
+                    headers={"User-Agent": "Mozilla/5.0 ChartView/44"},
+                    timeout=(3, 7),
+                )
+                response.raise_for_status()
+                payload = response.json()
+                translated = _clean_text("".join(str(row[0] or "") for row in (payload[0] or []) if isinstance(row, list) and row))
+                if translated and _looks_korean(translated):
+                    return translated
+                raise ValueError("translation_not_korean")
+            except Exception as exc:
+                last_error = exc
+                if attempt == 0:
+                    time.sleep(0.12)
+    if last_error:
+        raise last_error
+    raise ValueError("translation_failed")
+
+
+def _fallback_translate(source: str) -> str:
+    response = requests.get(
+        _TRANSLATE_FALLBACK_URL,
+        params={"q": source[:480], "langpair": "en|ko"},
+        headers={"User-Agent": "ChartView/44"},
+        timeout=(3, 7),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    translated = _clean_text((payload.get("responseData") or {}).get("translatedText"))
+    if not translated or not _looks_korean(translated):
+        raise ValueError("fallback_translation_not_korean")
+    return translated
+
+
 def _translate_ko(text: str) -> tuple[str, bool]:
     source = _clean_text(text)
     if not source:
         return "", False
     if _has_korean(source):
         return source, False
-    response = requests.get(
-        _TRANSLATE_URL,
-        params={"client": "gtx", "sl": "auto", "tl": "ko", "dt": "t", "q": source[:3600]},
-        headers={"User-Agent": "Mozilla/5.0 ChartView/43"},
-        timeout=(3, 6),
-    )
-    response.raise_for_status()
-    payload = response.json()
-    translated = "".join(str(row[0] or "") for row in (payload[0] or []) if isinstance(row, list) and row)
-    translated = _clean_text(translated)
-    if not translated:
-        raise ValueError("empty_translation")
-    return translated, True
+    try:
+        return _google_translate(source), True
+    except Exception as primary_error:
+        try:
+            return _fallback_translate(source), True
+        except Exception as fallback_error:
+            raise RuntimeError(f"translation_failed:{type(primary_error).__name__}:{type(fallback_error).__name__}") from fallback_error
 
 
 def _trim_summary(text: str, limit: int = 360) -> str:
@@ -292,7 +308,7 @@ def _trim_summary(text: str, limit: int = 360) -> str:
 
 
 def _cache_key(url: str, title: str, snippet: str) -> str:
-    raw = f"{url}\n{title}\n{snippet[:800]}".encode("utf-8", errors="ignore")
+    raw = f"{SUMMARY_CACHE_VERSION}\n{url}\n{title}\n{snippet[:800]}".encode("utf-8", errors="ignore")
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -317,51 +333,46 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
         clean_snippet = _clean_text(snippet)
         basis = "headline_only"
         source_text = ""
-
         if len(article_text) >= 180:
             basis = "article_body"
             source_text = _pick_summary_sentences(article_text, clean_title, limit=2)
         if not source_text and len(page_description) >= 70:
-            basis = "page_description"
-            source_text = page_description
+            basis, source_text = "page_description", page_description
         if not source_text and len(clean_snippet) >= 60:
-            basis = "provider_snippet"
-            source_text = clean_snippet
+            basis, source_text = "provider_snippet", clean_snippet
         if not source_text and len(clean_snippet) >= 20:
             basis = "title_snippet_fallback"
             source_text = f"{clean_title}. {clean_snippet}" if clean_title else clean_snippet
         if not source_text and clean_title:
-            basis = "headline_only"
-            source_text = clean_title
+            basis, source_text = "headline_only", clean_title
 
         translated = False
         translation_error = None
         try:
             title_ko, title_translated = _translate_ko(clean_title)
         except Exception:
-            # Keep the original title rather than replacing useful information with
-            # a generic failure label. The card can still show a meaningful fallback.
             title_ko = clean_title or "기사"
             title_translated = False
             translation_error = "title_translation_failed"
 
         if basis == "headline_only" and clean_title:
-            # Do not pretend a title-only fallback is a body summary. Make the basis
-            # explicit while still giving the user something useful to read.
-            summary_ko = f"제목 기준 · {title_ko}"
-            translated = bool(title_translated)
+            if _looks_korean(title_ko):
+                summary_ko = f"제목 기준 · {title_ko}"
+                translated = bool(title_translated)
+            else:
+                summary_ko = "기사 제목을 바탕으로 한 한국어 번역이 일시적으로 지연되고 있습니다. 원문 보기에서 내용을 확인해 주세요."
+                translation_error = "summary_translation_failed"
         elif source_text:
             try:
                 summary_ko, body_translated = _translate_ko(source_text)
                 translated = bool(title_translated or body_translated)
             except Exception:
-                # A translation outage should not turn an otherwise available
-                # snippet/body into a visible 'summary failed' state.
-                summary_ko = _clean_text(source_text)
+                if _has_korean(source_text):
+                    summary_ko = source_text
+                else:
+                    summary_ko = "기사 요약은 생성됐지만 한국어 번역이 일시적으로 지연되고 있습니다. 잠시 후 새로고침해 주세요."
                 translation_error = "summary_translation_failed"
         else:
-            # This path is only possible when both title and snippet are empty.
-            # Keep the card usable without claiming we summarized unavailable text.
             summary_ko = "기사 제목과 요약문이 제공되지 않았습니다. 원문에서 내용을 확인해 주세요."
 
         labels = {
@@ -383,12 +394,15 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
             "notice": "기사 본문은 저장·재게시하지 않고 요약 결과만 임시 캐시합니다.",
         }
 
-    with _SUMMARY_LOCK:
-        SUMMARY_CACHE[key] = {"cachedAt": time.time(), "data": result}
-        if len(SUMMARY_CACHE) > 1200:
-            oldest = sorted(SUMMARY_CACHE.items(), key=lambda pair: float(pair[1].get("cachedAt") or 0))[:200]
-            for old_key, _ in oldest:
-                SUMMARY_CACHE.pop(old_key, None)
+    # Never keep an English fallback stuck in the six-hour cache. Translation
+    # failures are retried on the next card load; successful Korean results cache normally.
+    if translation_error != "summary_translation_failed":
+        with _SUMMARY_LOCK:
+            SUMMARY_CACHE[key] = {"cachedAt": time.time(), "data": result}
+            if len(SUMMARY_CACHE) > 1200:
+                oldest = sorted(SUMMARY_CACHE.items(), key=lambda pair: float(pair[1].get("cachedAt") or 0))[:200]
+                for old_key, _ in oldest:
+                    SUMMARY_CACHE.pop(old_key, None)
     return {**result, "cache": "miss"}
 
 
