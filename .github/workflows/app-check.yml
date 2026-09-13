@@ -49,24 +49,20 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
           screener=json.loads(Path('static/data/screener.json').read_text(encoding='utf-8'))
           stocks=screener.get('stocks', [])
           assert len(stocks) > 2000, len(stocks)
           jyp=[x for x in stocks if 'jyp' in str(x.get('name','')).lower()]
           assert jyp and any(str(x.get('symbol','')).startswith('035900') for x in jyp), jyp[:5]
-
           valuation=json.loads(Path('static/data/valuation_cache.json').read_text(encoding='utf-8'))
           for ticker in ('005930.KS','000660.KS'):
               pe=(valuation.get('quotes') or {}).get(ticker,{}).get('forwardPE')
               assert pe is not None and 0 < float(pe) < 250, (ticker, pe)
-
           consensus=json.loads(Path('static/data/consensus_cache.json').read_text(encoding='utf-8'))
           quotes=consensus.get('quotes', {})
           assert len(quotes) >= 40, len(quotes)
           price_ready=sum(1 for q in quotes.values() if (q.get('priceTrend') or {}).get('return30') is not None and (q.get('priceTrend') or {}).get('return90') is not None)
           assert price_ready >= 40, price_ready
-
           macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
           rows=macro.get('results', [])
           assert len(rows) == 13, len(rows)
@@ -77,29 +73,25 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           html=Path('templates/index.html').read_text(encoding='utf-8')
           assert 'viewport-fit=cover' in html and 'user-scalable=no' not in html
-
           main=Path('main.py').read_text(encoding='utf-8')
           assert '@app.get("/api/market-now")' in main
           assert 'MARKET_NOW_TICKERS' in main
           assert '"basis": "previous_close"' in main
           for symbol in ('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X'):
               assert symbol in main, symbol
-
           ux=Path('static/js/ux_patch.js').read_text(encoding='utf-8')
           assert "'jyp': 'JYP Ent.'" in ux
           assert '/static/js/home_market_v9.js?v=' in ux
           assert '/static/css/home_market_v9.css?v=' in ux
-
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
           assert 'data-app-mode="home"' in app and '종목분석' in app and '종목발굴' in app and '시장' in app
-
+          hub=Path('static/js/my_hub_v41.js').read_text(encoding='utf-8')
+          assert '__openMyNewsV41' in hub and '내 종목 뉴스' in hub and '관련도순' in hub
           home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
           for text in ('주요 종목 오늘 시황','시장 한줄 요약','1달 수익률'):
               assert text in home, text
-
           market_home=Path('static/js/home_market_v9.js').read_text(encoding='utf-8')
           for label in ('오늘의 시장','KOSPI','KOSDAQ','미 10년물','WTI 유가','원/달러','직전 종가 대비'):
               assert label in market_home, label
@@ -107,19 +99,16 @@ jobs:
           assert "row?.change" in market_home
           assert '/api/compare' not in market_home
           assert '__openAppTab' not in market_home
-
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
           assert 'EPS 상향 · 주가 약세 후보' in decision
           assert '%p' in decision
-
           service=Path('market_service.py').read_text(encoding='utf-8')
           assert '"priceBasis": price_basis' in service
           assert '"fieldMeta": field_meta' in service
-
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
-          print('app UX invariants OK: Korea + global home market strip')
+          print('app UX invariants OK: Korea + global home market strip + V41 MY hub')
           PY
 
   mobile:
@@ -144,6 +133,7 @@ jobs:
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break || sleep 1; done
           node tests/mobile_smoke.cjs
           node tests/app_release_stage12.cjs
+          node tests/v41_my_hub.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -193,7 +183,9 @@ jobs:
       - name: Verify production UI and navigation
         env:
           APP_URL: https://chart-view-bsg6.onrender.com
-        run: node tests/production_stage12.cjs
+        run: |
+          node tests/production_stage12.cjs
+          node tests/v41_my_hub.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
