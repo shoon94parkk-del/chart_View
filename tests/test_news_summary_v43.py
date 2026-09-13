@@ -54,6 +54,66 @@ def test_build_summary_uses_body_and_returns_korean(monkeypatch):
     assert result["titleKo"].startswith("엔비디아")
 
 
+def test_short_provider_snippet_becomes_title_snippet_fallback(monkeypatch):
+    svc.SUMMARY_CACHE.clear()
+    monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("blocked")))
+
+    def fake_translate(text):
+        if text == "Micron signs new memory contract":
+            return "마이크론, 신규 메모리 공급 계약 체결", True
+        return "마이크론이 신규 메모리 공급 계약을 체결했다. AI 메모리 수요 확대와 관련된 내용이다.", True
+
+    monkeypatch.setattr(svc, "_translate_ko", fake_translate)
+    result = svc._build_summary(
+        "https://example.com/news/short",
+        "Micron signs new memory contract",
+        "AI memory demand supports the agreement.",
+    )
+    assert result["basis"] == "title_snippet_fallback"
+    assert result["basisLabel"] == "제목·요약문 기반"
+    assert "요약" not in result["summary"] or "만들지 못했습니다" not in result["summary"]
+    assert "마이크론" in result["summary"]
+
+
+def test_headline_only_fallback_never_shows_summary_failure(monkeypatch):
+    svc.SUMMARY_CACHE.clear()
+    monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("paywall")))
+    monkeypatch.setattr(svc, "_translate_ko", lambda text: ("엔비디아, 차세대 AI 칩 출하 확대", True))
+
+    result = svc._build_summary(
+        "https://example.com/news/title-only",
+        "Nvidia expands next-generation AI chip shipments",
+        "",
+    )
+    assert result["basis"] == "headline_only"
+    assert result["basisLabel"] == "제목 기반"
+    assert result["summary"].startswith("제목 기준 · ")
+    assert "만들지 못했습니다" not in result["summary"]
+
+
+def test_translation_failure_keeps_available_source_text(monkeypatch):
+    svc.SUMMARY_CACHE.clear()
+    monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("blocked")))
+
+    calls = {"n": 0}
+
+    def failing_translate(text):
+        calls["n"] += 1
+        raise RuntimeError("translate unavailable")
+
+    monkeypatch.setattr(svc, "_translate_ko", failing_translate)
+    snippet = "AI memory demand remains strong and the company expects shipments to rise next quarter."
+    result = svc._build_summary(
+        "https://example.com/news/translate-fail",
+        "Memory demand remains strong",
+        snippet,
+    )
+    assert result["basis"] == "provider_snippet"
+    assert result["summary"] == snippet
+    assert result["translationError"] == "summary_translation_failed"
+    assert "번역을 불러오지 못했습니다" not in result["summary"]
+
+
 def test_frontend_does_not_generate_title_only_summary():
     js = (ROOT / "static/js/news_readability_v41_2.js").read_text(encoding="utf-8")
     assert "/api/news-summary" in js
