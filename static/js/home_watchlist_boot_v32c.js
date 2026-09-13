@@ -4,6 +4,37 @@
   let orderObserver = null;
   let observedHome = null;
   let orderScheduled = false;
+  let initialHomeSettled = false;
+
+  // The legacy HTML starts with the chart tab active while the Home bundle is
+  // loaded dynamically. Keep the shell hidden until Home actually exists so a
+  // refresh never flashes the analysis screen first.
+  const bootGuard = document.createElement('style');
+  bootGuard.id = 'chartview-home-boot-guard';
+  bootGuard.textContent = 'body:not(.cv-home-ready) #app,body:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
+  document.head.appendChild(bootGuard);
+
+  function settleInitialHome(attempt = 0) {
+    if (initialHomeSettled) return true;
+    const home = document.getElementById('home-tab');
+    if (home && typeof window.__openAppTab === 'function') {
+      try { window.__openAppTab('home', { history: false }); } catch (_) { }
+      initialHomeSettled = true;
+      document.body.classList.add('cv-home-ready', 'app-shell-ready');
+      document.body.classList.remove('app-booting');
+      bootGuard.remove();
+      return true;
+    }
+    if (attempt < 100) {
+      setTimeout(() => settleInitialHome(attempt + 1), 50);
+      return false;
+    }
+    // Fail open after 5 seconds rather than leave the app blank if Home failed.
+    initialHomeSettled = true;
+    document.body.classList.add('cv-home-ready');
+    bootGuard.remove();
+    return false;
+  }
 
   function addStyle(selector, href, datasetKey) {
     if (document.querySelector(selector)) return;
@@ -96,6 +127,7 @@
 
   function ensureHome(attempt = 0) {
     ensureAllAssets();
+    settleInitialHome();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') { try { window.__renderHomeWatchlist(); } catch (_) { } }
     observeHome(); enforceHomeOrder();
@@ -103,7 +135,8 @@
     if ((!market || !body || !watchlist || !news || !status) && attempt < 120) setTimeout(() => ensureHome(attempt + 1), 400);
   }
 
-  function restartSoon() { ensureAllAssets(); setTimeout(() => ensureHome(0), 50); setTimeout(enforceHomeOrder, 300); setTimeout(enforceHomeOrder, 1200); }
+  function restartSoon() { ensureAllAssets(); settleInitialHome(); setTimeout(() => ensureHome(0), 50); setTimeout(enforceHomeOrder, 300); setTimeout(enforceHomeOrder, 1200); }
+  settleInitialHome();
   document.addEventListener('chartview:v37-news-rendered', scheduleOrder);
   document.addEventListener('click', (event) => { if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restartSoon, { once: true }); else restartSoon();
