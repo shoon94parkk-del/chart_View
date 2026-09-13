@@ -38,6 +38,6 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add main.py news_service_v37.py static/js/news_readability_v41_2.js static/js/personalized_news_v40.js static/js/my_hub_v41.js static/js/home_watchlist_boot_v32c.js static/css/news_readability_v41_2.css
+          git add main.py news_service_v37.py templates/index.html tests/test_v37_personalized_news.py static/js/news_readability_v41_2.js static/js/personalized_news_v40.js static/js/my_hub_v41.js static/js/home_watchlist_boot_v32c.js static/css/news_readability_v41_2.css
           git commit -m 'V43: summarize visible news from article content in Korean'
           git push
