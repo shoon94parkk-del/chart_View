@@ -63,8 +63,8 @@
   border-radius:12px!important;
 }
 .home-personal-news-v40 .news-v40-market>div[data-news-v40-market] svg{
-  height:68px!important;
-  min-height:68px!important;
+  height:72px!important;
+  min-height:72px!important;
   margin-top:4px!important;
 }
 .home-personal-news-v40 .news-v412-market-metrics{
@@ -97,7 +97,7 @@
   .home-personal-news-v40 .news-v40-actions button,
   .home-personal-news-v40 .news-v40-actions a{min-height:38px;border-radius:10px;font-size:11.5px}
   .home-personal-news-v40 .news-v40-market{margin-top:7px;padding-top:7px}
-  .home-personal-news-v40 .news-v40-market>div[data-news-v40-market] svg{height:62px!important;min-height:62px!important}
+  .home-personal-news-v40 .news-v40-market>div[data-news-v40-market] svg{height:72px!important;min-height:72px!important}
 }
 
 @media(max-width:390px){
