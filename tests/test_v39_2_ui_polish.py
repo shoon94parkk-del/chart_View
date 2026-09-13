@@ -3,12 +3,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_v392_asset_is_loaded_and_versioned():
+def test_v392_visual_asset_is_preserved_under_release_ui():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/ui_polish_v39_2.css?v=20260913v392" in boot
     assert "data-ui-polish-v392" in boot
-    assert "home.dataset.uiVersion = 'v39.3'" in boot
-    assert "home.dataset.visualPatch = 'v39.1'" in boot
+    assert "home.dataset.uiVersion = 'v40-stage12'" in boot
+    assert "home.dataset.visualVersion = 'v39'" in boot
 
 
 def test_v392_unifies_global_surfaces_and_mobile_touch_targets():
@@ -27,8 +27,10 @@ def test_v392_unifies_global_surfaces_and_mobile_touch_targets():
     assert "@media (prefers-color-scheme: dark)" in css
 
 
-def test_v392_keeps_home_and_news_version_contracts():
+def test_release_keeps_home_order_and_v39_visual_contract():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "market-watchlist-news-body-status" in boot
-    assert "home.dataset.newsVersion = 'v38'" in boot
+    assert "home.dataset.newsVersion = 'v40'" in boot
     assert "home.dataset.visualVersion = 'v39'" in boot
+    assert "/static/css/release_ui_v40.css" in boot
+    assert "/static/css/comparison_ui_v40.css" in boot
