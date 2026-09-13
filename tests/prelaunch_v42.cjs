@@ -23,6 +23,17 @@ const valuationStocks = [
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
 
+ // Public beta launch surface: static SEO metadata + first-visit explanation + sharing affordance.
+ assert.match(await page.title(),/Chart View/);
+ assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),'https://chart-view-bsg6.onrender.com/');
+ assert.match(await page.locator('meta[property="og:title"]').getAttribute('content'),/Chart View/);
+ assert.match(await page.locator('meta[name="description"]').getAttribute('content'),/최대 6종목/);
+ await page.waitForSelector('.promo-v1-intro');
+ assert.match(await page.locator('.promo-v1-intro').innerText(),/로그인 불필요/);
+ assert.equal(await page.locator('.promo-v1-footer-share button').count(),1);
+ await page.locator('.promo-v1-close').tap();
+ assert.equal(await page.locator('.promo-v1-intro').count(),0);
+
  // shared URL belongs to both filters but appears once in ALL.
  await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').tap();
  await page.waitForSelector('[data-v41-view="news"]'); await page.locator('[data-v41-view="news"]').tap();
