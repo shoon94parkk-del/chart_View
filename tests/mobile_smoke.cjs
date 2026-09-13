@@ -26,9 +26,10 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
         await page.route('**/api/market-now*', r => r.fulfill(json({results:[], errors:[]})));
         await page.route('**/api/valuation?*', r => r.fulfill(json({stocks:[]})));
         await page.route('**/api/consensus?*', r => r.fulfill(json({periods:{}, history:{}})));
+        await page.route('**/api/personalized-news?*', r => r.fulfill(json({items:[],groups:[],errors:[]})));
         await page.route('**/api/compare?*', r => {
           const symbols = new URL(r.request().url()).searchParams.get('tickers').split(',');
-          return r.fulfill(json({stocks:symbols.map(ticker => ({ticker,name:ticker,price:100,return:10,data:[{time:1788825600,value:0},{time:1788912000,value:10}]})),errors:[]}));
+          return r.fulfill(json({stocks:symbols.map(ticker => ({ticker,name:ticker,price:100,return:10,actualStart:'2026-08-12',actualEnd:'2026-09-11',data:[{time:1788825600,value:0},{time:1788912000,value:10}]})),errors:[]}));
         });
       }
       const response = await page.goto(base, {waitUntil:'domcontentloaded',timeout:60000});
@@ -40,8 +41,8 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: home overflow`);
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
-      await page.locator('.stock-brief-v34').waitFor();
       await page.locator('#legend .legend-item').first().waitFor({timeout:60000});
+      assert.equal(await page.locator('#stock-brief-v8').evaluate(el => getComputedStyle(el).display), 'none');
       const metrics = await page.evaluate(() => ({
         width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
         navCount:document.querySelectorAll('.app-bottom-btn').length,
@@ -51,7 +52,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       }));
       assert(metrics.scrollWidth <= width, `${width}: analysis overflow`);
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
-      assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 720);
+      assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 420, `${width}: chart top ${metrics.chartTop}`);
       const ytdRequest = page.waitForRequest(r => r.url().includes('/api/compare?') && new URL(r.url()).searchParams.has('start'));
       await page.locator('.period-chip[data-period="ytd"]').click();
       const ytd = new URL((await ytdRequest).url());
