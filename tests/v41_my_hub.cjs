@@ -75,6 +75,23 @@ async function mockData(page) {
 
   await page.locator('.app-bottom-btn[data-app-mode="home"]').click();
   await page.waitForSelector('#home-tab', { state: 'visible' });
+  await page.waitForSelector('#home-watchlist-v30[data-visual-version="v41.4"]', { state: 'visible' });
+  const watchBg = await page.locator('#home-watchlist-v30').evaluate(el => getComputedStyle(el).backgroundImage);
+  assert.notEqual(watchBg, 'none', 'Home MY stocks should have a deliberate visual surface');
+  const homeWatchCard = page.locator('#home-watchlist-v30 [data-home-watch-open]').first();
+  assert.ok((await homeWatchCard.getAttribute('aria-label'))?.includes('상세 보기'), 'Home MY stock card should expose an explicit action label');
+
+  await page.waitForSelector('#home-market-v9 [data-v40-market-more]', { state: 'visible' });
+  const marketToggle = page.locator('#home-market-v9 [data-v40-market-more]');
+  assert.match(await marketToggle.textContent(), /시장 지표 4개 더 보기/);
+  const visibleMarketCount = async () => page.locator('#home-market-v9-grid > .home-market-v9-item:visible').count();
+  assert.equal(await visibleMarketCount(), 4, 'collapsed Home market should show four indicators');
+  await marketToggle.click();
+  await page.waitForFunction(() => document.getElementById('home-market-v9')?.classList.contains('v40-market-expanded'));
+  assert.equal(await visibleMarketCount(), 8, 'market expansion must visibly reveal all eight indicators');
+  assert.equal(await page.locator('#home-market-v9-grid').evaluate(el => getComputedStyle(el).display), 'grid', 'mobile market expansion should use a visible grid');
+  assert.match(await marketToggle.textContent(), /접기/);
+
   await page.waitForSelector('#home-personal-news-v37 .news-v40-card .news-v412-summary', { state: 'visible' });
   await page.waitForSelector('#home-personal-news-v37 .news-v412-market-ready', { state: 'visible' });
   await page.waitForFunction(() => {
