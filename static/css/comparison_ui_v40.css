@@ -12,7 +12,6 @@
 #global-filter .v40-compare-heading strong { color: #17202b; font-size: 17px; }
 #global-filter .v40-compare-heading small { color: #667085; font-size: 12px; }
 
-/* Search + selected tickers should be a tool bar rather than a tall introduction card. */
 #global-filter .global-search { padding-top: 12px; padding-bottom: 10px; }
 #global-filter .search-label,
 #global-filter .search-hint { display: none; }
@@ -22,7 +21,6 @@
 #global-filter .sector-section.ux-collapsed { min-height: 0; }
 #global-filter .ux-sector-toggle { min-height: 44px; }
 
-/* In comparison mode a single-stock summary above the chart is redundant. */
 body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
 
 #chart-tab .chart-section { margin-top: 10px; }
@@ -67,51 +65,73 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   #global-filter .sector-section { margin-top: 2px; }
   #global-filter .ux-sector-toggle { min-height: 44px; }
 
-  #chart-tab .chart-section { margin-top: 6px; padding-top: 8px; }
-  #chart-tab .chart-header { grid-template-columns: 1fr auto; gap: 6px; min-height: 44px; }
+  #chart-tab .chart-section { margin-top: 4px; padding-top: 8px; }
+  #chart-tab .chart-header { grid-template-columns: 1fr auto; gap: 4px 6px; min-height: 44px; }
   #chart-tab .chart-title { font-size: 15px; }
   #chart-tab .chart-unit { justify-self: end; font-size: 10px; }
 
-  /* Do not nest horizontal scrollers here. At 360px Playwright exposed a real
-     hit-target collision where tapping YTD activated the adjacent "전체" chip.
-     Six equal cells keep every period visible and independently clickable. */
+  /* One non-scrolling row: six preset periods + one 44px direct-date control.
+     This avoids both the YTD/전체 hit-target collision and an extra row that
+     pushed the chart below the app-release mobile visibility target. */
   #chart-tab .v40-chart-periods {
     grid-column: 1/-1;
     justify-self: stretch;
     display: grid;
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0,1fr) 44px;
     width: 100%;
     overflow: visible;
-    gap: 6px;
-    padding-bottom: 2px;
+    gap: 4px;
+    padding-bottom: 0;
   }
   #chart-tab .v40-chart-periods .quick-periods {
     display: grid;
     grid-template-columns: repeat(6,minmax(0,1fr));
     width: 100%;
     overflow: visible;
-    gap: 4px;
+    gap: 3px;
     padding: 0;
   }
   #chart-tab .v40-chart-periods .period-chip {
     width: 100%;
     min-width: 0;
     min-height: 44px;
-    padding: 0 3px;
-    border-radius: 12px;
+    padding: 0 2px;
+    border-radius: 11px;
     text-align: center;
   }
   #chart-tab .v40-chart-periods #custom-date-toggle {
-    width: 100%;
+    width: 44px;
+    min-width: 44px;
     min-height: 44px;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+    white-space: nowrap;
   }
-  #chart-tab .v40-chart-periods #custom-date-fields { position: absolute; z-index: 20; left: 10px; right: 10px; width: auto; padding: 10px; border: 1px solid #e5eaf0; border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(15,23,42,.14); }
+  #chart-tab .v40-chart-periods #custom-date-toggle::before {
+    content: '기간';
+    font-size: 11px;
+    font-weight: 750;
+  }
+  #chart-tab .v40-chart-periods #custom-date-toggle .custom-date-arrow { display: none; }
+  #chart-tab .v40-chart-periods #custom-date-fields {
+    position: absolute;
+    z-index: 20;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    padding: 10px;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(15,23,42,.14);
+  }
   #chart-container { min-height: 300px; }
 }
 
 @media (max-width: 390px) {
-  #chart-tab .v40-chart-periods .period-chip { font-size: 12px; }
+  #chart-tab .v40-chart-periods .period-chip { font-size: 11.5px; }
 }
 
 @media (prefers-color-scheme: dark) {
