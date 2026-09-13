@@ -2,44 +2,53 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 
 const BASE = process.env.APP_URL || 'http://127.0.0.1:8080';
+const WATCHLIST = [
+  { symbol: 'NVDA', name: '엔비디아' },
+  { symbol: 'AAPL', name: '애플' },
+  { symbol: '005930.KS', name: '삼성전자' },
+];
 
-(async () => {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
-  const page = await context.newPage();
-  page.setDefaultTimeout(12000);
+const payload = {
+  items: [],
+  errors: [],
+  groups: [
+    { symbol: 'NVDA', name: '엔비디아', status: 'success', items: [
+      { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180 },
+      { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150 },
+    ]},
+    { symbol: 'AAPL', name: '애플', status: 'success', items: [
+      { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140 },
+    ]},
+    { symbol: '005930.KS', name: '삼성전자', status: 'success', items: [
+      { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160 },
+    ]},
+  ],
+};
 
-  await page.addInitScript(() => {
-    localStorage.setItem('chartview-watchlist-v1', JSON.stringify([
-      { symbol: 'NVDA', name: '엔비디아' },
-      { symbol: 'AAPL', name: '애플' },
-      { symbol: '005930.KS', name: '삼성전자' },
-    ]));
-  });
+async function seed(context) {
+  await context.addInitScript((rows) => {
+    localStorage.setItem('chartview-watchlist-v1', JSON.stringify(rows));
+  }, WATCHLIST);
+}
 
-  const payload = {
-    items: [],
-    errors: [],
-    groups: [
-      { symbol: 'NVDA', name: '엔비디아', status: 'success', items: [
-        { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180 },
-        { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150 },
-      ]},
-      { symbol: 'AAPL', name: '애플', status: 'success', items: [
-        { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140 },
-      ]},
-      { symbol: '005930.KS', name: '삼성전자', status: 'success', items: [
-        { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160 },
-      ]},
-    ],
-  };
-
+async function mockData(page) {
   await page.route('**/api/personalized-news?**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
   });
   await page.route('**/api/compare?**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stocks: [] }) });
   });
+}
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+
+  // Normal V41 product flow.
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
+  await seed(context);
+  const page = await context.newPage();
+  page.setDefaultTimeout(12000);
+  await mockData(page);
 
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
@@ -74,6 +83,26 @@ const BASE = process.env.APP_URL || 'http://127.0.0.1:8080';
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, '390px hub should not horizontally overflow');
   assert.deepEqual(errors, [], `page errors: ${errors.join('\n')}`);
+  await context.close();
+
+  // Isolated production race: a late Home asset must never override a user-selected tab.
+  const raceContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
+  await seed(raceContext);
+  const racePage = await raceContext.newPage();
+  racePage.setDefaultTimeout(12000);
+  await racePage.route('**/static/js/home_brief_v8.js*', async route => {
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    await route.continue();
+  });
+  await racePage.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await racePage.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
+  await racePage.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
+  await racePage.waitForSelector('#watchlist-tab');
+  await racePage.waitForTimeout(1600);
+  assert.ok(await racePage.locator('.app-bottom-btn[data-app-mode="watchlist"]').evaluate(el => el.classList.contains('active')), 'late Home asset must not override user navigation');
+  assert.ok(await racePage.locator('#watchlist-tab').isVisible(), 'watchlist view must remain visible after late Home asset load');
+  await raceContext.close();
+
   console.log('V41_MY_HUB_PASS');
   await browser.close();
 })().catch(err => { console.error(err); process.exit(1); });
