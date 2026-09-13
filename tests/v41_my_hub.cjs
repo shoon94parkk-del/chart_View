@@ -61,6 +61,7 @@ async function mockData(page) {
   await page.locator('[data-v41-view="news"]').click();
   await page.waitForSelector('.my-hub-v41-news:not([hidden])');
   await page.waitForSelector('.my-hub-v41-news-row');
+  await page.waitForSelector('.my-hub-v41-news-row .news-v412-summary');
   assert.equal(await page.locator('.my-hub-v41-news-row').count(), 4, 'full feed should flatten group articles');
   assert.equal(await page.locator('.my-hub-v41-news-row .news-v412-summary').count(), 4, 'every full-feed article should show a one-line summary');
   assert.ok(await page.getByText('실적', { exact: true }).count() >= 1, 'event category badge should be visible');
