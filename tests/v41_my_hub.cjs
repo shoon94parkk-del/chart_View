@@ -7,10 +7,10 @@ const WATCHLIST = [
   { symbol: 'AAPL', name: '애플' },
   { symbol: '005930.KS', name: '삼성전자' },
 ];
-const nvda1 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180 };
-const nvda2 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150 };
-const aapl1 = { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140 };
-const ss1 = { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160 };
+const nvda1 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180, relationType: 'direct', relationBasis: '제목에 기업명·티커 확인' };
+const nvda2 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150, relationType: 'direct', relationBasis: '제목에 기업명·티커 확인' };
+const aapl1 = { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140, relationType: 'direct', relationBasis: '제목에 기업명·티커 확인' };
+const ss1 = { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160, relationType: 'direct', relationBasis: '제목에 기업명·티커 확인' };
 
 const payload = {
   items: [nvda1, ss1, aapl1],
@@ -34,7 +34,7 @@ async function mockData(page) {
   });
   await page.route('**/api/compare?**', async route => {
     const values = [100, 103, 101, 106, 104, 108, 107, 110];
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stocks: [{ data: values.map(close => ({ close })) }] }) });
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stocks: [{ data: values.map((close, index) => ({ time: 1754956800 + index * 86400, close, value: ((close / values[0]) - 1) * 100 })) }] }) });
   });
 }
 
@@ -52,7 +52,8 @@ async function mockData(page) {
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
   await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
-  await page.waitForSelector('#watchlist-tab[data-my-hub-version="v41"]');
+  await page.waitForSelector('#watchlist-tab[data-my-hub-version]');
+  assert.equal(await page.locator('#watchlist-tab').getAttribute('data-my-hub-version'), 'v42', 'MY hub should expose current V42 contract');
 
   const switchButtons = page.locator('[data-v41-switch] [data-v41-view]');
   assert.equal(await switchButtons.count(), 2, 'MY hub must expose stocks/news switch');
@@ -66,6 +67,7 @@ async function mockData(page) {
   assert.equal(await page.locator('.my-hub-v41-news-row .news-v412-summary').count(), 4, 'every full-feed article should show a one-line summary');
   assert.ok(await page.getByText('실적', { exact: true }).count() >= 1, 'event category badge should be visible');
   assert.ok(await page.getByText('계약·수주', { exact: true }).count() >= 1, 'contract category badge should be visible');
+  assert.ok(await page.getByText('직접 관련', { exact: true }).count() >= 1, 'relation badge should explain direct relevance');
 
   await page.locator('[data-v41-symbol="NVDA"]').click();
   assert.equal(await page.locator('.my-hub-v41-news-row').count(), 2, 'symbol filter should narrow feed');
@@ -81,9 +83,9 @@ async function mockData(page) {
   const homeWatchCard = page.locator('#home-watchlist-v30 [data-home-watch-open]').first();
   assert.ok((await homeWatchCard.getAttribute('aria-label'))?.includes('상세 보기'), 'Home MY stock card should expose an explicit action label');
 
-  await page.waitForSelector('#home-market-v9 [data-v40-market-more]', { state: 'visible' });
-  const marketToggle = page.locator('#home-market-v9 [data-v40-market-more]');
-  assert.match(await marketToggle.textContent(), /시장 지표 4개 더 보기/);
+  await page.waitForSelector('#home-market-v9 [data-v415-market-toggle]', { state: 'visible' });
+  const marketToggle = page.locator('#home-market-v9 [data-v415-market-toggle]');
+  assert.match(await marketToggle.textContent(), /4개 더보기/);
   const visibleMarketCount = async () => page.locator('#home-market-v9-grid > .home-market-v9-item:visible').count();
   assert.equal(await visibleMarketCount(), 4, 'collapsed Home market should show four indicators');
   await marketToggle.click();
