@@ -3,15 +3,15 @@
 @media (max-width: 720px) {
   .stock-detail-v40 .detail-v40-shell {
     grid-template-columns: minmax(112px,.82fr) minmax(0,1.72fr);
-    gap: 8px;
+    gap: 5px;
   }
 
   .stock-detail-v40 .detail-v40-header {
     grid-column: 1 / -1;
     grid-template-columns: 44px minmax(0,1fr) auto;
-    min-height: 56px;
-    gap: 8px;
-    padding: 4px 0;
+    min-height: 52px;
+    gap: 7px;
+    padding: 2px 0;
   }
 
   .stock-detail-v40 .detail-v40-actions {
@@ -31,11 +31,11 @@
   .stock-detail-v40 .detail-v40-price {
     grid-column: 1;
     min-width: 0;
-    min-height: 76px;
+    min-height: 68px;
     display: grid;
     align-content: center;
-    gap: 4px;
-    padding: 8px 9px;
+    gap: 3px;
+    padding: 6px 8px;
   }
 
   .stock-detail-v40 .detail-v40-price > div { min-width: 0; }
@@ -49,7 +49,7 @@
   .stock-detail-v40 .detail-v40-price small {
     max-width: none;
     font-size: 11px;
-    line-height: 1.25;
+    line-height: 1.2;
     text-align: left;
   }
 
@@ -57,20 +57,20 @@
     grid-column: 2;
     align-self: stretch;
     grid-template-columns: repeat(3,minmax(0,1fr));
-    gap: 5px;
+    gap: 4px;
   }
 
   .stock-detail-v40 .detail-v40-metric {
-    min-height: 76px;
+    min-height: 68px;
     align-content: center;
-    padding: 7px 6px;
+    padding: 6px 5px;
   }
-  .stock-detail-v40 .detail-v40-metric span { font-size: 11px; line-height: 1.2; }
-  .stock-detail-v40 .detail-v40-metric strong { font-size: 14px; line-height: 1.2; }
+  .stock-detail-v40 .detail-v40-metric span { font-size: 11px; line-height: 1.15; }
+  .stock-detail-v40 .detail-v40-metric strong { font-size: 14px; line-height: 1.15; }
   .stock-detail-v40 .detail-v40-metric small {
     min-height: 0;
     font-size: 10.5px;
-    line-height: 1.2;
+    line-height: 1.15;
   }
 
   .stock-detail-v40 .detail-v40-tabs,
@@ -78,16 +78,23 @@
     grid-column: 1 / -1;
   }
 
-  .stock-detail-v40 .detail-v40-tabs { gap: 5px; }
-  .stock-detail-v40 .detail-v40-panel { padding: 8px 10px 10px; }
+  .stock-detail-v40 .detail-v40-tabs { gap: 4px; }
+  .stock-detail-v40 .detail-v40-panel { padding: 6px 9px 9px; }
   .stock-detail-v40 .detail-v40-panel-head {
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
   }
   .stock-detail-v40 .detail-v40-panel-head strong { font-size: 15px; }
   .stock-detail-v40 .detail-v40-panel-head > div > span {
-    font-size: 11px;
-    line-height: 1.25;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
   }
 }
 
@@ -98,7 +105,7 @@
   .stock-detail-v40 .detail-v40-id strong { font-size: 17px; }
   .stock-detail-v40 .detail-v40-id span { font-size: 12px; }
   .stock-detail-v40 .detail-v40-actions button { padding: 0 6px; font-size: 11.5px; }
-  .stock-detail-v40 .detail-v40-price { display: grid; gap: 3px; }
+  .stock-detail-v40 .detail-v40-price { display: grid; gap: 2px; }
 }
 
 @media (min-width: 721px) {
