@@ -149,3 +149,53 @@ jobs:
         with:
           name: mobile-review
           path: test-results/
+
+  production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check, mobile]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Wait for exact Render revision
+        env:
+          APP_URL: https://chart-view-bsg6.onrender.com
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          node - <<'NODE'
+          const expected = process.env.EXPECTED_SHA;
+          const base = process.env.APP_URL;
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+          (async () => {
+            let last = null;
+            for (let i = 0; i < 72; i++) {
+              try {
+                const r = await fetch(`${base}/health?revision_check=${Date.now()}`, { cache: 'no-store' });
+                const j = await r.json();
+                last = j.revision;
+                console.log(`revision attempt ${i + 1}:`, last);
+                if (last === expected) return;
+              } catch (e) {
+                console.log(`revision attempt ${i + 1} failed:`, e.message);
+              }
+              await sleep(5000);
+            }
+            throw new Error(`Render revision mismatch. expected=${expected} last=${last}`);
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+      - name: Install production browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Verify production UI and navigation
+        env:
+          APP_URL: https://chart-view-bsg6.onrender.com
+        run: node tests/production_stage12.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-review
+          path: test-results/production-stage12/
