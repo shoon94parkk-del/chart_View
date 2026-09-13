@@ -1,4 +1,4 @@
-/* V46: dense mobile MY STOCKS grid. Keeps the useful data, removes low-value repetition. */
+/* V46.1: dense mobile MY STOCKS grid. Keeps the useful data, removes low-value repetition. */
 @media (max-width: 720px) {
   #home-watchlist-v30.home-watchlist-v30 {
     margin: 8px 10px 12px;
@@ -37,7 +37,7 @@
 
   #home-watchlist-v30 .home-watchlist-v30-chips > button {
     min-width: 0;
-    min-height: 82px !important;
+    min-height: 88px !important;
     padding: 9px 9px 8px 11px !important;
     display: grid;
     grid-template-rows: auto auto;
@@ -81,27 +81,29 @@
     display: none !important;
   }
 
+  /* Price gets its own line so 7-digit KRW values never clip in a 2-column card. */
   #home-watchlist-v30 .home-watch-v33-quote {
     min-width: 0;
     margin-top: 0 !important;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 5px;
-    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    align-items: start;
   }
 
   #home-watchlist-v30 .home-watch-v33-quote b {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
     white-space: nowrap;
     font-size: 12.5px !important;
-    line-height: 1.2;
+    line-height: 1.15;
   }
 
   #home-watchlist-v30 .home-watch-v33-quote em {
-    flex: 0 0 auto;
-    padding: 3px 5px !important;
+    width: max-content;
+    max-width: 100%;
+    padding: 2px 5px !important;
     border-radius: 999px;
     font-size: 8.5px !important;
     line-height: 1.2;
@@ -113,10 +115,10 @@
   #home-watchlist-v30.home-watchlist-v30 { padding: 10px; }
   #home-watchlist-v30 .home-watchlist-v30-chips { gap: 5px !important; }
   #home-watchlist-v30 .home-watchlist-v30-chips > button {
-    min-height: 78px !important;
+    min-height: 86px !important;
     padding: 8px 8px 7px 10px !important;
   }
   #home-watchlist-v30 .home-watch-v33-top strong,
-  #home-watchlist-v30 .home-watch-v33-quote b { font-size: 12px !important; }
+  #home-watchlist-v30 .home-watch-v33-quote b { font-size: 11.5px !important; }
   #home-watchlist-v30 .home-watch-v33-quote em { font-size: 8px !important; }
 }
