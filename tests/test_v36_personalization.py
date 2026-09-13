@@ -5,7 +5,8 @@ def test_v36_visual_asset_is_preserved_but_detail_js_is_replaced():
     boot = Path('static/js/home_watchlist_boot_v32c.js').read_text(encoding='utf-8')
     assert '/static/css/personalization_v36.css?v=20260912v36' in boot
     assert '/static/js/personalization_v36.js' not in boot
-    assert '/static/js/single_detail_v40.js?v=20260913stage12' in boot
+    assert '/static/js/single_detail_v40.js?v=' in boot
+    assert '/static/js/detail_visibility_v40_1.js?v=' in boot
     assert "home.dataset.homeOrder = 'market-watchlist-news-body-status'" in boot
 
 
@@ -25,10 +26,11 @@ def test_compare_and_storage_state_are_owned_by_shared_state_module():
     assert 'chartview-watchlist-v1' in js
     assert 'chartview-selected-tickers-v1' in js
     assert 'getCompare' in js and 'setCompare' in js
-    assert "window.addEventListener('storage'" not in js  # no page reload owner; explicit modules react to scoped changes
+    assert 'chartview:detail-change' in js
+    assert "window.addEventListener('storage'" not in js
 
 
-def test_detail_exposes_period_and_price_basis():
+def test_detail_exposes_period_price_basis_and_readable_chart():
     js = Path('static/js/single_detail_v40.js').read_text(encoding='utf-8')
-    for text in ('관측', '가격 기준', '거래 기준', '1달 수익률 차트'):
+    for text in ('관측', '가격 기준', '거래 기준', '1달 수익률 차트', '조정주가', 'data-detail-chart-readout'):
         assert text in js
