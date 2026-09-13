@@ -46,14 +46,34 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
       await page.locator('#legend .legend-item').first().waitFor({timeout:60000});
-      const metrics = await page.evaluate(() => ({
-        width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
-        navCount:document.querySelectorAll('.app-bottom-btn').length,
-        navRows:new Set([...document.querySelectorAll('.app-bottom-btn')].map(x=>Math.round(x.getBoundingClientRect().top))).size,
-        dates:getComputedStyle(document.getElementById('custom-date-fields')).display,
-        chartTop:Math.round(document.getElementById('chart-container').getBoundingClientRect().top),
-        legacyBriefVisible:Boolean(document.getElementById('stock-brief-v8') && getComputedStyle(document.getElementById('stock-brief-v8')).display !== 'none'),
-      }));
+      const metrics = await page.evaluate(() => {
+        const inspect = selector => {
+          const el = document.querySelector(selector);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          return {
+            top:Math.round(r.top), bottom:Math.round(r.bottom), height:Math.round(r.height),
+            marginTop:cs.marginTop, marginBottom:cs.marginBottom,
+            paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom,
+            display:cs.display, gap:cs.gap,
+          };
+        };
+        return {
+          width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
+          navCount:document.querySelectorAll('.app-bottom-btn').length,
+          navRows:new Set([...document.querySelectorAll('.app-bottom-btn')].map(x=>Math.round(x.getBoundingClientRect().top))).size,
+          dates:getComputedStyle(document.getElementById('custom-date-fields')).display,
+          chartTop:Math.round(document.getElementById('chart-container').getBoundingClientRect().top),
+          legacyBriefVisible:Boolean(document.getElementById('stock-brief-v8') && getComputedStyle(document.getElementById('stock-brief-v8')).display !== 'none'),
+          geometry:{
+            tab:inspect('#chart-tab'), filter:inspect('#global-filter'), section:inspect('#chart-tab .chart-section'),
+            header:inspect('#chart-tab .chart-header'), periods:inspect('#chart-tab .v40-chart-periods'),
+            quick:inspect('#chart-tab .quick-periods'), date:inspect('#custom-date-toggle'), chart:inspect('#chart-container')
+          }
+        };
+      });
+      console.log('COMPARE_GEOMETRY', width, JSON.stringify(metrics.geometry));
       assert(metrics.scrollWidth <= width, `${width}: analysis overflow`);
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
       assert.equal(metrics.legacyBriefVisible,false);
@@ -92,7 +112,6 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
       if (width === 384) {
-        // Simulate provider failure only inside this test browser; verify recovery UX.
         await page.route('**/api/compare?*', r => r.fulfill({status:503,...json({error:'test unavailable'})}));
         await page.locator('.period-chip[data-period="3mo"]').click();
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();
