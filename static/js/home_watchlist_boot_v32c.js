@@ -36,6 +36,7 @@
     addStyle('link[data-release-ui-v40]', '/static/css/release_ui_v40.css?v=20260913stage12', 'releaseUiV40');
     addStyle('link[data-detail-ui-v40]', '/static/css/detail_ui_v40.css?v=20260913stage12', 'detailUiV40');
     addStyle('link[data-comparison-ui-v40]', '/static/css/comparison_ui_v40.css?v=20260913stage12', 'comparisonUiV40');
+    addStyle('link[data-comparison-compact-v401]', '/static/css/comparison_compact_v40_1.css?v=20260913v401', 'comparisonCompactV401');
     addStyle('link[data-news-status-v401]', '/static/css/news_status_v40_1.css?v=20260913v401', 'newsStatusV401');
     addScript('script[data-app-state-v40]', '/static/js/app_state_v40.js?v=20260913stage12', 'appStateV40');
     addScript('script[data-single-detail-v40]', '/static/js/single_detail_v40.js?v=20260913stage12', 'singleDetailV40');
@@ -43,6 +44,7 @@
     addScript('script[data-news-status-v401]', '/static/js/news_status_v40_1.js?v=20260913v401', 'newsStatusV401');
     addScript('script[data-release-ui-v40]', '/static/js/release_ui_v40.js?v=20260913stage12', 'releaseUiV40');
     addScript('script[data-release-flow-v40]', '/static/js/release_flow_v40.js?v=20260913stage12', 'releaseFlowV40');
+    addScript('script[data-comparison-compact-v401]', '/static/js/comparison_compact_v40_1.js?v=20260913v401', 'comparisonCompactV401');
   }
 
   function ensureAllAssets() {
