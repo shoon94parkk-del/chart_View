@@ -98,6 +98,59 @@
     return true;
   }
 
+  // V40 moves the original period controls into the chart header after chart.js
+  // has initialized. Use capture-phase delegation so the controls remain reliable
+  // even when the DOM is moved/rebuilt, and keep one explicit period state owner.
+  function installChartPeriodDelegation() {
+    const tab = document.getElementById('chart-tab');
+    if (!tab || tab.dataset.v40PeriodDelegation === '1') return false;
+    tab.dataset.v40PeriodDelegation = '1';
+    tab.addEventListener('click', (event) => {
+      const button = event.target.closest('.period-chip[data-period]');
+      if (!button || !tab.contains(button)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const period = button.dataset.period;
+      if (!period) return;
+      tab.querySelectorAll('.period-chip[data-period]').forEach((node) => node.classList.toggle('active', node === button));
+
+      const fields = document.getElementById('custom-date-fields');
+      const toggle = document.getElementById('custom-date-toggle');
+      const movedWrap = button.closest('.v40-chart-periods');
+      movedWrap?.classList.remove('custom-range-open');
+      if (fields) fields.hidden = true;
+      if (toggle) {
+        toggle.setAttribute('aria-expanded', 'false');
+        const arrow = toggle.querySelector('.custom-date-arrow');
+        if (arrow) arrow.textContent = '⌄';
+      }
+
+      try {
+        if (period === 'ytd') {
+          const today = new Date();
+          const start = `${today.getFullYear()}-01-01`;
+          const end = typeof localDate === 'function'
+            ? localDate(today)
+            : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          customDateRange = { start, end };
+          currentPeriod = '1y';
+          const startInput = document.getElementById('start-date');
+          const endInput = document.getElementById('end-date');
+          if (startInput) startInput.value = start;
+          if (endInput) endInput.value = end;
+        } else {
+          currentPeriod = period;
+          customDateRange = null;
+        }
+        if (typeof loadData === 'function') loadData();
+      } catch (error) {
+        console.error('[V40] chart period change failed', error);
+      }
+    }, true);
+    return true;
+  }
+
   function verifyWatchlistPersisted() {
     clearTimeout(storageVerifyTimer);
     storageVerifyTimer = setTimeout(() => {
@@ -132,12 +185,13 @@
   function init() {
     wrapValuationFormatting();
     compactComparisonLayout();
+    installChartPeriodDelegation();
     normalizeInternalCopy();
     document.addEventListener('chartview:watchlist-change', verifyWatchlistPersisted);
     document.addEventListener('chartview:compare-change', () => setTimeout(compactComparisonLayout, 0));
     document.addEventListener('click', () => setTimeout(normalizeInternalCopy, 0));
-    setTimeout(() => { wrapValuationFormatting(); compactComparisonLayout(); normalizeInternalCopy(); }, 300);
-    setTimeout(() => { wrapValuationFormatting(); compactComparisonLayout(); }, 1200);
+    setTimeout(() => { wrapValuationFormatting(); compactComparisonLayout(); installChartPeriodDelegation(); normalizeInternalCopy(); }, 300);
+    setTimeout(() => { wrapValuationFormatting(); compactComparisonLayout(); installChartPeriodDelegation(); }, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
