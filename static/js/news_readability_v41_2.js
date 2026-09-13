@@ -69,7 +69,6 @@
 
   function enhanceMarket(details) {
     if (!details) return;
-    details.open = true;
     const target = details.querySelector('[data-news-v40-market]');
     const svg = target?.querySelector(':scope > svg');
     const pctNode = target?.querySelector(':scope > strong');
@@ -102,7 +101,12 @@
   function enhanceAll() {
     document.querySelectorAll('.news-v40-card').forEach((card) => {
       addSummary(card);
-      enhanceMarket(card.querySelector('.news-v40-market'));
+      const details = card.querySelector('.news-v40-market');
+      if (details && details.dataset.v415DefaultOpen !== '1') {
+        details.dataset.v415DefaultOpen = '1';
+        details.open = card.classList.contains('is-lead');
+      }
+      enhanceMarket(details);
     });
     document.querySelectorAll('.my-hub-v41-news-row').forEach(addSummary);
     const home = document.querySelector('#home-tab .home-v8');
@@ -118,9 +122,20 @@
     requestAnimationFrame(() => { queued = false; enhanceAll(); });
   }
 
-  const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  document.addEventListener('chartview:v37-news-rendered', schedule);
-  document.addEventListener('DOMContentLoaded', schedule, { once: true });
-  schedule();
+  let newsObserver = null;
+  function attachNewsObserver(attempt = 0) {
+    const section = document.getElementById('home-personal-news-v37');
+    if (section) {
+      if (!newsObserver) {
+        newsObserver = new MutationObserver(schedule);
+        newsObserver.observe(section, { childList: true, subtree: true });
+      }
+      schedule();
+      return;
+    }
+    if (attempt < 30) setTimeout(() => attachNewsObserver(attempt + 1), 300);
+  }
+  document.addEventListener('chartview:v37-news-rendered', () => { attachNewsObserver(); schedule(); });
+  document.addEventListener('DOMContentLoaded', () => attachNewsObserver(), { once: true });
+  attachNewsObserver();
 })();

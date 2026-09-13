@@ -113,11 +113,30 @@
     }).join('');
   }
 
+  function pickDiverse(items, limit = TOP_COUNT) {
+    const rows = Array.isArray(items) ? items : [];
+    const chosen = [];
+    const seenSymbols = new Set();
+    const used = new Set();
+    rows.forEach((item, index) => {
+      const symbol = String(item?.symbol || '').toUpperCase();
+      if (!symbol || seenSymbols.has(symbol) || chosen.length >= limit) return;
+      seenSymbols.add(symbol);
+      used.add(index);
+      chosen.push(item);
+    });
+    rows.forEach((item, index) => {
+      if (chosen.length >= limit || used.has(index)) return;
+      chosen.push(item);
+    });
+    return chosen;
+  }
+
   function renderArticles(section, payload, rows, seq) {
     if (seq !== loadSeq) return;
     const grid = section.querySelector('[data-news-v40-grid]');
     const groups = section.querySelector('[data-news-v40-groups] > div');
-    const items = Array.isArray(payload?.items) ? payload.items.slice(0, TOP_COUNT) : [];
+    const items = pickDiverse(payload?.items, TOP_COUNT);
     const errors = Array.isArray(payload?.errors) ? payload.errors : [];
     if (groups) groups.innerHTML = groupStatusHtml(payload, rows);
 
@@ -149,8 +168,13 @@
   }
 
   function sparkline(values) {
-    const nums = (Array.isArray(values) ? values : []).map(Number).filter(Number.isFinite).slice(-20);
-    if (nums.length < 2) return '';
+    const source = (Array.isArray(values) ? values : []).map(Number).filter(Number.isFinite);
+    if (source.length < 2) return '';
+    const maxPoints = 40;
+    const nums = source.length <= maxPoints ? source : Array.from({ length: maxPoints }, (_, index) => {
+      const sourceIndex = Math.round(index * (source.length - 1) / (maxPoints - 1));
+      return source[sourceIndex];
+    });
     const min = Math.min(...nums), max = Math.max(...nums), span = max - min || 1;
     const width = 140, height = 40, pad = 2;
     const points = nums.map((value, i) => {

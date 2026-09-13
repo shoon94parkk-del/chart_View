@@ -125,7 +125,7 @@
 
   function installMarketMore() {
     const panel = document.getElementById('home-market-v9');
-    if (!panel || panel.querySelector('[data-v40-market-more]')) return false;
+    if (!panel || panel.querySelector('[data-v40-market-more]') || panel.querySelector('[data-home23-market-toggle]')) return false;
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.v40MarketMore = '1';

@@ -94,6 +94,36 @@ def _dedupe(items: list[dict]) -> list[dict]:
     return out
 
 
+def _balanced_highlights(items: list[dict], limit: int = 12) -> list[dict]:
+    """Keep relevance while preventing one active ticker from monopolizing Home highlights."""
+    ranked = _dedupe(items)
+    if not ranked or limit <= 0:
+        return []
+
+    first_by_symbol: dict[str, dict] = {}
+    for row in ranked:
+        symbol = str(row.get("symbol") or "").upper()
+        if symbol and symbol not in first_by_symbol:
+            first_by_symbol[symbol] = row
+
+    primary = sorted(
+        first_by_symbol.values(),
+        key=lambda x: (-float(x.get("score") or 0), -float(x.get("publishedTs") or 0)),
+    )
+    chosen = primary[:limit]
+    chosen_ids = {(str(row.get("url") or ""), str(row.get("title") or "")) for row in chosen}
+    if len(chosen) < limit:
+        for row in ranked:
+            identity = (str(row.get("url") or ""), str(row.get("title") or ""))
+            if identity in chosen_ids:
+                continue
+            chosen.append(row)
+            chosen_ids.add(identity)
+            if len(chosen) >= limit:
+                break
+    return chosen
+
+
 def _fetch_naver_news(symbol: str, name: str) -> dict:
     client_id = os.environ.get("NAVER_API_HUB_CLIENT_ID", "").strip()
     client_secret = os.environ.get("NAVER_API_HUB_CLIENT_SECRET", "").strip()
@@ -252,7 +282,7 @@ async def personalized_news(
         if error:
             errors.append({"symbol": symbol, "provider": result.get("provider"), "code": error})
 
-    highlights = _dedupe(all_items)[:12]
+    highlights = _balanced_highlights(all_items, 12)
     return {
         "items": highlights,
         "groups": groups,

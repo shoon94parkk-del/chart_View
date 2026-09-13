@@ -178,7 +178,7 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         return None
 
     interval_map = {
-        "1d": "5m", "5d": "15m", "1mo": "1d",
+        "1d": "5m", "5d": "1d", "1mo": "1d",
         "3mo": "1d", "6mo": "1d", "1y": "1d", "max": "1d",
     }
     interval = "1d" if start and end else interval_map.get(period, "1d")

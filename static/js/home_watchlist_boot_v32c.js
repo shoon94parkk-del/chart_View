@@ -45,15 +45,15 @@
     addScript('script[data-app-state-v40]', '/static/js/app_state_v40.js?v=20260913stage12', 'appStateV40');
     addScript('script[data-single-detail-v40]', '/static/js/single_detail_v40.js?v=20260913stage12', 'singleDetailV40');
     addScript('script[data-detail-visibility-v401]', '/static/js/detail_visibility_v40_1.js?v=20260913v401', 'detailVisibilityV401');
-    addScript('script[data-personalized-news-v40]', '/static/js/personalized_news_v40.js?v=20260913stage12', 'personalizedNewsV40');
+    addScript('script[data-personalized-news-v40]', '/static/js/personalized_news_v40.js?v=20260913v415', 'personalizedNewsV40');
     addScript('script[data-news-status-v401]', '/static/js/news_status_v40_1.js?v=20260913v401', 'newsStatusV401');
-    addScript('script[data-release-ui-v40]', '/static/js/release_ui_v40.js?v=20260913stage12', 'releaseUiV40');
+    addScript('script[data-release-ui-v40]', '/static/js/release_ui_v40.js?v=20260913v415', 'releaseUiV40');
     addScript('script[data-release-flow-v40]', '/static/js/release_flow_v40.js?v=20260913stage12', 'releaseFlowV40');
     addScript('script[data-comparison-compact-v401]', '/static/js/comparison_compact_v40_1.js?v=20260913v401', 'comparisonCompactV401');
     addScript('script[data-my-hub-v41]', '/static/js/my_hub_v41.js?v=20260913v41', 'myHubV41');
-    addScript('script[data-news-readability-v412]', '/static/js/news_readability_v41_2.js?v=20260913v412', 'newsReadabilityV412');
+    addScript('script[data-news-readability-v412]', '/static/js/news_readability_v41_2.js?v=20260913v415', 'newsReadabilityV412');
     addScript('script[data-resilience-v413]', '/static/js/resilience_v41_3.js?v=20260913v413', 'resilienceV413');
-    addScript('script[data-home-polish-v414]', '/static/js/home_polish_v41_4.js?v=20260913v414', 'homePolishV414');
+    addScript('script[data-home-polish-v414]', '/static/js/home_polish_v41_4.js?v=20260913v415', 'homePolishV414');
   }
 
   function ensureAllAssets() { ensureLegacyVisualAssets(); ensureReleaseAssets(); }

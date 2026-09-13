@@ -5,23 +5,44 @@
 
   function syncMarketToggle() {
     const panel = document.getElementById('home-market-v9');
-    const button = panel?.querySelector('[data-v40-market-more]');
     const grid = panel?.querySelector('.home-market-v9-grid');
-    if (!panel || !button || !grid) return false;
+    if (!panel || !grid) return false;
 
+    let button = panel.querySelector('[data-v415-market-toggle]');
+    const candidates = [...panel.querySelectorAll('[data-home23-market-toggle], [data-v40-market-more]')];
+    if (!button && candidates.length) {
+      candidates.forEach((node) => node.remove());
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'home23-market-toggle v40-market-more home-v415-market-toggle';
+      button.dataset.home23MarketToggle = '1';
+      button.dataset.v415MarketToggle = '1';
+      grid.insertAdjacentElement('afterend', button);
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const expanded = !panel.classList.contains('home23-expanded');
+        panel.classList.toggle('home23-expanded', expanded);
+        panel.classList.toggle('v40-market-expanded', expanded);
+        syncMarketToggle();
+      });
+    }
+    if (!button) return false;
+
+    panel.querySelectorAll('[data-home23-market-toggle], [data-v40-market-more]').forEach((node) => {
+      if (node !== button) node.remove();
+    });
     const total = grid.children.length;
     const hiddenCount = Math.max(0, total - 4);
-    if (!hiddenCount) {
-      button.hidden = true;
-      return true;
-    }
-
+    if (!hiddenCount) { button.hidden = true; return true; }
     button.hidden = false;
+    const expanded = panel.classList.contains('home23-expanded') || panel.classList.contains('v40-market-expanded');
+    panel.classList.toggle('home23-expanded', expanded);
+    panel.classList.toggle('v40-market-expanded', expanded);
     button.setAttribute('aria-controls', 'home-market-v9-grid');
-    const expanded = panel.classList.contains('v40-market-expanded');
     button.setAttribute('aria-expanded', String(expanded));
-    button.textContent = expanded ? '추가 시장 지표 접기' : `시장 지표 ${hiddenCount}개 더 보기`;
-    panel.dataset.marketToggleVersion = 'v41.4';
+    button.innerHTML = `<span>금리 · VIX · 유가 · 환율</span><strong>${expanded ? '접기' : `${hiddenCount}개 더보기`}</strong><i>⌄</i>`;
+    panel.dataset.marketToggleVersion = 'v41.5';
     return true;
   }
 
@@ -55,17 +76,13 @@
   document.addEventListener('chartview:watchlist-change', () => requestAnimationFrame(decorateWatchlist));
   document.addEventListener('chartview:v37-news-rendered', () => requestAnimationFrame(sync));
 
-  let scheduled = false;
-  const observer = new MutationObserver(() => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      sync();
-    });
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync, { once: true });
-  else sync();
+  function boot(attempt = 0) {
+    const ready = syncMarketToggle() | decorateWatchlist();
+    sync();
+    if (!ready && attempt < 30) setTimeout(() => boot(attempt + 1), 300);
+  }
+  document.addEventListener('chartview:v37-news-rendered', () => requestAnimationFrame(sync));
+  document.addEventListener('chartview:watchlist-change', () => requestAnimationFrame(sync));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => boot(), { once: true });
+  else boot();
 })();
