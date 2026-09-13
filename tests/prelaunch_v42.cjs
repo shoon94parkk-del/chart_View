@@ -20,10 +20,11 @@ const valuationStocks = [
  await page.route('**/api/valuation?**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({stocks:valuationStocks})}));
  await page.route('**/api/consensus?**',route=>route.fulfill({status:200,contentType:'application/json',body:'{}'}));
  const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
- await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const launchUrl = new URL('/?utm_source=test&utm_medium=ci&utm_campaign=launch_v1', BASE).toString();
+ await page.goto(launchUrl,{waitUntil:'domcontentloaded'});
  await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
 
- // Public beta launch surface: static SEO metadata + first-visit explanation + sharing affordance.
+ // Public beta launch surface: static SEO metadata + campaign landing explanation + sharing affordance.
  assert.match(await page.title(),/Chart View/);
  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),'https://chart-view-bsg6.onrender.com/');
  assert.match(await page.locator('meta[property="og:title"]').getAttribute('content'),/Chart View/);
