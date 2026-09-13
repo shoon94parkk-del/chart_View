@@ -37,6 +37,15 @@
     overflow: visible;
   }
 
+  /* Desktop starts compact even before the V40.1 toggle script hydrates. */
+  #global-filter .sector-section .sector-scroll-container { display: none; }
+  #global-filter .sector-section[data-v40-collapsed="false"] .sector-scroll-container {
+    display: block;
+    max-height: 220px;
+    overflow: auto;
+    padding: 8px 0 12px;
+  }
+
   #global-filter .v40-sector-toggle {
     width: 100%;
     min-height: 44px;
@@ -57,13 +66,6 @@
     color: #8b95a1;
   }
   #global-filter .v40-sector-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
-
-  #global-filter .sector-section.v40-sector-collapsed .sector-scroll-container { display: none; }
-  #global-filter .sector-section:not(.v40-sector-collapsed) .sector-scroll-container {
-    max-height: 220px;
-    overflow: auto;
-    padding: 8px 0 12px;
-  }
 
   #chart-tab .chart-section {
     margin-top: 4px;
