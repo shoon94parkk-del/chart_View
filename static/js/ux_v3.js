@@ -6,6 +6,7 @@
   let lastMarket = 'macro';
   let handlingPopState = false;
   let openingAppTab = 0;
+  let userNavigationStarted = false;
 
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
@@ -21,8 +22,7 @@
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
-        const activeMode = document.querySelector('.app-bottom-btn.active')?.dataset.appMode;
-        if (document.querySelector('.app-bottom-nav') && (!activeMode || activeMode === 'home')) {
+        if (document.querySelector('.app-bottom-nav') && !userNavigationStarted) {
           openTab('home', { history: false });
         }
       }, { once: true });
@@ -186,10 +186,14 @@
     document.body.appendChild(bottom);
 
     context.querySelectorAll('[data-app-tab]').forEach((button) => {
-      button.addEventListener('click', () => openTab(button.dataset.appTab));
+      button.addEventListener('click', () => {
+        userNavigationStarted = true;
+        openTab(button.dataset.appTab);
+      });
     });
     bottom.querySelectorAll('[data-app-mode]').forEach((button) => {
       button.addEventListener('click', () => {
+        userNavigationStarted = true;
         const mode = button.dataset.appMode;
         if (button.classList.contains('active')) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -276,13 +280,17 @@
     });
     window.addEventListener('popstate', (event) => {
       const tab = event.state?.chartView ? event.state.tab : 'home';
+      userNavigationStarted = true;
       handlingPopState = true;
       try { openTab(tab || 'home', { history: false }); }
       finally { handlingPopState = false; }
     });
   }
 
-  window.__openAppTab = openTab;
+  window.__openAppTab = function (tabId, options = {}) {
+    userNavigationStarted = true;
+    return openTab(tabId, options);
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
