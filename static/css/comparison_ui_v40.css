@@ -66,7 +66,12 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   #global-filter .ux-sector-toggle { min-height: 44px; }
 
   #chart-tab .chart-section { margin-top: 0; padding-top: 4px; }
-  #chart-tab .chart-header { grid-template-columns: 1fr auto; gap: 4px 6px; min-height: 44px; }
+  #chart-tab .chart-header {
+    grid-template-columns: 1fr auto;
+    gap: 4px 6px;
+    min-height: 44px;
+    padding-bottom: 8px;
+  }
   #chart-tab .chart-title { font-size: 15px; }
   #chart-tab .chart-unit { justify-self: end; font-size: 10px; }
 
