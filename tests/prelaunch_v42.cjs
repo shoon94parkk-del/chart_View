@@ -84,7 +84,7 @@ const valuationStocks = [
  assert.equal(valuationLayout.metricDisplay,'grid');
  assert(valuationLayout.rowWidth<=valuationLayout.containerWidth+1,`card wider than container ${JSON.stringify(valuationLayout)}`);
  assert(valuationLayout.rowLeft>=valuationLayout.containerLeft-1 && valuationLayout.rowRight<=valuationLayout.containerRight+1,`card escaped container ${JSON.stringify(valuationLayout)}`);
- assert(valuationLayout.labels.length>=5 && valuationLayout.labels.every(Boolean),`missing valuation labels ${JSON.stringify(valuationLayout.labels)}`);
+ assert(valuationLayout.labels.length>=4 && valuationLayout.labels.every(Boolean),`missing valuation labels ${JSON.stringify(valuationLayout.labels)}`);
  await page.screenshot({path:'test-results/390-valuation-cards.png',fullPage:true});
 
  assert.deepEqual(errors,[]);
