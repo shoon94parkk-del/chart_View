@@ -1,0 +1,87 @@
+/* Comparison workspace only. Keeps the existing chart engine and V39 visual language. */
+
+#global-filter .v40-compare-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+#global-filter .v40-compare-heading > div { display: grid; gap: 1px; }
+#global-filter .v40-compare-heading span { color: #4f6f9f; font-size: 10px; font-weight: 900; letter-spacing: .08em; }
+#global-filter .v40-compare-heading strong { color: #17202b; font-size: 17px; }
+#global-filter .v40-compare-heading small { color: #667085; font-size: 12px; }
+
+/* Search + selected tickers should be a tool bar rather than a tall introduction card. */
+#global-filter .global-search { padding-top: 12px; padding-bottom: 10px; }
+#global-filter .search-label,
+#global-filter .search-hint { display: none; }
+#global-filter .search-row { margin-top: 0; }
+#global-filter .ticker-tags { margin-top: 8px; }
+#global-filter .sector-section { margin-top: 5px; }
+#global-filter .sector-section.ux-collapsed { min-height: 0; }
+#global-filter .ux-sector-toggle { min-height: 44px; }
+
+/* In comparison mode a single-stock summary above the chart is redundant. */
+body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
+
+#chart-tab .chart-section { margin-top: 10px; }
+#chart-tab .chart-header {
+  display: grid;
+  grid-template-columns: auto auto minmax(0,1fr);
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 52px;
+}
+#chart-tab .chart-title { font-size: 16px; font-weight: 850; }
+#chart-tab .chart-unit { color: #667085; font-size: 11px; }
+#chart-tab .v40-chart-periods {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+#chart-tab .v40-chart-periods .quick-periods { display: flex; flex-wrap: wrap; gap: 5px; }
+#chart-tab .v40-chart-periods .period-chip,
+#chart-tab .v40-chart-periods #custom-date-toggle,
+#chart-tab .v40-chart-periods #apply-date-btn { min-height: 44px; }
+#chart-tab .v40-chart-periods #custom-date-toggle { margin: 0; }
+#chart-tab .v40-chart-periods #custom-date-fields {
+  flex-basis: 100%;
+  margin: 4px 0 0 auto;
+  justify-content: flex-end;
+}
+#chart-container { min-height: 260px; }
+
+@media (max-width: 720px) {
+  #global-filter { margin-bottom: 8px; }
+  #global-filter .v40-compare-heading { align-items: start; margin-bottom: 7px; }
+  #global-filter .v40-compare-heading strong { font-size: 15px; }
+  #global-filter .v40-compare-heading small { max-width: 115px; text-align: right; line-height: 1.35; }
+  #global-filter .global-search { padding: 9px 10px 8px; }
+  #global-filter .ticker-tags { margin-top: 6px; gap: 5px; }
+  #global-filter .ticker-tag { min-height: 36px; }
+  #global-filter .sector-section { margin-top: 2px; }
+  #global-filter .ux-sector-toggle { min-height: 40px; }
+
+  #chart-tab .chart-section { margin-top: 6px; padding-top: 8px; }
+  #chart-tab .chart-header { grid-template-columns: 1fr auto; gap: 6px; min-height: 44px; }
+  #chart-tab .chart-title { font-size: 15px; }
+  #chart-tab .chart-unit { justify-self: end; font-size: 10px; }
+  #chart-tab .v40-chart-periods { grid-column: 1/-1; justify-self: stretch; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  #chart-tab .v40-chart-periods .quick-periods { flex-wrap: nowrap; }
+  #chart-tab .v40-chart-periods .period-chip,
+  #chart-tab .v40-chart-periods #custom-date-toggle { min-height: 40px; flex: 0 0 auto; }
+  #chart-tab .v40-chart-periods #custom-date-fields { position: absolute; z-index: 20; left: 10px; right: 10px; width: auto; padding: 10px; border: 1px solid #e5eaf0; border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(15,23,42,.14); }
+  #chart-container { min-height: 300px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  #global-filter .v40-compare-heading strong { color: #f8fafc; }
+  #global-filter .v40-compare-heading small { color: #a8b3c5; }
+  #chart-tab .chart-unit { color: #a8b3c5; }
+  #chart-tab .v40-chart-periods #custom-date-fields { background: #111827; border-color: #334155; }
+}
