@@ -87,8 +87,12 @@ jobs:
           assert '/static/css/home_market_v9.css?v=' in ux
           app=Path('static/js/ux_v3.js').read_text(encoding='utf-8')
           assert 'data-app-mode="home"' in app and '종목분석' in app and '종목발굴' in app and '시장' in app
+          assert 'navigateUserTab' in app and '__closeStockDetail' in app
           hub=Path('static/js/my_hub_v41.js').read_text(encoding='utf-8')
           assert '__openMyNewsV41' in hub and '내 종목 뉴스' in hub and '관련도순' in hub
+          assert 'receivedAt' in hub and 'relatedSymbols' in hub
+          resilience=Path('static/js/resilience_v41_3.js').read_text(encoding='utf-8')
+          assert 'MutationObserver' not in resilience and 'feedSnapshot' not in resilience
           home=Path('static/js/home_brief_v8.js').read_text(encoding='utf-8')
           for text in ('주요 종목 오늘 시황','시장 한줄 요약','1달 수익률'):
               assert text in home, text
@@ -108,12 +112,12 @@ jobs:
           assert '"fieldMeta": field_meta' in service
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
-          print('app UX invariants OK: Korea + global home market strip + V41 MY hub')
+          print('app UX invariants OK: V42 prelaunch contracts')
           PY
 
   mobile:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -134,7 +138,8 @@ jobs:
           node tests/mobile_smoke.cjs
           node tests/app_release_stage12.cjs
           node tests/v41_my_hub.cjs
-      - uses: actions/upload-artifact@v4
+          node tests/prelaunch_v42.cjs
+      uses: actions/upload-artifact@v4
         if: always()
         with:
           name: mobile-review
@@ -186,6 +191,7 @@ jobs:
         run: |
           node tests/production_stage12.cjs
           node tests/v41_my_hub.cjs
+          node tests/prelaunch_v42.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
