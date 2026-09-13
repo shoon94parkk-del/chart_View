@@ -1,0 +1,122 @@
+/* V46: dense mobile MY STOCKS grid. Keeps the useful data, removes low-value repetition. */
+@media (max-width: 720px) {
+  #home-watchlist-v30.home-watchlist-v30 {
+    margin: 8px 10px 12px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-head {
+    margin-bottom: 9px;
+    align-items: center;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-head > div > span {
+    margin-bottom: 3px;
+    padding: 3px 7px;
+    font-size: 9px;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-head h3 {
+    font-size: 17px;
+    line-height: 1.15;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-head button {
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 10.5px;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-chips {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-chips > button {
+    min-width: 0;
+    min-height: 82px !important;
+    padding: 9px 9px 8px 11px !important;
+    display: grid;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 6px;
+    border-radius: 13px !important;
+    box-shadow: 0 3px 10px rgba(30, 64, 110, .045) !important;
+    text-align: left;
+  }
+
+  #home-watchlist-v30 .home-watchlist-v30-chips > button::before {
+    width: 3px;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-top {
+    min-width: 0;
+    gap: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-top strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+    line-height: 1.25;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-top i {
+    flex: 0 0 auto;
+    padding: 2px 5px;
+    font-size: 7px;
+  }
+
+  /* Ticker and data-basis lines repeat information already available in detail view. */
+  #home-watchlist-v30 .home-watchlist-v30-chips > button > small,
+  #home-watchlist-v30 .home-watch-v40-basis {
+    display: none !important;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-quote {
+    min-width: 0;
+    margin-top: 0 !important;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px;
+    align-items: center;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-quote b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px !important;
+    line-height: 1.2;
+  }
+
+  #home-watchlist-v30 .home-watch-v33-quote em {
+    flex: 0 0 auto;
+    padding: 3px 5px !important;
+    border-radius: 999px;
+    font-size: 8.5px !important;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 370px) {
+  #home-watchlist-v30.home-watchlist-v30 { padding: 10px; }
+  #home-watchlist-v30 .home-watchlist-v30-chips { gap: 5px !important; }
+  #home-watchlist-v30 .home-watchlist-v30-chips > button {
+    min-height: 78px !important;
+    padding: 8px 8px 7px 10px !important;
+  }
+  #home-watchlist-v30 .home-watch-v33-top strong,
+  #home-watchlist-v30 .home-watch-v33-quote b { font-size: 12px !important; }
+  #home-watchlist-v30 .home-watch-v33-quote em { font-size: 8px !important; }
+}
