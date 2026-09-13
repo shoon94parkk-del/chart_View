@@ -31,6 +31,19 @@ def test_news_dedupe_prefers_higher_scored_duplicate():
     assert [row["url"] for row in deduped] == ["https://example.com/b", "https://example.com/c"]
 
 
+def test_balanced_highlights_prevent_one_symbol_from_monopolizing_top_three():
+    rows = [
+        {"symbol": "005930.KS", "title": "Samsung A", "url": "https://example.com/s1", "score": 100, "publishedTs": 100},
+        {"symbol": "005930.KS", "title": "Samsung B", "url": "https://example.com/s2", "score": 99, "publishedTs": 99},
+        {"symbol": "005930.KS", "title": "Samsung C", "url": "https://example.com/s3", "score": 98, "publishedTs": 98},
+        {"symbol": "000660.KS", "title": "Hynix A", "url": "https://example.com/h1", "score": 80, "publishedTs": 80},
+        {"symbol": "MU", "title": "Micron A", "url": "https://example.com/m1", "score": 70, "publishedTs": 70},
+    ]
+    highlights = news._balanced_highlights(rows, 5)
+    assert len({row["symbol"] for row in highlights[:3]}) == 3
+    assert highlights[0]["symbol"] == "005930.KS"
+
+
 def test_news_backend_accepts_full_20_symbol_watchlist(monkeypatch):
     symbols = [f"T{i:02d}" for i in range(1, 21)]
 
@@ -65,7 +78,7 @@ def test_v40_frontend_assets_and_home_order_are_wired():
     backend = (ROOT / "news_service_v37.py").read_text(encoding="utf-8")
     main = (ROOT / "main.py").read_text(encoding="utf-8")
 
-    assert "/static/js/personalized_news_v40.js?v=20260913stage12" in boot
+    assert "/static/js/personalized_news_v40.js?v=20260913v415" in boot
     assert "/static/js/personalized_news_v38.js" not in boot
     assert "/static/css/personalized_news_v38.css?v=20260913v38" in boot  # legacy visual layer only
     assert "market-watchlist-news-body-status" in boot
@@ -76,6 +89,7 @@ def test_v40_frontend_assets_and_home_order_are_wired():
     assert "이벤트 참고 설명" in frontend
     assert "관심종목별 조회 상태" in frontend
     assert "5거래일 가격 흐름" in frontend
+    assert "pickDiverse(payload?.items, TOP_COUNT)" in frontend
     assert "Impact Score" not in frontend
     assert "min-height: 44px" in css
     assert "app.include_router(news_router_v37)" in main
