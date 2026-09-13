@@ -43,12 +43,12 @@
   }
 
   function addSummary(card) {
-    if (!card || card.querySelector(':scope > .news-v412-summary, .news-v412-summary')) return;
+    if (!card || card.querySelector('.news-v412-summary')) return;
     const title = card.querySelector('h4');
     if (!title) return;
     const box = document.createElement('p');
     box.className = 'news-v412-summary';
-    box.innerHTML = `<b>한줄 요약 <small>제목 기준</small></b><span></span>`;
+    box.innerHTML = '<b>한줄 요약 <small>제목 기준</small></b><span></span>';
     box.querySelector('span').textContent = oneLineSummary(title.textContent);
     title.insertAdjacentElement('afterend', box);
   }
@@ -71,22 +71,26 @@
     if (!details) return;
     details.open = true;
     const target = details.querySelector('[data-news-v40-market]');
-    const svg = target?.querySelector('svg');
-    const pctNode = target?.querySelector('strong');
+    const svg = target?.querySelector(':scope > svg');
+    const pctNode = target?.querySelector(':scope > strong');
     if (!target || !svg || !pctNode) return;
     const shape = parseSpark(svg);
     if (!shape) return;
-    const pct = cleanTitle(pctNode.textContent) || '5D 변동률 확인 중';
-    let metrics = target.querySelector('.news-v412-market-metrics');
+    const pct = cleanTitle(pctNode.textContent) || '변동률 확인 중';
+    const signature = `${pct}|${shape.recent}|${shape.zone}`;
+    let metrics = target.querySelector(':scope > .news-v412-market-metrics');
     if (!metrics) {
       metrics = document.createElement('div');
       metrics.className = 'news-v412-market-metrics';
+      metrics.innerHTML = '<strong></strong><span></span>';
       target.insertBefore(metrics, target.firstChild);
     }
-    metrics.innerHTML = '<strong></strong><span></span>';
-    metrics.querySelector('strong').textContent = `5D ${pct}`;
-    metrics.querySelector('span').textContent = `${shape.recent} · ${shape.zone}`;
-    if (!target.querySelector('.news-v412-chart-axis')) {
+    if (metrics.dataset.signature !== signature) {
+      metrics.dataset.signature = signature;
+      metrics.querySelector('strong').textContent = `5D ${pct}`;
+      metrics.querySelector('span').textContent = `${shape.recent} · ${shape.zone}`;
+    }
+    if (!target.querySelector(':scope > .news-v412-chart-axis')) {
       const axis = document.createElement('div');
       axis.className = 'news-v412-chart-axis';
       axis.innerHTML = '<span>5거래일 전</span><span>현재</span>';
@@ -115,7 +119,7 @@
   }
 
   const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('chartview:v37-news-rendered', schedule);
   document.addEventListener('DOMContentLoaded', schedule, { once: true });
   schedule();
