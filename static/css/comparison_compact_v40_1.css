@@ -3,6 +3,37 @@
 .v40-sector-toggle { display: none; }
 
 @media (min-width: 721px) {
+  /* The fixed five-destination app nav already owns navigation; the legacy tab bar is duplicate UI. */
+  body.app-shell-ready > #app > .tab-nav { display: none !important; }
+
+  /* Reclaim vertical space without removing search or selected-ticker controls. */
+  .header.app-utility-header {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+  .header.app-utility-header .app-utility-top,
+  .header.app-utility-header .search-hint { display: none !important; }
+  .header.app-utility-header .app-header-search {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1.35fr) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .header.app-utility-header .search-row { margin: 0 !important; }
+  .header.app-utility-header #unified-input { height: 44px !important; }
+  .header.app-utility-header .btn-add {
+    flex-basis: 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
+  .header.app-utility-header .ticker-tags {
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+  }
+
   #global-filter .global-search {
     margin-top: 8px;
     margin-left: 16px;
@@ -82,6 +113,13 @@
   #chart-tab .chart-header {
     min-height: 48px;
     padding-bottom: 8px;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 959px) {
+  .header.app-utility-header .app-header-search {
+    grid-template-columns: 1fr !important;
+    gap: 5px !important;
   }
 }
 
