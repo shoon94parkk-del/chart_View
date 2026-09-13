@@ -11,19 +11,20 @@
     if (!section) return false;
     const cards = [...section.querySelectorAll('.news-v40-card')].slice(0, 3);
     cards.forEach((card, index) => {
-      card.dataset.homeNewsRank = String(index + 1);
+      const rank = String(index + 1);
+      if (card.dataset.homeNewsRank !== rank) card.dataset.homeNewsRank = rank;
       const details = card.querySelector('.news-v40-market');
       if (details) {
-        details.open = true;
-        details.dataset.v47AlwaysOpen = '1';
+        if (!details.open) details.open = true;
+        if (details.dataset.v47AlwaysOpen !== '1') details.dataset.v47AlwaysOpen = '1';
         const summary = details.querySelector('summary');
         if (summary) {
-          summary.textContent = '5거래일 가격 흐름';
-          summary.setAttribute('aria-label', '5거래일 가격 흐름');
+          if (summary.textContent !== '5거래일 가격 흐름') summary.textContent = '5거래일 가격 흐름';
+          if (summary.getAttribute('aria-label') !== '5거래일 가격 흐름') summary.setAttribute('aria-label', '5거래일 가격 흐름');
         }
       }
     });
-    section.dataset.newsCards = 'v47';
+    if (section.dataset.newsCards !== 'v47') section.dataset.newsCards = 'v47';
     return true;
   }
 
