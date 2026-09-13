@@ -60,6 +60,7 @@ const valuationStocks = [
  await page.evaluate(()=>window.switchTab('fwdper'));
  await page.waitForSelector('#fwdper-tab.active .per-table tbody tr');
  await page.waitForFunction(()=>document.querySelector('#fwdper-tab .per-table tbody tr td:nth-child(2)')?.dataset.label === '현재가');
+ await page.waitForTimeout(600);
  const valuationLayout=await page.evaluate(()=>{
    const container=document.getElementById('per-table-container');
    const table=container.querySelector('.per-table');
@@ -67,13 +68,17 @@ const valuationStocks = [
    const first=row.children[0];
    const metric=row.children[1];
    const cr=container.getBoundingClientRect(), rr=row.getBoundingClientRect(), mr=metric.getBoundingClientRect();
+   const cells=Array.from(row.children).slice(1);
    return {
      width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
      containerWidth:cr.width,rowWidth:rr.width,rowLeft:rr.left,rowRight:rr.right,containerLeft:cr.left,containerRight:cr.right,
      tableDisplay:getComputedStyle(table).display,theadDisplay:getComputedStyle(table.tHead).display,
      rowDisplay:getComputedStyle(row).display,firstPosition:getComputedStyle(first).position,
      metricDisplay:getComputedStyle(metric).display,metricRight:mr.right,
-     labels:Array.from(row.children).slice(1).map(td=>td.dataset.label || ''),
+     labels:cells.map(td=>td.dataset.label || ''),
+     values:cells.map(td=>(td.textContent||'').trim()),
+     titles:cells.map(td=>td.title || ''),
+     heights:cells.map(td=>td.getBoundingClientRect().height),
    };
  });
  assert(valuationLayout.scrollWidth<=valuationLayout.width,`valuation overflow ${JSON.stringify(valuationLayout)}`);
@@ -85,6 +90,10 @@ const valuationStocks = [
  assert(valuationLayout.rowWidth<=valuationLayout.containerWidth+1,`card wider than container ${JSON.stringify(valuationLayout)}`);
  assert(valuationLayout.rowLeft>=valuationLayout.containerLeft-1 && valuationLayout.rowRight<=valuationLayout.containerRight+1,`card escaped container ${JSON.stringify(valuationLayout)}`);
  assert(valuationLayout.labels.length>=4 && valuationLayout.labels.every(Boolean),`missing valuation labels ${JSON.stringify(valuationLayout.labels)}`);
+ assert(valuationLayout.values.every(v=>v.length>0 && v.length<32),`valuation value pollution ${JSON.stringify(valuationLayout.values)}`);
+ assert(valuationLayout.values.every(v=>!/Yahoo|기준 보기|예상 기간|캐시/.test(v)),`provenance leaked into visible values ${JSON.stringify(valuationLayout.values)}`);
+ assert(valuationLayout.titles.some(v=>/Yahoo|예상 기간|조회/.test(v)),`provenance metadata missing ${JSON.stringify(valuationLayout.titles)}`);
+ assert(valuationLayout.heights.every(h=>h<90),`valuation cell height exploded ${JSON.stringify(valuationLayout.heights)}`);
  await page.screenshot({path:'test-results/390-valuation-cards.png',fullPage:true});
 
  assert.deepEqual(errors,[]);
