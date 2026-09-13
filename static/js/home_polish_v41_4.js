@@ -9,9 +9,13 @@
     if (!panel || !grid) return false;
 
     let button = panel.querySelector('[data-v415-market-toggle]');
-    const candidates = [...panel.querySelectorAll('[data-home23-market-toggle], [data-v40-market-more]')];
-    if (!button && candidates.length) {
-      candidates.forEach((node) => node.remove());
+
+    // Remove every older implementation. V41.5 owns exactly one toggle regardless of load order.
+    panel.querySelectorAll('[data-home23-market-toggle], [data-v40-market-more]').forEach((node) => {
+      if (node !== button) node.remove();
+    });
+
+    if (!button) {
       button = document.createElement('button');
       button.type = 'button';
       button.className = 'home23-market-toggle v40-market-more home-v415-market-toggle';
@@ -27,14 +31,14 @@
         syncMarketToggle();
       });
     }
-    if (!button) return false;
 
-    panel.querySelectorAll('[data-home23-market-toggle], [data-v40-market-more]').forEach((node) => {
-      if (node !== button) node.remove();
-    });
     const total = grid.children.length;
     const hiddenCount = Math.max(0, total - 4);
-    if (!hiddenCount) { button.hidden = true; return true; }
+    if (!hiddenCount) {
+      button.hidden = true;
+      return true;
+    }
+
     button.hidden = false;
     const expanded = panel.classList.contains('home23-expanded') || panel.classList.contains('v40-market-expanded');
     panel.classList.toggle('home23-expanded', expanded);
@@ -65,24 +69,26 @@
     syncMarketToggle();
     decorateWatchlist();
     const home = document.querySelector('#home-tab .home-v8');
-    if (home) home.dataset.homePolish = 'v41.4';
+    if (home) home.dataset.homePolish = 'v41.5';
   }
-
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-v40-market-more]');
-    if (!button) return;
-    requestAnimationFrame(syncMarketToggle);
-  });
-  document.addEventListener('chartview:watchlist-change', () => requestAnimationFrame(decorateWatchlist));
-  document.addEventListener('chartview:v37-news-rendered', () => requestAnimationFrame(sync));
 
   function boot(attempt = 0) {
-    const ready = syncMarketToggle() | decorateWatchlist();
-    sync();
-    if (!ready && attempt < 30) setTimeout(() => boot(attempt + 1), 300);
+    const marketReady = syncMarketToggle();
+    const watchlistReady = decorateWatchlist();
+    if ((!marketReady || !watchlistReady) && attempt < 30) {
+      setTimeout(() => boot(attempt + 1), 300);
+    }
   }
+
   document.addEventListener('chartview:v37-news-rendered', () => requestAnimationFrame(sync));
   document.addEventListener('chartview:watchlist-change', () => requestAnimationFrame(sync));
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => boot(), { once: true });
-  else boot();
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => boot(), 50);
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => boot(), { once: true });
+  } else {
+    boot();
+  }
 })();
