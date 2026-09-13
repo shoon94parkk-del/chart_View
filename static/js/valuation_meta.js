@@ -79,10 +79,35 @@
     const main = cell.querySelector(':scope > .metric-value-wrap > .metric-value-main');
     if (main) return main.textContent?.trim() || '-';
     return Array.from(cell.childNodes)
-      .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && !node.classList?.contains('metric-provenance')))
+      .filter((node) => {
+        if (node.nodeType === Node.TEXT_NODE) return true;
+        if (node.nodeType !== Node.ELEMENT_NODE) return false;
+        return !node.classList?.contains('metric-provenance')
+          && !node.classList?.contains('v40-cell-basis')
+          && !node.matches?.('[data-valuation-basis]');
+      })
       .map((node) => node.textContent || '')
       .join('')
       .trim() || '-';
+  }
+
+  function formatCompactValue(stock, key, column) {
+    const isKR = /\.(KS|KQ)$/.test(stock?.ticker || '');
+    if (key === 'price') {
+      const value = Number(stock?.price);
+      if (!Number.isFinite(value) || value <= 0) return '-';
+      return isKR
+        ? `₩${Math.round(value).toLocaleString('ko-KR')}`
+        : `$${value.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}`;
+    }
+    if (!column) return '-';
+    if (typeof formatValue === 'function') {
+      try { return formatValue(stock?.[key], column.format, isKR); } catch (_) { }
+    }
+    const value = Number(stock?.[key]);
+    if (!Number.isFinite(value)) return '-';
+    if (column.format === 'percent') return `${value.toFixed(2)}%`;
+    return value.toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
   }
 
   function ensureValueWrap(cell) {
@@ -102,11 +127,17 @@
     return wrap;
   }
 
-  function applyCompactCell(cell, text) {
-    const valueText = rawCellText(cell);
-    cell.replaceChildren(document.createTextNode(valueText));
-    cell.dataset.provenance = text;
-    cell.title = text;
+  function applyCompactCell(cell, provenanceText, valueText) {
+    // Mobile cards show only the value. Provenance is metadata, never visible
+    // cell content. This must remain idempotent because the table is observed.
+    const desired = String(valueText || '-').trim() || '-';
+    const hasUnexpectedChildren = cell.children.length > 0;
+    const current = cell.textContent?.trim() || '';
+    if (hasUnexpectedChildren || current !== desired) {
+      cell.replaceChildren(document.createTextNode(desired));
+    }
+    cell.dataset.provenance = provenanceText;
+    cell.title = provenanceText;
     cell.classList.add('valuation-compact-cell');
   }
 
@@ -133,7 +164,8 @@
         const key = keys[index];
         const text = provenance(stock, key, quoteRow, payload.generatedAt);
         if (compact) {
-          applyCompactCell(cell, text);
+          const column = index >= 2 ? config.columns[index - 2] : null;
+          applyCompactCell(cell, text, formatCompactValue(stock, key, column));
         } else {
           cell.classList.remove('valuation-compact-cell');
           cell.removeAttribute('title');
@@ -147,9 +179,10 @@
     const src = document.querySelector('.per-source');
     if (src) {
       const date = ymd(payload.generatedAt) || today();
-      src.textContent = compact
+      const wanted = compact
         ? `${date} 기준 · 가격/컨센서스: Yahoo 캐시 · 재무지표: Yahoo Fundamentals/Naver 보완 · 셀별 출처는 길게 눌러 확인`
         : '각 수치 아래에 데이터 기준과 출처를 표시합니다 · 없는 값은 - 표시';
+      if (src.textContent !== wanted) src.textContent = wanted;
     }
   }
 
