@@ -1,0 +1,341 @@
+/* V44 — mobile valuation layout repair.
+   Later V10/V40 styles force a wide horizontal table; these higher-specificity
+   rules restore a readable phone-first card layout without changing desktop. */
+
+@media (max-width: 720px) {
+  html body #app #fwdper-tab {
+    overflow-x: hidden !important;
+  }
+
+  /* Keep the three primary valuation views on their own row. */
+  html body #app #fwdper-tab .metric-section.decision-valuation-nav {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 8px 10px 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body #app #fwdper-tab .decision-valuation-nav .metric-label {
+    display: none !important;
+  }
+
+  html body #app #fwdper-tab .decision-valuation-nav .metric-chips {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab .decision-valuation-nav .metric-chip {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 0 4px !important;
+    font-size: 11.5px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -.2px !important;
+    white-space: nowrap !important;
+  }
+
+  /* The full metric picker is secondary and must never share the tab row. */
+  html body #app #fwdper-tab .v40-metric-picker {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 7px 0 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab .v40-metric-picker > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    border: 1px solid #e5e8eb !important;
+    border-radius: 11px !important;
+    background: #fff !important;
+    color: #6b7684 !important;
+    font-size: 11.5px !important;
+    font-weight: 760 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab .v40-metric-picker[open] > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 8px 0 0 !important;
+  }
+
+  html body #app #fwdper-tab .v40-metric-picker button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Header and sort controls: one clear vertical flow. */
+  html body #app #fwdper-tab .per-section {
+    margin: 10px 10px 24px !important;
+    padding: 16px 12px 14px !important;
+    overflow: visible !important;
+    border-radius: 18px !important;
+  }
+
+  html body #app #fwdper-tab .per-header {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 10px !important;
+  }
+
+  html body #app #fwdper-tab .per-header-left {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #app #fwdper-tab .per-title,
+  html body #app #fwdper-tab #metric-title {
+    display: block !important;
+    font-size: 21px !important;
+    line-height: 1.25 !important;
+    letter-spacing: -.45px !important;
+    word-break: keep-all !important;
+  }
+
+  html body #app #fwdper-tab .metric-description {
+    margin-top: 6px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    word-break: keep-all !important;
+  }
+
+  html body #app #fwdper-tab .per-source {
+    display: -webkit-box !important;
+    margin-top: 6px !important;
+    overflow: hidden !important;
+    color: #8b95a1 !important;
+    font-size: 9.5px !important;
+    line-height: 1.45 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  html body #app #fwdper-tab .per-sort {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 10px !important;
+    padding: 0 !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+
+  html body #app #fwdper-tab .per-sort .sort-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    padding: 0 4px !important;
+    font-size: 11px !important;
+    letter-spacing: -.15px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Replace the forced 608–650px horizontal matrix with stock cards. */
+  html body #app #fwdper-tab #per-table-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 10px 0 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table,
+  html body #app #fwdper-tab #per-table-container .per-table.valuation-compact-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    border: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    table-layout: auto !important;
+    background: transparent !important;
+    font-size: 13px !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table thead {
+    display: none !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 1px solid #e5e8eb !important;
+    border-radius: 15px !important;
+    background: #fff !important;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, .035) !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td {
+    position: static !important;
+    z-index: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 62px !important;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    background: #f7f8fa !important;
+    box-shadow: none !important;
+    color: #333d4b !important;
+    text-align: left !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    font-size: 15px !important;
+    font-weight: 760 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -.15px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr:nth-child(even) > td {
+    background: #f7f8fa !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td::before {
+    display: block !important;
+    content: attr(data-label) !important;
+    min-width: 0 !important;
+    color: #8b95a1 !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td.stock-info-cell,
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td:first-child {
+    position: static !important;
+    grid-column: 1 / -1 !important;
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 2px 2px 11px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #edf0f2 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    text-align: left !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td.stock-info-cell::before,
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td:first-child::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .stock-info-cell .stock-name {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    color: #191f28 !important;
+    font-size: 17px !important;
+    font-weight: 820 !important;
+    line-height: 1.3 !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .stock-info-cell .stock-ticker {
+    display: block !important;
+    margin-top: 3px !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    color: #8b95a1 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  /* Per-cell provenance remains available on desktop; on phones it was the
+     source of the value/"기준 보기" overlap, so keep the card surface clean. */
+  html body #app #fwdper-tab #per-table-container .v40-cell-basis,
+  html body #app #fwdper-tab #per-table-container .metric-provenance {
+    display: none !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .metric-value-wrap,
+  html body #app #fwdper-tab #per-table-container .metric-value-main {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
+  html body #app #fwdper-tab .per-bars {
+    display: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html body #app #fwdper-tab .decision-valuation-nav .metric-chip {
+    font-size: 10.5px !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr {
+    padding: 10px !important;
+    gap: 7px !important;
+  }
+
+  html body #app #fwdper-tab #per-table-container .per-table tbody tr > td {
+    min-height: 58px !important;
+    padding: 8px !important;
+    font-size: 14px !important;
+  }
+}
