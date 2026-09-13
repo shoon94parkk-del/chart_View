@@ -1,0 +1,38 @@
+name: Apply V41.6 Investor News Ranking
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v41-6-investor-news.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply V41.6 patch
+        run: python scripts/apply_v41_6_investor_news.py
+      - name: Validate syntax
+        run: python -m py_compile news_service_v37.py
+      - name: Run focused tests
+        run: |
+          python -m pip install -q pytest requests fastapi
+          python -m pytest -q tests/test_v37_personalized_news.py
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add news_service_v37.py tests/test_v37_personalized_news.py
+          git commit -m 'V41.6: rank watchlist news for investors'
+          git push
