@@ -42,16 +42,17 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
       await page.locator('#legend .legend-item').first().waitFor({timeout:60000});
-      assert.equal(await page.locator('#stock-brief-v8').evaluate(el => getComputedStyle(el).display), 'none');
       const metrics = await page.evaluate(() => ({
         width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
         navCount:document.querySelectorAll('.app-bottom-btn').length,
         navRows:new Set([...document.querySelectorAll('.app-bottom-btn')].map(x=>Math.round(x.getBoundingClientRect().top))).size,
         dates:getComputedStyle(document.getElementById('custom-date-fields')).display,
         chartTop:Math.round(document.getElementById('chart-container').getBoundingClientRect().top),
+        legacyBriefVisible:Boolean(document.getElementById('stock-brief-v8') && getComputedStyle(document.getElementById('stock-brief-v8')).display !== 'none'),
       }));
       assert(metrics.scrollWidth <= width, `${width}: analysis overflow`);
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
+      assert.equal(metrics.legacyBriefVisible,false);
       assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 420, `${width}: chart top ${metrics.chartTop}`);
       const ytdRequest = page.waitForRequest(r => r.url().includes('/api/compare?') && new URL(r.url()).searchParams.has('start'));
       await page.locator('.period-chip[data-period="ytd"]').click();
