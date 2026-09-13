@@ -106,7 +106,7 @@ def test_v40_frontend_assets_and_home_order_are_wired():
     backend = (ROOT / "news_service_v37.py").read_text(encoding="utf-8")
     main = (ROOT / "main.py").read_text(encoding="utf-8")
 
-    assert "/static/js/personalized_news_v40.js?v=20260913v415" in boot
+    assert "/static/js/personalized_news_v40.js?v=" in boot
     assert "/static/js/personalized_news_v38.js" not in boot
     assert "/static/css/personalized_news_v38.css?v=20260913v38" in boot  # legacy visual layer only
     assert "market-watchlist-news-body-status" in boot

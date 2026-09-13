@@ -145,16 +145,21 @@
   }
 
   const detail = { open: false, symbol: '', name: '', seq: 0 };
+  function emitDetailChange() {
+    document.dispatchEvent(new CustomEvent('chartview:detail-change', { detail: { ...detail } }));
+  }
   function beginDetail(symbol, name) {
     detail.open = true;
     detail.symbol = normalizeSymbol(symbol);
     detail.name = String(name || detail.symbol);
     detail.seq += 1;
+    emitDetailChange();
     return { ...detail };
   }
   function closeDetail() {
     detail.open = false;
     detail.seq += 1;
+    emitDetailChange();
     return { ...detail };
   }
   function isCurrentDetail(symbol, seq) {

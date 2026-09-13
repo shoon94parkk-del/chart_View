@@ -111,6 +111,20 @@ def _investment_relevance(title: str, context: str, market: str) -> tuple[float,
     return round(score, 2), tags
 
 
+def _relation_meta(title: str, context: str, name: str, symbol: str) -> tuple[str, str]:
+    title_l = title.lower()
+    context_l = context.lower()
+    name_l = (name or "").strip().lower()
+    bare = symbol.split(".")[0].lower()
+    title_hit = bool(name_l and name_l in title_l) or bool(len(bare) >= 2 and re.search(rf"(?<![a-z0-9]){re.escape(bare)}(?![a-z0-9])", title_l))
+    context_hit = bool(name_l and name_l in context_l) or bool(len(bare) >= 2 and re.search(rf"(?<![a-z0-9]){re.escape(bare)}(?![a-z0-9])", context_l))
+    if title_hit:
+        return "direct", "제목에 기업명·티커 확인"
+    if context_hit:
+        return "direct", "제공처 기사 요약에 기업명·티커 확인"
+    return "related", "제공처 종목 태그 기준 · 공급망/경쟁/업종 연관 가능"
+
+
 def _news_score(title: str, published_ts: float, market: str, name: str, symbol: str, context: str = "") -> float:
     now = time.time()
     age_hours = max(0.0, (now - published_ts) / 3600) if published_ts else 240.0
@@ -217,6 +231,7 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
             published_at = None
         context = _clean_text(raw.get("description"))
         investment_score, investment_tags = _investment_relevance(title, context, "KR")
+        relation_type, relation_basis = _relation_meta(title, context, name, symbol)
         items.append({
             "symbol": symbol,
             "name": name or symbol,
@@ -231,6 +246,8 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
             "investmentScore": investment_score,
             "investmentRelevant": investment_score >= MIN_HIGHLIGHT_INVESTMENT_SCORE,
             "investmentTags": investment_tags,
+            "relationType": relation_type,
+            "relationBasis": relation_basis,
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "naver-api-hub"}
 
@@ -261,6 +278,7 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
         source = _clean_text(raw.get("source")) or _host_label(url)
         context = _clean_text(raw.get("summary"))
         investment_score, investment_tags = _investment_relevance(title, context, "US")
+        relation_type, relation_basis = _relation_meta(title, context, name, symbol)
         items.append({
             "symbol": symbol,
             "name": name or symbol,
@@ -275,6 +293,8 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
             "investmentScore": investment_score,
             "investmentRelevant": investment_score >= MIN_HIGHLIGHT_INVESTMENT_SCORE,
             "investmentTags": investment_tags,
+            "relationType": relation_type,
+            "relationBasis": relation_basis,
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 

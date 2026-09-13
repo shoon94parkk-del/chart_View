@@ -1,44 +1,36 @@
 (() => {
   'use strict';
-
   if (window.__chartViewDetailVisibilityV401Installed) return;
   window.__chartViewDetailVisibilityV401Installed = true;
 
   let scheduled = false;
   let repairing = false;
+  let targetObserver = null;
+  let bindTimer = null;
 
-  function detailIsOpen() {
-    return Boolean(window.ChartViewState?.detail?.open);
+  function detailIsCurrent() {
+    if (!window.ChartViewState?.detail?.open) return false;
+    const state = history.state || {};
+    return !state.chartView || state.view === 'detail';
   }
 
   function repairVisibility() {
     scheduled = false;
-    if (repairing || !detailIsOpen()) return;
-
+    if (repairing || !detailIsCurrent()) return;
     const section = document.getElementById('stock-detail-v40');
     const chartTab = document.getElementById('chart-tab');
     if (!section || !chartTab) return;
-
     const tabVisible = chartTab.classList.contains('active') && !chartTab.hidden;
     const sectionVisible = !section.hidden;
     if (tabVisible && sectionVisible) return;
 
     repairing = true;
     try {
-      // ChartViewState is the V40 source of truth. Legacy tab initialization can
-      // finish after openDetail() and accidentally return the app to Home.
-      if (!tabVisible) {
-        if (typeof window.__openAppTab === 'function') {
-          window.__openAppTab('chart', { history: false });
-        } else if (typeof window.switchTab === 'function') {
-          window.switchTab('chart');
-        } else {
-          document.querySelectorAll('.tab-content').forEach((node) => node.classList.remove('active'));
-          chartTab.classList.add('active');
-          chartTab.hidden = false;
-        }
+      if (!tabVisible && detailIsCurrent()) {
+        if (typeof window.__openAppTab === 'function') window.__openAppTab('chart', { history: false });
+        else if (typeof window.switchTab === 'function') window.switchTab('chart');
       }
-      if (detailIsOpen()) {
+      if (detailIsCurrent()) {
         section.hidden = false;
         document.body.classList.add('app-detail-v40-open');
       }
@@ -48,27 +40,30 @@
   }
 
   function scheduleRepair() {
-    if (scheduled || !detailIsOpen()) return;
+    if (scheduled || !detailIsCurrent()) return;
     scheduled = true;
     requestAnimationFrame(repairVisibility);
   }
 
-  const observer = new MutationObserver(scheduleRepair);
-
-  function boot() {
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'hidden']
-    });
-    document.addEventListener('chartview:detail-change', scheduleRepair);
-    window.addEventListener('popstate', scheduleRepair);
-    setTimeout(scheduleRepair, 0);
-    setTimeout(scheduleRepair, 250);
-    setTimeout(scheduleRepair, 1200);
+  function bindTargets(attempt = 0) {
+    clearTimeout(bindTimer);
+    targetObserver?.disconnect();
+    const chartTab = document.getElementById('chart-tab');
+    const section = document.getElementById('stock-detail-v40');
+    const targets = [chartTab, section].filter(Boolean);
+    if (targets.length) {
+      targetObserver = new MutationObserver(scheduleRepair);
+      targets.forEach((node) => targetObserver.observe(node, { attributes: true, attributeFilter: ['class', 'hidden'] }));
+    }
+    if ((!chartTab || !section) && attempt < 20) bindTimer = setTimeout(() => bindTargets(attempt + 1), 250);
+    scheduleRepair();
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
-  else boot();
+  document.addEventListener('chartview:detail-change', (event) => {
+    if (event.detail?.open) bindTargets();
+    else { scheduled = false; targetObserver?.disconnect(); }
+  });
+  window.addEventListener('popstate', () => requestAnimationFrame(scheduleRepair));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => bindTargets(), { once: true });
+  else bindTargets();
 })();

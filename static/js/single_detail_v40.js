@@ -61,25 +61,71 @@
 
   function extractSeries(stock) {
     const rows = Array.isArray(stock?.data) ? stock.data : [];
-    return rows.map((row) => {
-      if (typeof row === 'number') return row;
+    return rows.map((row, index) => {
+      if (typeof row === 'number') return { time: null, value: row, index };
       if (!row || typeof row !== 'object') return null;
       const state = D()?.numberState?.(row.value ?? row.return ?? row.close ?? row.price);
-      return state?.kind === 'number' ? state.value : null;
-    }).filter((value) => value !== null);
+      return state?.kind === 'number' ? { time: row.time ?? row.date ?? null, value: state.value, index } : null;
+    }).filter(Boolean);
   }
 
-  function sparkline(values) {
-    if (!Array.isArray(values) || values.length < 2) return '<div class="detail-v40-chart-empty">차트 자료 없음</div>';
-    const nums = values.slice(-80);
-    const min = Math.min(...nums), max = Math.max(...nums), span = max - min || 1;
-    const width = 720, height = 220, pad = 12;
-    const points = nums.map((v, index) => {
-      const x = pad + (index / Math.max(1, nums.length - 1)) * (width - pad * 2);
-      const y = height - pad - ((v - min) / span) * (height - pad * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(' ');
-    return `<svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="1달 수익률 흐름"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="4" vector-effect="non-scaling-stroke"/></svg>`;
+  function pointDate(point) {
+    if (!point?.time) return '';
+    const date = typeof point.time === 'number' ? new Date(point.time * 1000) : new Date(point.time);
+    return Number.isFinite(date.getTime()) ? date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }) : '';
+  }
+
+  function sparkline(series) {
+    if (!Array.isArray(series) || series.length < 2) return '<div class="detail-v40-chart-empty">차트 자료 없음</div>';
+    const points = series.slice(-80);
+    const nums = points.map((row) => row.value);
+    const min = Math.min(...nums), max = Math.max(...nums);
+    const low = min === max ? min - 1 : min, high = min === max ? max + 1 : max, span = high - low;
+    const width = 720, height = 220, left = 54, right = 12, top = 16, bottom = 22;
+    const xy = points.map((row, index) => {
+      const x = left + (index / Math.max(1, points.length - 1)) * (width - left - right);
+      const y = height - bottom - ((row.value - low) / span) * (height - top - bottom);
+      return { x, y };
+    });
+    const poly = xy.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const zeroY = low <= 0 && high >= 0 ? height - bottom - ((0 - low) / span) * (height - top - bottom) : null;
+    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="1달 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
+      <div class="detail-v42-chart-readout" data-detail-chart-readout>터치하거나 좌우키로 날짜별 수익률 확인</div>
+      <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="1달 수익률 흐름">
+        ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>`}
+        <text class="detail-v42-y-label" x="4" y="${top + 4}">${max.toFixed(1)}%</text>
+        <text class="detail-v42-y-label" x="4" y="${height-bottom}">${min.toFixed(1)}%</text>
+        <polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="4" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
+    </div>`;
+  }
+
+  function bindChart(section, series) {
+    const root = section.querySelector('[data-detail-chart]');
+    const svg = root?.querySelector('svg');
+    const readout = root?.querySelector('[data-detail-chart-readout]');
+    const points = Array.isArray(series) ? series.slice(-80) : [];
+    if (!root || !svg || !readout || !points.length) return;
+    let index = points.length - 1;
+    const select = (next) => {
+      index = Math.max(0, Math.min(points.length - 1, next));
+      const point = points[index];
+      readout.textContent = `${pointDate(point) || `${index + 1}번째 관측`} · ${D()?.formatPercent?.(point.value, 2) || `${point.value.toFixed(2)}%`}`;
+    };
+    const fromPointer = (event) => {
+      const rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      select(Math.round(ratio * (points.length - 1)));
+    };
+    root.addEventListener('pointerdown', fromPointer);
+    root.addEventListener('pointermove', (event) => { if (event.pointerType === 'touch' || event.buttons) fromPointer(event); });
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); select(index - 1); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); select(index + 1); }
+    });
+    select(index);
   }
 
   function metric(label, value, sub = '') {
@@ -89,7 +135,8 @@
   function basisText(stock) {
     const start = stock?.actualStart || stock?.startDate || stock?.meta?.actualStart || stock?.meta?.start || '';
     const end = stock?.actualEnd || stock?.endDate || stock?.meta?.actualEnd || stock?.meta?.end || '';
-    const priceBasis = stock?.priceBasis || stock?.meta?.priceBasis || stock?.basisLabel || 'API 제공 가격 기준';
+    const rawBasis = stock?.priceBasis || stock?.meta?.priceBasis || stock?.basisLabel || '';
+    const priceBasis = rawBasis === 'adjusted_close' ? '조정주가' : rawBasis === 'close' ? '종가' : (rawBasis || 'API 제공 가격 기준');
     return { start, end, priceBasis };
   }
 
@@ -192,6 +239,7 @@
     bindBack(section);
     bindActions(section, symbol, name);
     bindTabs(section);
+    bindChart(section, series);
   }
 
   function bindBack(section) {

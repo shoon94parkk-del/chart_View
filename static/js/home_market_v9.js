@@ -105,6 +105,7 @@
     const anchor = document.getElementById('home-v8-body');
     if (anchor && anchor.parentElement === home) home.insertBefore(panel, anchor);
     else home.prepend(panel);
+    document.dispatchEvent(new CustomEvent('chartview:market-panel-ready', { detail: { id: panel.id } }));
     return panel;
   }
 

@@ -116,3 +116,5 @@
   .stock-detail-v40 .detail-v40-metric { padding: 10px 12px; }
   .stock-detail-v40 .detail-v40-panel { padding-top: 10px; }
 }
+/* V42 interactive detail chart */
+.detail-v42-chart-wrap{width:100%;outline:none}.detail-v42-chart-readout{min-height:24px;padding:3px 8px;color:#315b9e;font-size:12px;font-weight:800;text-align:right}.detail-v42-chart-axis{display:flex;justify-content:space-between;padding:0 8px 2px;color:#8a94a3;font-size:10px}.detail-v42-zero{stroke:#94a3b8;stroke-width:1;stroke-dasharray:5 5;opacity:.7}.detail-v42-y-label{fill:#8a94a3;font-size:10px}.detail-v42-chart-wrap:focus-visible{outline:2px solid #2563eb;outline-offset:2px;border-radius:10px}@media(max-width:720px){.detail-v42-chart-readout{font-size:11px}.detail-v40-chart-svg{touch-action:none}}

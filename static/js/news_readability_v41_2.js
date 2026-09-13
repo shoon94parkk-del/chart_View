@@ -38,8 +38,7 @@
       if (match) return make(...match);
     }
     const type = eventType(raw);
-    const core = withoutCompany.length > 72 ? `${withoutCompany.slice(0, 69)}…` : withoutCompany;
-    return `${type} 관련 소식으로, 제목 기준 핵심은 “${core}”입니다.`;
+    return `${type} · ${withoutCompany}`;
   }
 
   function addSummary(card) {
@@ -120,9 +119,9 @@
     });
     document.querySelectorAll('.my-hub-v41-news-row').forEach(addSummary);
     const home = document.querySelector('#home-tab .home-v8');
-    if (home) home.dataset.newsReadability = 'v41.7';
+    if (home) home.dataset.newsReadability = 'v42';
     const hub = document.getElementById('watchlist-tab');
-    if (hub) hub.dataset.newsReadability = 'v41.7';
+    if (hub) hub.dataset.newsReadability = 'v42';
   }
 
   let queued = false;
@@ -146,6 +145,7 @@
     if (attempt < 30) setTimeout(() => attachNewsObserver(attempt + 1), 300);
   }
   document.addEventListener('chartview:v37-news-rendered', () => { attachNewsObserver(); schedule(); });
+  document.addEventListener('chartview:v41-news-rendered', schedule);
   document.addEventListener('DOMContentLoaded', () => attachNewsObserver(), { once: true });
   attachNewsObserver();
 })();

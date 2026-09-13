@@ -58,7 +58,15 @@
 
   function impactScore(item) {
     const raw = Number(item?.score || 0);
-    return Math.max(1, Math.min(100, Math.round((raw - 40) / 1.45)));
+    let value = Math.max(1, Math.min(100, Math.round((raw - 40) / 1.45)));
+    if (item?.relationType && item.relationType !== 'direct') value = Math.min(value, 69);
+    return value;
+  }
+
+  function relationMeta(item) {
+    return item?.relationType === 'direct'
+      ? { label: '직접 관련', note: item?.relationBasis || '제목·기사 요약에서 기업명을 확인했습니다.' }
+      : { label: '업종·연관', note: item?.relationBasis || '제공처 종목 태그 기준의 공급망·경쟁·업종 연관 기사입니다.' };
   }
 
   function impactMeta(score) {
@@ -70,6 +78,7 @@
 
   function referenceNote(item) {
     const title = String(item?.title || '').toLowerCase();
+    const relation = relationMeta(item);
     const rules = [
       [/실적|영업이익|매출|earnings|revenue|guidance/, '실적·가이던스 관련 이벤트입니다. 실제 영향은 원문과 실적 기준을 함께 확인하세요.'],
       [/수주|계약|공급|contract|deal|order/, '수주·계약 관련 이벤트입니다. 계약 규모와 기간은 원문에서 확인하세요.'],
@@ -78,8 +87,8 @@
       [/승인|fda|규제|sec|소송|lawsuit|리콜|recall/, '규제·법적 이벤트입니다. 확정 여부와 적용 범위를 확인하세요.'],
       [/목표가|투자의견|upgrade|downgrade|forecast/, '시장 전망·의견 관련 기사입니다. 전망 주체와 근거를 확인하세요.'],
     ];
-    for (const [pattern, text] of rules) if (pattern.test(title)) return text;
-    return '관심종목과 직접 관련된 최신 기사입니다. 제목 기준 분류이며 기사 본문을 분석한 결론은 아닙니다.';
+    for (const [pattern, text] of rules) if (pattern.test(title)) return `${relation.label} · ${text}`;
+    return `${relation.label} · ${relation.note} 제목 기준 사건 분류이며 기사 본문을 분석한 결론은 아닙니다.`;
   }
 
   function renderShell(section) {
@@ -154,8 +163,9 @@
     renderStatus(section, `${rows.length}개 관심종목 · TOP ${items.length}`, errors.length ? `${errors.length}개 종목은 부분 실패 · 정상 결과는 유지했습니다.` : '제목·출처·발행 시각을 먼저 표시했습니다.');
     if (grid) grid.innerHTML = items.map((item, index) => {
       const meta = impactMeta(impactScore(item));
+      const relation = relationMeta(item);
       return `<article class="news-v40-card ${index === 0 ? 'is-lead' : ''}" data-impact="${meta.level}" data-news-symbol="${esc(item.symbol)}">
-        <div class="news-v40-top"><div><b>${esc(item.name || item.symbol)}</b><span>${esc(item.symbol)}</span></div><em>${meta.label}</em></div>
+        <div class="news-v40-top"><div><b>${esc(item.name || item.symbol)}</b><span>${esc(item.symbol)}</span></div><em title="${esc(relation.note)}">${meta.label} · ${relation.label}</em></div>
         <h4 title="${esc(item.title)}">${esc(item.title)}</h4>
         <p><b>이벤트 참고 설명</b>${esc(referenceNote(item))}</p>
         <div class="news-v40-meta"><span>${esc(item.source || '원문')}</span><i>·</i><span>${esc(relativeTime(item.publishedAt))}</span></div>

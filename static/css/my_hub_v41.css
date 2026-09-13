@@ -110,3 +110,5 @@
 }
 
 .my-hub-v41-switch button:focus-visible,.my-hub-v41-news button:focus-visible,.my-hub-v41-news a:focus-visible,.v41-news-all:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+/* V42 prelaunch relation badge */
+.my-hub-v41-news-kicker .my-hub-v42-relation{background:#f3f4f6;color:#4b5563}.my-hub-v41-status[data-stale="true"]{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;padding:9px 11px;border-radius:11px}.my-hub-v413-freshness{display:block;margin-top:4px;font-size:10.5px;font-weight:700;color:#64748b}@media(prefers-color-scheme:dark){.my-hub-v41-news-kicker .my-hub-v42-relation{background:#273244;color:#cbd5e1}.my-hub-v41-status[data-stale="true"]{border-color:#92400e;background:#451a03;color:#fde68a}}

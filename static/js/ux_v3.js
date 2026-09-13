@@ -127,6 +127,15 @@
     if (pushHistory) commitHistory(resolved);
   }
 
+  function navigateUserTab(tabId) {
+    const resolved = tabId === 'market' ? 'macro' : tabId;
+    const leavingDetail = Boolean(window.ChartViewState?.detail?.open || history.state?.view === 'detail');
+    if (!leavingDetail) return openTab(tabId);
+    if (typeof window.__closeStockDetail === 'function') window.__closeStockDetail({ force: true, restore: false });
+    openTab(tabId, { history: false });
+    try { history.replaceState({ chartView: true, tab: resolved }, '', location.href); } catch (_) { }
+  }
+
   function wrapSwitchTab() {
     if (typeof window.switchTab !== 'function' || window.__appNavWrapped) return;
     const base = window.switchTab;
@@ -188,22 +197,22 @@
     context.querySelectorAll('[data-app-tab]').forEach((button) => {
       button.addEventListener('click', () => {
         userNavigationStarted = true;
-        openTab(button.dataset.appTab);
+        navigateUserTab(button.dataset.appTab);
       });
     });
     bottom.querySelectorAll('[data-app-mode]').forEach((button) => {
       button.addEventListener('click', () => {
         userNavigationStarted = true;
         const mode = button.dataset.appMode;
-        if (button.classList.contains('active')) {
+        if (button.classList.contains('active') && !window.ChartViewState?.detail?.open) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
-        if (mode === 'home') openTab('home');
-        else if (mode === 'watchlist') openTab('watchlist');
-        else if (mode === 'analysis') openTab(lastAnalysis);
-        else if (mode === 'discover') openTab(lastDiscover);
-        else if (mode === 'market') openTab(lastMarket);
+        if (mode === 'home') navigateUserTab('home');
+        else if (mode === 'watchlist') navigateUserTab('watchlist');
+        else if (mode === 'analysis') navigateUserTab(lastAnalysis);
+        else if (mode === 'discover') navigateUserTab(lastDiscover);
+        else if (mode === 'market') navigateUserTab(lastMarket);
       });
     });
 

@@ -45,7 +45,7 @@
     panel.classList.toggle('v40-market-expanded', expanded);
     button.setAttribute('aria-controls', 'home-market-v9-grid');
     button.setAttribute('aria-expanded', String(expanded));
-    button.innerHTML = `<span>금리 · VIX · 유가 · 환율</span><strong>${expanded ? '접기' : `${hiddenCount}개 더보기`}</strong><i>⌄</i>`;
+    button.innerHTML = `<span>금리 · VIX · 유가 · 환율</span><strong>${expanded ? '접기' : `${hiddenCount}개 더보기`}</strong>`;
     panel.dataset.marketToggleVersion = 'v41.5';
     return true;
   }
@@ -81,6 +81,7 @@
   }
 
   document.addEventListener('chartview:v37-news-rendered', () => requestAnimationFrame(sync));
+  document.addEventListener('chartview:market-panel-ready', () => requestAnimationFrame(syncMarketToggle));
   document.addEventListener('chartview:watchlist-change', () => requestAnimationFrame(sync));
   document.addEventListener('click', (event) => {
     if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => boot(), 50);
