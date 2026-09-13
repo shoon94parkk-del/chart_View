@@ -38,7 +38,7 @@
     addStyle('link[data-comparison-ui-v40]', '/static/css/comparison_ui_v40.css?v=20260913stage12', 'comparisonUiV40');
     addStyle('link[data-comparison-compact-v401]', '/static/css/comparison_compact_v40_1.css?v=20260913v401', 'comparisonCompactV401');
     addStyle('link[data-news-status-v401]', '/static/css/news_status_v40_1.css?v=20260913v401', 'newsStatusV401');
-    addStyle('link[data-my-hub-v41]', '/static/css/my_hub_v41.css?v=20260913v42', 'myHubV41');
+    addStyle('link[data-my-hub-v41]', '/static/css/my_hub_v41.css?v=20260913v45', 'myHubV41');
     addStyle('link[data-news-readability-v412]', '/static/css/news_readability_v41_2.css?v=20260913v43', 'newsReadabilityV412');
     addStyle('link[data-resilience-v413]', '/static/css/resilience_v41_3.css?v=20260913v413', 'resilienceV413');
     addStyle('link[data-home-polish-v414]', '/static/css/home_polish_v41_4.css?v=20260913v414', 'homePolishV414');
