@@ -18,7 +18,11 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       });
       const page = await context.newPage();
       const errors = [];
+      const compareRequests = [];
       page.on('pageerror', e => errors.push(String(e)));
+      page.on('request', request => {
+        if (request.url().includes('/api/compare?')) compareRequests.push(request.url());
+      });
       if (!live) {
         const disk = JSON.parse(fs.readFileSync('static/data/valuation_cache.json'));
         const quotes = Object.entries(disk.quotes).map(([ticker, q]) => ({ ticker, name: q.shortName, price: q.regularMarketPrice, change: 1, asOf: disk.generatedAt }));
@@ -54,10 +58,30 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
       assert.equal(metrics.legacyBriefVisible,false);
       assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 420, `${width}: chart top ${metrics.chartTop}`);
-      const ytdRequest = page.waitForRequest(r => r.url().includes('/api/compare?') && new URL(r.url()).searchParams.has('start'));
+
+      const beforeYtd = await page.evaluate(() => ({
+        releaseFlow:Boolean(window.__chartViewReleaseFlowV40),
+        delegated:document.getElementById('chart-tab')?.dataset.v40PeriodDelegation || '',
+        compareState:window.ChartViewState?.getCompare?.() || null,
+        selected:typeof selectedTickers !== 'undefined' ? [...selectedTickers] : null,
+        ytdCount:document.querySelectorAll('.period-chip[data-period="ytd"]').length,
+      }));
+      console.log('YTD_BEFORE', width, JSON.stringify(beforeYtd));
+      const requestStart = compareRequests.length;
       await page.locator('.period-chip[data-period="ytd"]').click();
-      const ytd = new URL((await ytdRequest).url());
-      assert.equal(ytd.searchParams.get('start'),`${new Date().getFullYear()}-01-01`);
+      await delay(800);
+      const afterYtd = await page.evaluate(() => ({
+        selected:typeof selectedTickers !== 'undefined' ? [...selectedTickers] : null,
+        start:document.getElementById('start-date')?.value || '',
+        end:document.getElementById('end-date')?.value || '',
+        ytdActive:document.querySelector('.period-chip[data-period="ytd"]')?.classList.contains('active') || false,
+      }));
+      const ytdRequests = compareRequests.slice(requestStart);
+      console.log('YTD_AFTER', width, JSON.stringify(afterYtd), JSON.stringify(ytdRequests));
+      const ytdUrl = ytdRequests.map(url => new URL(url)).find(url => url.searchParams.has('start'));
+      assert(ytdUrl, `${width}: YTD did not issue a dated compare request; before=${JSON.stringify(beforeYtd)} after=${JSON.stringify(afterYtd)} requests=${JSON.stringify(ytdRequests)}`);
+      assert.equal(ytdUrl.searchParams.get('start'),`${new Date().getFullYear()}-01-01`);
+
       await page.screenshot({path:`test-results/${width}-analysis.png`,fullPage:true});
       await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
       await page.locator('#watchlist-tab.active').waitFor();
