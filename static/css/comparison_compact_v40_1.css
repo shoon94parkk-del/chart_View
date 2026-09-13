@@ -107,7 +107,7 @@
   #global-filter .v40-sector-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
 
   #chart-tab .chart-section {
-    margin-top: 4px;
+    margin-top: 0 !important;
     padding-top: 8px;
   }
   #chart-tab .chart-header {
