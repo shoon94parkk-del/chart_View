@@ -74,12 +74,29 @@ async function mockData(page) {
   assert.ok(await page.locator('[data-v41-sort="relevance"]').evaluate(el => el.classList.contains('active')), 'sort state should update');
 
   await page.locator('.app-bottom-btn[data-app-mode="home"]').click();
-  await page.waitForSelector('#home-personal-news-v37 .news-v40-card .news-v412-summary');
-  await page.waitForSelector('#home-personal-news-v37 .news-v412-market-ready');
-  const chartBox = await page.locator('#home-personal-news-v37 .news-v412-market-ready svg').first().boundingBox();
+  await page.waitForSelector('#home-tab', { state: 'visible' });
+  await page.waitForSelector('#home-personal-news-v37 .news-v40-card .news-v412-summary', { state: 'visible' });
+  await page.waitForSelector('#home-personal-news-v37 .news-v412-market-ready', { state: 'visible' });
+  await page.waitForFunction(() => {
+    return [...document.querySelectorAll('#home-personal-news-v37 .news-v412-market-ready svg')].some((svg) => {
+      const rect = svg.getBoundingClientRect();
+      const style = getComputedStyle(svg);
+      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 240 && rect.height >= 70;
+    });
+  });
+  const chartBox = await page.evaluate(() => {
+    const svg = [...document.querySelectorAll('#home-personal-news-v37 .news-v412-market-ready svg')].find((node) => {
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    });
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  });
   assert.ok(chartBox && chartBox.width > 240 && chartBox.height >= 70, `5D chart should use card width, got ${JSON.stringify(chartBox)}`);
-  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-market-metrics').first().getByText(/5D/).count(), '5D metrics should be visible');
-  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-chart-axis').first().getByText('현재', { exact: true }).count(), 'chart should label current endpoint');
+  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-market-metrics').getByText(/5D/).count(), '5D metrics should be visible');
+  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-chart-axis').getByText('현재', { exact: true }).count(), 'chart should label current endpoint');
 
   await page.waitForSelector('#home-personal-news-v37 .v41-news-all');
   await page.locator('#home-personal-news-v37 .v41-news-all').click();
