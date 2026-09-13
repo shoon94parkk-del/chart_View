@@ -3,7 +3,7 @@
 Public response policy:
 - Korean equities: NAVER API HUB News Search.
 - North American equities: Finnhub Company News.
-- Return headline/source/time/original URL only; never proxy article body or images.
+- Return headline/source/time/original URL plus a short provider summary seed; never proxy article body or images.
 - Support the full 20-symbol watchlist while bounding outbound provider concurrency.
 """
 
@@ -248,6 +248,7 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
             "investmentTags": investment_tags,
             "relationType": relation_type,
             "relationBasis": relation_basis,
+            "summarySeed": context[:700],
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "naver-api-hub"}
 
@@ -295,6 +296,7 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
             "investmentTags": investment_tags,
             "relationType": relation_type,
             "relationBasis": relation_basis,
+            "summarySeed": context[:700],
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 
@@ -339,7 +341,7 @@ async def personalized_news(
         return {
             "items": [], "groups": [], "errors": [], "requestedCount": 0,
             "providers": {"kr": "NAVER API HUB", "us": "Finnhub"},
-            "displayPolicy": "headline-source-time-link-only",
+            "displayPolicy": "headline-source-time-link-summary-seed",
         }
 
     fetched = await asyncio.gather(
@@ -378,7 +380,7 @@ async def personalized_news(
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "providers": {"kr": "NAVER API HUB", "us": "Finnhub Company News"},
         "providerConcurrency": PROVIDER_CONCURRENCY,
-        "displayPolicy": "headline-source-time-link-only",
+        "displayPolicy": "headline-source-time-link-summary-seed",
         "selectionPolicy": "investor-first-diverse-v41.6",
-        "notice": "기사 본문과 이미지는 저장·재게시하지 않고 원문 링크로 연결합니다.",
+        "notice": "기사 본문·이미지는 저장하거나 재게시하지 않으며, 화면 요약은 원문을 일시적으로 읽어 한국어 요약만 생성합니다.",
     }

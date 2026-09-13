@@ -23,6 +23,7 @@ from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_
 from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
 from news_service_v37 import router as news_router_v37
+from news_summary_service import router as news_summary_router_v43
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -47,6 +48,7 @@ app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
 # V37 personalized watchlist news router.
 app.include_router(news_router_v37)
+app.include_router(news_summary_router_v43)
 
 # CORS 설정 - 토스 앱인토스 도메인 허용
 app.add_middleware(

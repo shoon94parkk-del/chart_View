@@ -230,7 +230,7 @@
       const target = detailTarget(item);
       const relation = relationFor(item, activeSymbol);
       const labels = activeSymbol === 'ALL' ? (item.relatedSymbols || []).map((s) => item.relatedNames?.[s] || s).join(' · ') : (item.relatedNames?.[activeSymbol] || target.name);
-      return `<article class="my-hub-v41-news-row" data-related-symbols="${esc((item.relatedSymbols || []).join(','))}">
+      return `<article class="my-hub-v41-news-row" data-related-symbols="${esc((item.relatedSymbols || []).join(','))}" data-news-summary-seed="${esc(item.summarySeed || '')}">
         <div class="my-hub-v41-news-main"><div class="my-hub-v41-news-kicker"><span>${esc(labels || target.name)}</span><i>${esc(category(item))}</i><i class="my-hub-v42-relation" title="${esc(relation.basis)}">${esc(relation.label)}</i></div><h4 title="${esc(item.title)}">${esc(item.title)}</h4><div class="my-hub-v41-meta"><span>${esc(item.source || '원문')}</span><span>${esc(relativeTime(item.publishedAt))}</span></div></div>
         <div class="my-hub-v41-news-actions"><button type="button" data-v41-detail="${esc(target.symbol)}" data-v41-name="${esc(target.name)}">상세</button><a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">원문</a></div>
       </article>`;

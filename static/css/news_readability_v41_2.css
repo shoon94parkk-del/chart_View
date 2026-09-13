@@ -14,3 +14,11 @@
 .news-v40-card.is-lead .news-v417-summary-head i{color:#bfdbfe}
 .news-v40-card.is-lead .news-v417-summary-text{color:rgba(255,255,255,.82)}
 @media(max-width:720px){.news-v417-summary-head i{font-size:9.5px}.news-v417-summary-text{font-size:11.5px}}
+
+
+/* V43: body-based Korean news summaries */
+.news-v412-summary.is-loading .news-v417-summary-text{opacity:.62}
+.news-v412-summary.is-loading .news-v417-summary-head small{animation:v43-summary-pulse 1.2s ease-in-out infinite}
+.news-v412-summary.is-error .news-v417-summary-head small{background:rgba(239,68,68,.09);color:#dc2626}
+@keyframes v43-summary-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.news-v412-summary.is-loading .news-v417-summary-head small{animation:none}}

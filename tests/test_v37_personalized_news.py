@@ -14,7 +14,7 @@ def test_news_backend_has_safe_display_policy(monkeypatch):
     news.NEWS_CACHE.clear()
 
     payload = asyncio.run(news.personalized_news(tickers="005930.KS,NVDA", names="삼성전자|엔비디아"))
-    assert payload["displayPolicy"] == "headline-source-time-link-only"
+    assert payload["displayPolicy"] == "headline-source-time-link-summary-seed"
     assert payload["items"] == []
     assert {row["provider"] for row in payload["errors"]} == {"naver-api-hub", "finnhub"}
     assert all(row["code"] == "not_configured" for row in payload["errors"])

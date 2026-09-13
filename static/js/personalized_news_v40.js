@@ -164,7 +164,7 @@
     if (grid) grid.innerHTML = items.map((item, index) => {
       const meta = impactMeta(impactScore(item));
       const relation = relationMeta(item);
-      return `<article class="news-v40-card ${index === 0 ? 'is-lead' : ''}" data-impact="${meta.level}" data-news-symbol="${esc(item.symbol)}">
+      return `<article class="news-v40-card ${index === 0 ? 'is-lead' : ''}" data-impact="${meta.level}" data-news-symbol="${esc(item.symbol)}" data-news-summary-seed="${esc(item.summarySeed || '')}">
         <div class="news-v40-top"><div><b>${esc(item.name || item.symbol)}</b><span>${esc(item.symbol)}</span></div><em title="${esc(relation.note)}">${meta.label} · ${relation.label}</em></div>
         <h4 title="${esc(item.title)}">${esc(item.title)}</h4>
         <p><b>이벤트 참고 설명</b>${esc(referenceNote(item))}</p>
