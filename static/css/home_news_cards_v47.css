@@ -28,8 +28,17 @@
 .home-personal-news-v40 .news-v40-card:nth-child(2) .news-v40-actions button{background:rgba(79,70,229,.055);border-color:rgba(79,70,229,.16)}
 .home-personal-news-v40 .news-v40-card:nth-child(3) .news-v40-actions button{background:rgba(14,165,233,.055);border-color:rgba(14,165,233,.16)}
 
-/* Summary already explains the article; the older generated reference paragraph is redundant on home. */
-.home-personal-news-v40 .news-v40-card>p{display:none!important}
+/* Keep the event-reference sentence, but compress it to one useful line on home. */
+.home-personal-news-v40 .news-v40-card>p{
+  margin:5px 0 6px!important;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:1;
+  overflow:hidden;
+  font-size:10.5px!important;
+  line-height:1.35!important;
+}
+.home-personal-news-v40 .news-v40-card>p b{display:inline!important;margin-right:5px}
 .home-personal-news-v40 .news-v40-card h4{margin-bottom:7px}
 .home-personal-news-v40 .news-v40-meta{margin-top:7px}
 .home-personal-news-v40 .news-v40-actions{margin-top:8px}
