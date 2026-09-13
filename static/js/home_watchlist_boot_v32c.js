@@ -39,6 +39,7 @@
     addStyle('link[data-comparison-compact-v401]', '/static/css/comparison_compact_v40_1.css?v=20260913v401', 'comparisonCompactV401');
     addStyle('link[data-news-status-v401]', '/static/css/news_status_v40_1.css?v=20260913v401', 'newsStatusV401');
     addStyle('link[data-my-hub-v41]', '/static/css/my_hub_v41.css?v=20260913v41', 'myHubV41');
+    addStyle('link[data-news-readability-v412]', '/static/css/news_readability_v41_2.css?v=20260913v412', 'newsReadabilityV412');
     addScript('script[data-app-state-v40]', '/static/js/app_state_v40.js?v=20260913stage12', 'appStateV40');
     addScript('script[data-single-detail-v40]', '/static/js/single_detail_v40.js?v=20260913stage12', 'singleDetailV40');
     addScript('script[data-detail-visibility-v401]', '/static/js/detail_visibility_v40_1.js?v=20260913v401', 'detailVisibilityV401');
@@ -48,6 +49,7 @@
     addScript('script[data-release-flow-v40]', '/static/js/release_flow_v40.js?v=20260913stage12', 'releaseFlowV40');
     addScript('script[data-comparison-compact-v401]', '/static/js/comparison_compact_v40_1.js?v=20260913v401', 'comparisonCompactV401');
     addScript('script[data-my-hub-v41]', '/static/js/my_hub_v41.js?v=20260913v41', 'myHubV41');
+    addScript('script[data-news-readability-v412]', '/static/js/news_readability_v41_2.js?v=20260913v412', 'newsReadabilityV412');
   }
 
   function ensureAllAssets() {
@@ -108,6 +110,7 @@
     home.dataset.uiVersion = 'v40-stage12';
     home.dataset.uiPatch = 'v41';
     home.dataset.myHubVersion = 'v41';
+    home.dataset.newsReadability = 'v41.2';
     return Boolean(market && body);
   }
 

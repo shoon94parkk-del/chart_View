@@ -7,21 +7,18 @@ const WATCHLIST = [
   { symbol: 'AAPL', name: '애플' },
   { symbol: '005930.KS', name: '삼성전자' },
 ];
+const nvda1 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180 };
+const nvda2 = { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150 };
+const aapl1 = { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140 };
+const ss1 = { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160 };
 
 const payload = {
-  items: [],
+  items: [nvda1, ss1, aapl1],
   errors: [],
   groups: [
-    { symbol: 'NVDA', name: '엔비디아', status: 'success', items: [
-      { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA announces earnings guidance update', source: 'Reuters', publishedAt: new Date(Date.now()-60000).toISOString(), publishedTs: Date.now()-60000, url: 'https://example.com/nvda1', score: 180 },
-      { symbol: 'NVDA', name: '엔비디아', title: 'NVIDIA signs major supply contract', source: 'Example', publishedAt: new Date(Date.now()-120000).toISOString(), publishedTs: Date.now()-120000, url: 'https://example.com/nvda2', score: 150 },
-    ]},
-    { symbol: 'AAPL', name: '애플', status: 'success', items: [
-      { symbol: 'AAPL', name: '애플', title: 'Apple board expands buyback plan', source: 'Example', publishedAt: new Date(Date.now()-180000).toISOString(), publishedTs: Date.now()-180000, url: 'https://example.com/aapl1', score: 140 },
-    ]},
-    { symbol: '005930.KS', name: '삼성전자', status: 'success', items: [
-      { symbol: '005930.KS', name: '삼성전자', title: '삼성전자 신규 공급 계약 발표', source: '테스트뉴스', publishedAt: new Date(Date.now()-240000).toISOString(), publishedTs: Date.now()-240000, url: 'https://example.com/ss1', score: 160 },
-    ]},
+    { symbol: 'NVDA', name: '엔비디아', status: 'success', items: [nvda1, nvda2] },
+    { symbol: 'AAPL', name: '애플', status: 'success', items: [aapl1] },
+    { symbol: '005930.KS', name: '삼성전자', status: 'success', items: [ss1] },
   ],
 };
 
@@ -36,14 +33,14 @@ async function mockData(page) {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
   });
   await page.route('**/api/compare?**', async route => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stocks: [] }) });
+    const values = [100, 103, 101, 106, 104, 108, 107, 110];
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stocks: [{ data: values.map(close => ({ close })) }] }) });
   });
 }
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
 
-  // Normal V41 product flow.
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
   await seed(context);
   const page = await context.newPage();
@@ -64,7 +61,9 @@ async function mockData(page) {
   await page.locator('[data-v41-view="news"]').click();
   await page.waitForSelector('.my-hub-v41-news:not([hidden])');
   await page.waitForSelector('.my-hub-v41-news-row');
+  await page.waitForSelector('.my-hub-v41-news-row .news-v412-summary');
   assert.equal(await page.locator('.my-hub-v41-news-row').count(), 4, 'full feed should flatten group articles');
+  assert.equal(await page.locator('.my-hub-v41-news-row .news-v412-summary').count(), 4, 'every full-feed article should show a one-line summary');
   assert.ok(await page.getByText('실적', { exact: true }).count() >= 1, 'event category badge should be visible');
   assert.ok(await page.getByText('계약·수주', { exact: true }).count() >= 1, 'contract category badge should be visible');
 
@@ -75,6 +74,13 @@ async function mockData(page) {
   assert.ok(await page.locator('[data-v41-sort="relevance"]').evaluate(el => el.classList.contains('active')), 'sort state should update');
 
   await page.locator('.app-bottom-btn[data-app-mode="home"]').click();
+  await page.waitForSelector('#home-personal-news-v37 .news-v40-card .news-v412-summary');
+  await page.waitForSelector('#home-personal-news-v37 .news-v412-market-ready');
+  const chartBox = await page.locator('#home-personal-news-v37 .news-v412-market-ready svg').first().boundingBox();
+  assert.ok(chartBox && chartBox.width > 240 && chartBox.height >= 70, `5D chart should use card width, got ${JSON.stringify(chartBox)}`);
+  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-market-metrics').first().getByText(/5D/).count(), '5D metrics should be visible');
+  assert.ok(await page.locator('#home-personal-news-v37 .news-v412-chart-axis').first().getByText('현재', { exact: true }).count(), 'chart should label current endpoint');
+
   await page.waitForSelector('#home-personal-news-v37 .v41-news-all');
   await page.locator('#home-personal-news-v37 .v41-news-all').click();
   await page.waitForSelector('.my-hub-v41-news:not([hidden])');
@@ -85,7 +91,6 @@ async function mockData(page) {
   assert.deepEqual(errors, [], `page errors: ${errors.join('\n')}`);
   await context.close();
 
-  // Isolated production race: a late Home asset must never override a user-selected tab.
   const raceContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
   await seed(raceContext);
   const racePage = await raceContext.newPage();
