@@ -65,7 +65,9 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   #global-filter .sector-section { margin-top: 2px; }
   #global-filter .ux-sector-toggle { min-height: 44px; }
 
-  #chart-tab .chart-section { margin-top: 0; padding-top: 4px; }
+  /* V40 owns the comparison workspace. Override the legacy V20 mobile !important
+     spacing that otherwise adds 6px above the chart and shrinks period targets. */
+  #chart-tab .chart-section { margin-top: 0 !important; padding-top: 4px !important; }
   #chart-tab .chart-header {
     grid-template-columns: 1fr auto;
     gap: 4px 6px;
@@ -75,9 +77,7 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   #chart-tab .chart-title { font-size: 15px; }
   #chart-tab .chart-unit { justify-self: end; font-size: 10px; }
 
-  /* One non-scrolling row: six preset periods + one 44px direct-date control.
-     This avoids both the YTD/전체 hit-target collision and an extra row that
-     pushed the chart below the app-release mobile visibility target. */
+  /* One non-scrolling row: six preset periods + one 44px direct-date control. */
   #chart-tab .v40-chart-periods {
     grid-column: 1/-1;
     justify-self: stretch;
@@ -89,17 +89,17 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
     padding-bottom: 0;
   }
   #chart-tab .v40-chart-periods .quick-periods {
-    display: grid;
+    display: grid !important;
     grid-template-columns: repeat(6,minmax(0,1fr));
     width: 100%;
-    overflow: visible;
-    gap: 3px;
-    padding: 0;
+    overflow: visible !important;
+    gap: 3px !important;
+    padding: 0 !important;
   }
   #chart-tab .v40-chart-periods .period-chip {
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: 44px !important;
     padding: 0 2px;
     border-radius: 11px;
     text-align: center;
@@ -107,7 +107,7 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   #chart-tab .v40-chart-periods #custom-date-toggle {
     width: 44px;
     min-width: 44px;
-    min-height: 44px;
+    min-height: 44px !important;
     margin: 0;
     padding: 0;
     overflow: hidden;
