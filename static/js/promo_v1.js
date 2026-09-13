@@ -96,6 +96,10 @@
   }
 
   function shouldShowIntro() {
+    const params = new URLSearchParams(window.location.search);
+    const campaign = params.get('utm_campaign') || '';
+    const launchVisit = campaign === 'launch_v1' || campaign === 'chartview_v1' || params.get('welcome') === '1';
+    if (!launchVisit) return false;
     try {
       if (sessionStorage.getItem(SEEN_KEY) === '1') return false;
     } catch (_) { }
