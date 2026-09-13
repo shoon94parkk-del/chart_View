@@ -34,6 +34,12 @@ const BASE = process.env.APP_URL || 'http://127.0.0.1:8080';
     ],
   };
 
+  // Reproduce the production race that originally let the late Home script
+  // switch the app back to Home after the user had already entered MY 관심.
+  await page.route('**/static/js/home_brief_v8.js*', async route => {
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    await route.continue();
+  });
   await page.route('**/api/personalized-news?**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
   });
@@ -58,6 +64,10 @@ const BASE = process.env.APP_URL || 'http://127.0.0.1:8080';
   assert.equal(await page.locator('.my-hub-v41-news-row').count(), 4, 'full feed should flatten group articles');
   assert.ok(await page.getByText('실적', { exact: true }).count() >= 1, 'event category badge should be visible');
   assert.ok(await page.getByText('계약·수주', { exact: true }).count() >= 1, 'contract category badge should be visible');
+
+  await page.waitForTimeout(1500);
+  assert.ok(await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').evaluate(el => el.classList.contains('active')), 'late Home asset must not override user navigation');
+  await page.waitForSelector('.my-hub-v41-news:not([hidden])');
 
   await page.locator('[data-v41-symbol="NVDA"]').click();
   assert.equal(await page.locator('.my-hub-v41-news-row').count(), 2, 'symbol filter should narrow feed');
