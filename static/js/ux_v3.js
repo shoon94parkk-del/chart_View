@@ -21,7 +21,10 @@
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
-        if (document.querySelector('.app-bottom-nav')) openTab('home', { history: false });
+        const activeMode = document.querySelector('.app-bottom-btn.active')?.dataset.appMode;
+        if (document.querySelector('.app-bottom-nav') && (!activeMode || activeMode === 'home')) {
+          openTab('home', { history: false });
+        }
       }, { once: true });
       document.head.appendChild(script);
     }
