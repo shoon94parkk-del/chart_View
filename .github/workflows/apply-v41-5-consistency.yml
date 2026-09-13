@@ -31,7 +31,7 @@ jobs:
         run: python -m pip install -q pytest requests fastapi
       - name: Run focused tests
         run: |
-          python -m pytest -q tests/test_v37_personalized_news.py tests/test_v41_2_news_readability.py tests/test_v41_3_resilience.py
+          python -m pytest -q tests/test_v37_personalized_news.py tests/test_v41_2_news_readability.py tests/test_v41_3_resilience.py tests/test_v41_5_consistency.py
       - name: Commit generated product changes
         run: |
           if git diff --quiet; then
