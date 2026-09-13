@@ -1,0 +1,81 @@
+/* V40.1 desktop comparison compaction. Mobile layout remains owned by comparison_ui_v40.css. */
+
+.v40-sector-toggle { display: none; }
+
+@media (min-width: 721px) {
+  #global-filter .global-search {
+    margin-top: 8px;
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 10px 14px 8px;
+  }
+
+  #global-filter .v40-compare-heading {
+    align-items: center;
+    margin-bottom: 7px;
+  }
+
+  #global-filter .search-row { margin-bottom: 4px; }
+  #global-filter #unified-input {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  #global-filter .btn-add {
+    width: 44px;
+    height: 44px;
+  }
+  #global-filter .ticker-tags {
+    min-height: 28px;
+    margin-top: 5px;
+  }
+
+  #global-filter .sector-section {
+    margin: 0 16px 7px;
+    padding: 0 14px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  #global-filter .v40-sector-toggle {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    background: transparent;
+    color: #4e5968;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 780;
+    cursor: pointer;
+  }
+  #global-filter .v40-sector-toggle::after {
+    content: '⌄';
+    font-size: 15px;
+    color: #8b95a1;
+  }
+  #global-filter .v40-sector-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
+
+  #global-filter .sector-section.v40-sector-collapsed .sector-scroll-container { display: none; }
+  #global-filter .sector-section:not(.v40-sector-collapsed) .sector-scroll-container {
+    max-height: 220px;
+    overflow: auto;
+    padding: 8px 0 12px;
+  }
+
+  #chart-tab .chart-section {
+    margin-top: 4px;
+    padding-top: 8px;
+  }
+  #chart-tab .chart-header {
+    min-height: 48px;
+    padding-bottom: 8px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #global-filter .v40-sector-toggle { color: #d7deea; }
+  #global-filter .v40-sector-toggle::after { color: #94a3b8; }
+}
