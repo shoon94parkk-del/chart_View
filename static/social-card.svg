@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Chart View</title>
+  <desc id="desc">한국·미국 주식 차트와 밸류에이션을 한 화면에서 비교하는 무료 웹앱</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="1" stop-color="#1f2937"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1070" cy="80" r="210" fill="#5b8def" opacity=".12"/>
+  <circle cx="1120" cy="570" r="260" fill="#7c9cff" opacity=".08"/>
+
+  <g transform="translate(82 78)">
+    <rect width="64" height="64" rx="16" fill="#fff"/>
+    <path d="M14 43V29h7v14h-7Zm14 0V18h7v25h-7Zm14 0V24h7v19h-7Z" fill="#191f28"/>
+    <path d="M13 48h38" stroke="#5b8def" stroke-width="4" stroke-linecap="round"/>
+    <text x="86" y="43" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#fff">Chart View</text>
+  </g>
+
+  <text x="82" y="238" font-family="Arial, sans-serif" font-size="58" font-weight="800" fill="#fff">주식 비교를 더 빠르고 선명하게</text>
+  <text x="82" y="302" font-family="Arial, sans-serif" font-size="31" font-weight="500" fill="#cbd5e1">한국·미국 종목의 차트, 밸류에이션, 투자판단 근거를 한 곳에서</text>
+
+  <g transform="translate(82 372)" font-family="Arial, sans-serif">
+    <rect width="248" height="64" rx="18" fill="#fff" opacity=".08"/>
+    <text x="28" y="41" font-size="25" font-weight="700" fill="#fff">최대 6종목 비교</text>
+    <rect x="266" width="235" height="64" rx="18" fill="#fff" opacity=".08"/>
+    <text x="294" y="41" font-size="25" font-weight="700" fill="#fff">로그인 불필요</text>
+    <rect x="519" width="196" height="64" rx="18" fill="#5b8def" opacity=".95"/>
+    <text x="555" y="41" font-size="25" font-weight="800" fill="#fff">무료 사용</text>
+  </g>
+
+  <g transform="translate(796 172)" filter="url(#shadow)">
+    <rect width="310" height="320" rx="32" fill="#fff"/>
+    <text x="34" y="58" font-family="Arial, sans-serif" font-size="29" font-weight="800" fill="#191f28">AAPL · NVDA · 삼성전자</text>
+    <text x="34" y="94" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#8b95a1">차트 + 밸류에이션 + 시장</text>
+    <g transform="translate(34 132)">
+      <rect width="242" height="2" fill="#eef1f4"/>
+      <path d="M2 98 C35 72, 48 116, 84 82 S132 38, 160 62 S204 78, 240 28" fill="none" stroke="#5b8def" stroke-width="7" stroke-linecap="round"/>
+      <path d="M2 116 C32 112, 56 90, 84 103 S126 126, 158 94 S205 88, 240 101" fill="none" stroke="#191f28" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+    </g>
+    <g transform="translate(34 264)" font-family="Arial, sans-serif" font-size="17" font-weight="700">
+      <text fill="#8b95a1">FWD PER</text><text x="175" fill="#191f28">28.4</text>
+      <text y="34" fill="#8b95a1">ROE</text><text x="175" y="34" fill="#191f28">158.2%</text>
+    </g>
+  </g>
+
+  <text x="82" y="548" font-family="Arial, sans-serif" font-size="22" font-weight="600" fill="#94a3b8">chart-view-bsg6.onrender.com</text>
+</svg>
