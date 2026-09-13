@@ -1,0 +1,18 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+def test_news_summary_is_expandable_and_cache_busted():
+    js = (ROOT / "static/js/news_readability_v41_2.js").read_text(encoding="utf-8")
+    css = (ROOT / "static/css/news_readability_v41_2.css").read_text(encoding="utf-8")
+    boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
+    html = (ROOT / "templates/index.html").read_text(encoding="utf-8")
+    assert "document.createElement('button')" in js
+    assert "aria-expanded" in js
+    assert "한줄 요약 전체보기" in js
+    assert "news-v417-summary-text" in js
+    assert ".news-v412-summary.is-expanded .news-v417-summary-text" in css
+    assert "-webkit-line-clamp:2" in css
+    assert "news_readability_v41_2.css?v=20260913v417" in boot
+    assert "news_readability_v41_2.js?v=20260913v417" in boot
+    assert "home_watchlist_boot_v32c.js?v=20260913v417" in html

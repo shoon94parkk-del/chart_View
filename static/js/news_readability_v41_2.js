@@ -46,10 +46,20 @@
     if (!card || card.querySelector('.news-v412-summary')) return;
     const title = card.querySelector('h4');
     if (!title) return;
-    const box = document.createElement('p');
+    const box = document.createElement('button');
+    box.type = 'button';
     box.className = 'news-v412-summary';
-    box.innerHTML = '<b>한줄 요약 <small>제목 기준</small></b><span></span>';
-    box.querySelector('span').textContent = oneLineSummary(title.textContent);
+    box.setAttribute('aria-expanded', 'false');
+    box.setAttribute('aria-label', '한줄 요약 전체보기');
+    box.innerHTML = '<span class="news-v417-summary-head"><b>한줄 요약 <small>제목 기준</small></b><i>전체보기</i></span><span class="news-v417-summary-text"></span>';
+    box.querySelector('.news-v417-summary-text').textContent = oneLineSummary(title.textContent);
+    box.addEventListener('click', () => {
+      const expanded = box.getAttribute('aria-expanded') === 'true';
+      box.setAttribute('aria-expanded', String(!expanded));
+      box.classList.toggle('is-expanded', !expanded);
+      box.querySelector('.news-v417-summary-head i').textContent = expanded ? '전체보기' : '접기';
+      box.setAttribute('aria-label', expanded ? '한줄 요약 전체보기' : '한줄 요약 접기');
+    });
     title.insertAdjacentElement('afterend', box);
   }
 
@@ -110,9 +120,9 @@
     });
     document.querySelectorAll('.my-hub-v41-news-row').forEach(addSummary);
     const home = document.querySelector('#home-tab .home-v8');
-    if (home) home.dataset.newsReadability = 'v41.2';
+    if (home) home.dataset.newsReadability = 'v41.7';
     const hub = document.getElementById('watchlist-tab');
-    if (hub) hub.dataset.newsReadability = 'v41.2';
+    if (hub) hub.dataset.newsReadability = 'v41.7';
   }
 
   let queued = false;
