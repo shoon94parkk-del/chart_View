@@ -13,6 +13,8 @@ def test_news_summary_is_expandable_and_cache_busted():
     assert "news-v417-summary-text" in js
     assert ".news-v412-summary.is-expanded .news-v417-summary-text" in css
     assert "-webkit-line-clamp:2" in css
-    assert "news_readability_v41_2.css?v=20260913v417" in boot
-    assert "news_readability_v41_2.js?v=20260913v417" in boot
-    assert "home_watchlist_boot_v32c.js?v=20260913v417" in html
+    assert "slice(0, 69)" not in js
+    assert "chartview:v41-news-rendered" in js
+    assert "news_readability_v41_2.css?v=" in boot
+    assert "news_readability_v41_2.js?v=" in boot
+    assert "home_watchlist_boot_v32c.js?v=20260913v42" in html
