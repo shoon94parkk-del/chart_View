@@ -32,13 +32,38 @@ PROVIDER_CONCURRENCY = 4
 _PROVIDER_SEMAPHORE = threading.BoundedSemaphore(PROVIDER_CONCURRENCY)
 _CACHE_LOCK = threading.Lock()
 
-KR_EVENT_WORDS = (
-    "실적", "영업이익", "매출", "수주", "계약", "인수", "합병", "증자", "감자",
-    "배당", "자사주", "공시", "승인", "소송", "리콜", "목표가", "투자의견",
+MIN_HIGHLIGHT_INVESTMENT_SCORE = 18.0
+
+# Home TOP news is investor-first: market-moving business events outrank simple company mentions.
+KR_INVESTMENT_CATEGORIES = (
+    ("earnings", 50, ("실적", "영업이익", "영업손실", "순이익", "순손실", "매출", "흑자전환", "적자전환", "어닝", "가이던스", "실적 전망")),
+    ("orders", 42, ("수주", "공급계약", "계약 체결", "납품", "고객사", "발주", "수주잔고")),
+    ("capital", 38, ("배당", "자사주", "증자", "감자", "유상증자", "무상증자", "회사채", "차입", "신용등급", "분할", "상장")),
+    ("strategy", 34, ("인수", "합병", "m&a", "매각", "지분 인수", "투자", "증설", "감산", "생산능력", "capex", "공장", "라인 가동")),
+    ("technology", 30, ("파운드리", "hbm", "dram", "낸드", "반도체", "2나노", "3나노", "공정", "수율", "양산", "출하", "신제품", "출시", "점유율")),
+    ("analyst", 28, ("목표가", "목표주가", "투자의견", "매수", "매도", "상향", "하향", "컨센서스")),
+    ("market", 26, ("주가", "급등", "급락", "외국인", "기관", "수급", "공매도", "거래량")),
+    ("policy", 28, ("공시", "승인", "규제", "관세", "보조금", "소송", "리콜", "제재", "조사", "과징금")),
+    ("pricing", 26, ("가격 인상", "가격 인하", "판가", "가격 상승", "가격 하락", "판매량", "출하량")),
 )
-US_EVENT_WORDS = (
-    "earnings", "revenue", "guidance", "acquire", "acquisition", "merger", "buyback",
-    "dividend", "offering", "sec", "fda", "lawsuit", "recall", "forecast", "upgrade", "downgrade",
+US_INVESTMENT_CATEGORIES = (
+    ("earnings", 50, ("earnings", "revenue", "profit", "loss", "eps", "guidance", "forecast", "outlook", "margin")),
+    ("orders", 42, ("contract", "order", "supply deal", "customer", "backlog", "shipment")),
+    ("capital", 38, ("dividend", "buyback", "offering", "debt", "bond", "credit rating", "split", "ipo")),
+    ("strategy", 34, ("acquire", "acquisition", "merger", "m&a", "sell stake", "investment", "capex", "capacity", "factory", "fab")),
+    ("technology", 30, ("foundry", "hbm", "dram", "nand", "semiconductor", "2nm", "3nm", "yield", "mass production", "launch", "market share")),
+    ("analyst", 28, ("price target", "upgrade", "downgrade", "rating", "buy", "sell", "outperform", "underperform")),
+    ("market", 26, ("shares", "stock", "surge", "plunge", "short interest", "volume")),
+    ("policy", 28, ("sec", "fda", "approval", "regulation", "tariff", "subsidy", "lawsuit", "recall", "probe", "fine")),
+    ("pricing", 26, ("price increase", "price cut", "pricing", "unit sales", "shipments")),
+)
+KR_LOW_VALUE_WORDS = (
+    "어린이", "청소년", "교육", "사용법", "캠페인", "봉사", "기부", "사회공헌", "후원",
+    "공모전", "체험", "축제", "문화행사", "지역사회", "장학", "취약계층", "홍보대사", "나눔",
+)
+US_LOW_VALUE_WORDS = (
+    "children", "students", "education", "how to use", "campaign", "volunteer", "donation",
+    "charity", "sponsorship", "contest", "festival", "community event", "scholarship", "ambassador",
 )
 TAG_RE = re.compile(r"<[^>]+>")
 SYMBOL_RE = re.compile(r"^[A-Z0-9^][A-Z0-9.^=\-]{0,19}$")
@@ -64,18 +89,43 @@ def _is_kr(symbol: str) -> bool:
     return bool(re.search(r"\.(KS|KQ)$", symbol.upper()))
 
 
-def _news_score(title: str, published_ts: float, market: str, name: str, symbol: str) -> float:
+def _investment_relevance(title: str, context: str, market: str) -> tuple[float, list[str]]:
+    text = f"{title} {context}".lower()
+    categories = KR_INVESTMENT_CATEGORIES if market == "KR" else US_INVESTMENT_CATEGORIES
+    low_value_words = KR_LOW_VALUE_WORDS if market == "KR" else US_LOW_VALUE_WORDS
+
+    score = 0.0
+    tags: list[str] = []
+    for tag, weight, words in categories:
+        if any(word.lower() in text for word in words):
+            score += float(weight)
+            tags.append(tag)
+
+    low_hits = sum(1 for word in low_value_words if word.lower() in text)
+    if low_hits:
+        # CSR/education/event stories should not become Home TOP news merely because they are fresh.
+        score -= (60.0 + max(0, low_hits - 1) * 12.0) if not tags else low_hits * 22.0
+
+    if tags and re.search(r"\d+(?:\.\d+)?\s*(?:%|조|억|만|달러|원|billion|million|bn|mn)", text, re.I):
+        score += 8.0
+    return round(score, 2), tags
+
+
+def _news_score(title: str, published_ts: float, market: str, name: str, symbol: str, context: str = "") -> float:
     now = time.time()
     age_hours = max(0.0, (now - published_ts) / 3600) if published_ts else 240.0
-    score = max(0.0, 120.0 - age_hours * 2.0)
+    # Recency matters, but it must never dominate actual investment relevance.
+    recency_score = max(0.0, 30.0 - age_hours * 0.625)
+    investment_score, _ = _investment_relevance(title, context, market)
+    score = investment_score + recency_score
     lowered = title.lower()
-    words = KR_EVENT_WORDS if market == "KR" else US_EVENT_WORDS
-    score += sum(12 for word in words if word.lower() in lowered)
     if name and name.lower() in lowered:
-        score += 20
+        score += 10.0
     bare = symbol.split(".")[0].lower()
     if bare and bare in lowered:
-        score += 10
+        score += 6.0
+    if investment_score < MIN_HIGHLIGHT_INVESTMENT_SCORE:
+        score -= 35.0
     return round(score, 2)
 
 
@@ -95,13 +145,20 @@ def _dedupe(items: list[dict]) -> list[dict]:
 
 
 def _balanced_highlights(items: list[dict], limit: int = 12) -> list[dict]:
-    """Keep relevance while preventing one active ticker from monopolizing Home highlights."""
+    """Investor-first Home highlights with ticker diversity; low-value company mentions are omitted."""
     ranked = _dedupe(items)
     if not ranked or limit <= 0:
         return []
 
+    qualified = [
+        row for row in ranked
+        if "investmentRelevant" not in row or bool(row.get("investmentRelevant"))
+    ]
+    if not qualified:
+        return []
+
     first_by_symbol: dict[str, dict] = {}
-    for row in ranked:
+    for row in qualified:
         symbol = str(row.get("symbol") or "").upper()
         if symbol and symbol not in first_by_symbol:
             first_by_symbol[symbol] = row
@@ -113,7 +170,7 @@ def _balanced_highlights(items: list[dict], limit: int = 12) -> list[dict]:
     chosen = primary[:limit]
     chosen_ids = {(str(row.get("url") or ""), str(row.get("title") or "")) for row in chosen}
     if len(chosen) < limit:
-        for row in ranked:
+        for row in qualified:
             identity = (str(row.get("url") or ""), str(row.get("title") or ""))
             if identity in chosen_ids:
                 continue
@@ -158,6 +215,8 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
         except Exception:
             published_ts = 0.0
             published_at = None
+        context = _clean_text(raw.get("description"))
+        investment_score, investment_tags = _investment_relevance(title, context, "KR")
         items.append({
             "symbol": symbol,
             "name": name or symbol,
@@ -168,7 +227,10 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
             "publishedTs": published_ts,
             "url": url,
             "provider": "NAVER API HUB",
-            "score": _news_score(title, published_ts, "KR", name, symbol),
+            "score": _news_score(title, published_ts, "KR", name, symbol, context),
+            "investmentScore": investment_score,
+            "investmentRelevant": investment_score >= MIN_HIGHLIGHT_INVESTMENT_SCORE,
+            "investmentTags": investment_tags,
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "naver-api-hub"}
 
@@ -197,6 +259,8 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
         published_ts = float(raw.get("datetime") or 0)
         published_at = datetime.fromtimestamp(published_ts, tz=timezone.utc).isoformat() if published_ts else None
         source = _clean_text(raw.get("source")) or _host_label(url)
+        context = _clean_text(raw.get("summary"))
+        investment_score, investment_tags = _investment_relevance(title, context, "US")
         items.append({
             "symbol": symbol,
             "name": name or symbol,
@@ -207,7 +271,10 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
             "publishedTs": published_ts,
             "url": url,
             "provider": "Finnhub",
-            "score": _news_score(title, published_ts, "US", name, symbol),
+            "score": _news_score(title, published_ts, "US", name, symbol, context),
+            "investmentScore": investment_score,
+            "investmentRelevant": investment_score >= MIN_HIGHLIGHT_INVESTMENT_SCORE,
+            "investmentTags": investment_tags,
         })
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 
@@ -292,5 +359,6 @@ async def personalized_news(
         "providers": {"kr": "NAVER API HUB", "us": "Finnhub Company News"},
         "providerConcurrency": PROVIDER_CONCURRENCY,
         "displayPolicy": "headline-source-time-link-only",
+        "selectionPolicy": "investor-first-diverse-v41.6",
         "notice": "기사 본문과 이미지는 저장·재게시하지 않고 원문 링크로 연결합니다.",
     }

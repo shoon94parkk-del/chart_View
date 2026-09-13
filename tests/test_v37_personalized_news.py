@@ -21,6 +21,34 @@ def test_news_backend_has_safe_display_policy(monkeypatch):
     assert {row["status"] for row in payload["groups"]} == {"error"}
 
 
+def test_investor_ranking_rejects_csr_noise_and_prefers_market_moving_news():
+    now = __import__("time").time()
+    material_title = "삼성전자 2나노 파운드리 대형 수주…생산라인 증설 검토"
+    noise_title = "삼성전자, 어린이에게 AI 사용법 알려준다"
+    material_context = "신규 고객사 공급계약과 생산능력 확대가 예상된다"
+    noise_context = "청소년 대상 교육 캠페인과 체험 행사를 진행한다"
+
+    material_inv, material_tags = news._investment_relevance(material_title, material_context, "KR")
+    noise_inv, noise_tags = news._investment_relevance(noise_title, noise_context, "KR")
+    material_score = news._news_score(material_title, now - 7200, "KR", "삼성전자", "005930.KS", material_context)
+    noise_score = news._news_score(noise_title, now - 60, "KR", "삼성전자", "005930.KS", noise_context)
+
+    assert material_inv >= news.MIN_HIGHLIGHT_INVESTMENT_SCORE
+    assert "orders" in material_tags or "technology" in material_tags
+    assert noise_inv < news.MIN_HIGHLIGHT_INVESTMENT_SCORE
+    assert not noise_tags
+    assert material_score > noise_score + 50
+
+
+def test_home_highlights_omit_non_investment_company_mentions():
+    rows = [
+        {"symbol": "005930.KS", "title": "삼성전자 어린이 AI 교육", "url": "https://example.com/noise", "score": 90, "publishedTs": 100, "investmentRelevant": False},
+        {"symbol": "000660.KS", "title": "SK하이닉스 HBM 공급 확대", "url": "https://example.com/hbm", "score": 80, "publishedTs": 90, "investmentRelevant": True},
+    ]
+    highlights = news._balanced_highlights(rows, 3)
+    assert [row["symbol"] for row in highlights] == ["000660.KS"]
+
+
 def test_news_dedupe_prefers_higher_scored_duplicate():
     rows = [
         {"title": "Same headline", "url": "https://example.com/a", "score": 10, "publishedTs": 10},
