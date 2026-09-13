@@ -39,6 +39,7 @@
     addScript('script[data-app-state-v40]', '/static/js/app_state_v40.js?v=20260913stage12', 'appStateV40');
     addScript('script[data-single-detail-v40]', '/static/js/single_detail_v40.js?v=20260913stage12', 'singleDetailV40');
     addScript('script[data-personalized-news-v40]', '/static/js/personalized_news_v40.js?v=20260913stage12', 'personalizedNewsV40');
+    addScript('script[data-news-status-v401]', '/static/js/news_status_v40_1.js?v=20260913v401', 'newsStatusV401');
     addScript('script[data-release-ui-v40]', '/static/js/release_ui_v40.js?v=20260913stage12', 'releaseUiV40');
     addScript('script[data-release-flow-v40]', '/static/js/release_flow_v40.js?v=20260913stage12', 'releaseFlowV40');
   }
@@ -95,7 +96,7 @@
     }
 
     home.dataset.homeOrder = 'market-watchlist-news-body-status';
-    home.dataset.newsVersion = 'v40';
+    home.dataset.newsVersion = 'v40.1';
     home.dataset.visualVersion = 'v39';
     home.dataset.uiVersion = 'v40-stage12';
     return Boolean(market && body);
