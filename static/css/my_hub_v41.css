@@ -112,3 +112,131 @@
 .my-hub-v41-switch button:focus-visible,.my-hub-v41-news button:focus-visible,.my-hub-v41-news a:focus-visible,.v41-news-all:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 /* V42 prelaunch relation badge */
 .my-hub-v41-news-kicker .my-hub-v42-relation{background:#f3f4f6;color:#4b5563}.my-hub-v41-status[data-stale="true"]{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;padding:9px 11px;border-radius:11px}.my-hub-v413-freshness{display:block;margin-top:4px;font-size:10.5px;font-weight:700;color:#64748b}@media(prefers-color-scheme:dark){.my-hub-v41-news-kicker .my-hub-v42-relation{background:#273244;color:#cbd5e1}.my-hub-v41-status[data-stale="true"]{border-color:#92400e;background:#451a03;color:#fde68a}}
+
+/* V45: editorial card treatment for MY news.
+   Lead story gets the same deep visual weight as the Home hero card;
+   following stories use subtle cool-tone surfaces so the feed stays calm. */
+#watchlist-tab .my-hub-v41-feed{
+  gap:12px;
+  border-top:0;
+  padding:2px 0 4px;
+}
+#watchlist-tab .my-hub-v41-news-row{
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+  border:1px solid rgba(112,131,158,.18);
+  border-radius:22px;
+  background:linear-gradient(145deg,#f5f8fd 0%,#edf3fb 100%);
+  box-shadow:0 7px 20px rgba(15,23,42,.055);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+#watchlist-tab .my-hub-v41-news-row:nth-child(4n+2){
+  background:linear-gradient(145deg,#f2f6ff 0%,#e8efff 100%);
+  border-color:rgba(79,110,190,.16);
+}
+#watchlist-tab .my-hub-v41-news-row:nth-child(4n+3){
+  background:linear-gradient(145deg,#f6f4ff 0%,#eeeffc 100%);
+  border-color:rgba(103,89,181,.14);
+}
+#watchlist-tab .my-hub-v41-news-row:nth-child(4n){
+  background:linear-gradient(145deg,#f1f8f7 0%,#e8f3f1 100%);
+  border-color:rgba(45,128,116,.13);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child{
+  background:linear-gradient(145deg,#10213d 0%,#173b64 58%,#1b476f 100%);
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 12px 30px rgba(15,35,67,.2);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child::after{
+  content:'';
+  position:absolute;
+  inset:auto -70px -95px auto;
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(104,168,255,.18),rgba(104,168,255,0) 68%);
+  pointer-events:none;
+}
+#watchlist-tab .my-hub-v41-news-main,
+#watchlist-tab .my-hub-v41-news-actions{position:relative;z-index:1}
+#watchlist-tab .my-hub-v41-news-row h4{
+  font-size:16px;
+  line-height:1.5;
+  letter-spacing:-.12px;
+}
+#watchlist-tab .my-hub-v41-news-row:first-child h4,
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-news-kicker span{color:#fff}
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-meta{color:rgba(231,239,250,.72)}
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-news-kicker i{
+  background:rgba(255,255,255,.12);
+  color:#eaf2ff;
+  border:1px solid rgba(255,255,255,.08);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-news-kicker .my-hub-v42-relation{
+  background:#eef3ff;
+  color:#40518a;
+  border-color:transparent;
+}
+#watchlist-tab .my-hub-v41-news-row .news-v412-summary{
+  margin-top:10px;
+  border:1px solid rgba(115,135,166,.08);
+  background:rgba(255,255,255,.58);
+  backdrop-filter:blur(3px);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child .news-v412-summary{
+  background:rgba(255,255,255,.075);
+  border-color:rgba(255,255,255,.07);
+  color:rgba(239,245,255,.82);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child .news-v417-summary-head>b{color:#fff}
+#watchlist-tab .my-hub-v41-news-row:first-child .news-v417-summary-head b small{
+  background:rgba(255,255,255,.12);
+  color:#dbeafe;
+}
+#watchlist-tab .my-hub-v41-news-row:first-child .news-v417-summary-head i{color:#bcd7ff}
+#watchlist-tab .my-hub-v41-news-row:first-child .news-v417-summary-text{color:rgba(239,245,255,.8)}
+#watchlist-tab .my-hub-v41-news-actions button,
+#watchlist-tab .my-hub-v41-news-actions a{
+  border-color:rgba(109,128,157,.18);
+  background:rgba(255,255,255,.78);
+  box-shadow:0 2px 7px rgba(15,23,42,.035);
+}
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-news-actions button,
+#watchlist-tab .my-hub-v41-news-row:first-child .my-hub-v41-news-actions a{
+  border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.96);
+  color:#14223a;
+}
+#watchlist-tab .my-hub-v41-news-row:active{transform:scale(.995)}
+@media(hover:hover){
+  #watchlist-tab .my-hub-v41-news-row:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 25px rgba(15,23,42,.08);
+  }
+  #watchlist-tab .my-hub-v41-news-row:first-child:hover{box-shadow:0 15px 34px rgba(15,35,67,.24)}
+}
+@media(max-width:720px){
+  #watchlist-tab .my-hub-v41-feed{gap:11px}
+  #watchlist-tab .my-hub-v41-news-row{padding:17px 16px;border-radius:20px;gap:12px}
+  #watchlist-tab .my-hub-v41-news-row h4{font-size:15.5px;line-height:1.48}
+  #watchlist-tab .my-hub-v41-news-actions{gap:9px}
+}
+@media(max-width:390px){
+  #watchlist-tab .my-hub-v41-news-row{padding:16px 14px;border-radius:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  #watchlist-tab .my-hub-v41-news-row{transition:none}
+}
+@media(prefers-color-scheme:dark){
+  #watchlist-tab .my-hub-v41-news-row:not(:first-child){
+    background:linear-gradient(145deg,#172235 0%,#131e30 100%);
+    border-color:#2b3950;
+  }
+  #watchlist-tab .my-hub-v41-news-row:nth-child(4n+2):not(:first-child){background:linear-gradient(145deg,#182641,#152039 100%)}
+  #watchlist-tab .my-hub-v41-news-row:nth-child(4n+3):not(:first-child){background:linear-gradient(145deg,#211f3b,#191d32 100%)}
+  #watchlist-tab .my-hub-v41-news-row:nth-child(4n):not(:first-child){background:linear-gradient(145deg,#162d2c,#142523 100%)}
+  #watchlist-tab .my-hub-v41-news-row .news-v412-summary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.055)}
+  #watchlist-tab .my-hub-v41-news-row:not(:first-child) .my-hub-v41-news-actions button,
+  #watchlist-tab .my-hub-v41-news-row:not(:first-child) .my-hub-v41-news-actions a{background:#1e293b;color:#e5edf7;border-color:#334155}
+}
