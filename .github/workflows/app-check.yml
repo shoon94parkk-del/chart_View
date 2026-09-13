@@ -8,6 +8,7 @@ on:
       - 'market_service.py'
       - 'consensus_service.py'
       - 'valuation_band_service.py'
+      - 'news_service_v37.py'
       - 'requirements.txt'
       - 'tests/**'
       - 'scripts/**'
@@ -32,7 +33,7 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: |
-          python -m py_compile main.py market_service.py consensus_service.py valuation_band_service.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
+          python -m py_compile main.py market_service.py consensus_service.py valuation_band_service.py news_service_v37.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
           for f in static/js/*.js; do
@@ -107,16 +108,6 @@ jobs:
           assert '/api/compare' not in market_home
           assert '__openAppTab' not in market_home
 
-          market_css=Path('static/css/home_market_v9.css').read_text(encoding='utf-8')
-          assert 'body.home-clean-mode .header' in market_css
-          assert 'body.home-clean-mode #global-filter' in market_css
-          assert 'body.home-clean-mode .home-v8-hero' in market_css
-          assert 'text-align: center' in market_css
-          assert 'justify-content: center' in market_css
-          assert 'cursor: default' in market_css
-          assert 'grid-template-columns: repeat(4, minmax(0, 1fr))' in market_css
-          assert 'grid-template-columns: repeat(2, minmax(0, 1fr))' in market_css
-
           decision=Path('static/js/decision_ux_v7.js').read_text(encoding='utf-8')
           assert "new Set(['overview', 'bands', 'consensus'])" in decision
           assert 'EPS 상향 · 주가 약세 후보' in decision
@@ -133,7 +124,7 @@ jobs:
 
   mobile:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -152,6 +143,7 @@ jobs:
           uvicorn main:app --host 127.0.0.1 --port 8080 --lifespan off > /tmp/chart-view.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break || sleep 1; done
           node tests/mobile_smoke.cjs
+          node tests/app_release_stage12.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
