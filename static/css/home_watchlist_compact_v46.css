@@ -1,4 +1,4 @@
-/* V47: dense mobile MY STOCKS grid. Keep names readable while preserving density. */
+/* V47.1: dense mobile MY STOCKS grid. Full names + full prices without sacrificing density. */
 @media (max-width: 720px) {
   #home-watchlist-v30.home-watchlist-v30 {
     margin: 8px 10px 12px;
@@ -37,7 +37,7 @@
 
   #home-watchlist-v30 .home-watchlist-v30-chips > button {
     min-width: 0;
-    min-height: 86px !important;
+    min-height: 92px !important;
     padding: 9px 10px 8px 11px !important;
     display: grid;
     grid-template-rows: auto auto;
@@ -55,7 +55,7 @@
     display: block;
   }
 
-  /* Currency already tells KR/US on the compact home card; use that space for the full name. */
+  /* Currency already tells KR/US; use the badge space for the full stock name. */
   #home-watchlist-v30 .home-watch-v33-top i { display: none !important; }
 
   #home-watchlist-v30 .home-watch-v33-top strong {
@@ -79,13 +79,14 @@
   #home-watchlist-v30 .home-watchlist-v30-chips > button > small,
   #home-watchlist-v30 .home-watch-v40-basis { display: none !important; }
 
+  /* Price gets its own line so 7-digit KRW values never clip in a two-column card. */
   #home-watchlist-v30 .home-watch-v33-quote {
     min-width: 0;
     margin-top: 0 !important;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 4px;
-    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    align-items: start;
   }
 
   #home-watchlist-v30 .home-watch-v33-quote b {
@@ -113,7 +114,7 @@
   #home-watchlist-v30.home-watchlist-v30 { padding: 10px; }
   #home-watchlist-v30 .home-watchlist-v30-chips { gap: 5px !important; }
   #home-watchlist-v30 .home-watchlist-v30-chips > button {
-    min-height: 84px !important;
+    min-height: 90px !important;
     padding: 8px 8px 7px 10px !important;
   }
   #home-watchlist-v30 .home-watch-v33-top strong { font-size: 11.8px !important; }
