@@ -75,6 +75,8 @@ async function mockData(page) {
   await page.locator('[data-v41-sort="relevance"]').click();
   assert.ok(await page.locator('[data-v41-sort="relevance"]').evaluate(el => el.classList.contains('active')), 'sort state should update');
 
+  // Reproduce a slow-production race where a stale active class can disagree with the visible tab.
+  await page.locator('.app-bottom-btn[data-app-mode="home"]').evaluate(el => el.classList.add('active'));
   await page.locator('.app-bottom-btn[data-app-mode="home"]').click();
   await page.waitForSelector('#home-tab', { state: 'visible' });
   await page.waitForSelector('#home-watchlist-v30[data-visual-version="v41.4"]', { state: 'visible' });

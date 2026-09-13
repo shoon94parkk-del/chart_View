@@ -204,7 +204,13 @@
       button.addEventListener('click', () => {
         userNavigationStarted = true;
         const mode = button.dataset.appMode;
-        if (button.classList.contains('active') && !window.ChartViewState?.detail?.open) {
+        const visibleTab = [...document.querySelectorAll('.tab-content')].find((tab) => {
+          const style = getComputedStyle(tab);
+          return !tab.hidden && tab.getAttribute('aria-hidden') !== 'true' && style.display !== 'none' && style.visibility !== 'hidden';
+        });
+        const visibleTabId = visibleTab?.id?.replace(/-tab$/, '') || '';
+        const actualMode = visibleTabId ? modeFor(visibleTabId) : '';
+        if (button.classList.contains('active') && actualMode === mode && !window.ChartViewState?.detail?.open) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
