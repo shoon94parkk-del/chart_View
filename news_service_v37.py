@@ -1,10 +1,10 @@
-"""V37 personalized watchlist news.
+"""Personalized watchlist news service.
 
-Design goals:
+Public response policy:
 - Korean equities: NAVER API HUB News Search.
-- North American equities: Finnhub Company News free tier.
-- Never proxy full article text or images. Return only headline/source/time/original URL.
-- Cache briefly and degrade gracefully when a provider is not configured.
+- North American equities: Finnhub Company News.
+- Return headline/source/time/original URL only; never proxy article body or images.
+- Support the full 20-symbol watchlist while bounding outbound provider concurrency.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import asyncio
 import html
 import os
 import re
+import threading
 import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -25,8 +26,11 @@ router = APIRouter()
 
 NEWS_CACHE: dict[str, dict] = {}
 NEWS_CACHE_TTL = 300
-MAX_SYMBOLS = 12
+MAX_SYMBOLS = 20
 MAX_ITEMS_PER_SYMBOL = 6
+PROVIDER_CONCURRENCY = 4
+_PROVIDER_SEMAPHORE = threading.BoundedSemaphore(PROVIDER_CONCURRENCY)
+_CACHE_LOCK = threading.Lock()
 
 KR_EVENT_WORDS = (
     "실적", "영업이익", "매출", "수주", "계약", "인수", "합병", "증자", "감자",
@@ -103,7 +107,7 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
         headers={
             "X-NCP-APIGW-API-KEY-ID": client_id,
             "X-NCP-APIGW-API-KEY": client_secret,
-            "User-Agent": "ChartView/37",
+            "User-Agent": "ChartView/40",
         },
         timeout=7,
     )
@@ -149,7 +153,7 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
     response = requests.get(
         "https://finnhub.io/api/v1/company-news",
         params={"symbol": symbol, "from": start.isoformat(), "to": today.isoformat(), "token": token},
-        headers={"User-Agent": "ChartView/37"},
+        headers={"User-Agent": "ChartView/40"},
         timeout=7,
     )
     response.raise_for_status()
@@ -180,25 +184,30 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
 
 def _cached_fetch(symbol: str, name: str) -> dict:
     key = f"{symbol}|{name}".upper()
-    cached = NEWS_CACHE.get(key)
-    if cached and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
-        return {**cached["data"], "cache": "hit"}
+    with _CACHE_LOCK:
+        cached = NEWS_CACHE.get(key)
+        if cached and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
+            return {**cached["data"], "cache": "hit"}
+
     try:
-        data = _fetch_naver_news(symbol, name) if _is_kr(symbol) else _fetch_finnhub_news(symbol, name)
+        with _PROVIDER_SEMAPHORE:
+            data = _fetch_naver_news(symbol, name) if _is_kr(symbol) else _fetch_finnhub_news(symbol, name)
     except Exception as exc:
         data = {
             "items": [],
             "error": f"provider_error:{type(exc).__name__}",
             "provider": "naver-api-hub" if _is_kr(symbol) else "finnhub",
         }
-    NEWS_CACHE[key] = {"cachedAt": time.time(), "data": data}
+
+    with _CACHE_LOCK:
+        NEWS_CACHE[key] = {"cachedAt": time.time(), "data": data}
     return {**data, "cache": "miss"}
 
 
 @router.get("/api/personalized-news")
 async def personalized_news(
-    tickers: str = Query(max_length=320),
-    names: str = Query(default="", max_length=800),
+    tickers: str = Query(max_length=520),
+    names: str = Query(default="", max_length=1400),
 ):
     raw_symbols = [part.strip().upper() for part in tickers.split(",") if part.strip()]
     symbols: list[str] = []
@@ -211,7 +220,7 @@ async def personalized_news(
 
     if not symbols:
         return {
-            "items": [], "groups": [], "errors": [],
+            "items": [], "groups": [], "errors": [], "requestedCount": 0,
             "providers": {"kr": "NAVER API HUB", "us": "Finnhub"},
             "displayPolicy": "headline-source-time-link-only",
         }
@@ -228,25 +237,30 @@ async def personalized_news(
         if isinstance(result, Exception):
             result = {"items": [], "error": f"internal_error:{type(result).__name__}", "provider": "unknown"}
         rows = result.get("items") or []
+        error = result.get("error")
+        status = "error" if error else ("success" if rows else "no_news")
         groups.append({
             "symbol": symbol,
             "name": name_map[symbol],
             "market": "KR" if _is_kr(symbol) else "US",
             "items": rows,
+            "status": status,
             "provider": result.get("provider"),
             "cache": result.get("cache"),
         })
         all_items.extend(rows)
-        if result.get("error"):
-            errors.append({"symbol": symbol, "provider": result.get("provider"), "code": result.get("error")})
+        if error:
+            errors.append({"symbol": symbol, "provider": result.get("provider"), "code": error})
 
     highlights = _dedupe(all_items)[:12]
     return {
         "items": highlights,
         "groups": groups,
         "errors": errors,
+        "requestedCount": len(symbols),
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "providers": {"kr": "NAVER API HUB", "us": "Finnhub Company News"},
+        "providerConcurrency": PROVIDER_CONCURRENCY,
         "displayPolicy": "headline-source-time-link-only",
         "notice": "기사 본문과 이미지는 저장·재게시하지 않고 원문 링크로 연결합니다.",
     }
