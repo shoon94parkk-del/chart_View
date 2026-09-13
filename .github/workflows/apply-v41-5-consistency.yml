@@ -1,0 +1,43 @@
+name: Apply V41.5 Consistency Fixes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v41-5-consistency.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply V41.5 patch
+        run: python scripts/apply_v41_5_consistency.py
+      - name: Validate syntax
+        run: |
+          python -m py_compile news_service_v37.py market_service.py
+          node --check static/js/personalized_news_v40.js
+          node --check static/js/news_readability_v41_2.js
+          node --check static/js/release_ui_v40.js
+          node --check static/js/home_polish_v41_4.js
+          node --check static/js/home_watchlist_boot_v32c.js
+      - name: Run focused tests
+        run: |
+          python -m pytest -q tests/test_v37_personalized_news.py tests/test_v41_2_news_readability.py tests/test_v41_3_resilience.py
+      - name: Commit generated product changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add news_service_v37.py market_service.py static/js/personalized_news_v40.js static/js/news_readability_v41_2.js static/js/release_ui_v40.js static/js/home_polish_v41_4.js static/js/home_watchlist_boot_v32c.js templates/index.html
+          git commit -m 'V41.5: fix market, news diversity and 5D consistency'
+          git push
