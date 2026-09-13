@@ -96,7 +96,8 @@
     }
 
     home.dataset.homeOrder = 'market-watchlist-news-body-status';
-    home.dataset.newsVersion = 'v40.1';
+    home.dataset.newsVersion = 'v40';
+    home.dataset.newsPatch = 'v40.1';
     home.dataset.visualVersion = 'v39';
     home.dataset.uiVersion = 'v40-stage12';
     return Boolean(market && body);
