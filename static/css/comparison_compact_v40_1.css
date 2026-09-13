@@ -30,17 +30,25 @@
     margin-top: 5px;
   }
 
+  /* The quick-pick catalogue is secondary. Keep it one row tall until opened. */
   #global-filter .sector-section {
-    margin: 0 16px 7px;
-    padding: 0 14px;
-    max-height: none;
-    overflow: visible;
+    box-sizing: border-box !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    margin: 0 16px 7px !important;
+    padding: 0 14px !important;
+    overflow: hidden !important;
   }
 
-  /* Desktop starts compact even before the V40.1 toggle script hydrates. */
-  #global-filter .sector-section .sector-scroll-container { display: none; }
+  #global-filter .sector-section .sector-scroll-container { display: none !important; }
+  #global-filter .sector-section[data-v40-collapsed="false"] {
+    height: auto !important;
+    max-height: 280px !important;
+    overflow: auto !important;
+  }
   #global-filter .sector-section[data-v40-collapsed="false"] .sector-scroll-container {
-    display: block;
+    display: block !important;
     max-height: 220px;
     overflow: auto;
     padding: 8px 0 12px;
