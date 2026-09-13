@@ -5,6 +5,7 @@
   let observedHome = null;
   let orderScheduled = false;
   let initialHomeSettled = false;
+  let initialHomePending = false;
 
   // The legacy HTML starts with the chart tab active while the Home bundle is
   // loaded dynamically. Keep the shell hidden until Home actually exists so a
@@ -16,21 +17,27 @@
 
   function settleInitialHome(attempt = 0) {
     if (initialHomeSettled) return true;
+    if (attempt === 0) {
+      if (initialHomePending) return false;
+      initialHomePending = true;
+    }
     const home = document.getElementById('home-tab');
     if (home && typeof window.__openAppTab === 'function') {
       try { window.__openAppTab('home', { history: false }); } catch (_) { }
       initialHomeSettled = true;
+      initialHomePending = false;
       document.body.classList.add('cv-home-ready', 'app-shell-ready');
       document.body.classList.remove('app-booting');
       bootGuard.remove();
       return true;
     }
-    if (attempt < 100) {
+    if (attempt < 40) {
       setTimeout(() => settleInitialHome(attempt + 1), 50);
       return false;
     }
-    // Fail open after 5 seconds rather than leave the app blank if Home failed.
+    // Fail open after two seconds rather than leave the app blank if Home failed.
     initialHomeSettled = true;
+    initialHomePending = false;
     document.body.classList.add('cv-home-ready');
     bootGuard.remove();
     return false;
