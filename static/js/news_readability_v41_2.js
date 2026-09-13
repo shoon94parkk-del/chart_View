@@ -3,63 +3,113 @@
   if (window.__chartViewNewsReadabilityV412Installed) return;
   window.__chartViewNewsReadabilityV412Installed = true;
 
+  const summaryCache = new Map();
+  const summaryQueue = [];
+  const SUMMARY_CONCURRENCY = 3;
+  let activeSummaryJobs = 0;
+
   function cleanTitle(title) {
     return String(title || '').replace(/\s+/g, ' ').trim();
   }
 
-  function eventType(title) {
-    const t = cleanTitle(title).toLowerCase();
-    if (/실적|영업이익|매출|earnings|revenue|guidance/.test(t)) return '실적·가이던스';
-    if (/수주|계약|공급|contract|deal|order/.test(t)) return '계약·수주';
-    if (/인수|합병|acqui|merger/.test(t)) return '인수·합병';
-    if (/배당|자사주|buyback|dividend/.test(t)) return '주주환원';
-    if (/승인|fda|규제|sec|소송|lawsuit|리콜|recall/.test(t)) return '규제·법률';
-    if (/목표가|투자의견|upgrade|downgrade|forecast/.test(t)) return '시장 의견';
-    if (/출시|공개|신제품|서비스|launch|release|unveil/.test(t)) return '제품·서비스';
-    if (/모집|교육|인재|장학|학교|청년|학생/.test(t)) return '교육·인재';
-    if (/개최|행사|캠페인|festival|event/.test(t)) return '행사·브랜드';
-    return '기업 동향';
+  function summaryKey(url, title, snippet) {
+    return `${url}|${title}|${String(snippet || '').slice(0, 240)}`;
   }
 
-  function oneLineSummary(title) {
-    const raw = cleanTitle(title);
-    if (!raw) return '관심종목과 관련된 최신 소식입니다.';
-    const withoutCompany = raw.replace(/^[^,]{1,28},\s*/, '').trim();
-    const patterns = [
-      [/^(.*) 모집 시작$/, (_, x) => `${x} 모집을 시작했다는 소식입니다.`],
-      [/^(.*) 시작$/, (_, x) => `${x}을 시작했다는 소식입니다.`],
-      [/^(.*) 개최$/, (_, x) => `${x}를 개최한다는 소식입니다.`],
-      [/^(.*) 발표$/, (_, x) => `${x}를 발표했다는 소식입니다.`],
-      [/^(.*) 출시$/, (_, x) => `${x}를 출시했다는 소식입니다.`],
-      [/^(.*) 공개$/, (_, x) => `${x}를 공개했다는 소식입니다.`],
-    ];
-    for (const [pattern, make] of patterns) {
-      const match = withoutCompany.match(pattern);
-      if (match) return make(...match);
+  function pumpSummaryQueue() {
+    while (activeSummaryJobs < SUMMARY_CONCURRENCY && summaryQueue.length) {
+      const job = summaryQueue.shift();
+      activeSummaryJobs += 1;
+      const params = new URLSearchParams({ url: job.url, title: job.title });
+      if (job.snippet) params.set('snippet', job.snippet.slice(0, 1100));
+      fetch(`/api/news-summary?${params}`, { cache: 'default' })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((payload) => {
+          summaryCache.set(job.key, payload);
+          job.resolve(payload);
+        })
+        .catch(job.reject)
+        .finally(() => {
+          activeSummaryJobs -= 1;
+          pumpSummaryQueue();
+        });
     }
-    const type = eventType(raw);
-    return `${type} · ${withoutCompany}`;
+  }
+
+  function loadContentSummary(url, title, snippet = '') {
+    const key = summaryKey(url, title, snippet);
+    if (summaryCache.has(key)) return Promise.resolve(summaryCache.get(key));
+    return new Promise((resolve, reject) => {
+      summaryQueue.push({ key, url, title, snippet, resolve, reject });
+      pumpSummaryQueue();
+    });
+  }
+
+  function articleUrl(card) {
+    const link = card?.querySelector('.news-v40-actions a[href], .my-hub-v41-news-actions a[href], a[target="_blank"][href]');
+    return String(link?.href || '').trim();
+  }
+
+  function applyKoreanTitle(titleNode, payload, originalTitle) {
+    const translated = cleanTitle(payload?.titleKo);
+    if (!translated || translated === '해외 기사') return;
+    titleNode.textContent = translated;
+    if (translated !== originalTitle) titleNode.title = `원문 제목: ${originalTitle}`;
   }
 
   function addSummary(card) {
     if (!card || card.querySelector('.news-v412-summary')) return;
     const title = card.querySelector('h4');
     if (!title) return;
+    const originalTitle = cleanTitle(title.textContent);
+    const url = articleUrl(card);
+    const snippet = String(card.dataset.newsSummarySeed || '').trim();
+
     const box = document.createElement('button');
     box.type = 'button';
-    box.className = 'news-v412-summary';
+    box.className = 'news-v412-summary is-loading';
     box.setAttribute('aria-expanded', 'false');
-    box.setAttribute('aria-label', '한줄 요약 전체보기');
-    box.innerHTML = '<span class="news-v417-summary-head"><b>한줄 요약 <small>제목 기준</small></b><i>전체보기</i></span><span class="news-v417-summary-text"></span>';
-    box.querySelector('.news-v417-summary-text').textContent = oneLineSummary(title.textContent);
+    box.setAttribute('aria-label', '본문 요약 전체보기');
+    box.innerHTML = '<span class="news-v417-summary-head"><b>한줄 요약 <small>본문 확인 중</small></b><i>전체보기</i></span><span class="news-v417-summary-text">기사 본문을 읽고 한국어로 요약하고 있습니다…</span>';
+    title.insertAdjacentElement('afterend', box);
+
     box.addEventListener('click', () => {
       const expanded = box.getAttribute('aria-expanded') === 'true';
       box.setAttribute('aria-expanded', String(!expanded));
       box.classList.toggle('is-expanded', !expanded);
       box.querySelector('.news-v417-summary-head i').textContent = expanded ? '전체보기' : '접기';
-      box.setAttribute('aria-label', expanded ? '한줄 요약 전체보기' : '한줄 요약 접기');
+      box.setAttribute('aria-label', expanded ? '본문 요약 전체보기' : '본문 요약 접기');
     });
-    title.insertAdjacentElement('afterend', box);
+
+    const label = box.querySelector('.news-v417-summary-head small');
+    const text = box.querySelector('.news-v417-summary-text');
+    if (!url || !originalTitle) {
+      box.classList.remove('is-loading');
+      box.classList.add('is-error');
+      label.textContent = '본문 접근 제한';
+      text.textContent = '원문 주소를 확인할 수 없어 내용 기반 요약을 제공하지 못했습니다.';
+      return;
+    }
+
+    loadContentSummary(url, originalTitle, snippet)
+      .then((payload) => {
+        if (!box.isConnected || !title.isConnected) return;
+        applyKoreanTitle(title, payload, originalTitle);
+        box.classList.remove('is-loading', 'is-error');
+        box.dataset.summaryBasis = payload?.basis || '';
+        label.textContent = cleanTitle(payload?.basisLabel) || '본문 기반';
+        text.textContent = cleanTitle(payload?.summary) || '본문 요약을 만들지 못했습니다. 원문 보기에서 확인해 주세요.';
+      })
+      .catch(() => {
+        if (!box.isConnected) return;
+        box.classList.remove('is-loading');
+        box.classList.add('is-error');
+        label.textContent = '요약 실패';
+        text.textContent = '기사 본문 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      });
   }
 
   function parseSpark(svg) {
@@ -119,9 +169,9 @@
     });
     document.querySelectorAll('.my-hub-v41-news-row').forEach(addSummary);
     const home = document.querySelector('#home-tab .home-v8');
-    if (home) home.dataset.newsReadability = 'v42';
+    if (home) home.dataset.newsReadability = 'v43';
     const hub = document.getElementById('watchlist-tab');
-    if (hub) hub.dataset.newsReadability = 'v42';
+    if (hub) hub.dataset.newsReadability = 'v43';
   }
 
   let queued = false;
