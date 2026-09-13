@@ -313,42 +313,63 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
         except Exception as exc:
             fetch_error = type(exc).__name__
 
-        basis = "headline_fallback"
+        clean_title = _clean_text(title)
+        clean_snippet = _clean_text(snippet)
+        basis = "headline_only"
         source_text = ""
+
         if len(article_text) >= 180:
             basis = "article_body"
-            source_text = _pick_summary_sentences(article_text, title, limit=2)
+            source_text = _pick_summary_sentences(article_text, clean_title, limit=2)
         if not source_text and len(page_description) >= 70:
             basis = "page_description"
             source_text = page_description
-        if not source_text and len(_clean_text(snippet)) >= 60:
+        if not source_text and len(clean_snippet) >= 60:
             basis = "provider_snippet"
-            source_text = _clean_text(snippet)
+            source_text = clean_snippet
+        if not source_text and len(clean_snippet) >= 20:
+            basis = "title_snippet_fallback"
+            source_text = f"{clean_title}. {clean_snippet}" if clean_title else clean_snippet
+        if not source_text and clean_title:
+            basis = "headline_only"
+            source_text = clean_title
 
         translated = False
         translation_error = None
         try:
-            title_ko, title_translated = _translate_ko(title)
+            title_ko, title_translated = _translate_ko(clean_title)
         except Exception:
-            title_ko = title if _has_korean(title) else "해외 기사"
+            # Keep the original title rather than replacing useful information with
+            # a generic failure label. The card can still show a meaningful fallback.
+            title_ko = clean_title or "기사"
             title_translated = False
             translation_error = "title_translation_failed"
 
-        if source_text:
+        if basis == "headline_only" and clean_title:
+            # Do not pretend a title-only fallback is a body summary. Make the basis
+            # explicit while still giving the user something useful to read.
+            summary_ko = f"제목 기준 · {title_ko}"
+            translated = bool(title_translated)
+        elif source_text:
             try:
                 summary_ko, body_translated = _translate_ko(source_text)
                 translated = bool(title_translated or body_translated)
             except Exception:
-                summary_ko = _clean_text(source_text) if _has_korean(source_text) else "한국어 번역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+                # A translation outage should not turn an otherwise available
+                # snippet/body into a visible 'summary failed' state.
+                summary_ko = _clean_text(source_text)
                 translation_error = "summary_translation_failed"
         else:
-            summary_ko = "원문 본문에 접근할 수 없어 내용 기반 요약을 만들지 못했습니다. 원문 보기에서 기사를 확인해 주세요."
+            # This path is only possible when both title and snippet are empty.
+            # Keep the card usable without claiming we summarized unavailable text.
+            summary_ko = "기사 제목과 요약문이 제공되지 않았습니다. 원문에서 내용을 확인해 주세요."
 
         labels = {
             "article_body": "본문 기반",
             "page_description": "본문 설명 기반",
             "provider_snippet": "기사 요약문 기반",
-            "headline_fallback": "본문 접근 제한",
+            "title_snippet_fallback": "제목·요약문 기반",
+            "headline_only": "제목 기반",
         }
         result = {
             "titleKo": _trim_summary(title_ko, 180),
