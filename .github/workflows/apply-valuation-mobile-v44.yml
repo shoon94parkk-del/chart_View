@@ -1,0 +1,56 @@
+name: Apply Valuation Mobile V44
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-valuation-mobile-v44.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wire V44 mobile valuation stylesheet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('templates/index.html')
+          text = path.read_text(encoding='utf-8')
+          needle = '    <link rel="stylesheet" href="/static/css/ux_patch.css?v=20260911v1">\n'
+          addition = needle + '    <link rel="stylesheet" href="/static/css/valuation_mobile_v44.css?v=20260913v44">\n'
+          if 'valuation_mobile_v44.css' not in text:
+              if needle not in text:
+                  raise SystemExit('ux_patch stylesheet anchor missing')
+              text = text.replace(needle, addition, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Validate mobile valuation contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('templates/index.html').read_text(encoding='utf-8')
+          css = Path('static/css/valuation_mobile_v44.css').read_text(encoding='utf-8')
+          assert '/static/css/valuation_mobile_v44.css?v=20260913v44' in html
+          assert 'grid-template-columns: repeat(2, minmax(0, 1fr))' in css
+          assert '.v40-cell-basis' in css and 'display: none !important' in css
+          assert '#per-table-container .per-table tbody tr' in css
+          print('V44 valuation mobile contract OK')
+          PY
+      - name: Commit wiring
+        run: |
+          if git diff --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html
+          git commit -m 'V44: load repaired mobile valuation cards'
+          git push
