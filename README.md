@@ -1,71 +1,60 @@
-# 토스 스타일 주식 비교 차트
+# Chart View 📊
 
-한국·미국 종목을 비교하고 밸류에이션, 애널리스트 컨센서스, 기술 조건과 거시지표를 함께 확인하는 모바일 웹앱입니다.
+한국·미국 주식을 **차트, 밸류에이션, 투자판단 근거**까지 한 화면에서 비교하는 무료 모바일 웹앱입니다.
 
-## 🚀 주요 기능
+**Live Demo → https://chart-view-bsg6.onrender.com**
 
-- **멀티 종목 비교** - 최대 6개 종목의 조정주가 수익률 비교
-- **밸류에이션** - 종합 지표, 공시 시점 근사 역사적 밴드, 실적 컨센서스
-- **투자판단 보조** - 가치·수익성·전망·모멘텀 근거를 분리해 표시
-- **종목 발굴** - KOSPI·KOSDAQ 장마감 스크리너와 EPS 상향·주가 약세 후보
-- **시장 화면** - 실시간성 시세와 사전 계산된 거시지표의 기준일을 구분
-- **관심종목** - 브라우저 기기에 저장되는 관심종목과 최근 본 종목
-- **모바일 최적화** - 하단 5개 메뉴, 터치 친화적 화면, 브라우저 뒤로가기 지원
+> Public Beta · 무료 · 로그인 불필요 · 최대 6종목 비교
 
-## 📦 설치
+## 왜 만들었나요?
 
-```bash
-pip install -r requirements.txt
-```
+종목을 비교할 때 차트는 차트대로, PER·PBR·ROE는 다른 화면에서, 시장 지표는 또 다른 서비스에서 확인해야 하는 불편을 줄이기 위해 만들었습니다. Chart View는 “여러 종목을 빠르게 비교하고 다음 조사 대상을 좁히는 것”에 초점을 둡니다.
 
-## ▶️ 실행
+## 주요 기능
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8080
-```
+- **멀티 종목 차트** — 한국·미국 주식 최대 6종목의 수익률 비교
+- **밸류에이션 비교** — FWD PER, PER, PBR, PSR, EV/EBITDA, ROE, 영업이익률, 배당률
+- **투자판단 보조** — 가치·수익성·전망·모멘텀 근거를 분리해 확인
+- **종목 발굴** — KOSPI·KOSDAQ 장마감 스크리너와 후보 탐색
+- **시장 화면** — 주요 종목과 매크로 흐름을 모바일에서 빠르게 확인
+- **관심종목** — 별도 회원가입 없이 브라우저 기기에 저장
+- **모바일 최적화** — 하단 내비게이션, 터치 중심 UX, 모바일 밸류에이션 카드
 
-## 🌐 배포
+## 30초 사용법
 
-### Render.com (무료)
-1. GitHub에 푸시
-2. [render.com](https://render.com) 가입
-3. New → Web Service → GitHub 연결
-4. Build Command: `pip install -r requirements.txt`
-5. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-
-### Railway (무료)
-1. [railway.app](https://railway.app) 가입
-2. New Project → Deploy from GitHub
-3. 자동 감지 후 배포
-
-## 📁 파일 구조
-
-```
-├── main.py              # FastAPI 서버
-├── requirements.txt     # 의존성
-├── static/
-│   ├── css/style.css    # 토스 스타일 CSS
-│   └── js/chart.js      # Lightweight Charts 로직
-└── templates/
-    └── index.html       # 메인 HTML
-```
-
-## 📱 스크린샷
-
-토스 디자인 시스템 기반의 깔끔한 UI
-
-## 🔧 기술 스택
-
-- FastAPI
-- TradingView Lightweight Charts
-- yfinance
-- Pretendard 폰트
+1. 종목명, 6자리 코드 또는 해외 티커를 검색합니다.
+2. 최대 6종목을 선택합니다.
+3. `차트`에서 수익률을 비교합니다.
+4. `밸류에이션`에서 FWD PER·PER·ROE 등을 비교합니다.
+5. `투자판단`, `종목발굴`, `시장`에서 추가 근거를 확인합니다.
 
 ## 데이터 기준
 
 - 비교 차트는 Yahoo Chart의 조정주가 일봉을 우선 사용합니다.
-- 시세 수집 시각과 원자료 거래일·발표일은 서로 구분합니다.
-- 예상 PER/EPS는 공급자가 제공한 예상 구간이며, 회계기간을 독립적으로 확인하지 못한 경우 화면에 그렇게 표시합니다.
+- 밸류에이션·컨센서스·재무지표는 Yahoo Finance 공개 데이터와 캐시, 일부 국내 데이터 보완 소스를 조합합니다.
+- 시세 수집 시각과 원자료의 거래일·발표일은 서로 구분합니다.
+- 예상 PER/EPS는 공급자가 제공한 예상 구간이며 회계기간을 독립적으로 확인하지 못한 경우 화면에 표시합니다.
 - 역사적 PER/PBR은 과거 가격과 재무자료를 결합한 근사 재구성치입니다.
 
-현재 운영·배포 구조와 다음 작업 순서는 `docs/handover.md`, 필드 정의는 `docs/data-definitions.md`, 버전별 변경은 `CHANGELOG.md`를 확인하세요.
+> Chart View는 투자 참고용 도구입니다. 제공되는 수치와 화면은 투자 권유가 아니며 최종 투자 결정은 사용자 본인의 판단으로 이루어져야 합니다.
+
+## 기술 스택
+
+- FastAPI / Python
+- TradingView Lightweight Charts
+- Vanilla JavaScript / CSS
+- Render
+- GitHub Actions + Playwright 회귀 테스트
+
+## 로컬 실행
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8080
+```
+
+## 피드백
+
+Public Beta 단계입니다. 모바일에서 깨지는 화면, 데이터가 이상한 종목, 비교할 때 불편한 점을 발견하면 GitHub Issue로 알려주세요. 실제 사용 피드백을 우선해 개선합니다.
+
+운영 구조와 다음 작업은 `docs/handover.md`, 필드 정의는 `docs/data-definitions.md`, 변경 이력은 `CHANGELOG.md`에서 확인할 수 있습니다.
