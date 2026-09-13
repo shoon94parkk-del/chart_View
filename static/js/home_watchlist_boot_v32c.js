@@ -53,7 +53,7 @@
     addScript('script[data-my-hub-v41]', '/static/js/my_hub_v41.js?v=20260913v41', 'myHubV41');
     addScript('script[data-news-readability-v412]', '/static/js/news_readability_v41_2.js?v=20260913v415', 'newsReadabilityV412');
     addScript('script[data-resilience-v413]', '/static/js/resilience_v41_3.js?v=20260913v413', 'resilienceV413');
-    addScript('script[data-home-polish-v414]', '/static/js/home_polish_v41_4.js?v=20260913v415', 'homePolishV414');
+    addScript('script[data-home-polish-v414]', '/static/js/home_polish_v41_4.js?v=20260913v415b', 'homePolishV414');
   }
 
   function ensureAllAssets() { ensureLegacyVisualAssets(); ensureReleaseAssets(); }

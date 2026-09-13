@@ -30,7 +30,7 @@ def test_v415_client_assets_are_cache_busted():
         '/static/js/personalized_news_v40.js?v=20260913v415',
         '/static/js/news_readability_v41_2.js?v=20260913v415',
         '/static/js/release_ui_v40.js?v=20260913v415',
-        '/static/js/home_polish_v41_4.js?v=20260913v415',
+        '/static/js/home_polish_v41_4.js?v=20260913v415b',
     ):
         assert asset in boot
-    assert '/static/js/home_watchlist_boot_v32c.js?v=20260913v415' in html
+    assert '/static/js/home_watchlist_boot_v32c.js?v=20260913v415b' in html
