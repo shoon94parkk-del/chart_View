@@ -71,7 +71,7 @@ def test_short_provider_snippet_becomes_title_snippet_fallback(monkeypatch):
     )
     assert result["basis"] == "title_snippet_fallback"
     assert result["basisLabel"] == "제목·요약문 기반"
-    assert "요약" not in result["summary"] or "만들지 못했습니다" not in result["summary"]
+    assert "만들지 못했습니다" not in result["summary"]
     assert "마이크론" in result["summary"]
 
 
@@ -91,27 +91,27 @@ def test_headline_only_fallback_never_shows_summary_failure(monkeypatch):
     assert "만들지 못했습니다" not in result["summary"]
 
 
-def test_translation_failure_keeps_available_source_text(monkeypatch):
+def test_translation_failure_never_leaves_english_summary_cached(monkeypatch):
     svc.SUMMARY_CACHE.clear()
     monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("blocked")))
+    monkeypatch.setattr(svc, "_translate_ko", lambda text: (_ for _ in ()).throw(RuntimeError("translate unavailable")))
 
-    calls = {"n": 0}
-
-    def failing_translate(text):
-        calls["n"] += 1
-        raise RuntimeError("translate unavailable")
-
-    monkeypatch.setattr(svc, "_translate_ko", failing_translate)
-    snippet = "AI memory demand remains strong and the company expects shipments to rise next quarter."
     result = svc._build_summary(
         "https://example.com/news/translate-fail",
         "Memory demand remains strong",
-        snippet,
+        "AI memory demand remains strong and the company expects shipments to rise next quarter.",
     )
     assert result["basis"] == "provider_snippet"
-    assert result["summary"] == snippet
+    assert "한국어 번역" in result["summary"]
     assert result["translationError"] == "summary_translation_failed"
-    assert "번역을 불러오지 못했습니다" not in result["summary"]
+    assert svc.SUMMARY_CACHE == {}
+
+
+def test_cache_key_changes_when_translation_pipeline_version_changes(monkeypatch):
+    first = svc._cache_key("https://example.com/a", "Title", "Snippet")
+    monkeypatch.setattr(svc, "SUMMARY_CACHE_VERSION", "different")
+    second = svc._cache_key("https://example.com/a", "Title", "Snippet")
+    assert first != second
 
 
 def test_frontend_does_not_generate_title_only_summary():
