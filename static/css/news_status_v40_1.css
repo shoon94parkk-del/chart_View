@@ -1,0 +1,32 @@
+/* V40.1 personalized-news UX: keep failures obvious and retain context on the lead story. */
+
+.news-v40-groups[data-auto-opened-for-failure="1"] {
+  border-color: color-mix(in srgb, #b45309 35%, var(--v40-line));
+}
+
+.news-v40-groups[data-auto-opened-for-failure="1"] summary {
+  color: #92400e;
+}
+
+@media (max-width: 720px) {
+  .news-v40-card.is-lead p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin: 6px 0 2px;
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  .news-v40-card.is-lead p b {
+    display: inline;
+    margin-right: 4px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .news-v40-groups[data-auto-opened-for-failure="1"] summary {
+    color: #fbbf24;
+  }
+}

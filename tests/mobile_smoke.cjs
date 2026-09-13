@@ -18,7 +18,11 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       });
       const page = await context.newPage();
       const errors = [];
+      const compareRequests = [];
       page.on('pageerror', e => errors.push(String(e)));
+      page.on('request', request => {
+        if (request.url().includes('/api/compare?')) compareRequests.push(request.url());
+      });
       if (!live) {
         const disk = JSON.parse(fs.readFileSync('static/data/valuation_cache.json'));
         const quotes = Object.entries(disk.quotes).map(([ticker, q]) => ({ ticker, name: q.shortName, price: q.regularMarketPrice, change: 1, asOf: disk.generatedAt }));
@@ -26,9 +30,10 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
         await page.route('**/api/market-now*', r => r.fulfill(json({results:[], errors:[]})));
         await page.route('**/api/valuation?*', r => r.fulfill(json({stocks:[]})));
         await page.route('**/api/consensus?*', r => r.fulfill(json({periods:{}, history:{}})));
+        await page.route('**/api/personalized-news?*', r => r.fulfill(json({items:[],groups:[],errors:[]})));
         await page.route('**/api/compare?*', r => {
           const symbols = new URL(r.request().url()).searchParams.get('tickers').split(',');
-          return r.fulfill(json({stocks:symbols.map(ticker => ({ticker,name:ticker,price:100,return:10,data:[{time:1788825600,value:0},{time:1788912000,value:10}]})),errors:[]}));
+          return r.fulfill(json({stocks:symbols.map(ticker => ({ticker,name:ticker,price:100,return:10,actualStart:'2026-08-12',actualEnd:'2026-09-11',data:[{time:1788825600,value:0},{time:1788912000,value:10}]})),errors:[]}));
         });
       }
       const response = await page.goto(base, {waitUntil:'domcontentloaded',timeout:60000});
@@ -40,22 +45,63 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: home overflow`);
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
-      await page.locator('.stock-brief-v34').waitFor();
       await page.locator('#legend .legend-item').first().waitFor({timeout:60000});
-      const metrics = await page.evaluate(() => ({
-        width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
-        navCount:document.querySelectorAll('.app-bottom-btn').length,
-        navRows:new Set([...document.querySelectorAll('.app-bottom-btn')].map(x=>Math.round(x.getBoundingClientRect().top))).size,
-        dates:getComputedStyle(document.getElementById('custom-date-fields')).display,
-        chartTop:Math.round(document.getElementById('chart-container').getBoundingClientRect().top),
-      }));
+      const metrics = await page.evaluate(() => {
+        const inspect = selector => {
+          const el = document.querySelector(selector);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          return {
+            top:Math.round(r.top), bottom:Math.round(r.bottom), height:Math.round(r.height),
+            marginTop:cs.marginTop, marginBottom:cs.marginBottom,
+            paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom,
+            display:cs.display, gap:cs.gap,
+          };
+        };
+        return {
+          width:innerWidth, scrollWidth:document.documentElement.scrollWidth,
+          navCount:document.querySelectorAll('.app-bottom-btn').length,
+          navRows:new Set([...document.querySelectorAll('.app-bottom-btn')].map(x=>Math.round(x.getBoundingClientRect().top))).size,
+          dates:getComputedStyle(document.getElementById('custom-date-fields')).display,
+          chartTop:Math.round(document.getElementById('chart-container').getBoundingClientRect().top),
+          legacyBriefVisible:Boolean(document.getElementById('stock-brief-v8') && getComputedStyle(document.getElementById('stock-brief-v8')).display !== 'none'),
+          geometry:{
+            tab:inspect('#chart-tab'), filter:inspect('#global-filter'), section:inspect('#chart-tab .chart-section'),
+            header:inspect('#chart-tab .chart-header'), periods:inspect('#chart-tab .v40-chart-periods'),
+            quick:inspect('#chart-tab .quick-periods'), date:inspect('#custom-date-toggle'), chart:inspect('#chart-container')
+          }
+        };
+      });
+      console.log('COMPARE_GEOMETRY', width, JSON.stringify(metrics.geometry));
       assert(metrics.scrollWidth <= width, `${width}: analysis overflow`);
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
-      assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 720);
-      const ytdRequest = page.waitForRequest(r => r.url().includes('/api/compare?') && new URL(r.url()).searchParams.has('start'));
+      assert.equal(metrics.legacyBriefVisible,false);
+      assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 420, `${width}: chart top ${metrics.chartTop}`);
+
+      const beforeYtd = await page.evaluate(() => ({
+        releaseFlow:Boolean(window.__chartViewReleaseFlowV40),
+        delegated:document.getElementById('chart-tab')?.dataset.v40PeriodDelegation || '',
+        compareState:window.ChartViewState?.getCompare?.() || null,
+        selected:typeof selectedTickers !== 'undefined' ? [...selectedTickers] : null,
+        ytdCount:document.querySelectorAll('.period-chip[data-period="ytd"]').length,
+      }));
+      console.log('YTD_BEFORE', width, JSON.stringify(beforeYtd));
+      const requestStart = compareRequests.length;
       await page.locator('.period-chip[data-period="ytd"]').click();
-      const ytd = new URL((await ytdRequest).url());
-      assert.equal(ytd.searchParams.get('start'),`${new Date().getFullYear()}-01-01`);
+      await delay(800);
+      const afterYtd = await page.evaluate(() => ({
+        selected:typeof selectedTickers !== 'undefined' ? [...selectedTickers] : null,
+        start:document.getElementById('start-date')?.value || '',
+        end:document.getElementById('end-date')?.value || '',
+        ytdActive:document.querySelector('.period-chip[data-period="ytd"]')?.classList.contains('active') || false,
+      }));
+      const ytdRequests = compareRequests.slice(requestStart);
+      console.log('YTD_AFTER', width, JSON.stringify(afterYtd), JSON.stringify(ytdRequests));
+      const ytdUrl = ytdRequests.map(url => new URL(url)).find(url => url.searchParams.has('start'));
+      assert(ytdUrl, `${width}: YTD did not issue a dated compare request; before=${JSON.stringify(beforeYtd)} after=${JSON.stringify(afterYtd)} requests=${JSON.stringify(ytdRequests)}`);
+      assert.equal(ytdUrl.searchParams.get('start'),`${new Date().getFullYear()}-01-01`);
+
       await page.screenshot({path:`test-results/${width}-analysis.png`,fullPage:true});
       await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
       await page.locator('#watchlist-tab.active').waitFor();
@@ -66,7 +112,6 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
       if (width === 384) {
-        // Simulate provider failure only inside this test browser; verify recovery UX.
         await page.route('**/api/compare?*', r => r.fulfill({status:503,...json({error:'test unavailable'})}));
         await page.locator('.period-chip[data-period="3mo"]').click();
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();

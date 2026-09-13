@@ -24,7 +24,8 @@ def test_v39_has_distinct_home_hierarchy_and_mobile_rules():
     assert "@media (prefers-color-scheme: dark)" in css
 
 
-def test_v39_keeps_existing_home_order_and_news_version():
+def test_v39_keeps_home_order_while_news_owner_moves_to_v40():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "market-watchlist-news-body-status" in boot
-    assert "home.dataset.newsVersion = 'v38'" in boot
+    assert "home.dataset.newsVersion = 'v40'" in boot
+    assert "/static/js/personalized_news_v40.js" in boot

@@ -1,0 +1,129 @@
+/* V40.1 desktop comparison compaction. Mobile layout remains owned by comparison_ui_v40.css. */
+
+.v40-sector-toggle { display: none; }
+
+@media (min-width: 721px) {
+  /* The fixed five-destination app nav already owns navigation; the legacy tab bar is duplicate UI. */
+  body.app-shell-ready > #app > .tab-nav { display: none !important; }
+
+  /* Reclaim vertical space without removing search or selected-ticker controls. */
+  .header.app-utility-header {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+  .header.app-utility-header .app-utility-top,
+  .header.app-utility-header .search-hint { display: none !important; }
+  .header.app-utility-header .app-header-search {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1.35fr) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .header.app-utility-header .search-row { margin: 0 !important; }
+  .header.app-utility-header #unified-input { height: 44px !important; }
+  .header.app-utility-header .btn-add {
+    flex-basis: 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
+  .header.app-utility-header .ticker-tags {
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+  }
+
+  #global-filter .global-search {
+    margin-top: 8px;
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 10px 14px 8px;
+  }
+
+  #global-filter .v40-compare-heading {
+    align-items: center;
+    margin-bottom: 7px;
+  }
+
+  #global-filter .search-row { margin-bottom: 4px; }
+  #global-filter #unified-input {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  #global-filter .btn-add {
+    width: 44px;
+    height: 44px;
+  }
+  #global-filter .ticker-tags {
+    min-height: 28px;
+    margin-top: 5px;
+  }
+
+  /* The quick-pick catalogue is secondary. Keep it one row tall until opened. */
+  #global-filter .sector-section {
+    box-sizing: border-box !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    margin: 0 16px 7px !important;
+    padding: 0 14px !important;
+    overflow: hidden !important;
+  }
+
+  #global-filter .sector-section .sector-scroll-container { display: none !important; }
+  #global-filter .sector-section[data-v40-collapsed="false"] {
+    height: auto !important;
+    max-height: 280px !important;
+    overflow: auto !important;
+  }
+  #global-filter .sector-section[data-v40-collapsed="false"] .sector-scroll-container {
+    display: block !important;
+    max-height: 220px;
+    overflow: auto;
+    padding: 8px 0 12px;
+  }
+
+  #global-filter .v40-sector-toggle {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    background: transparent;
+    color: #4e5968;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 780;
+    cursor: pointer;
+  }
+  #global-filter .v40-sector-toggle::after {
+    content: '⌄';
+    font-size: 15px;
+    color: #8b95a1;
+  }
+  #global-filter .v40-sector-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
+
+  #chart-tab .chart-section {
+    margin-top: 0 !important;
+    padding-top: 8px;
+  }
+  #chart-tab .chart-header {
+    min-height: 48px;
+    padding-bottom: 8px;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 959px) {
+  .header.app-utility-header .app-header-search {
+    grid-template-columns: 1fr !important;
+    gap: 5px !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #global-filter .v40-sector-toggle { color: #d7deea; }
+  #global-filter .v40-sector-toggle::after { color: #94a3b8; }
+}
