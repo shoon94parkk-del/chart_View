@@ -1,0 +1,147 @@
+name: Live V41.5 Consistency
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-v41-5-consistency.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  samsung-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --silent
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Test live Chart View
+        run: |
+          cat > smoke.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const assert = require('assert');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              viewport: { width: 384, height: 824 },
+              isMobile: true,
+              hasTouch: true,
+              userAgent: 'Mozilla/5.0 (Linux; Android 16; SAMSUNG SM-S931N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/140.0 Mobile Safari/537.36'
+            });
+            await context.addInitScript(() => {
+              localStorage.setItem('chartview-watchlist-v1', JSON.stringify([
+                {symbol:'005930.KS',name:'삼성전자'},
+                {symbol:'000660.KS',name:'SK하이닉스'},
+                {symbol:'NVDA',name:'엔비디아'},
+                {symbol:'AAPL',name:'애플'},
+                {symbol:'MU',name:'MU'},
+                {symbol:'LITE',name:'LITE'}
+              ]));
+            });
+            const page = await context.newPage();
+            const errors = [];
+            page.on('pageerror', e => errors.push(String(e)));
+
+            const response = await page.goto('https://chart-view-bsg6.onrender.com/?v415-live=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
+            assert(response && response.status() === 200, 'live page HTTP failed');
+            await page.waitForSelector('#home-market-v9', { state: 'visible', timeout: 30000 });
+            await page.waitForSelector('.app-bottom-nav', { state: 'visible', timeout: 20000 });
+
+            // Market: exactly one canonical control, 4 collapsed -> 8 expanded -> 4 collapsed.
+            await page.waitForFunction(() => document.querySelector('#home-market-v9 [data-v415-market-toggle]'), null, { timeout: 15000 });
+            const toggleCount = await page.locator('#home-market-v9 [data-home23-market-toggle], #home-market-v9 [data-v40-market-more], #home-market-v9 [data-v415-market-toggle]').count();
+            assert.strictEqual(toggleCount, 1, `market toggle count=${toggleCount}`);
+            const visibleMarket = () => page.locator('#home-market-v9 .home-market-v9-item:visible').count();
+            assert.strictEqual(await visibleMarket(), 4, 'collapsed market should show 4');
+            await page.locator('#home-market-v9 [data-v415-market-toggle]').tap();
+            await page.waitForFunction(() => document.querySelectorAll('#home-market-v9 .home-market-v9-item').length === 8 && [...document.querySelectorAll('#home-market-v9 .home-market-v9-item')].every(x => getComputedStyle(x).display !== 'none'));
+            assert.strictEqual(await visibleMarket(), 8, 'expanded market should show 8');
+            await page.locator('#home-market-v9 [data-v415-market-toggle]').tap();
+            await page.waitForFunction(() => [...document.querySelectorAll('#home-market-v9 .home-market-v9-item')].filter(x => getComputedStyle(x).display !== 'none').length === 4);
+
+            // Backend news highlights must diversify if 3+ watchlist symbols have news.
+            const newsPayload = await page.evaluate(async () => {
+              const params = new URLSearchParams({
+                tickers: '005930.KS,000660.KS,NVDA,AAPL,MU,LITE',
+                names: '삼성전자|SK하이닉스|엔비디아|애플|MU|LITE',
+                _: String(Date.now())
+              });
+              const r = await fetch('/api/personalized-news?' + params.toString(), { cache: 'no-store' });
+              return { status: r.status, body: await r.json() };
+            });
+            assert.strictEqual(newsPayload.status, 200, 'news API failed');
+            const newsGroups = newsPayload.body.groups || [];
+            const availableSymbols = newsGroups.filter(g => (g.items || []).length).map(g => g.symbol);
+            const apiTop = (newsPayload.body.items || []).slice(0, 3).map(x => x.symbol);
+            if (new Set(availableSymbols).size >= 3) {
+              assert.strictEqual(new Set(apiTop).size, 3, `API TOP3 not diversified: ${apiTop.join(',')}`);
+            }
+
+            // Home cards should reflect the same diversity policy.
+            await page.waitForSelector('#home-personal-news-v37 .news-v40-card', { state: 'visible', timeout: 30000 });
+            await page.waitForTimeout(1200);
+            const cards = page.locator('#home-personal-news-v37 .news-v40-card');
+            const cardCount = await cards.count();
+            assert(cardCount >= 1, 'no Home news cards');
+            const uiTop = (await cards.evaluateAll(nodes => nodes.slice(0, 3).map(n => n.dataset.newsSymbol))).filter(Boolean);
+            if (new Set(availableSymbols).size >= 3 && uiTop.length >= 3) {
+              assert.strictEqual(new Set(uiTop).size, 3, `UI TOP3 not diversified: ${uiTop.join(',')}`);
+            }
+
+            // Only lead price context is expanded by default.
+            const leadDetails = cards.first().locator('.news-v40-market');
+            assert(await leadDetails.evaluate(el => el.open), 'lead 5D context should be open');
+            if (cardCount > 1) {
+              const secondOpen = await cards.nth(1).locator('.news-v40-market').evaluate(el => el.open);
+              assert.strictEqual(secondOpen, false, 'non-lead 5D context should be collapsed');
+            }
+
+            // 5D backend return and series endpoints must describe the exact same period.
+            const leadSymbol = await cards.first().getAttribute('data-news-symbol');
+            const compare = await page.evaluate(async (symbol) => {
+              const r = await fetch(`/api/compare?tickers=${encodeURIComponent(symbol)}&period=5d&_=${Date.now()}`, { cache: 'no-store' });
+              return await r.json();
+            }, leadSymbol);
+            const stock = compare.stocks?.[0];
+            assert(stock && Array.isArray(stock.data) && stock.data.length >= 2, '5D compare data missing');
+            const firstValue = Number(stock.data[0].value);
+            const lastValue = Number(stock.data.at(-1).value);
+            const ret = Number(stock.return);
+            assert(Math.abs(firstValue) < 0.05, `5D series should start near 0, got ${firstValue}`);
+            assert(Math.abs(lastValue - ret) < 0.11, `5D endpoint ${lastValue} != return ${ret}`);
+            assert(Number(stock.observations) <= 8, `5D should use daily observations, got ${stock.observations}`);
+
+            // Visual polyline direction must agree with displayed signed 5D move.
+            await leadDetails.locator('[data-news-v40-market] svg polyline').waitFor({ state: 'visible', timeout: 20000 });
+            const visual = await leadDetails.evaluate(el => {
+              const pctText = el.querySelector('.news-v412-market-metrics strong')?.textContent || '';
+              const pct = Number((pctText.match(/[-+]?\d+(?:\.\d+)?/) || [])[0]);
+              const points = (el.querySelector('polyline')?.getAttribute('points') || '').trim().split(/\s+/).map(p => p.split(',').map(Number));
+              return { pct, firstY: points[0]?.[1], lastY: points.at(-1)?.[1], pctText };
+            });
+            if (Math.abs(visual.pct) > 0.05) {
+              if (visual.pct < 0) assert(visual.lastY > visual.firstY, `negative ${visual.pctText} but line ends visually higher`);
+              if (visual.pct > 0) assert(visual.lastY < visual.firstY, `positive ${visual.pctText} but line ends visually lower`);
+            }
+
+            // Bottom nav remains one row of five.
+            const nav = await page.locator('.app-bottom-btn').evaluateAll(nodes => nodes.map(n => ({ top: Math.round(n.getBoundingClientRect().top), visible: getComputedStyle(n).display !== 'none' })));
+            const visibleNav = nav.filter(x => x.visible);
+            assert.strictEqual(visibleNav.length, 5, `bottom nav count=${visibleNav.length}`);
+            assert.strictEqual(new Set(visibleNav.map(x => x.top)).size, 1, 'bottom nav wrapped');
+            assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
+
+            console.log(JSON.stringify({ toggleCount, availableSymbols, apiTop, uiTop, leadSymbol, observations: stock.observations, return5d: ret, visual }, null, 2));
+            console.log('LIVE V41.5 CONSISTENCY PASSED');
+            await browser.close();
+          })().catch(err => { console.error(err); process.exit(1); });
+          JS
+          node smoke.cjs
