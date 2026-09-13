@@ -1,0 +1,225 @@
+/* V41.4 Home polish: make market expansion visible and give MY stocks a deliberate visual identity. */
+
+/* Market expansion: the legacy mobile strip stayed horizontal even when the state toggled.
+   V41.4 makes collapsed vs expanded states visually distinct and explicit. */
+#home-market-v9 .v40-market-more{
+  width:100%;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin:9px 0 0;
+  padding:0 14px;
+  border:1px solid #dbe7f7;
+  border-radius:12px;
+  background:#f4f8ff;
+  color:#245a9b;
+  font-size:12px;
+  font-weight:820;
+  letter-spacing:-.01em;
+}
+#home-market-v9 .v40-market-more::after{content:'⌄';font-size:15px;line-height:1;transition:transform .18s ease}
+#home-market-v9.v40-market-expanded .v40-market-more::after{transform:rotate(180deg)}
+#home-market-v9.v40-market-expanded .home-market-v9-grid > *{display:block}
+
+/* MY STOCKS home card */
+#home-watchlist-v30.home-watchlist-v30{
+  position:relative;
+  overflow:hidden;
+  margin-top:14px;
+  padding:18px;
+  border:1px solid rgba(49,130,246,.16);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(49,130,246,.13), transparent 34%),
+    linear-gradient(145deg,#f5f9ff 0%,#ffffff 52%,#f8fbff 100%);
+  box-shadow:0 12px 32px rgba(44,85,140,.08);
+}
+#home-watchlist-v30.home-watchlist-v30::before{
+  content:'';
+  position:absolute;
+  inset:0 auto auto 0;
+  width:100%;
+  height:3px;
+  background:linear-gradient(90deg,#3182f6,#73a8ff 55%,rgba(115,168,255,0));
+}
+#home-watchlist-v30 .home-watchlist-v30-head{
+  position:relative;
+  z-index:1;
+  margin-bottom:14px;
+}
+#home-watchlist-v30 .home-watchlist-v30-head > div > span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  margin-bottom:5px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(49,130,246,.1);
+  color:#2168c7;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.045em;
+}
+#home-watchlist-v30 .home-watchlist-v30-head > div > span::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#3182f6;
+  box-shadow:0 0 0 4px rgba(49,130,246,.11);
+}
+#home-watchlist-v30 .home-watchlist-v30-head h3{
+  margin:0;
+  color:#15243a;
+  font-size:20px;
+  letter-spacing:-.035em;
+}
+#home-watchlist-v30 .home-watchlist-v30-head button{
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid rgba(49,130,246,.16);
+  border-radius:11px;
+  background:rgba(255,255,255,.82);
+  color:#2563b9;
+  box-shadow:0 4px 12px rgba(49,130,246,.06);
+}
+#home-watchlist-v30 .home-watchlist-v30-chips{
+  position:relative;
+  z-index:1;
+  gap:10px;
+}
+#home-watchlist-v30 .home-watchlist-v30-chips > button{
+  position:relative;
+  min-height:116px;
+  padding:13px 12px 12px;
+  overflow:hidden;
+  border:1px solid rgba(143,163,188,.22);
+  border-radius:16px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 8px 20px rgba(30,64,110,.055);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+#home-watchlist-v30 .home-watchlist-v30-chips > button::before{
+  content:'';
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:#aeb8c4;
+}
+#home-watchlist-v30 .home-watchlist-v30-chips > button:has(em.up)::before{background:#ef5350}
+#home-watchlist-v30 .home-watchlist-v30-chips > button:has(em.down)::before{background:#3182f6}
+#home-watchlist-v30 .home-watchlist-v30-chips > button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(49,130,246,.26);
+  box-shadow:0 12px 26px rgba(30,64,110,.09);
+}
+#home-watchlist-v30 .home-watch-v33-top{gap:8px}
+#home-watchlist-v30 .home-watch-v33-top strong{
+  color:#15243a;
+  font-size:14px;
+  font-weight:850;
+  letter-spacing:-.025em;
+}
+#home-watchlist-v30 .home-watch-v33-top i{
+  padding:3px 6px;
+  border:1px solid #e2eaf4;
+  border-radius:999px;
+  background:#f5f8fc;
+  color:#617087;
+  font-size:8px;
+}
+#home-watchlist-v30 .home-watchlist-v30-chips small{
+  margin-top:4px;
+  color:#8996a8;
+  font-size:9.5px;
+}
+#home-watchlist-v30 .home-watch-v33-quote{
+  align-items:center;
+  margin-top:13px;
+}
+#home-watchlist-v30 .home-watch-v33-quote b{
+  color:#1c2b40;
+  font-size:15px;
+  font-weight:860;
+}
+#home-watchlist-v30 .home-watch-v33-quote em{
+  padding:5px 7px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+}
+#home-watchlist-v30 .home-watch-v33-quote em.up{background:rgba(239,68,68,.09);color:#d9363e}
+#home-watchlist-v30 .home-watch-v33-quote em.down{background:rgba(49,130,246,.1);color:#256dc5}
+#home-watchlist-v30 .home-watch-v33-quote em.flat{background:#f2f4f6;color:#7d8998}
+#home-watchlist-v30 .home-watch-v40-basis{
+  margin-top:9px;
+  padding-top:8px;
+  border-top:1px solid #edf2f7;
+  color:#7d8998;
+  font-size:10px;
+  font-weight:690;
+}
+#home-watchlist-v30 .home-watch-v40-basis::before{content:'기준 · ';color:#a2adba}
+
+@media(max-width:720px){
+  /* Make the market button produce an unmistakable second row rather than extending a hidden horizontal rail. */
+  #home-market-v9 .home-market-v9-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+    overflow:visible;
+    padding-bottom:0;
+    scroll-snap-type:none;
+  }
+  #home-market-v9 .home-market-v9-item{
+    width:auto;
+    min-height:64px;
+    padding:9px 10px;
+  }
+  #home-market-v9:not(.v40-market-expanded) .home-market-v9-grid > :nth-child(n+5){display:none!important}
+  #home-market-v9.v40-market-expanded .home-market-v9-grid > :nth-child(n+5){display:block!important}
+
+  #home-watchlist-v30.home-watchlist-v30{
+    margin:10px 10px 14px;
+    padding:15px;
+    border-radius:19px;
+  }
+  #home-watchlist-v30 .home-watchlist-v30-head h3{font-size:18px}
+  #home-watchlist-v30 .home-watchlist-v30-head button{min-height:36px;font-size:11px}
+  /* Keep the compact one-column Stage12 behavior, but make each row feel intentional. */
+  #home-watchlist-v30 .home-watchlist-v30-chips{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  #home-watchlist-v30 .home-watchlist-v30-chips > button{
+    min-height:0;
+    padding:12px 12px 11px 14px;
+  }
+  #home-watchlist-v30 .home-watch-v33-quote{margin-top:8px}
+  #home-watchlist-v30 .home-watch-v33-quote b{font-size:16px}
+  #home-watchlist-v30 .home-watch-v40-basis{margin-top:7px;padding-top:6px}
+}
+
+@media(prefers-color-scheme:dark){
+  #home-market-v9 .v40-market-more{border-color:#33445a;background:#1d2939;color:#c7dcff}
+  #home-watchlist-v30.home-watchlist-v30{
+    border-color:#2c405c;
+    background:radial-gradient(circle at 100% 0%,rgba(49,130,246,.2),transparent 34%),linear-gradient(145deg,#182334,#111827 56%,#152033);
+    box-shadow:none;
+  }
+  #home-watchlist-v30 .home-watchlist-v30-head h3{color:#f3f7fc}
+  #home-watchlist-v30 .home-watchlist-v30-head button{border-color:#32445e;background:#182438;color:#a9caff}
+  #home-watchlist-v30 .home-watchlist-v30-chips > button{border-color:#2b394d;background:#172131;box-shadow:none}
+  #home-watchlist-v30 .home-watch-v33-top strong,#home-watchlist-v30 .home-watch-v33-quote b{color:#edf4ff}
+  #home-watchlist-v30 .home-watch-v33-top i{border-color:#334257;background:#202c3c;color:#a9b5c6}
+  #home-watchlist-v30 .home-watch-v40-basis{border-color:#29384b;color:#8fa0b5}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #home-market-v9 .v40-market-more::after,
+  #home-watchlist-v30 .home-watchlist-v30-chips > button{transition:none}
+}
