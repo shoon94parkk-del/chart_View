@@ -1,0 +1,30 @@
+name: Bump V43 Navigation Asset Cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bump-ux-v43-cache.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump cache token
+        run: python scripts/bump_ux_v43_cache.py
+      - name: Syntax check
+        run: node --check static/js/ux_patch.js
+      - name: Commit product change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/js/ux_patch.js
+          git commit -m 'fix: bust navigation asset cache for V43'
+          git push
