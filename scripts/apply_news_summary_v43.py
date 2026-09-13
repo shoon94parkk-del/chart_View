@@ -75,6 +75,18 @@ replace(
     "home.dataset.newsReadability = 'v41.2'",
     "home.dataset.newsReadability = 'v43'",
 )
+replace(
+    'templates/index.html',
+    'home_watchlist_boot_v32c.js?v=20260913v42',
+    'home_watchlist_boot_v32c.js?v=20260913v43',
+)
+
+# Old test asserted that the list API could never expose a provider summary seed.
+replace(
+    'tests/test_v37_personalized_news.py',
+    'assert payload["displayPolicy"] == "headline-source-time-link-only"',
+    'assert payload["displayPolicy"] == "headline-source-time-link-summary-seed"',
+)
 
 css_path = Path('static/css/news_readability_v41_2.css')
 css = css_path.read_text(encoding='utf-8')
