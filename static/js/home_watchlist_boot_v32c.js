@@ -34,10 +34,12 @@
 
   function ensureReleaseAssets() {
     addStyle('link[data-release-ui-v40]', '/static/css/release_ui_v40.css?v=20260913stage12', 'releaseUiV40');
+    addStyle('link[data-comparison-ui-v40]', '/static/css/comparison_ui_v40.css?v=20260913stage12', 'comparisonUiV40');
     addScript('script[data-app-state-v40]', '/static/js/app_state_v40.js?v=20260913stage12', 'appStateV40');
     addScript('script[data-single-detail-v40]', '/static/js/single_detail_v40.js?v=20260913stage12', 'singleDetailV40');
     addScript('script[data-personalized-news-v40]', '/static/js/personalized_news_v40.js?v=20260913stage12', 'personalizedNewsV40');
     addScript('script[data-release-ui-v40]', '/static/js/release_ui_v40.js?v=20260913stage12', 'releaseUiV40');
+    addScript('script[data-release-flow-v40]', '/static/js/release_flow_v40.js?v=20260913stage12', 'releaseFlowV40');
   }
 
   function ensureAllAssets() {
