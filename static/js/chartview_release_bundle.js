@@ -5381,7 +5381,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (head) {
       const title = head.querySelector('h2');
       const intro = head.querySelector('p');
-      if (title) title.textContent = 'MY 관심';
+      if (title) title.textContent = '내 관심종목';
       if (intro) intro.textContent = '관심종목과 관련 뉴스를 한 화면에서 확인합니다.';
     }
     if (!main.querySelector('[data-v41-switch]')) {
