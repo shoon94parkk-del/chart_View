@@ -183,3 +183,15 @@ def test_local_assets_exist():
     assert client.get('/health').json()['revision']
     for path in re.findall(r'(?:src|href)="(/static/[^"?]+)', html):
         assert client.get(path).status_code == 200, path
+
+
+def test_versioned_assets_are_immutable_and_fonts_stay_local():
+    html = client.get('/').text
+    assert 'orioncactus/pretendard' not in html
+    versioned = client.get('/static/js/promo_v1.js?v=test')
+    assert versioned.headers['cache-control'] == 'public, max-age=31536000, immutable'
+    unversioned = client.get('/static/chartview-mark.svg')
+    assert unversioned.headers['cache-control'].startswith('public, max-age=3600')
+    widget = Path('static/js/ai_daily_widget.js').read_text(encoding='utf-8')
+    assert "ai_daily_rankings.json?v=" in widget
+    assert 'Date.now()' not in widget

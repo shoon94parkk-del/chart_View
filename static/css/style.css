@@ -36,7 +36,7 @@
 html,
 body {
     height: 100%;
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', Roboto, sans-serif;
     background: var(--toss-gray-50);
     color: var(--toss-gray-900);
     -webkit-text-size-adjust: 100%;

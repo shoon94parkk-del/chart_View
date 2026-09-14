@@ -65,6 +65,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def cache_static_assets(request: Request, call_next):
+    """Cache immutable, versioned assets and briefly cache unversioned data files."""
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        if request.query_params.get("v"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
+    return response
+
 # 정적 파일 및 템플릿
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
