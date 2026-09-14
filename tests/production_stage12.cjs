@@ -33,7 +33,7 @@ fs.mkdirSync(OUT, { recursive: true });
     assert.ok(['daily', 'stale', 'live'].includes(consensus.cacheMode), `unexpected consensus cacheMode ${consensus.cacheMode}`);
 
     await page.waitForFunction(() => window.ChartViewState?.version === 'v40' && typeof window.__openStockDetail === 'function', null, { timeout: 30000 });
-    await page.waitForFunction(() => document.querySelector('#home-tab .home-v8')?.dataset?.uiVersion === 'v40-stage12', null, { timeout: 30000 });
+    await page.waitForSelector('#home-tab .home-v8.home16-market-home #home-v8-body', { state: 'visible', timeout: 30000 });
 
     await page.locator('#home-watchlist-v30').waitFor({ timeout: 30000 });
     const homeOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -49,6 +49,8 @@ fs.mkdirSync(OUT, { recursive: true });
     await page.waitForSelector('.my-hub-v41-news-row .news-v412-summary:not(.is-loading)', { state: 'visible', timeout: 60000 });
 
     const summary = page.locator('.my-hub-v41-news-row .news-v412-summary:not(.is-loading)').first();
+    const summaryHandle = await summary.elementHandle();
+    assert.ok(summaryHandle, 'production MY news summary handle missing');
     const realSummaryText = (await summary.locator('.news-v417-summary-text').innerText()).trim();
     assert.ok(realSummaryText.length > 0, 'production MY news summary text empty');
 
@@ -67,12 +69,14 @@ fs.mkdirSync(OUT, { recursive: true });
     }));
     assert.ok(summaryBefore.scrollHeight > summaryBefore.clientHeight + 2, `production summary not clipped before expansion ${JSON.stringify(summaryBefore)}`);
 
-    await summary.click();
-    await page.waitForFunction(() => document.querySelector('.my-hub-v41-news-row .news-v412-summary[aria-expanded="true"]'));
-    const summaryAfter = await summary.evaluate((box) => {
+    await summaryHandle.click();
+    await page.waitForFunction((box) => box?.getAttribute('aria-expanded') === 'true', summaryHandle);
+    const summaryAfter = await summaryHandle.evaluate((box) => {
       const text = box.querySelector('.news-v417-summary-text');
       const row = box.closest('.my-hub-v41-news-row');
       const style = getComputedStyle(text);
+      const rowRect = row?.getBoundingClientRect();
+      const textRect = text.getBoundingClientRect();
       return {
         ariaExpanded: box.getAttribute('aria-expanded'),
         buttonText: box.querySelector('.news-v417-summary-head i')?.textContent,
@@ -82,12 +86,18 @@ fs.mkdirSync(OUT, { recursive: true });
         overflow: style.overflow,
         rowClientHeight: row?.clientHeight || 0,
         rowScrollHeight: row?.scrollHeight || 0,
+        rowBottom: rowRect?.bottom || 0,
+        textBottom: textRect.bottom,
+        connected: box.isConnected,
       };
     });
     assert.equal(summaryAfter.ariaExpanded, 'true');
+    assert.equal(summaryAfter.connected, true, 'expanded production summary was replaced during interaction');
     assert.equal(summaryAfter.buttonText, '접기');
     assert.ok(summaryAfter.clientHeight >= summaryAfter.scrollHeight - 1, `production summary still clipped ${JSON.stringify(summaryAfter)}`);
-    assert.ok(summaryAfter.rowClientHeight >= summaryAfter.rowScrollHeight - 1, `production MY news row still clips expanded summary ${JSON.stringify(summaryAfter)}`);
+    // The lead card has an intentionally clipped decorative pseudo-element, so
+    // row scrollHeight is larger than clientHeight even when the text is visible.
+    assert.ok(summaryAfter.textBottom <= summaryAfter.rowBottom + 1, `production MY news row still clips expanded summary ${JSON.stringify(summaryAfter)}`);
     await page.screenshot({ path: path.join(OUT, 'my-news-expanded-390.png'), fullPage: true });
 
     await page.evaluate(() => window.__openAppTab('home'));
