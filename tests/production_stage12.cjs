@@ -16,6 +16,15 @@ fs.mkdirSync(OUT, { recursive: true });
   try {
     const response = await page.goto(`${BASE}/?production_stage12=${Date.now()}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
     assert.equal(response.status(), 200);
+
+    // Consensus previously regressed to 503 whenever Yahoo's crumb endpoint rate-limited.
+    // Keep a real production check here so stale-but-valid scheduled snapshots must remain usable.
+    const consensusResponse = await context.request.get(`${BASE}/api/consensus?ticker=AAPL&production_stage12=${Date.now()}`, { timeout: 30000 });
+    assert.equal(consensusResponse.status(), 200, `production consensus status ${consensusResponse.status()}`);
+    const consensus = await consensusResponse.json();
+    assert.ok(consensus && consensus.periods && Object.keys(consensus.periods).length > 0, 'production consensus periods empty');
+    assert.ok(['daily', 'stale', 'live'].includes(consensus.cacheMode), `unexpected consensus cacheMode ${consensus.cacheMode}`);
+
     await page.waitForFunction(() => window.ChartViewState?.version === 'v40' && typeof window.__openStockDetail === 'function', null, { timeout: 30000 });
     await page.waitForFunction(() => document.querySelector('#home-tab .home-v8')?.dataset?.uiVersion === 'v40-stage12', null, { timeout: 30000 });
 
@@ -48,7 +57,7 @@ fs.mkdirSync(OUT, { recursive: true });
     await page.screenshot({ path: path.join(OUT, 'compare-390.png'), fullPage: true });
 
     assert.equal(pageErrors.length, 0, pageErrors.join('\n'));
-    console.log('PRODUCTION_STAGE12_PASS', JSON.stringify({ detailChartTop, compareTop, priceText, compareText }));
+    console.log('PRODUCTION_STAGE12_PASS', JSON.stringify({ detailChartTop, compareTop, priceText, compareText, consensusCacheMode: consensus.cacheMode }));
   } finally {
     await context.close();
     await browser.close();
