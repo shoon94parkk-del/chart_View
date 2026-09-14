@@ -1,0 +1,25 @@
+/* V48: MY news summary expansion must reveal the full summary text. */
+#watchlist-tab .my-hub-v41-news-row .news-v412-summary.is-expanded{
+  height:auto!important;
+  max-height:none!important;
+  min-height:0;
+  overflow:visible!important;
+}
+#watchlist-tab .my-hub-v41-news-row .news-v412-summary.is-expanded .news-v417-summary-text{
+  display:block!important;
+  -webkit-box-orient:initial!important;
+  -webkit-line-clamp:unset!important;
+  line-clamp:unset!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  white-space:normal!important;
+  text-overflow:clip!important;
+}
+#watchlist-tab .my-hub-v41-news-row .news-v412-summary[aria-expanded="true"] .news-v417-summary-text{
+  display:block!important;
+  -webkit-line-clamp:unset!important;
+  line-clamp:unset!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
