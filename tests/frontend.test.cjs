@@ -3,6 +3,13 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
+test('promo keeps the directly loaded AI widget instead of replacing it', () => {
+  const source = fs.readFileSync('static/js/promo_v1.js', 'utf8');
+  assert.match(source, /script\[src\*="\/static\/js\/ai_daily_widget\.js"\]/);
+  assert.doesNotMatch(source, /existing\.remove\(\)/);
+  assert.doesNotMatch(source, /ai_daily_widget\.js\?v=20260914v5/);
+});
+
 function load(file, exports = '', storage = {}) {
   const context = vm.createContext({
     window: {}, document: { readyState: 'loading', addEventListener() {} },

@@ -47,19 +47,16 @@
   }
 
   function loadAiDailyWidget() {
-    const existing = document.querySelector('script[data-ai-daily-home]');
+    const existing = document.querySelector('script[src*="/static/js/ai_daily_widget.js"]');
     if (existing) {
-      if (existing.dataset.version !== 'v5') existing.remove();
-      else {
-        if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
-        return;
-      }
+      if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
+      return;
     }
     const script = document.createElement('script');
-    script.src = '/static/js/ai_daily_widget.js?v=20260914v5';
+    script.src = '/static/js/ai_daily_widget.js?v=20260914v6';
     script.async = false;
     script.dataset.aiDailyHome = '1';
-    script.dataset.version = 'v5';
+    script.dataset.version = 'v6';
     document.head.appendChild(script);
   }
 
