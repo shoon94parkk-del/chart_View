@@ -5,6 +5,12 @@ on:
     # 17:30 KST on Korean weekdays, after the regular market close
     - cron: '30 8 * * 1-5'
   workflow_dispatch:
+  # Also run immediately when this workflow definition itself is changed.
+  # Data commits do not match this path, so there is no recursive loop.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-screener.yml'
 
 permissions:
   contents: write
