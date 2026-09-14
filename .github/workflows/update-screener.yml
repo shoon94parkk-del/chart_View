@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/update-screener.yml'
+      - 'scripts/generate_screener.py'
+      - 'scripts/export_screener_candidates.py'
 
 permissions:
   contents: write
@@ -35,8 +37,32 @@ jobs:
       - name: Generate precomputed screener
         run: python scripts/generate_screener.py
 
-      - name: Export top 100 candidates
+      - name: Export and cross-check top 100 candidates
         run: python scripts/export_screener_candidates.py
+
+      - name: Validate AI input contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          top = json.loads(Path('static/data/screener_top100.json').read_text(encoding='utf-8'))
+          meta = json.loads(Path('static/data/screener_meta.json').read_text(encoding='utf-8'))
+          verification = top.get('verification') or {}
+          stocks = top.get('stocks') or []
+          trade_date = str(top.get('tradeDate') or '')
+
+          assert trade_date, 'missing tradeDate'
+          assert trade_date == str(meta.get('tradeDate') or ''), 'tradeDate mismatch between meta and top100'
+          assert len(stocks) == 100, f'top100 must contain 100 rows, got {len(stocks)}'
+          assert verification.get('candidateExactDateCount') == 100, 'top100 contains stale-date rows'
+          assert verification.get('priceMismatchCount', 0) == 0, 'secondary source price mismatch detected'
+          print(
+              'AI input OK:', trade_date,
+              'verified=', verification.get('priceVerifiedCount'),
+              'pending=', verification.get('pricePendingCount'),
+          )
+          PY
 
       - name: Refresh AI recommendation track record
         run: python scripts/update_ai_recommendations.py
@@ -45,12 +71,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/ai_recommendations.json
+          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_recommendations.json
           if git diff --cached --quiet; then
             echo "No screener changes"
           else
-            git commit -m "data: refresh Korean stock screener and recommendations"
+            git commit -m "data: refresh Korean stock screener and validation"
             git push origin HEAD:main
           fi
-
-# manual-trigger: 2026-09-14T17:14+09:00
