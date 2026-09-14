@@ -1,4 +1,70 @@
 {
-  "updated": null,
-  "days": []
+  "updated": "2026-09-14T17:25:00+09:00",
+  "days": [
+    {
+      "tradeDate": "2026-09-14",
+      "status": "잠정 TOP3 — 9/14 확정종가 1차 검증 완료, 독립 2차 가격소스 반영 대기",
+      "top3": [
+        {
+          "rank": 1,
+          "code": "012450",
+          "symbol": "012450.KS",
+          "name": "한화에어로스페이스",
+          "close": 1137000,
+          "previousClose": 1081000,
+          "changePct": 5.18,
+          "totalScore": 91,
+          "technicalScore": 26,
+          "industryScore": 20,
+          "companyScore": 24,
+          "valuationScore": 11,
+          "catalystRiskScore": 10,
+          "grade": "A 후보/가격 2중검증 대기",
+          "reason": "유럽 방산 수출의 장기 확장성이 강화되고 상반기 매출·영업이익 성장도 강하다. RSI 58.2, 20일선 재돌파와 거래량 증가로 단기 진입 신호도 개선됐다."
+        },
+        {
+          "rank": 2,
+          "code": "272210",
+          "symbol": "272210.KS",
+          "name": "한화시스템",
+          "close": 75000,
+          "previousClose": 70900,
+          "changePct": 5.78,
+          "totalScore": 88,
+          "technicalScore": 29,
+          "industryScore": 19,
+          "companyScore": 22,
+          "valuationScore": 9,
+          "catalystRiskScore": 9,
+          "grade": "A 후보/가격 2중검증 대기",
+          "reason": "방산·레이저 대공무기·우주 사업의 구조적 성장과 실적 개선이 이어지는 가운데, 거래량 3.05배와 20일선 상향 돌파가 확인돼 오늘 기술적 타이밍이 가장 강한 축에 속한다."
+        },
+        {
+          "rank": 3,
+          "code": "064290",
+          "symbol": "064290.KQ",
+          "name": "인텍플러스",
+          "close": 44850,
+          "previousClose": 48850,
+          "changePct": -8.19,
+          "totalScore": 86,
+          "technicalScore": 28,
+          "industryScore": 19,
+          "companyScore": 23,
+          "valuationScore": 7,
+          "catalystRiskScore": 9,
+          "grade": "B 눌림대기",
+          "reason": "반도체 검사장비 수주잔고가 역대 최대 수준이고 2027년 큰 폭의 실적 레버리지가 예상된다. 다만 최근 20거래일 약 45% 상승 후 오늘 -8.19% 조정이라 즉시 추격보다 눌림 안정 확인이 우선이다."
+        }
+      ],
+      "top10": [],
+      "verification": {
+        "fullUniverse": true,
+        "tradeDateMatched": true,
+        "universeCount": 2650,
+        "usableStocks": 2603,
+        "finalPriceCrossCheck": "pending_second_independent_source"
+      }
+    }
+  ]
 }
