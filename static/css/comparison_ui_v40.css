@@ -52,6 +52,9 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   margin: 4px 0 0 auto;
   justify-content: flex-end;
 }
+#chart-tab .v40-chart-periods.custom-range-open #custom-date-fields {
+  display: grid !important;
+}
 #chart-container { min-height: 260px; }
 
 @media (max-width: 720px) {

@@ -379,7 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setCustomDateOpen(open) {
         if (!dateSection || !customDateToggle || !customDateFields) return;
-        dateSection.classList.toggle('custom-range-open', open);
+        const rangeContainer = customDateToggle.closest('.v40-chart-periods') || dateSection;
+        rangeContainer.classList.toggle('custom-range-open', open);
         customDateToggle.setAttribute('aria-expanded', String(open));
         customDateFields.hidden = !open;
         const arrow = customDateToggle.querySelector('.custom-date-arrow');
