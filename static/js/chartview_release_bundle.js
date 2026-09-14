@@ -5010,8 +5010,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   function polishScreenerResults() {
     const root = document.getElementById('screener-results');
     if (!root) return;
-    root.querySelectorAll('.screen-add').forEach((button) => { button.textContent = '비교에 추가'; button.setAttribute('aria-label', `${button.dataset.name || button.dataset.symbol} 비교에 추가`); });
-    root.querySelectorAll('.screen-idea').forEach((button) => { button.textContent = '상세 보기'; button.setAttribute('aria-label', `${button.dataset.name || button.dataset.symbol} 상세 보기`); });
+    const polishButton = (button, label, action) => {
+      const aria = `${button.dataset.name || button.dataset.symbol} ${action}`;
+      if (button.textContent !== label) button.textContent = label;
+      if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
+    };
+    root.querySelectorAll('.screen-add').forEach((button) => polishButton(button, '비교에 추가', '비교에 추가'));
+    root.querySelectorAll('.screen-idea').forEach((button) => polishButton(button, '상세 보기', '상세 보기'));
     const table = root.querySelector('.screener-table');
     if (!table || table.dataset.v40Polished === '1') return;
     table.dataset.v40Polished = '1';
