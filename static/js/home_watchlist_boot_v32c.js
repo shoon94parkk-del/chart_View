@@ -83,6 +83,7 @@
     addStyle('link[data-news-status-v401]', '/static/css/news_status_v40_1.css?v=20260913v401', 'newsStatusV401');
     addStyle('link[data-my-hub-v41]', '/static/css/my_hub_v41.css?v=20260913v45', 'myHubV41');
     addStyle('link[data-news-readability-v412]', '/static/css/news_readability_v41_2.css?v=20260913v43', 'newsReadabilityV412');
+    addStyle('link[data-news-summary-expand-v48]', '/static/css/news_summary_expand_v48.css?v=20260914v48', 'newsSummaryExpandV48');
     addStyle('link[data-resilience-v413]', '/static/css/resilience_v41_3.css?v=20260913v413', 'resilienceV413');
     addStyle('link[data-home-polish-v414]', '/static/css/home_polish_v41_4.css?v=20260913v414', 'homePolishV414');
     addStyle('link[data-home-watchlist-compact-v46]', '/static/css/home_watchlist_compact_v46.css?v=20260913v47', 'homeWatchlistCompactV46');
