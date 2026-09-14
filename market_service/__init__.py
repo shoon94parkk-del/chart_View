@@ -22,8 +22,14 @@ sys.modules[_spec.name] = _legacy
 _spec.loader.exec_module(_legacy)
 
 from realtime_korea import install_patch
+from snapshot_warmer import start_snapshot_warmer
 
 install_patch(_legacy)
+# Render-only daemon: keep shared Home/market snapshots hot every five minutes.
+# The helper is a no-op in local development and CI because RENDER_EXTERNAL_URL
+# is not present there.
+start_snapshot_warmer()
+
 _legacy.__name__ = __name__
 _legacy.__package__ = ""
 sys.modules[__name__] = _legacy
