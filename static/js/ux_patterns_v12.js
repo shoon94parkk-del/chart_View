@@ -59,7 +59,9 @@
     const syncFromOriginal = () => {
       mobileValue.value = valueSelect.value;
       mobileSort.value = sortSelect.value;
-      const count = Number(valueSelect.value !== '1000000000') + Number(sortSelect.value !== 'score');
+      const custom = typeof window.__getScreenerCustomFilters === 'function' ? window.__getScreenerCustomFilters() : {};
+      const customCount = Object.entries(custom).filter(([key, value]) => key === 'trend' ? value !== 'any' : value != null).length;
+      const count = Number(valueSelect.value !== '0') + Number(sortSelect.value !== 'score') + customCount;
       const badge = qs('#ux12-filter-count');
       if (badge) badge.textContent = String(count);
       trigger.classList.toggle('has-filter', count > 0);
@@ -73,6 +75,7 @@
     mobileSort.addEventListener('change', () => emit(sortSelect, mobileSort));
     valueSelect.addEventListener('change', syncFromOriginal);
     sortSelect.addEventListener('change', syncFromOriginal);
+    document.addEventListener('screener:customfilter', syncFromOriginal);
 
     const setOpen = (open) => {
       document.body.classList.toggle('ux12-sheet-open', open);

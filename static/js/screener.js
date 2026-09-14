@@ -3,11 +3,12 @@
 
   let payload = null;
   let loadingPromise = null;
-  let preset = 'candidate';
+  let preset = 'all';
   let market = 'ALL';
-  let minValue = 1000000000;
+  let minValue = 0;
   let sortKey = 'score';
   let quickFilter = 'none';
+  const customFilters = { rsiMin: null, rsiMax: null, volumeMin: null, ret20Min: null, scoreMin: null, trend: 'any' };
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -58,8 +59,8 @@
           <div class="screener-row screener-main-row">
             <input id="screener-search" class="screener-search" placeholder="종목명 또는 6자리 코드 검색" autocomplete="off">
             <select id="screener-value" class="screen-select" aria-label="최소 평균 거래대금">
-              <option value="0">거래대금 전체</option>
-              <option value="1000000000" selected>평균 거래대금 10억+</option>
+              <option value="0" selected>거래대금 전체</option>
+              <option value="1000000000">평균 거래대금 10억+</option>
               <option value="5000000000">평균 거래대금 50억+</option>
               <option value="10000000000">평균 거래대금 100억+</option>
             </select>
@@ -79,14 +80,27 @@
           </div>
 
           <div class="screener-row screen-scroll-row">
-            <button class="screen-chip active" data-screen-preset="candidate">종합 후보</button>
+            <button class="screen-chip" data-screen-preset="candidate">종합 후보</button>
             <button class="screen-chip" data-screen-preset="momentum">추세+거래량</button>
             <button class="screen-chip" data-screen-preset="oversold">RSI 과매도</button>
             <button class="screen-chip" data-screen-preset="volume">거래량 2배+</button>
             <button class="screen-chip" data-screen-preset="cross20">20일선 돌파</button>
             <button class="screen-chip" data-screen-preset="aligned">정배열</button>
-            <button class="screen-chip" data-screen-preset="all">조건 없음</button>
+            <button class="screen-chip active" data-screen-preset="all">전체 보기</button>
           </div>
+
+          <details class="screener-custom-filters">
+            <summary>직접 조건 설정 <span><b data-screen-custom-count>0</b>개 적용</span></summary>
+            <div class="screener-custom-grid">
+              <label><span>RSI 최소</span><input type="number" inputmode="decimal" min="0" max="100" step="1" placeholder="예: 30" data-screen-custom="rsiMin"></label>
+              <label><span>RSI 최대</span><input type="number" inputmode="decimal" min="0" max="100" step="1" placeholder="예: 60" data-screen-custom="rsiMax"></label>
+              <label><span>거래량 배수 이상</span><input type="number" inputmode="decimal" min="0" step="0.1" placeholder="예: 1.5" data-screen-custom="volumeMin"></label>
+              <label><span>20일 수익률 이상</span><input type="number" inputmode="decimal" step="1" placeholder="예: -5" data-screen-custom="ret20Min"></label>
+              <label><span>기술점수 이상</span><input type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="예: 50" data-screen-custom="scoreMin"></label>
+              <label><span>추세 상태</span><select data-screen-custom="trend"><option value="any">전체</option><option value="above20">20일선 위</option><option value="cross20">20일선 돌파</option><option value="aligned">정배열</option></select></label>
+              <button type="button" class="screener-custom-reset" data-screen-custom-reset>직접 조건 지우기</button>
+            </div>
+          </details>
         </div>
 
         <div id="screener-summary" class="screener-summary">탭을 열면 최신 스크리너 데이터를 불러옵니다.</div>
@@ -102,6 +116,16 @@
     if (quickFilter === 'up' && !((row.change1d || 0) > 0)) return false;
     if (quickFilter === 'rsi35' && !(row.rsi14 !== null && row.rsi14 !== undefined && Number(row.rsi14) <= 35)) return false;
     if (quickFilter === 'volume2x' && !((row.volumeRatio || 0) >= 2)) return false;
+
+    const rsi = row.rsi14 == null ? null : Number(row.rsi14);
+    if (customFilters.rsiMin != null && !(rsi != null && rsi >= customFilters.rsiMin)) return false;
+    if (customFilters.rsiMax != null && !(rsi != null && rsi <= customFilters.rsiMax)) return false;
+    if (customFilters.volumeMin != null && Number(row.volumeRatio || 0) < customFilters.volumeMin) return false;
+    if (customFilters.ret20Min != null && Number(row.ret20 ?? -Infinity) < customFilters.ret20Min) return false;
+    if (customFilters.scoreMin != null && Number(row.score || 0) < customFilters.scoreMin) return false;
+    if (customFilters.trend === 'above20' && row.above20 !== true) return false;
+    if (customFilters.trend === 'cross20' && row.cross20 !== true) return false;
+    if (customFilters.trend === 'aligned' && row.aligned !== true) return false;
 
     const query = (document.getElementById('screener-search')?.value || '').trim().toLowerCase();
     if (query && !`${row.name} ${row.code} ${row.symbol}`.toLowerCase().includes(query)) return false;
@@ -275,6 +299,32 @@
       sortKey = event.target.value;
       render();
     });
+
+    const readCustomFilters = () => {
+      document.querySelectorAll('[data-screen-custom]').forEach((control) => {
+        const key = control.dataset.screenCustom;
+        customFilters[key] = key === 'trend' ? control.value : (control.value === '' ? null : Number(control.value));
+      });
+      const count = Object.entries(customFilters).filter(([key, value]) => key === 'trend' ? value !== 'any' : value != null).length;
+      const countNode = document.querySelector('[data-screen-custom-count]');
+      if (countNode) countNode.textContent = String(count);
+      document.dispatchEvent(new CustomEvent('screener:customfilter', { detail: { count } }));
+    };
+    document.querySelectorAll('[data-screen-custom]').forEach((control) => {
+      control.addEventListener(control.tagName === 'SELECT' ? 'change' : 'input', () => {
+        readCustomFilters();
+        preset = 'all';
+        document.querySelectorAll('[data-screen-preset]').forEach((item) => item.classList.toggle('active', item.dataset.screenPreset === 'all'));
+        render();
+      });
+    });
+    window.__resetScreenerCustomFilters = function () {
+      document.querySelectorAll('[data-screen-custom]').forEach((control) => { control.value = control.dataset.screenCustom === 'trend' ? 'any' : ''; });
+      readCustomFilters();
+      render();
+    };
+    window.__getScreenerCustomFilters = function () { return { ...customFilters }; };
+    document.querySelector('[data-screen-custom-reset]')?.addEventListener('click', window.__resetScreenerCustomFilters);
   }
 
   window.__setScreenerQuickFilter = function (value = 'none') {

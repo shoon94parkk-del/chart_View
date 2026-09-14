@@ -238,7 +238,16 @@
     const sort = document.getElementById('screener-sort')?.selectedOptions?.[0]?.textContent;
     const market = document.querySelector('[data-screen-market].active')?.textContent?.trim();
     const preset = document.querySelector('[data-screen-preset].active')?.textContent?.trim();
-    return [market, preset, value, sort, search ? `검색: ${search}` : ''].filter(Boolean).join(' · ');
+    const custom = typeof window.__getScreenerCustomFilters === 'function' ? window.__getScreenerCustomFilters() : {};
+    const direct = [
+      custom.rsiMin != null ? `RSI ${custom.rsiMin}+` : '',
+      custom.rsiMax != null ? `RSI ${custom.rsiMax} 이하` : '',
+      custom.volumeMin != null ? `거래량 ${custom.volumeMin}x+` : '',
+      custom.ret20Min != null ? `20일 ${custom.ret20Min}%+` : '',
+      custom.scoreMin != null ? `점수 ${custom.scoreMin}+` : '',
+      ({ above20: '20일선 위', cross20: '20일선 돌파', aligned: '정배열' })[custom.trend] || '',
+    ].filter(Boolean).join(', ');
+    return [market, preset, value, sort, direct ? `직접: ${direct}` : '', search ? `검색: ${search}` : ''].filter(Boolean).join(' · ');
   }
 
   function updateScreenerConditionBar() {
@@ -259,9 +268,10 @@
       const value = document.getElementById('screener-value');
       const sort = document.getElementById('screener-sort');
       if (search) { search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true })); }
-      if (value) { value.value = '1000000000'; value.dispatchEvent(new Event('change', { bubbles: true })); }
+      if (value) { value.value = '0'; value.dispatchEvent(new Event('change', { bubbles: true })); }
       if (sort) { sort.value = 'score'; sort.dispatchEvent(new Event('change', { bubbles: true })); }
       if (typeof window.__setScreenerQuickFilter === 'function') window.__setScreenerQuickFilter('none');
+      if (typeof window.__resetScreenerCustomFilters === 'function') window.__resetScreenerCustomFilters();
       document.querySelector('[data-screen-market="ALL"]')?.click();
       document.querySelector('[data-screen-preset="all"]')?.click();
       updateScreenerConditionBar();
