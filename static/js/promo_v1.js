@@ -46,6 +46,18 @@
     upsertLink('link[rel="icon"]', { rel: 'icon', type: 'image/svg+xml', href: '/static/chartview-mark.svg' });
   }
 
+  function loadAiDailyWidget() {
+    if (document.querySelector('script[data-ai-daily-home]')) {
+      if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = '/static/js/ai_daily_widget.js?v=20260914v2';
+    script.async = false;
+    script.dataset.aiDailyHome = '1';
+    document.head.appendChild(script);
+  }
+
   function trackedShareUrl() {
     const url = new URL(CANONICAL);
     url.searchParams.set('utm_source', 'share');
@@ -162,9 +174,11 @@
     hydrateHead();
     mountIntro();
     mountFooterShare();
+    loadAiDailyWidget();
   }
 
   hydrateHead();
+  loadAiDailyWidget();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();
