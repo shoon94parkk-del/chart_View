@@ -2108,6 +2108,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     finally { openingAppTab = Math.max(0, openingAppTab - 1); }
   }
 
+  function scheduleChartResize(tabId) {
+    if (tabId !== 'chart') return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    });
+  }
+
   function openTab(tabId, options = {}) {
     const pushHistory = options.history !== false;
     const resolved = tabId === 'market' ? 'macro' : tabId;
@@ -2145,6 +2152,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
     callLegacySwitch(resolved);
     syncNavigation(resolved);
+    scheduleChartResize(resolved);
     if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
     }
@@ -2169,6 +2177,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     window.switchTab = function (tabId) {
       base(tabId);
       syncNavigation(tabId);
+      scheduleChartResize(tabId);
       if (tabId === 'home' && typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (tabId === 'chart' && typeof window.__refreshStockBrief === 'function') window.__refreshStockBrief();
       if (tabId === 'watchlist' && typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
