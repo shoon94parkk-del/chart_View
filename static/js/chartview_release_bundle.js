@@ -2762,6 +2762,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     panel.id = 'home-market-v9';
     panel.className = 'home-market-v9';
     panel.innerHTML = `
+      <div class="home-brand-v39" aria-label="Chart View 홈">
+        <img src="/static/chartview-mark.svg" alt="" width="28" height="28">
+        <div><strong>Chart View</strong><span>시장부터 종목까지, 한눈에</span></div>
+      </div>
       <div class="home-market-v9-head">
         <div>
           <span class="home-market-v9-kicker">MARKET NOW</span>
