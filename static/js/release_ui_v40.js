@@ -252,7 +252,7 @@
     if (!controls || document.querySelector('.v40-screener-conditions')) return false;
     const bar = document.createElement('div');
     bar.className = 'v40-screener-conditions';
-    bar.innerHTML = '<div><span>적용 조건</span><strong data-v40-condition-text></strong></div><button type="button" data-v40-reset>조건 초기화</button>';
+    bar.innerHTML = '<div><span>적용 조건</span><strong data-v40-condition-text></strong></div><button type="button" data-v40-reset aria-label="모든 검색 조건 지우기">조건 초기화</button>';
     controls.insertAdjacentElement('afterend', bar);
     bar.querySelector('[data-v40-reset]')?.addEventListener('click', () => {
       const search = document.getElementById('screener-search');
@@ -261,8 +261,9 @@
       if (search) { search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true })); }
       if (value) { value.value = '1000000000'; value.dispatchEvent(new Event('change', { bubbles: true })); }
       if (sort) { sort.value = 'score'; sort.dispatchEvent(new Event('change', { bubbles: true })); }
+      if (typeof window.__setScreenerQuickFilter === 'function') window.__setScreenerQuickFilter('none');
       document.querySelector('[data-screen-market="ALL"]')?.click();
-      document.querySelector('[data-screen-preset="candidate"]')?.click();
+      document.querySelector('[data-screen-preset="all"]')?.click();
       updateScreenerConditionBar();
     });
     controls.addEventListener('input', updateScreenerConditionBar);

@@ -3834,6 +3834,9 @@ body.app-detail-v40-open #chart-tab > .chart-section { display: none; }
 .v40-screener-conditions span { color: var(--v40-muted); font-size: 12px; }
 .v40-screener-conditions strong { font-size: 13px; overflow-wrap: anywhere; }
 .v40-screener-conditions button, .screen-actions button, .screen-watch { min-width: 44px; min-height: 44px; }
+.v40-screener-conditions [data-v40-reset] { padding: 0 14px; border: 1px solid var(--v40-brand); border-radius: 10px; background: var(--v40-surface); color: var(--v40-brand); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.v40-screener-conditions [data-v40-reset]:hover { background: #eef6ff; }
+.v40-screener-conditions [data-v40-reset]:focus-visible { outline: 3px solid rgba(49,130,246,.24); outline-offset: 2px; }
 .v40-performance-more { margin-top: 3px; color: var(--v40-muted); font-size: 11px; white-space: nowrap; }
 .screen-up { color: var(--v40-up); }
 .screen-down { color: var(--v40-down); }
