@@ -10,6 +10,13 @@ fs.mkdirSync(OUT, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ko-KR', timezoneId: 'Asia/Seoul' });
+  await context.addInitScript(() => {
+    localStorage.setItem('chartview-watchlist-v1', JSON.stringify([
+      { symbol: 'DELL', name: 'DELL' },
+      { symbol: 'NVDA', name: '엔비디아' },
+      { symbol: 'AAPL', name: '애플' },
+    ]));
+  });
   const page = await context.newPage();
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(String(error)));
@@ -32,6 +39,59 @@ fs.mkdirSync(OUT, { recursive: true });
     const homeOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.ok(homeOverflow <= 2, `production home overflow ${homeOverflow}`);
     await page.screenshot({ path: path.join(OUT, 'home-390.png'), fullPage: true });
+
+    // Direct live-production regression for the user's MY NEWS expansion path.
+    // This intentionally uses the deployed assets and real personalized-news feed rather than the mocked hub test.
+    await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
+    await page.waitForSelector('#watchlist-tab', { state: 'visible', timeout: 30000 });
+    await page.waitForSelector('[data-v41-view="news"]', { state: 'visible', timeout: 30000 });
+    await page.locator('[data-v41-view="news"]').click();
+    await page.waitForSelector('.my-hub-v41-news-row .news-v412-summary:not(.is-loading)', { state: 'visible', timeout: 60000 });
+
+    const summary = page.locator('.my-hub-v41-news-row .news-v412-summary:not(.is-loading)').first();
+    const realSummaryText = (await summary.locator('.news-v417-summary-text').innerText()).trim();
+    assert.ok(realSummaryText.length > 0, 'production MY news summary text empty');
+
+    // If the current live article happens to fit in two lines, make the already-rendered production
+    // summary longer so we still validate the deployed click/overflow behavior on the real DOM.
+    const naturallyClipped = await summary.locator('.news-v417-summary-text').evaluate((el) => el.scrollHeight > el.clientHeight + 2);
+    if (!naturallyClipped) {
+      await summary.locator('.news-v417-summary-text').evaluate((el) => {
+        el.textContent = `${el.textContent} · 전체보기 검증용 긴 문장입니다. `.repeat(8);
+      });
+    }
+    const summaryBefore = await summary.locator('.news-v417-summary-text').evaluate((el) => ({
+      clientHeight: el.clientHeight,
+      scrollHeight: el.scrollHeight,
+      clamp: getComputedStyle(el).webkitLineClamp,
+    }));
+    assert.ok(summaryBefore.scrollHeight > summaryBefore.clientHeight + 2, `production summary not clipped before expansion ${JSON.stringify(summaryBefore)}`);
+
+    await summary.click();
+    await page.waitForFunction(() => document.querySelector('.my-hub-v41-news-row .news-v412-summary[aria-expanded="true"]'));
+    const summaryAfter = await summary.evaluate((box) => {
+      const text = box.querySelector('.news-v417-summary-text');
+      const row = box.closest('.my-hub-v41-news-row');
+      const style = getComputedStyle(text);
+      return {
+        ariaExpanded: box.getAttribute('aria-expanded'),
+        buttonText: box.querySelector('.news-v417-summary-head i')?.textContent,
+        clientHeight: text.clientHeight,
+        scrollHeight: text.scrollHeight,
+        clamp: style.webkitLineClamp,
+        overflow: style.overflow,
+        rowClientHeight: row?.clientHeight || 0,
+        rowScrollHeight: row?.scrollHeight || 0,
+      };
+    });
+    assert.equal(summaryAfter.ariaExpanded, 'true');
+    assert.equal(summaryAfter.buttonText, '접기');
+    assert.ok(summaryAfter.clientHeight >= summaryAfter.scrollHeight - 1, `production summary still clipped ${JSON.stringify(summaryAfter)}`);
+    assert.ok(summaryAfter.rowClientHeight >= summaryAfter.rowScrollHeight - 1, `production MY news row still clips expanded summary ${JSON.stringify(summaryAfter)}`);
+    await page.screenshot({ path: path.join(OUT, 'my-news-expanded-390.png'), fullPage: true });
+
+    await page.evaluate(() => window.__openAppTab('home'));
+    await page.waitForSelector('#home-tab', { state: 'visible', timeout: 10000 });
 
     await page.evaluate(() => window.__openStockDetail('NVDA', '엔비디아', { instant: true }));
     await page.waitForSelector('#stock-detail-v40:not([hidden]) .detail-v40-id', { timeout: 30000 });
@@ -57,7 +117,7 @@ fs.mkdirSync(OUT, { recursive: true });
     await page.screenshot({ path: path.join(OUT, 'compare-390.png'), fullPage: true });
 
     assert.equal(pageErrors.length, 0, pageErrors.join('\n'));
-    console.log('PRODUCTION_STAGE12_PASS', JSON.stringify({ detailChartTop, compareTop, priceText, compareText, consensusCacheMode: consensus.cacheMode }));
+    console.log('PRODUCTION_STAGE12_PASS', JSON.stringify({ detailChartTop, compareTop, priceText, compareText, consensusCacheMode: consensus.cacheMode, realSummaryTextLength: realSummaryText.length, summaryBefore, summaryAfter }));
   } finally {
     await context.close();
     await browser.close();
