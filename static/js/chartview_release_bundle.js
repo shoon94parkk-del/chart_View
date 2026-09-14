@@ -2108,6 +2108,20 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     finally { openingAppTab = Math.max(0, openingAppTab - 1); }
   }
 
+  function activateTabBody(tabId) {
+    const target = document.getElementById(`${tabId}-tab`);
+    if (!target) return false;
+    document.querySelectorAll('.tab-content').forEach((content) => {
+      const active = content === target;
+      content.classList.toggle('active', active);
+      content.style.display = active ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach((button) => {
+      button.classList.toggle('active', button.dataset.tab === tabId);
+    });
+    return true;
+  }
+
   function scheduleChartResize(tabId) {
     if (tabId !== 'chart') return;
     requestAnimationFrame(() => {
@@ -2121,6 +2135,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
     if (resolved === 'home') {
       callLegacySwitch('home');
+      activateTabBody('home');
       syncNavigation('home');
       if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (pushHistory) commitHistory('home');
@@ -2129,6 +2144,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (resolved === 'watchlist') {
       if (typeof window.__installWatchlist === 'function') window.__installWatchlist();
       callLegacySwitch('watchlist');
+      activateTabBody('watchlist');
       syncNavigation('watchlist');
       if (typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
       if (pushHistory) commitHistory('watchlist');
@@ -2138,6 +2154,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
       else callLegacySwitch('fwdper');
+      activateTabBody('ideas');
       syncNavigation('ideas');
       if (pushHistory) commitHistory('ideas');
       return;
@@ -2146,11 +2163,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
       else callLegacySwitch('screener');
+      activateTabBody('screener');
       syncNavigation('screener');
       if (pushHistory) commitHistory('screener');
       return;
     }
     callLegacySwitch(resolved);
+    activateTabBody(resolved);
     syncNavigation(resolved);
     scheduleChartResize(resolved);
     if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
@@ -2176,6 +2195,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const base = window.switchTab;
     window.switchTab = function (tabId) {
       base(tabId);
+      activateTabBody(tabId);
       syncNavigation(tabId);
       scheduleChartResize(tabId);
       if (tabId === 'home' && typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
