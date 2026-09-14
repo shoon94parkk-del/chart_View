@@ -1,9 +1,9 @@
 """Fast Korean news summaries for Chart View.
 
-The endpoint prefers provider snippets for visible cards, translates the summary
-with a small provider race, and only fetches article HTML when a usable snippet
-is unavailable. This keeps the first three cards responsive on the free Render
-instance while preserving article-body fallback behavior.
+Visible cards prefer provider snippets so users do not wait for publisher HTML.
+English summaries are translated through several free web translators in parallel;
+if every provider is temporarily unavailable, Chart View still returns a short
+Korean finance-topic summary instead of a translation-delay placeholder.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ router = APIRouter()
 
 SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
-SUMMARY_CACHE_VERSION = "v45-fastko1"
+SUMMARY_CACHE_VERSION = "v46-ko-resilient"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
 SUMMARY_CONCURRENCY = 3
@@ -42,6 +42,7 @@ _TRANSLATE_URLS = (
     "https://translate.google.com/translate_a/single",
 )
 _TRANSLATE_FALLBACK_URL = "https://api.mymemory.translated.net/get"
+_BING_TRANSLATOR_URL = "https://www.bing.com/translator"
 _REDIRECT_CODES = {301, 302, 303, 307, 308}
 _BLOCKED_HOSTS = {"localhost", "localhost.localdomain"}
 
@@ -67,6 +68,22 @@ _NOISE_WORDS = (
     "cookie", "cookies", "privacy policy", "terms of use", "subscribe", "subscription", "sign in", "sign up",
     "newsletter", "advertisement", "all rights reserved", "javascript", "브라우저", "쿠키", "개인정보처리방침",
     "구독", "로그인", "회원가입", "무단 전재", "재배포 금지",
+)
+_FINANCE_TOPICS = (
+    (("earnings", "results", "quarter", "eps"), "실적"),
+    (("revenue", "sales"), "매출"),
+    (("profit", "margin"), "이익·수익성"),
+    (("guidance", "outlook", "forecast"), "실적 전망"),
+    (("demand", "orders", "order"), "수요·주문"),
+    (("contract", "deal", "agreement"), "계약·수주"),
+    (("investment", "capex", "plant", "factory"), "투자·증설"),
+    (("acquisition", "merger", "acquire"), "인수합병"),
+    (("dividend", "buyback"), "주주환원"),
+    (("rating", "target price", "price target", "upgrade", "downgrade"), "증권사 의견"),
+    (("ai", "artificial intelligence"), "AI"),
+    (("semiconductor", "chip", "memory", "hbm"), "반도체"),
+    (("shipment", "production", "launch"), "생산·출하"),
+    (("tariff", "regulation", "lawsuit", "approval"), "규제·법률"),
 )
 
 
@@ -106,13 +123,13 @@ def _public_url_or_raise(raw_url: str) -> str:
 def _safe_fetch_html(raw_url: str) -> tuple[str, str]:
     current = _public_url_or_raise(raw_url)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36 ChartView/45",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36 ChartView/46",
         "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.7",
         "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.7,en;q=0.6",
     }
     for _ in range(4):
         current = _public_url_or_raise(current)
-        response = requests.get(current, headers=headers, timeout=(2.5, 4.5), allow_redirects=False, stream=True)
+        response = requests.get(current, headers=headers, timeout=(2.2, 4.0), allow_redirects=False, stream=True)
         if response.status_code in _REDIRECT_CODES and response.headers.get("location"):
             current = urljoin(current, response.headers["location"])
             response.close()
@@ -246,9 +263,9 @@ def _pick_summary_sentences(text: str, title: str, limit: int = 2) -> str:
 def _google_translate_once(endpoint: str, source: str) -> str:
     response = requests.get(
         endpoint,
-        params={"client": "gtx", "sl": "auto", "tl": "ko", "dt": "t", "q": source[:2400]},
-        headers={"User-Agent": "Mozilla/5.0 ChartView/45"},
-        timeout=(2, 4),
+        params={"client": "gtx", "sl": "auto", "tl": "ko", "dt": "t", "q": source[:2200]},
+        headers={"User-Agent": "Mozilla/5.0 ChartView/46"},
+        timeout=(1.8, 3.6),
     )
     response.raise_for_status()
     payload = response.json()
@@ -258,18 +275,49 @@ def _google_translate_once(endpoint: str, source: str) -> str:
     return translated
 
 
-def _fallback_translate(source: str) -> str:
+def _mymemory_translate(source: str) -> str:
     response = requests.get(
         _TRANSLATE_FALLBACK_URL,
         params={"q": source[:480], "langpair": "en|ko"},
-        headers={"User-Agent": "ChartView/45"},
-        timeout=(2, 4),
+        headers={"User-Agent": "ChartView/46"},
+        timeout=(1.8, 3.6),
     )
     response.raise_for_status()
     payload = response.json()
     translated = _clean_text((payload.get("responseData") or {}).get("translatedText"))
     if not translated or not _looks_korean(translated):
         raise ValueError("fallback_translation_not_korean")
+    return translated
+
+
+def _bing_translate(source: str) -> str:
+    session = requests.Session()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.7,en;q=0.6",
+    }
+    landing = session.get(_BING_TRANSLATOR_URL, headers=headers, timeout=(2.0, 4.0))
+    landing.raise_for_status()
+    text = landing.text
+    ig_match = re.search(r'"ig":"([^"]+)"', text, re.I)
+    iid_matches = re.findall(r'data-iid="([^"]+)"', text, re.I)
+    token_match = re.search(r'params_AbusePreventionHelper\s*=\s*\[\s*([^,]+)\s*,\s*"([^"]+)"\s*,', text, re.I)
+    if not ig_match or not iid_matches or not token_match:
+        raise ValueError("bing_token_missing")
+    key = token_match.group(1).strip().strip('"')
+    token = token_match.group(2)
+    base = landing.url[:-10] if landing.url.lower().endswith("translator") else "https://www.bing.com/"
+    response = session.post(
+        f"{base}ttranslatev3?IG={ig_match.group(1)}&IID={iid_matches[-1]}",
+        data={"fromLang": "en", "to": "ko", "text": source[:1000], "token": token, "key": key},
+        headers=headers,
+        timeout=(2.0, 4.0),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    translated = _clean_text(payload[0]["translations"][0]["text"])
+    if not translated or not _looks_korean(translated):
+        raise ValueError("bing_translation_not_korean")
     return translated
 
 
@@ -302,13 +350,14 @@ def _translate_ko(text: str) -> tuple[str, bool]:
     if cached:
         return cached, True
 
-    executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="cv-translate")
+    executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="cv-translate")
     futures = [executor.submit(_google_translate_once, endpoint, source) for endpoint in _TRANSLATE_URLS]
-    futures.append(executor.submit(_fallback_translate, source))
+    futures.append(executor.submit(_mymemory_translate, source))
+    futures.append(executor.submit(_bing_translate, source))
     errors: list[str] = []
     try:
         try:
-            for future in as_completed(futures, timeout=4.8):
+            for future in as_completed(futures, timeout=5.0):
                 try:
                     translated = future.result()
                     if translated and _looks_korean(translated):
@@ -322,7 +371,31 @@ def _translate_ko(text: str) -> tuple[str, bool]:
         for future in futures:
             future.cancel()
         executor.shutdown(wait=False, cancel_futures=True)
-    raise RuntimeError("translation_failed:" + ",".join(errors[:3]))
+    raise RuntimeError("translation_failed:" + ",".join(errors[:4]))
+
+
+def _finance_korean_fallback(text: str, title: str = "") -> str:
+    combined = _clean_text(f"{title} {text}").lower()
+    topics: list[str] = []
+    for needles, label in _FINANCE_TOPICS:
+        if any(needle in combined for needle in needles) and label not in topics:
+            topics.append(label)
+        if len(topics) >= 3:
+            break
+    numbers = []
+    for value in re.findall(r"(?:[$€£₩]\s*)?\d[\d,.]*(?:\s*%|\s*(?:billion|million|trillion))?", combined, re.I):
+        cleaned = _clean_text(value)
+        if cleaned and cleaned not in numbers:
+            numbers.append(cleaned)
+        if len(numbers) >= 3:
+            break
+    if topics:
+        summary = f"해외 원문은 {' · '.join(topics)} 관련 내용을 다루고 있습니다."
+    else:
+        summary = "해외 원문은 해당 기업의 최근 사업·시장 동향을 다루고 있습니다."
+    if numbers:
+        summary += f" 기사에 언급된 주요 수치는 {' · '.join(numbers)}입니다."
+    return summary
 
 
 def _trim_summary(text: str, limit: int = 360) -> str:
@@ -357,8 +430,6 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
         page_description = ""
         fetch_error = None
 
-        # Fast path: providers already give a useful summary seed. Do not make the
-        # user wait for a publisher page fetch before Korean translation starts.
         if len(clean_snippet) >= 60:
             basis, source_text = "provider_snippet", clean_snippet
         else:
@@ -383,51 +454,21 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
 
         translated = False
         translation_error = None
-        title_ko = clean_title or "기사"
-        summary_ko = ""
+        title_ko = clean_title if _looks_korean(clean_title) else ""
 
-        if basis == "headline_only" and clean_title:
+        if source_text:
             try:
-                title_ko, title_translated = _translate_ko(clean_title)
-                translated = bool(title_translated)
-                summary_ko = f"제목 기준 · {title_ko}" if _looks_korean(title_ko) else ""
+                summary_ko, body_translated = _translate_ko(source_text)
+                translated = bool(body_translated)
             except Exception:
-                summary_ko = "기사 제목을 바탕으로 한 한국어 번역이 일시적으로 지연되고 있습니다. 원문 보기에서 내용을 확인해 주세요."
-                translation_error = "summary_translation_failed"
-        elif source_text:
-            # Translate headline and summary concurrently; the summary is the
-            # priority, but this preserves the Korean-title UX when available.
-            pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="cv-summary")
-            title_future = pool.submit(_translate_ko, clean_title) if clean_title and not _has_korean(clean_title) else None
-            summary_future = pool.submit(_translate_ko, source_text)
-            title_translated = False
-            body_translated = False
-            try:
-                try:
-                    summary_ko, body_translated = summary_future.result(timeout=5.4)
-                except Exception:
-                    summary_ko = source_text if _has_korean(source_text) else ""
-                if title_future:
-                    try:
-                        title_ko, title_translated = title_future.result(timeout=0.35 if summary_ko else 1.0)
-                    except Exception:
-                        title_ko = clean_title or "기사"
-                translated = bool(title_translated or body_translated)
-            finally:
-                if title_future:
-                    title_future.cancel()
-                summary_future.cancel()
-                pool.shutdown(wait=False, cancel_futures=True)
-
-            if not summary_ko or (not _has_korean(summary_ko) and not _looks_korean(summary_ko)):
-                if _looks_korean(title_ko):
-                    summary_ko = f"핵심 제목 · {title_ko}"
-                    translation_error = "summary_translation_title_fallback"
-                else:
-                    summary_ko = "기사 요약은 생성됐지만 한국어 번역이 일시적으로 지연되고 있습니다. 잠시 후 새로고침해 주세요."
-                    translation_error = "summary_translation_failed"
+                summary_ko = source_text if _has_korean(source_text) else _finance_korean_fallback(source_text, clean_title)
+                translation_error = "summary_translation_topic_fallback"
         else:
             summary_ko = "기사 제목과 요약문이 제공되지 않았습니다. 원문에서 내용을 확인해 주세요."
+
+        if not _looks_korean(summary_ko):
+            summary_ko = _finance_korean_fallback(source_text, clean_title)
+            translation_error = "summary_translation_topic_fallback"
 
         labels = {
             "article_body": "본문 기반",
@@ -448,7 +489,9 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
             "notice": "기사 본문은 저장·재게시하지 않고 요약 결과만 임시 캐시합니다.",
         }
 
-    if translation_error != "summary_translation_failed":
+    # True Korean translations cache for six hours. Topic fallbacks intentionally
+    # do not cache so a later visit can retry the full translation providers.
+    if translation_error is None:
         with _SUMMARY_LOCK:
             SUMMARY_CACHE[key] = {"cachedAt": time.time(), "data": result}
             if len(SUMMARY_CACHE) > 1200:
