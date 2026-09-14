@@ -68,10 +68,12 @@ app.add_middleware(
 
 @app.middleware("http")
 async def cache_static_assets(request: Request, call_next):
-    """Cache immutable, versioned assets and briefly cache unversioned data files."""
+    """Cache versioned code immutably while keeping mutable data refreshable."""
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
-        if request.query_params.get("v"):
+        if request.url.path.startswith("/static/data/"):
+            response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=3600"
+        elif request.query_params.get("v"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         else:
             response.headers["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"

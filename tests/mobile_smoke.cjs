@@ -17,6 +17,21 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
         timezoneId: 'Asia/Seoul', locale: 'ko-KR',
       });
       const page = await context.newPage();
+      await page.addInitScript(() => {
+        window.__homeNavMismatchObserved = false;
+        const inspectHomeNavigation = () => {
+          const home = document.getElementById('home-tab');
+          const nav = document.querySelector('.app-bottom-nav');
+          if (!document.body?.classList.contains('app-booting') && nav && home?.classList.contains('active')) {
+            const activeMode = nav.querySelector('.app-bottom-btn.active')?.dataset.appMode || '';
+            if (activeMode !== 'home') window.__homeNavMismatchObserved = true;
+          }
+        };
+        new MutationObserver(inspectHomeNavigation).observe(document, {
+          attributes: true, attributeFilter: ['class', 'hidden', 'style'], childList: true, subtree: true,
+        });
+        document.addEventListener('DOMContentLoaded', inspectHomeNavigation);
+      });
       const errors = [];
       const compareRequests = [];
       page.on('pageerror', e => errors.push(String(e)));
@@ -41,6 +56,9 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-nav').waitFor({timeout:30000});
       await page.locator('#home-watchlist-v30').waitFor({timeout:30000});
       await page.locator('#home-watchlist-v30').getByText('MY STOCKS · 1달 수익률').waitFor();
+      assert.ok(await page.locator('#home-tab').evaluate(el => el.classList.contains('active')), `${width}: Home body must be active after fresh load`);
+      assert.ok(await page.locator('.app-bottom-btn[data-app-mode="home"]').evaluate(el => el.classList.contains('active')), `${width}: Home bottom navigation must be active after fresh load`);
+      assert.equal(await page.evaluate(() => window.__homeNavMismatchObserved), false, `${width}: Home body and bottom navigation diverged during fresh load`);
       await page.screenshot({path:`test-results/${width}-home.png`,fullPage:true});
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: home overflow`);
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();

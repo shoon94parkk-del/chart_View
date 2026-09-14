@@ -20,4 +20,6 @@ def test_first_paint_gate_waits_for_real_home_ready():
     assert "attempt < 40" not in boot
     assert "document.body.classList.add('cv-home-ready');" not in boot
     assert "body.app-booting:not(.cv-home-ready) #app" in boot
-    assert "activeMode === 'home'" in boot
+    assert "if (!userChangedView && document.getElementById('home-tab'))" in boot
+    assert "document.addEventListener('click', markUserNavigation, true)" in boot
+    assert "event.isTrusted" in boot

@@ -231,7 +231,7 @@
       </div>
       ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => {
         const q = quoteMarkup(row);
-        return `<button type="button" data-home-watch-open="${esc(row.symbol)}" data-home-watch-name="${esc(row.name)}">
+        return `<button type="button" data-home-watch-open="${esc(row.symbol)}" data-home-watch-name="${esc(row.name)}" aria-label="${esc(row.name)} 상세 보기">
           <span class="home-watch-v33-top"><strong>${esc(row.name)}</strong><i>${marketLabel(row.symbol)}</i></span>
           <small>${esc(row.symbol)}</small>
           <span class="home-watch-v33-quote"><b data-home-watch-price>${q.price}</b><em class="${q.cls}" data-home-watch-return>${q.ret}</em></span>

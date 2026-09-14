@@ -92,6 +92,7 @@
 
     if (resolved === 'home') {
       callLegacySwitch('home');
+      syncNavigation('home');
       if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (pushHistory) commitHistory('home');
       return;
@@ -99,6 +100,7 @@
     if (resolved === 'watchlist') {
       if (typeof window.__installWatchlist === 'function') window.__installWatchlist();
       callLegacySwitch('watchlist');
+      syncNavigation('watchlist');
       if (typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
       if (pushHistory) commitHistory('watchlist');
       return;
@@ -107,6 +109,7 @@
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
       else callLegacySwitch('fwdper');
+      syncNavigation('ideas');
       if (pushHistory) commitHistory('ideas');
       return;
     }
@@ -114,10 +117,12 @@
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
       else callLegacySwitch('screener');
+      syncNavigation('screener');
       if (pushHistory) commitHistory('screener');
       return;
     }
     callLegacySwitch(resolved);
+    syncNavigation(resolved);
     if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
     }

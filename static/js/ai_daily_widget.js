@@ -75,7 +75,7 @@
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5000);
       try {
-        const r = await fetch('/static/data/ai_daily_rankings.json?v=20260914v1', { cache: 'force-cache', signal: controller.signal });
+        const r = await fetch('/static/data/ai_daily_rankings.json?v=20260914v1', { cache: 'default', signal: controller.signal });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
         const days = Array.isArray(data?.days) ? data.days : [];

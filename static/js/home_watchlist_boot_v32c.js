@@ -5,9 +5,11 @@
   let initialHomePending = false;
   let userChangedView = false;
 
-  document.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn')) userChangedView = true;
-  }, true);
+  const markUserNavigation = (event) => {
+    if (event.isTrusted && event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn')) userChangedView = true;
+  };
+  document.addEventListener('pointerdown', markUserNavigation, true);
+  document.addEventListener('click', markUserNavigation, true);
 
   const bootGuard = document.createElement('style');
   bootGuard.id = 'chartview-home-boot-guard';
@@ -31,8 +33,7 @@
       // Some legacy DOMContentLoaded handlers restore the chart after Home opens.
       // Re-assert the intended first route once, but never override a real click.
       setTimeout(() => {
-        const activeMode = document.querySelector('.app-bottom-btn.active')?.dataset.appMode;
-        if (!userChangedView && (!activeMode || activeMode === 'home') && document.getElementById('home-tab')) {
+        if (!userChangedView && document.getElementById('home-tab')) {
           try { window.__openAppTab('home', { history: false }); } catch (_) { }
         }
       }, 250);

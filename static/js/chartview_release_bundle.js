@@ -1440,7 +1440,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       </div>
       ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => {
         const q = quoteMarkup(row);
-        return `<button type="button" data-home-watch-open="${esc(row.symbol)}" data-home-watch-name="${esc(row.name)}">
+        return `<button type="button" data-home-watch-open="${esc(row.symbol)}" data-home-watch-name="${esc(row.name)}" aria-label="${esc(row.name)} 상세 보기">
           <span class="home-watch-v33-top"><strong>${esc(row.name)}</strong><i>${marketLabel(row.symbol)}</i></span>
           <small>${esc(row.symbol)}</small>
           <span class="home-watch-v33-quote"><b data-home-watch-price>${q.price}</b><em class="${q.cls}" data-home-watch-return>${q.ret}</em></span>
@@ -2114,6 +2114,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
     if (resolved === 'home') {
       callLegacySwitch('home');
+      syncNavigation('home');
       if (typeof window.__loadHomeDashboard === 'function') window.__loadHomeDashboard();
       if (pushHistory) commitHistory('home');
       return;
@@ -2121,6 +2122,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (resolved === 'watchlist') {
       if (typeof window.__installWatchlist === 'function') window.__installWatchlist();
       callLegacySwitch('watchlist');
+      syncNavigation('watchlist');
       if (typeof window.__renderWatchlist === 'function') window.__renderWatchlist();
       if (pushHistory) commitHistory('watchlist');
       return;
@@ -2129,6 +2131,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const button = document.querySelector('.tab-nav [data-tab="ideas"]');
       if (button) button.click();
       else callLegacySwitch('fwdper');
+      syncNavigation('ideas');
       if (pushHistory) commitHistory('ideas');
       return;
     }
@@ -2136,10 +2139,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const button = document.querySelector('.tab-nav [data-tab="screener"]');
       if (button) button.click();
       else callLegacySwitch('screener');
+      syncNavigation('screener');
       if (pushHistory) commitHistory('screener');
       return;
     }
     callLegacySwitch(resolved);
+    syncNavigation(resolved);
     if (resolved === 'revision' && typeof window.__loadRevisionRadar === 'function') {
       window.__loadRevisionRadar();
     }

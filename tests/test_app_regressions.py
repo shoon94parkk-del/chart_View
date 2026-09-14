@@ -190,8 +190,12 @@ def test_versioned_assets_are_immutable_and_fonts_stay_local():
     assert 'orioncactus/pretendard' not in html
     versioned = client.get('/static/js/promo_v1.js?v=test')
     assert versioned.headers['cache-control'] == 'public, max-age=31536000, immutable'
+    mutable_data = client.get('/static/data/ai_daily_rankings.json?v=test')
+    assert mutable_data.headers['cache-control'].startswith('public, max-age=300')
+    assert 'immutable' not in mutable_data.headers['cache-control']
     unversioned = client.get('/static/chartview-mark.svg')
     assert unversioned.headers['cache-control'].startswith('public, max-age=3600')
     widget = Path('static/js/ai_daily_widget.js').read_text(encoding='utf-8')
     assert "ai_daily_rankings.json?v=" in widget
+    assert "cache: 'default'" in widget
     assert 'Date.now()' not in widget
