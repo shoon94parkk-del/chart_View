@@ -9,10 +9,11 @@
 
   // The legacy HTML starts with the chart tab active while the Home bundle is
   // loaded dynamically. Keep the shell hidden until Home actually exists so a
-  // refresh never flashes the analysis screen first.
+  // refresh never flashes the analysis screen first. app-booting is also part
+  // of the selector so the global 8-second fail-open can still recover safely.
   const bootGuard = document.createElement('style');
   bootGuard.id = 'chartview-home-boot-guard';
-  bootGuard.textContent = 'body:not(.cv-home-ready) #app,body:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
+  bootGuard.textContent = 'body.app-booting:not(.cv-home-ready) #app,body.app-booting:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
   document.head.appendChild(bootGuard);
 
   function settleInitialHome(attempt = 0) {
@@ -31,14 +32,18 @@
       bootGuard.remove();
       return true;
     }
-    if (attempt < 40) {
+    // The old guard gave up after two seconds and exposed the server-rendered
+    // chart tab even when Home was only a little slower to install. Keep waiting
+    // through the same eight-second window as the page-level safety timeout.
+    if (attempt < 160) {
       setTimeout(() => settleInitialHome(attempt + 1), 50);
       return false;
     }
-    // Fail open after two seconds rather than leave the app blank if Home failed.
+    // Fail open only after eight seconds so a broken Home bundle never traps the
+    // user on a blank screen. Do not mark cv-home-ready unless Home really opened.
     initialHomeSettled = true;
     initialHomePending = false;
-    document.body.classList.add('cv-home-ready');
+    document.body.classList.remove('app-booting');
     bootGuard.remove();
     return false;
   }
