@@ -56,5 +56,5 @@ def test_consensus_weekend_cache_is_served_without_live_call(monkeypatch):
     monkeypatch.setattr(consensus, "fetch_live_consensus", fail_live)
     result = consensus.fetch_consensus("AAPL")
     assert result["periods"]["0y"]["earnings"]["avg"] == 1.0
-    assert result["cacheMode"] in {"daily", "stale"}
+    assert result["cacheMode"] == "stale"
     assert consensus.DISK_MAX_AGE >= 72 * 3600
