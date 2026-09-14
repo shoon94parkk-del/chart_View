@@ -1216,6 +1216,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   const NAME_KEY = 'chartview-ticker-names-v1';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const SORT_KEY = 'chartview-watchlist-sort-v33';
+  const QUOTE_FRESH_MS = 5 * 60 * 1000;
   const MAX_WATCHLIST = 20;
   const DEFAULT_WATCHLIST = [
     { symbol: '005930.KS', name: '삼성전자' },
@@ -1247,6 +1248,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let recents = safeParse(RECENTS_KEY, []).map(normalize).filter(Boolean).slice(0, 8);
   let sortMode = safeParse(SORT_KEY, 'default');
   let quoteSeq = 0;
+  let quoteLoadPromise = null;
   let searchTimer = null;
   let quoteCache = safeParse(QUOTE_CACHE_KEY, { updatedAt: 0, quotes: {} });
   if (!quoteCache || typeof quoteCache !== 'object') quoteCache = { updatedAt: 0, quotes: {} };
@@ -1633,7 +1635,29 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
   }
 
+  function hasFreshQuotes(rows) {
+    return rows.length > 0
+      && Date.now() - Number(quoteCache.updatedAt || 0) < QUOTE_FRESH_MS
+      && rows.every((row) => Boolean(quoteFor(row.symbol)));
+  }
+
   async function loadQuotes(force = false) {
+    const rows = [...watchlist];
+    if (!force && hasFreshQuotes(rows)) {
+      rows.forEach((row) => applyQuote(row.symbol, quoteFor(row.symbol), false));
+      updateSummary();
+      updateUpdatedLabel(false);
+      return quoteCache;
+    }
+    if (!force && quoteLoadPromise) return quoteLoadPromise;
+
+    const job = loadQuotesNow(force);
+    if (!force) quoteLoadPromise = job;
+    try { return await job; }
+    finally { if (quoteLoadPromise === job) quoteLoadPromise = null; }
+  }
+
+  async function loadQuotesNow(force = false) {
     const seq = ++quoteSeq;
     const rows = [...watchlist];
     const refresh = document.querySelector('[data-watch-refresh]');
