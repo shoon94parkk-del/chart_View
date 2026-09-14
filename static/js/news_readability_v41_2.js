@@ -60,6 +60,49 @@
     if (translated !== originalTitle) titleNode.title = `원문 제목: ${originalTitle}`;
   }
 
+  function setImportant(node, property, value) {
+    if (node) node.style.setProperty(property, value, 'important');
+  }
+
+  function clearInlineExpansion(node, properties) {
+    if (!node) return;
+    properties.forEach((property) => node.style.removeProperty(property));
+  }
+
+  function syncSummaryExpansion(box, expanded) {
+    const text = box?.querySelector('.news-v417-summary-text');
+    const main = box?.closest('.my-hub-v41-news-main');
+    const row = box?.closest('.my-hub-v41-news-row');
+    const boxProps = ['height', 'max-height', 'overflow'];
+    const textProps = ['display', '-webkit-box-orient', '-webkit-line-clamp', 'line-clamp', 'height', 'max-height', 'overflow', 'white-space', 'text-overflow'];
+    const parentProps = ['height', 'max-height', 'overflow'];
+
+    if (expanded) {
+      setImportant(box, 'height', 'auto');
+      setImportant(box, 'max-height', 'none');
+      setImportant(box, 'overflow', 'visible');
+      setImportant(text, 'display', 'block');
+      setImportant(text, '-webkit-box-orient', 'initial');
+      setImportant(text, '-webkit-line-clamp', 'unset');
+      setImportant(text, 'line-clamp', 'unset');
+      setImportant(text, 'height', 'auto');
+      setImportant(text, 'max-height', 'none');
+      setImportant(text, 'overflow', 'visible');
+      setImportant(text, 'white-space', 'normal');
+      setImportant(text, 'text-overflow', 'clip');
+      [main, row].forEach((node) => {
+        setImportant(node, 'height', 'auto');
+        setImportant(node, 'max-height', 'none');
+        setImportant(node, 'overflow', 'visible');
+      });
+      return;
+    }
+
+    clearInlineExpansion(box, boxProps);
+    clearInlineExpansion(text, textProps);
+    [main, row].forEach((node) => clearInlineExpansion(node, parentProps));
+  }
+
   function addSummary(card) {
     if (!card || card.querySelector('.news-v412-summary')) return;
     const title = card.querySelector('h4');
@@ -78,10 +121,12 @@
 
     box.addEventListener('click', () => {
       const expanded = box.getAttribute('aria-expanded') === 'true';
-      box.setAttribute('aria-expanded', String(!expanded));
-      box.classList.toggle('is-expanded', !expanded);
-      box.querySelector('.news-v417-summary-head i').textContent = expanded ? '전체보기' : '접기';
-      box.setAttribute('aria-label', expanded ? '본문 요약 전체보기' : '본문 요약 접기');
+      const nextExpanded = !expanded;
+      box.setAttribute('aria-expanded', String(nextExpanded));
+      box.classList.toggle('is-expanded', nextExpanded);
+      box.querySelector('.news-v417-summary-head i').textContent = nextExpanded ? '접기' : '전체보기';
+      box.setAttribute('aria-label', nextExpanded ? '본문 요약 접기' : '본문 요약 전체보기');
+      syncSummaryExpansion(box, nextExpanded);
     });
 
     const label = box.querySelector('.news-v417-summary-head small');
@@ -102,6 +147,7 @@
         box.dataset.summaryBasis = payload?.basis || '';
         label.textContent = cleanTitle(payload?.basisLabel) || '본문 기반';
         text.textContent = cleanTitle(payload?.summary) || '본문 요약을 만들지 못했습니다. 원문 보기에서 확인해 주세요.';
+        if (box.getAttribute('aria-expanded') === 'true') syncSummaryExpansion(box, true);
       })
       .catch(() => {
         if (!box.isConnected) return;
@@ -169,9 +215,9 @@
     });
     document.querySelectorAll('.my-hub-v41-news-row').forEach(addSummary);
     const home = document.querySelector('#home-tab .home-v8');
-    if (home) home.dataset.newsReadability = 'v43';
+    if (home) home.dataset.newsReadability = 'v49';
     const hub = document.getElementById('watchlist-tab');
-    if (hub) hub.dataset.newsReadability = 'v43';
+    if (hub) hub.dataset.newsReadability = 'v49';
   }
 
   let queued = false;
