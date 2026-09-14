@@ -102,7 +102,14 @@ def main():
     if int(meta.get("count") or 0) != len(stocks):
         raise RuntimeError(f"meta count mismatch: meta={meta.get('count')} screener={len(stocks)}")
 
-    candidates = [dict(row) for row in stocks[:100]]
+    # generate_screener keeps a small stale-data tolerance for UI continuity, but AI ranking must not.
+    same_day_stocks = [row for row in stocks if str(row.get("date") or "") == trade_date]
+    if len(same_day_stocks) < 100:
+        raise RuntimeError(
+            f"insufficient exact-date universe: tradeDate={trade_date}, exactDateStocks={len(same_day_stocks)}"
+        )
+    candidates = [dict(row) for row in same_day_stocks[:100]]
+
     with ThreadPoolExecutor(max_workers=8) as pool:
         future_map = {pool.submit(_verify_with_naver, row, trade_date): idx for idx, row in enumerate(candidates)}
         for future in as_completed(future_map):
@@ -112,20 +119,22 @@ def main():
     verified = sum(1 for row in candidates if row["priceValidation"]["status"] == "verified")
     pending = sum(1 for row in candidates if row["priceValidation"]["status"] == "pending")
     mismatch = sum(1 for row in candidates if row["priceValidation"]["status"] == "mismatch")
-    exact_date = sum(1 for row in candidates if str(row.get("date") or "") == trade_date)
 
     verification = {
         "tradeDate": trade_date,
         "generatedAt": datetime.now(KST).isoformat(timespec="seconds"),
+        "sourceUniverseCount": len(stocks),
+        "exactDateUniverseCount": len(same_day_stocks),
         "candidateCount": len(candidates),
-        "candidateExactDateCount": exact_date,
+        "candidateExactDateCount": len(candidates),
         "secondaryProvider": "Naver Finance KRX/Koscom",
         "priceVerifiedCount": verified,
         "pricePendingCount": pending,
         "priceMismatchCount": mismatch,
-        "aiInputReady": exact_date == len(candidates) and mismatch == 0,
+        "aiInputReady": mismatch == 0,
         "policy": (
-            "AI should read screener_top100.json first. pending means the second source is not updated yet; "
+            "AI must read screener_top100.json before the large screener.json. "
+            "Only exact tradeDate rows are eligible. verified can be used directly; pending must be retried only for the final TOP10; "
             "mismatch blocks A/TOP3 until resolved. Never infer that screener.json is empty from a large-file fetch failure."
         ),
     }
@@ -133,11 +142,12 @@ def main():
     out = {k: payload.get(k) for k in ("updated", "tradeDate", "count", "universeCount", "scoreModel", "source")}
     out["verification"] = verification
     out["stocks"] = candidates
-    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # Compact JSON keeps this AI-facing file comfortably below the full-universe payload size.
+    OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     VERIFY_OUT.write_text(json.dumps(verification, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
-        f"Saved {len(candidates)} candidates -> {OUT}; "
-        f"verified={verified}, pending={pending}, mismatch={mismatch}, exactDate={exact_date}"
+        f"Saved {len(candidates)} exact-date candidates -> {OUT}; "
+        f"exactUniverse={len(same_day_stocks)}, verified={verified}, pending={pending}, mismatch={mismatch}"
     )
 
 
