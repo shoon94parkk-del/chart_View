@@ -4,3 +4,4 @@ __pycache__/
 .uvicorn-*.err
 .gstack/
 test-results/
+node_modules/
