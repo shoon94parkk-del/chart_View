@@ -31,7 +31,8 @@
       // Some legacy DOMContentLoaded handlers restore the chart after Home opens.
       // Re-assert the intended first route once, but never override a real click.
       setTimeout(() => {
-        if (!userChangedView && document.getElementById('home-tab')) {
+        const activeMode = document.querySelector('.app-bottom-btn.active')?.dataset.appMode;
+        if (!userChangedView && (!activeMode || activeMode === 'home') && document.getElementById('home-tab')) {
           try { window.__openAppTab('home', { history: false }); } catch (_) { }
         }
       }, 250);
