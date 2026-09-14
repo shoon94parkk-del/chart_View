@@ -73,7 +73,7 @@
     if (fetching) return fetching;
     fetching = (async () => {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 5000);
+      const timer = setTimeout(() => controller.abort(), 10000);
       try {
         const r = await fetch('/static/data/ai_daily_rankings.json?v=20260914v1', { cache: 'default', signal: controller.signal });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -112,7 +112,7 @@
       if (!current) return;
       current.innerHTML = '<span style="color:#8b95a1;font-size:13px">TOP3 데이터를 불러오지 못했습니다.</span><button type="button" class="ai-daily-retry">다시 시도</button>';
       current.querySelector('.ai-daily-retry')?.addEventListener('click', () => { cachedDay = null; mount(0); }, { once: true });
-      console.error('[AI daily widget]', e);
+      if (e?.name !== 'AbortError') console.error('[AI daily widget]', e);
     }
   }
 

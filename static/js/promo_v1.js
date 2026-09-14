@@ -53,7 +53,7 @@
       return;
     }
     const script = document.createElement('script');
-    script.src = '/static/js/ai_daily_widget.js?v=20260914v6';
+    script.src = '/static/js/ai_daily_widget.js?v=20260914v7';
     script.async = false;
     script.dataset.aiDailyHome = '1';
     script.dataset.version = 'v6';
