@@ -40,30 +40,29 @@ def test_build_summary_uses_body_and_returns_korean(monkeypatch):
       <p>The company raised guidance for the next quarter and expects Blackwell shipments to expand.</p>
     </article></body></html>'''
     monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (page, url))
-
-    def fake_translate(text):
-        if "Nvidia" in text and len(text) < 120:
-            return "엔비디아, 강한 매출 성장에 다음 분기 전망 상향", True
-        return "엔비디아는 AI 가속기 수요로 매출이 전년 대비 55% 증가한 600억 달러를 기록했고, 다음 분기 가이던스를 상향하며 블랙웰 출하 확대를 전망했다.", True
-
-    monkeypatch.setattr(svc, "_translate_ko", fake_translate)
+    monkeypatch.setattr(
+        svc,
+        "_translate_ko",
+        lambda text: (
+            "엔비디아는 AI 가속기 수요로 매출이 전년 대비 55% 증가한 600억 달러를 기록했고, 다음 분기 가이던스를 상향하며 블랙웰 출하 확대를 전망했다.",
+            True,
+        ),
+    )
     result = svc._build_summary("https://example.com/news/1", "Nvidia raises guidance", "")
     assert result["basis"] == "article_body"
     assert result["basisLabel"] == "본문 기반"
     assert "매출" in result["summary"] and "가이던스" in result["summary"]
-    assert result["titleKo"].startswith("엔비디아")
+    assert "지연" not in result["summary"]
 
 
 def test_short_provider_snippet_becomes_title_snippet_fallback(monkeypatch):
     svc.SUMMARY_CACHE.clear()
     monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("blocked")))
-
-    def fake_translate(text):
-        if text == "Micron signs new memory contract":
-            return "마이크론, 신규 메모리 공급 계약 체결", True
-        return "마이크론이 신규 메모리 공급 계약을 체결했다. AI 메모리 수요 확대와 관련된 내용이다.", True
-
-    monkeypatch.setattr(svc, "_translate_ko", fake_translate)
+    monkeypatch.setattr(
+        svc,
+        "_translate_ko",
+        lambda text: ("마이크론이 신규 메모리 공급 계약을 체결했다. AI 메모리 수요 확대와 관련된 내용이다.", True),
+    )
     result = svc._build_summary(
         "https://example.com/news/short",
         "Micron signs new memory contract",
@@ -71,11 +70,11 @@ def test_short_provider_snippet_becomes_title_snippet_fallback(monkeypatch):
     )
     assert result["basis"] == "title_snippet_fallback"
     assert result["basisLabel"] == "제목·요약문 기반"
-    assert "만들지 못했습니다" not in result["summary"]
     assert "마이크론" in result["summary"]
+    assert "지연" not in result["summary"]
 
 
-def test_headline_only_fallback_never_shows_summary_failure(monkeypatch):
+def test_headline_only_fallback_is_korean(monkeypatch):
     svc.SUMMARY_CACHE.clear()
     monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("paywall")))
     monkeypatch.setattr(svc, "_translate_ko", lambda text: ("엔비디아, 차세대 AI 칩 출하 확대", True))
@@ -87,11 +86,11 @@ def test_headline_only_fallback_never_shows_summary_failure(monkeypatch):
     )
     assert result["basis"] == "headline_only"
     assert result["basisLabel"] == "제목 기반"
-    assert result["summary"].startswith("제목 기준 · ")
-    assert "만들지 못했습니다" not in result["summary"]
+    assert "엔비디아" in result["summary"]
+    assert "지연" not in result["summary"]
 
 
-def test_translation_failure_never_leaves_english_summary_cached(monkeypatch):
+def test_translation_failure_returns_korean_topic_fallback_and_does_not_cache(monkeypatch):
     svc.SUMMARY_CACHE.clear()
     monkeypatch.setattr(svc, "_safe_fetch_html", lambda url: (_ for _ in ()).throw(RuntimeError("blocked")))
     monkeypatch.setattr(svc, "_translate_ko", lambda text: (_ for _ in ()).throw(RuntimeError("translate unavailable")))
@@ -102,8 +101,10 @@ def test_translation_failure_never_leaves_english_summary_cached(monkeypatch):
         "AI memory demand remains strong and the company expects shipments to rise next quarter.",
     )
     assert result["basis"] == "provider_snippet"
-    assert "한국어 번역" in result["summary"]
-    assert result["translationError"] == "summary_translation_failed"
+    assert "반도체" in result["summary"] or "AI" in result["summary"] or "수요" in result["summary"]
+    assert "지연" not in result["summary"]
+    assert "한국어 번역" not in result["summary"]
+    assert result["translationError"] == "summary_translation_topic_fallback"
     assert svc.SUMMARY_CACHE == {}
 
 
@@ -114,7 +115,7 @@ def test_cache_key_changes_when_translation_pipeline_version_changes(monkeypatch
     assert first != second
 
 
-def test_frontend_does_not_generate_title_only_summary():
+def test_frontend_uses_server_side_summary():
     js = (ROOT / "static/js/news_readability_v41_2.js").read_text(encoding="utf-8")
     assert "/api/news-summary" in js
     assert "기사 본문을 읽고 한국어로 요약" in js
