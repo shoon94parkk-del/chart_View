@@ -155,15 +155,15 @@
     } catch (_) { return null; }
   }
 
-  async function loadMarket(force = false) {
+  async function loadMarket() {
     if (!isHomeActive()) return;
     const panel = ensurePanel();
     if (!panel) return;
-    if (!force && Date.now() - lastLoadedAt < 45_000) return;
+    if (Date.now() - lastLoadedAt < 45_000) return;
 
     const seq = ++marketLoadSeq;
     try {
-      const response = await fetch(`/api/market-now${force ? '?fresh=1' : ''}`, { cache: 'no-store' });
+      const response = await fetch('/api/market-now', { cache: 'no-store' });
       if (!response.ok) throw new Error(`market HTTP ${response.status}`);
       const data = await response.json();
       if (seq !== marketLoadSeq) return;
@@ -182,7 +182,7 @@
     if (marketTimer) clearInterval(marketTimer);
     marketTimer = setInterval(() => {
       syncHomeChrome();
-      if (isHomeActive() && document.visibilityState === 'visible') loadMarket(true);
+      if (isHomeActive() && document.visibilityState === 'visible') loadMarket();
     }, 60_000);
   }
 
@@ -195,8 +195,7 @@
       if (panel) {
         const local = readMarketLocal();
         if (local) paintMarket(panel, local);
-        loadMarket(false);
-        setTimeout(() => loadMarket(true), 600);
+        loadMarket();
         startRefreshLoop();
         return;
       }
@@ -207,7 +206,7 @@
     tryInit();
 
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && isHomeActive()) loadMarket(true);
+      if (document.visibilityState === 'visible' && isHomeActive()) loadMarket();
     });
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-bottom-btn')) {

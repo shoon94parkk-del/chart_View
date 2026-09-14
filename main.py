@@ -100,21 +100,12 @@ def self_ping_worker():
 
 @app.on_event("startup")
 async def startup_event():
-    """Start keep-alive and warm the shared Home snapshot before traffic arrives."""
+    """Serve the disk snapshot immediately and refresh remote data in the background."""
     ping_thread = threading.Thread(target=self_ping_worker, daemon=True)
     ping_thread.start()
-    try:
-        _seed_home_snapshot_from_disk()
-        await asyncio.wait_for(_refresh_home_snapshot(force=True), timeout=12)
-        try:
-            await asyncio.wait_for(_refresh_market_now(force=True), timeout=10)
-            print("[MARKET NOW] shared snapshot warmed")
-        except Exception as market_exc:
-            print(f"[MARKET NOW] warmup deferred: {market_exc}")
-        print("[HOME] shared snapshot warmed")
-    except Exception as exc:
-        # The disk seed still lets Home render immediately even if Yahoo is temporarily slow.
-        print(f"[HOME] warmup deferred: {exc}")
+    _seed_home_snapshot_from_disk()
+    asyncio.create_task(_refresh_home_snapshot(force=True))
+    asyncio.create_task(_refresh_market_now(force=True))
 
 
 @app.get("/")
@@ -410,7 +401,7 @@ async def _refresh_market_now(force: bool = False):
     async with MARKET_NOW_LOCK:
         now = time.time()
         cached = MARKET_NOW_CACHE.get("data")
-        if cached and not force and now - MARKET_NOW_CACHE.get("timestamp", 0) < MARKET_NOW_REFRESH_GUARD:
+        if cached and now - MARKET_NOW_CACHE.get("timestamp", 0) < MARKET_NOW_REFRESH_GUARD:
             return cached
 
         MARKET_NOW_CACHE["refreshing"] = True
@@ -828,7 +819,9 @@ def _seed_home_snapshot_from_disk():
             "generatedAt": disk_payload.get("generatedAt"),
             "source": "disk-seed",
         }
-        HOME_SNAPSHOT_CACHE["timestamp"] = time.time()
+        # A disk seed is safe to serve but is not a fresh network snapshot.
+        # Timestamp zero lets startup revalidate without delaying app readiness.
+        HOME_SNAPSHOT_CACHE["timestamp"] = 0.0
     return HOME_SNAPSHOT_CACHE.get("data")
 
 
@@ -842,7 +835,9 @@ async def _refresh_home_snapshot(force: bool = False):
     async with HOME_SNAPSHOT_LOCK:
         now = time.time()
         cached = HOME_SNAPSHOT_CACHE.get("data")
-        if cached and not force and now - HOME_SNAPSHOT_CACHE.get("timestamp", 0) < HOME_SNAPSHOT_REFRESH_GUARD:
+        # A force request may bypass the TTL, but it must not repeat work that a
+        # concurrent request just completed while this caller waited on the lock.
+        if cached and now - HOME_SNAPSHOT_CACHE.get("timestamp", 0) < HOME_SNAPSHOT_REFRESH_GUARD:
             return cached
 
         HOME_SNAPSHOT_CACHE["refreshing"] = True

@@ -1,6 +1,7 @@
 """Offline regression tests for API boundaries and market data integrity."""
 import asyncio
 import json
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -154,6 +155,26 @@ def test_failed_refresh_keeps_quote_date_and_marks_stale():
         data = asyncio.run(main._refresh_home_snapshot(force=True))
     assert data['heatmap']['results'] == [{**old, 'stale': True}]
     assert old.get('stale') is None
+
+
+def test_forced_home_refresh_coalesces_after_concurrent_refresh():
+    recent = {'heatmap': {'results': [{'ticker': 'AAPL', 'price': 100}]}, 'macro': None}
+    cache = {'data': recent, 'timestamp': time.time(), 'refreshing': False}
+    with patch.object(main, 'HOME_SNAPSHOT_CACHE', cache), \
+         patch.object(main, 'HOME_SNAPSHOT_LOCK', asyncio.Lock()), \
+         patch.object(main, 'fetch_quote_snapshot') as provider:
+        assert asyncio.run(main._refresh_home_snapshot(force=True)) is recent
+        provider.assert_not_called()
+
+
+def test_forced_market_refresh_coalesces_after_concurrent_refresh():
+    recent = {'results': [{'ticker': '^KS11', 'price': 100}]}
+    cache = {'data': recent, 'timestamp': time.time(), 'refreshing': False}
+    with patch.object(main, 'MARKET_NOW_CACHE', cache), \
+         patch.object(main, 'MARKET_NOW_LOCK', asyncio.Lock()), \
+         patch.object(main, 'fetch_quote_snapshot') as provider:
+        assert asyncio.run(main._refresh_market_now(force=True)) is recent
+        provider.assert_not_called()
 
 
 def test_local_assets_exist():

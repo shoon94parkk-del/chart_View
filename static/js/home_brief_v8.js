@@ -322,12 +322,8 @@
         saveHomeLocal(cached);
       }
 
-      // 3) Latest quotes refresh behind the already-painted UI. Never block Home on this request.
-      loadHomeSources(true).then((fresh) => {
-        if (!fresh?.heatmap?.results?.length) return;
-        saveHomeLocal(fresh);
-        if (document.body.contains(root)) paintHome(root, fresh);
-      }).catch((error) => console.warn('home background refresh failed', error));
+      // The endpoint owns stale-while-revalidate. A second forced request here used
+      // to make every browser repeat the same provider work during first paint.
     } catch (error) {
       console.error('home market dashboard failed', error);
       if (!root.querySelector('.home16-major-card')) {
