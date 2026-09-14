@@ -378,8 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const customDateFields = document.getElementById('custom-date-fields');
 
     function setCustomDateOpen(open) {
-        if (!dateSection || !customDateToggle || !customDateFields) return;
+        if (!customDateToggle || !customDateFields) return;
         const rangeContainer = customDateToggle.closest('.v40-chart-periods') || dateSection;
+        if (!rangeContainer) return;
         rangeContainer.classList.toggle('custom-range-open', open);
         customDateToggle.setAttribute('aria-expanded', String(open));
         customDateFields.hidden = !open;
