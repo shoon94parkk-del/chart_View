@@ -1,9 +1,6 @@
 (() => {
   'use strict';
 
-  let orderObserver = null;
-  let observedHome = null;
-  let orderScheduled = false;
   let initialHomeSettled = false;
   let initialHomePending = false;
 
@@ -97,73 +94,29 @@
 
   function ensureAllAssets() { ensureLegacyVisualAssets(); ensureReleaseAssets(); }
 
-  function scheduleOrder() {
-    if (orderScheduled) return;
-    orderScheduled = true;
-    requestAnimationFrame(() => { orderScheduled = false; enforceHomeOrder(); });
-  }
-
   function enforceHomeOrder() {
     const home = document.querySelector('#home-tab .home-v8');
     if (!home) return false;
     const market = document.getElementById('home-market-v9');
     const aiTop3 = document.getElementById('ai-daily-section');
-    const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
     const news = document.getElementById('home-personal-news-v37');
+    const body = document.getElementById('home-v8-body');
     const status = document.getElementById('ux12-data-status');
 
     if (market && home.firstElementChild !== market) home.insertBefore(market, home.firstElementChild);
     let anchor = market || null;
-
-    if (aiTop3) {
-      if (anchor && anchor.nextElementSibling !== aiTop3) anchor.insertAdjacentElement('afterend', aiTop3);
-      else if (!anchor && home.firstElementChild !== aiTop3) home.insertBefore(aiTop3, home.firstElementChild);
-      anchor = aiTop3;
+    for (const node of [aiTop3, watchlist, news, body, status]) {
+      if (!node) continue;
+      if (anchor) {
+        if (anchor.nextElementSibling !== node) anchor.insertAdjacentElement('afterend', node);
+      } else if (home.firstElementChild !== node) {
+        home.insertBefore(node, home.firstElementChild);
+      }
+      anchor = node;
     }
-    if (watchlist) {
-      if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist);
-      else if (!anchor && home.firstElementChild !== watchlist) home.insertBefore(watchlist, home.firstElementChild);
-      anchor = watchlist;
-    }
-    if (news) {
-      if (anchor && anchor.nextElementSibling !== news) anchor.insertAdjacentElement('afterend', news);
-      else if (!anchor && home.firstElementChild !== news) home.insertBefore(news, home.firstElementChild);
-      anchor = news;
-    }
-    if (body) {
-      if (anchor && anchor.nextElementSibling !== body) anchor.insertAdjacentElement('afterend', body);
-      else if (!anchor && home.firstElementChild !== body) home.insertBefore(body, home.firstElementChild);
-      anchor = body;
-    }
-    if (status) {
-      if (anchor && anchor.nextElementSibling !== status) anchor.insertAdjacentElement('afterend', status);
-      else if (!anchor || status !== home.lastElementChild) home.appendChild(status);
-      status.dataset.homeOrder = 'last';
-    }
-
     home.dataset.homeOrder = 'market-ai-top3-watchlist-news-body-status';
-    home.dataset.newsVersion = 'v40';
-    home.dataset.newsPatch = 'v40.1';
-    home.dataset.visualVersion = 'v39';
-    home.dataset.uiVersion = 'v40-stage12';
-    home.dataset.uiPatch = 'v41';
-    home.dataset.myHubVersion = 'v41';
-    home.dataset.newsReadability = 'v49';
-    home.dataset.resilienceVersion = 'v41.3';
-    home.dataset.homePolish = 'v41.4';
-    home.dataset.homeDense = 'v47';
     return Boolean(market && body);
-  }
-
-  function observeHome() {
-    const home = document.querySelector('#home-tab .home-v8');
-    if (!home || home === observedHome) return;
-    orderObserver?.disconnect();
-    observedHome = home;
-    orderObserver = new MutationObserver(scheduleOrder);
-    orderObserver.observe(home, { childList: true });
-    scheduleOrder();
   }
 
   function ensureHome(attempt = 0) {
@@ -173,29 +126,23 @@
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
     }
-    if (typeof window.__ensureAiDailyTop3 === 'function') {
-      try { window.__ensureAiDailyTop3(); } catch (_) { }
-    }
-    observeHome();
     enforceHomeOrder();
     const market = document.getElementById('home-market-v9');
     const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
-    const news = document.getElementById('home-personal-news-v37');
-    const status = document.getElementById('ux12-data-status');
-    if ((!market || !body || !watchlist || !news || !status) && attempt < 120) setTimeout(() => ensureHome(attempt + 1), 400);
+    if ((!market || !body || !watchlist) && attempt < 20) setTimeout(() => ensureHome(attempt + 1), 250);
   }
 
   function restartSoon() {
     ensureAllAssets();
     settleInitialHome();
     setTimeout(() => ensureHome(0), 50);
-    setTimeout(enforceHomeOrder, 300);
-    setTimeout(enforceHomeOrder, 1200);
+    setTimeout(enforceHomeOrder, 500);
+    setTimeout(enforceHomeOrder, 1500);
   }
 
   settleInitialHome();
-  document.addEventListener('chartview:v37-news-rendered', scheduleOrder);
+  document.addEventListener('chartview:v37-news-rendered', () => setTimeout(enforceHomeOrder, 0));
   document.addEventListener('click', event => {
     if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon();
   });
