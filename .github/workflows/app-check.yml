@@ -6,6 +6,9 @@ on:
     paths:
       - 'main.py'
       - 'market_service.py'
+      - 'market_service/**'
+      - 'realtime_korea.py'
+      - 'sitecustomize.py'
       - 'consensus_service.py'
       - 'valuation_band_service.py'
       - 'news_service_v37.py'
@@ -33,7 +36,7 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: |
-          python -m py_compile main.py market_service.py consensus_service.py valuation_band_service.py news_service_v37.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
+          python -m py_compile main.py market_service.py market_service/__init__.py realtime_korea.py sitecustomize.py consensus_service.py valuation_band_service.py news_service_v37.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
           for f in static/js/*.js; do
@@ -110,6 +113,10 @@ jobs:
           service=Path('market_service.py').read_text(encoding='utf-8')
           assert '"priceBasis": price_basis' in service
           assert '"fieldMeta": field_meta' in service
+          realtime=Path('realtime_korea.py').read_text(encoding='utf-8')
+          assert 'Naver Finance KRX/Koscom' in realtime and '^KS11' in realtime and '^KQ11' in realtime
+          shim=Path('market_service/__init__.py').read_text(encoding='utf-8')
+          assert 'install_patch(_legacy)' in shim
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
           print('app UX invariants OK: V42 prelaunch contracts')
