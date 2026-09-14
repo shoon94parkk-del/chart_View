@@ -102,9 +102,11 @@
 
   function scheduleChartResize(tabId) {
     if (tabId !== 'chart') return;
+    const resize = () => window.dispatchEvent(new Event('resize'));
     requestAnimationFrame(() => {
       requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
+    setTimeout(resize, 80);
   }
 
   function openTab(tabId, options = {}) {
