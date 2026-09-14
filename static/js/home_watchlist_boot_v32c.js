@@ -7,10 +7,6 @@
   let initialHomeSettled = false;
   let initialHomePending = false;
 
-  // The legacy HTML starts with the chart tab active while the Home bundle is
-  // loaded dynamically. Keep the shell hidden until Home actually exists so a
-  // refresh never flashes the analysis screen first. app-booting is also part
-  // of the selector so the global 8-second fail-open can still recover safely.
   const bootGuard = document.createElement('style');
   bootGuard.id = 'chartview-home-boot-guard';
   bootGuard.textContent = 'body.app-booting:not(.cv-home-ready) #app,body.app-booting:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
@@ -32,15 +28,10 @@
       bootGuard.remove();
       return true;
     }
-    // The old guard gave up after two seconds and exposed the server-rendered
-    // chart tab even when Home was only a little slower to install. Keep waiting
-    // through the same eight-second window as the page-level safety timeout.
     if (attempt < 160) {
       setTimeout(() => settleInitialHome(attempt + 1), 50);
       return false;
     }
-    // Fail open only after eight seconds so a broken Home bundle never traps the
-    // user on a blank screen. Do not mark cv-home-ready unless Home really opened.
     initialHomeSettled = true;
     initialHomePending = false;
     document.body.classList.remove('app-booting');
@@ -116,41 +107,98 @@
     const home = document.querySelector('#home-tab .home-v8');
     if (!home) return false;
     const market = document.getElementById('home-market-v9');
+    const aiTop3 = document.getElementById('ai-daily-section');
     const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
     const news = document.getElementById('home-personal-news-v37');
     const status = document.getElementById('ux12-data-status');
+
     if (market && home.firstElementChild !== market) home.insertBefore(market, home.firstElementChild);
     let anchor = market || null;
-    if (watchlist) { if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist); else if (!anchor && home.firstElementChild !== watchlist) home.insertBefore(watchlist, home.firstElementChild); anchor = watchlist; }
-    if (news) { if (anchor && anchor.nextElementSibling !== news) anchor.insertAdjacentElement('afterend', news); else if (!anchor && home.firstElementChild !== news) home.insertBefore(news, home.firstElementChild); anchor = news; }
-    if (body) { if (anchor && anchor.nextElementSibling !== body) anchor.insertAdjacentElement('afterend', body); else if (!anchor && home.firstElementChild !== body) home.insertBefore(body, home.firstElementChild); anchor = body; }
-    if (status) { if (anchor && anchor.nextElementSibling !== status) anchor.insertAdjacentElement('afterend', status); else if (!anchor || status !== home.lastElementChild) home.appendChild(status); status.dataset.homeOrder = 'last'; }
-    home.dataset.homeOrder = 'market-watchlist-news-body-status';
-    home.dataset.newsVersion = 'v40'; home.dataset.newsPatch = 'v40.1'; home.dataset.visualVersion = 'v39'; home.dataset.uiVersion = 'v40-stage12'; home.dataset.uiPatch = 'v41'; home.dataset.myHubVersion = 'v41'; home.dataset.newsReadability = 'v49'; home.dataset.resilienceVersion = 'v41.3'; home.dataset.homePolish = 'v41.4'; home.dataset.homeDense = 'v47';
+
+    if (aiTop3) {
+      if (anchor && anchor.nextElementSibling !== aiTop3) anchor.insertAdjacentElement('afterend', aiTop3);
+      else if (!anchor && home.firstElementChild !== aiTop3) home.insertBefore(aiTop3, home.firstElementChild);
+      anchor = aiTop3;
+    }
+    if (watchlist) {
+      if (anchor && anchor.nextElementSibling !== watchlist) anchor.insertAdjacentElement('afterend', watchlist);
+      else if (!anchor && home.firstElementChild !== watchlist) home.insertBefore(watchlist, home.firstElementChild);
+      anchor = watchlist;
+    }
+    if (news) {
+      if (anchor && anchor.nextElementSibling !== news) anchor.insertAdjacentElement('afterend', news);
+      else if (!anchor && home.firstElementChild !== news) home.insertBefore(news, home.firstElementChild);
+      anchor = news;
+    }
+    if (body) {
+      if (anchor && anchor.nextElementSibling !== body) anchor.insertAdjacentElement('afterend', body);
+      else if (!anchor && home.firstElementChild !== body) home.insertBefore(body, home.firstElementChild);
+      anchor = body;
+    }
+    if (status) {
+      if (anchor && anchor.nextElementSibling !== status) anchor.insertAdjacentElement('afterend', status);
+      else if (!anchor || status !== home.lastElementChild) home.appendChild(status);
+      status.dataset.homeOrder = 'last';
+    }
+
+    home.dataset.homeOrder = 'market-ai-top3-watchlist-news-body-status';
+    home.dataset.newsVersion = 'v40';
+    home.dataset.newsPatch = 'v40.1';
+    home.dataset.visualVersion = 'v39';
+    home.dataset.uiVersion = 'v40-stage12';
+    home.dataset.uiPatch = 'v41';
+    home.dataset.myHubVersion = 'v41';
+    home.dataset.newsReadability = 'v49';
+    home.dataset.resilienceVersion = 'v41.3';
+    home.dataset.homePolish = 'v41.4';
+    home.dataset.homeDense = 'v47';
     return Boolean(market && body);
   }
 
   function observeHome() {
     const home = document.querySelector('#home-tab .home-v8');
     if (!home || home === observedHome) return;
-    orderObserver?.disconnect(); observedHome = home;
-    orderObserver = new MutationObserver(scheduleOrder); orderObserver.observe(home, { childList: true }); scheduleOrder();
+    orderObserver?.disconnect();
+    observedHome = home;
+    orderObserver = new MutationObserver(scheduleOrder);
+    orderObserver.observe(home, { childList: true });
+    scheduleOrder();
   }
 
   function ensureHome(attempt = 0) {
     ensureAllAssets();
     settleInitialHome();
     const existing = document.getElementById('home-watchlist-v30');
-    if (!existing && typeof window.__renderHomeWatchlist === 'function') { try { window.__renderHomeWatchlist(); } catch (_) { } }
-    observeHome(); enforceHomeOrder();
-    const market = document.getElementById('home-market-v9'); const body = document.getElementById('home-v8-body'); const watchlist = document.getElementById('home-watchlist-v30'); const news = document.getElementById('home-personal-news-v37'); const status = document.getElementById('ux12-data-status');
+    if (!existing && typeof window.__renderHomeWatchlist === 'function') {
+      try { window.__renderHomeWatchlist(); } catch (_) { }
+    }
+    if (typeof window.__ensureAiDailyTop3 === 'function') {
+      try { window.__ensureAiDailyTop3(); } catch (_) { }
+    }
+    observeHome();
+    enforceHomeOrder();
+    const market = document.getElementById('home-market-v9');
+    const body = document.getElementById('home-v8-body');
+    const watchlist = document.getElementById('home-watchlist-v30');
+    const news = document.getElementById('home-personal-news-v37');
+    const status = document.getElementById('ux12-data-status');
     if ((!market || !body || !watchlist || !news || !status) && attempt < 120) setTimeout(() => ensureHome(attempt + 1), 400);
   }
 
-  function restartSoon() { ensureAllAssets(); settleInitialHome(); setTimeout(() => ensureHome(0), 50); setTimeout(enforceHomeOrder, 300); setTimeout(enforceHomeOrder, 1200); }
+  function restartSoon() {
+    ensureAllAssets();
+    settleInitialHome();
+    setTimeout(() => ensureHome(0), 50);
+    setTimeout(enforceHomeOrder, 300);
+    setTimeout(enforceHomeOrder, 1200);
+  }
+
   settleInitialHome();
   document.addEventListener('chartview:v37-news-rendered', scheduleOrder);
-  document.addEventListener('click', (event) => { if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon(); });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restartSoon, { once: true }); else restartSoon();
+  document.addEventListener('click', event => {
+    if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon();
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restartSoon, { once: true });
+  else restartSoon();
 })();
