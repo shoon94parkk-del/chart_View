@@ -8,7 +8,9 @@ def test_news_readability_assets_and_markers_are_loaded():
     js = (ROOT / 'static/js/news_readability_v41_2.js').read_text(encoding='utf-8')
     assert '/static/css/news_readability_v41_2.css?v=' in boot
     assert '/static/js/news_readability_v41_2.js?v=' in boot
-    assert "newsReadability = 'v43'" in js
+    assert "newsReadability = 'v49'" in js
+    assert 'syncSummaryExpansion' in js
+    assert "setProperty(property, value, 'important')" in js
 
 
 def test_summary_and_market_context_contract():
