@@ -1,4 +1,13 @@
 /* 2026-09 UX patch: comparison-first layout */
+
+/* First-paint gate: the server-rendered HTML still marks the analysis tab active.
+   Keep it completely hidden until the dynamically-installed Home tab has actually
+   been selected. This deliberately keys off cv-home-ready, not app-shell-ready,
+   because other boot code may mark the shell ready before Home exists. */
+body.app-booting:not(.cv-home-ready) #app,
+body.app-booting:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}
+body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중…';position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#f7f8fa;color:#6b7684;font:700 14px/1.5 system-ui,sans-serif}
+
 #app{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
 .global-filter .global-search{border-radius:18px!important;margin-bottom:10px!important}
 .global-filter .sector-section{border-radius:18px!important;padding:12px 18px!important;max-height:none!important}
