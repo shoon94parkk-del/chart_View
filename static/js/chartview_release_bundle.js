@@ -2236,11 +2236,15 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
-        if (mode === 'home') navigateUserTab('home');
-        else if (mode === 'watchlist') navigateUserTab('watchlist');
-        else if (mode === 'analysis') navigateUserTab(lastAnalysis);
-        else if (mode === 'discover') navigateUserTab(lastDiscover);
-        else if (mode === 'market') navigateUserTab(lastMarket);
+        const targetTab = mode === 'home' ? 'home'
+          : mode === 'watchlist' ? 'watchlist'
+          : mode === 'analysis' ? lastAnalysis
+          : mode === 'discover' ? lastDiscover
+          : lastMarket;
+        navigateUserTab(targetTab);
+        // The legacy switch function is installed by a DOMContentLoaded handler.
+        // Keep navigation state correct even when a user taps before its wrapper runs.
+        syncNavigation(targetTab === 'market' ? 'macro' : targetTab);
       });
     });
 
