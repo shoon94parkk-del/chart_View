@@ -20,7 +20,8 @@ import requests
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
 HEADERS = {"User-Agent": UA, "Accept": "application/json,text/plain,*/*"}
 CACHE_TTL = 900
-DISK_MAX_AGE = 36 * 3600
+DISK_FRESH_AGE = 36 * 3600
+DISK_MAX_AGE = 7 * 24 * 3600
 
 _mem_lock = threading.Lock()
 _mem_cache: dict[str, tuple[float, dict[str, Any]]] = {}
@@ -201,7 +202,7 @@ def _attach_history(snapshot: dict[str, Any], symbol: str) -> dict[str, Any]:
 
 
 def fetch_consensus(symbol: str) -> dict[str, Any]:
-    """Return stable daily cache first; use live Yahoo for uncached tickers."""
+    """Return cached consensus reliably; Yahoo live is a fallback, not a single point of failure."""
     symbol = symbol.strip().upper()
     if not symbol:
         raise ValueError("empty symbol")
@@ -214,14 +215,32 @@ def fetch_consensus(symbol: str) -> dict[str, Any]:
     disk = _disk_payload()
     disk_row = (disk.get("quotes") or {}).get(symbol)
     age = _cache_age_seconds(disk)
+
+    # Analyst estimates do not become useless over a weekend. Serve the scheduled
+    # snapshot immediately for up to seven days, marked stale after 36 hours.
     if isinstance(disk_row, dict) and (age is None or age <= DISK_MAX_AGE):
         result = _attach_history(disk_row, symbol)
-        result["cacheMode"] = "daily"
-        result["source"] = "Yahoo Finance earningsTrend · daily GitHub cache"
+        stale = age is not None and age > DISK_FRESH_AGE
+        result["cacheMode"] = "stale" if stale else "daily"
+        result["source"] = (
+            "Yahoo Finance earningsTrend · cached fallback"
+            if stale else "Yahoo Finance earningsTrend · daily GitHub cache"
+        )
     else:
-        result = _attach_history(fetch_live_consensus(symbol), symbol)
-        result["cacheMode"] = "live"
+        try:
+            result = _attach_history(fetch_live_consensus(symbol), symbol)
+            result["cacheMode"] = "live"
+        except Exception as exc:
+            # An older valid snapshot is preferable to a blank 503 during Yahoo 429s.
+            if not isinstance(disk_row, dict):
+                raise
+            result = _attach_history(disk_row, symbol)
+            result["cacheMode"] = "stale"
+            result["source"] = "Yahoo Finance earningsTrend · cached fallback"
+            result["liveError"] = type(exc).__name__
 
+    if age is not None and result.get("cacheMode") != "live":
+        result["cacheAgeSeconds"] = int(age)
     with _mem_lock:
         _mem_cache[symbol] = (now, result)
     return result

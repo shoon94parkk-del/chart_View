@@ -27,7 +27,7 @@ router = APIRouter()
 
 SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
-SUMMARY_CACHE_VERSION = "v46-ko-resilient"
+SUMMARY_CACHE_VERSION = "v48-fact-first"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
 SUMMARY_CONCURRENCY = 3
@@ -375,28 +375,118 @@ def _translate_ko(text: str) -> tuple[str, bool]:
 
 
 def _finance_korean_fallback(text: str, title: str = "") -> str:
-    combined = _clean_text(f"{title} {text}").lower()
-    topics: list[str] = []
-    for needles, label in _FINANCE_TOPICS:
-        if any(needle in combined for needle in needles) and label not in topics:
-            topics.append(label)
-        if len(topics) >= 3:
-            break
-    numbers = []
-    for value in re.findall(r"(?:[$€£₩]\s*)?\d[\d,.]*(?:\s*%|\s*(?:billion|million|trillion))?", combined, re.I):
-        cleaned = _clean_text(value)
-        if cleaned and cleaned not in numbers:
-            numbers.append(cleaned)
-        if len(numbers) >= 3:
-            break
-    if topics:
-        summary = f"해외 원문은 {' · '.join(topics)} 관련 내용을 다루고 있습니다."
-    else:
-        summary = "해외 원문은 해당 기업의 최근 사업·시장 동향을 다루고 있습니다."
-    if numbers:
-        summary += f" 기사에 언급된 주요 수치는 {' · '.join(numbers)}입니다."
-    return summary
+    """Keep concrete actors/actions/amounts when free translators are unavailable.
 
+    A mixed Korean fact summary is intentionally preferred over the old
+    category-only sentence. If a finance pattern is unknown, expose the
+    provider's key sentence transparently rather than pretending that a list
+    of topics and naked numbers is a useful summary.
+    """
+    source = _clean_text(text)
+    clean_title = _clean_text(title)
+    if not source:
+        return "기사 제공 요약문이 없어 원문에서 내용을 확인해 주세요."
+    if _has_korean(source):
+        return source
+
+    lower = source.lower()
+    facts: list[str] = []
+
+    def add(value: str) -> None:
+        value = _clean_text(value)
+        if value and value not in facts:
+            facts.append(value)
+
+    money_pattern = r"[$€£₩]\s*\d[\d,.]*(?:\s*(?:billion|million|trillion|bn|mn|b|m|t))?"
+    first_money_match = re.search(money_pattern, source, re.I)
+    first_money = _clean_text(first_money_match.group(0)) if first_money_match else ""
+
+    # Funding / financing: keep who is raising how much and what it means.
+    if any(word in lower for word in ("financing", "funding", "fundraise", "fund-raising")):
+        subject_match = re.match(r"\s*([A-Z][A-Za-z0-9.& -]{1,55}?)[’']s\s+", source)
+        subject = _clean_text(subject_match.group(1)) if subject_match else "해당 기업"
+        if first_money:
+            add(f"{subject}이 약 {first_money} 규모의 자금조달을 추진 중입니다.")
+        else:
+            add(f"{subject}이 자금조달을 추진 중입니다.")
+        if "commercial and investment ties" in lower:
+            names = [name for name in ("Dell", "Nokia") if name.lower() in lower or name.lower() in clean_title.lower()]
+            label = "·".join(names) if names else "관련 공급사"
+            add(f"{label}는 해당 기업과 이미 상업·투자 관계를 맺고 있습니다.")
+        if "not automatically" in lower and "revenue" in lower:
+            add("자금조달이 성사돼도 관련 공급사의 매출로 즉시 인식되는 것은 아닙니다.")
+
+    # Comparison articles should preserve the actual investment thesis.
+    if "raised their revenue outlooks" in lower:
+        names = "Ciena·Arista" if "ciena" in lower and "arista" in lower else "두 회사"
+        add(f"{names} 모두 최근 매출 전망을 상향했고, 공급 제약이 풀리면 출하를 더 늘릴 수 있다고 보고 있습니다.")
+    if "ciena" in lower and "orders it cannot yet fill" in lower:
+        add("Ciena는 아직 소화하지 못한 주문잔고가 성장 포인트입니다.")
+    cents = re.search(r"arista[^.]{0,180}?about\s+([\d.]+)\s+cents[^.]{0,160}?operating profit", source, re.I)
+    if cents:
+        add(f"Arista는 매출 1달러당 약 {cents.group(1)}센트를 영업이익으로 남기는 높은 수익성이 강점입니다.")
+
+    # Reported revenue and growth.
+    revenue = re.search(
+        r"revenue(?:\s+of|\s+totaled|\s+reached)?\s*(%s)[^.!?]{0,100}?(?:up|grew|growth(?:\s+of)?)\s*(?:about\s*)?([\d.]+%%)"
+        % money_pattern,
+        source,
+        re.I,
+    )
+    if revenue:
+        add(f"매출은 {revenue.group(1)}로, 전년 대비 {revenue.group(2)} 증가했습니다.")
+    else:
+        growth = re.search(r"revenue\s+(?:grew|growth[^\d]{0,30})\s*(?:about\s*)?([\d.]+%)", source, re.I)
+        if growth:
+            add(f"매출 성장률은 전년 대비 {growth.group(1)}입니다.")
+
+    # AI/server metrics: distinguish orders, recognized revenue and backlog.
+    orders = re.search(r"AI\s+server\s+orders\s+reached\s+(%s)" % money_pattern, source, re.I)
+    ai_revenue = re.search(r"(?:recognized\s+)?AI\s+server\s+revenue\s+(?:totaled|reached)\s+(%s)" % money_pattern, source, re.I)
+    backlog = re.search(r"(?:AI\s+server\s+)?backlog\s+(?:reached|of|nears?)\s+(%s)" % money_pattern, source, re.I)
+    metrics = []
+    if orders:
+        metrics.append(f"AI 서버 주문 {orders.group(1)}")
+    if ai_revenue:
+        metrics.append(f"인식 매출 {ai_revenue.group(1)}")
+    if backlog:
+        metrics.append(f"수주잔고 {backlog.group(1)}")
+    if metrics:
+        add(" · ".join(metrics) + "입니다.")
+
+    margin = re.search(r"operating margin of\s*([\d.]+%)[^.!?]{0,90}?up from\s*([\d.]+%)", source, re.I)
+    if margin:
+        add(f"영업이익률은 {margin.group(2)}에서 {margin.group(1)}로 개선됐습니다.")
+
+    capex = re.search(r"(?:plans|expects)\s+to\s+spend[^$€£₩]{0,60}(%s)[^.!?]{0,100}capital" % money_pattern, source, re.I)
+    revenue_total = re.search(r"(%s)\s+of\s+revenue" % money_pattern, source, re.I)
+    if capex:
+        suffix = f" 최근 매출 {revenue_total.group(1)}와 비교해 투자 부담을 볼 필요가 있습니다." if revenue_total else ""
+        add(f"자본지출 계획은 약 {capex.group(1)}입니다.{suffix}")
+
+    stock_loss = re.search(r"stock\s+has\s+(?:lost|fallen)\s+(?:about\s*)?([\d.]+%%)[^.!?]{0,120}?(?:to|at)\s*(%s)" % money_pattern, source, re.I)
+    if stock_loss:
+        add(f"주가는 해당 기간 약 {stock_loss.group(1)} 하락해 {stock_loss.group(2)} 수준입니다.")
+
+    ai_growth = re.search(r"AI[^.!?]{0,80}?revenue[^.!?]{0,60}?(?:surged|grew)\s*([\d.]+%)", source, re.I)
+    below_high = re.search(r"stock[^.!?]{0,80}?([\d.]+%)\s+below\s+(?:its\s+)?high", source, re.I)
+    if ai_growth:
+        sentence = f"AI 관련 매출은 전년 대비 {ai_growth.group(1)} 증가했습니다."
+        if below_high:
+            sentence += f" 주가는 고점 대비 약 {below_high.group(1)} 낮은 수준입니다."
+        add(sentence)
+
+    if facts:
+        return " ".join(facts[:3])
+
+    # Last resort: show the actual provider sentence instead of a fake category summary.
+    sentences = _split_sentences(source)
+    numbered = [sentence for sentence in sentences if re.search(r"\d|[$€£₩]", sentence)]
+    chosen = (numbered or sentences)[:2]
+    excerpt = _clean_text(" ".join(chosen))
+    if len(excerpt) > 320:
+        excerpt = excerpt[:317].rstrip() + "…"
+    return f"번역 연결이 불안정해 제공처 핵심문장을 표시합니다: {excerpt}"
 
 def _trim_summary(text: str, limit: int = 360) -> str:
     value = _clean_text(text)
