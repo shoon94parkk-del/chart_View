@@ -109,8 +109,8 @@ def test_v40_frontend_assets_and_home_order_are_wired():
     assert "/static/js/personalized_news_v40.js?v=" in boot
     assert "/static/js/personalized_news_v38.js" not in boot
     assert "/static/css/personalized_news_v38.css?v=20260913v38" in boot  # legacy visual layer only
-    assert "market-watchlist-news-body-status" in boot
-    assert "home.dataset.newsVersion = 'v40'" in boot
+    assert "market-ai-top3-watchlist-news-body-status" in boot
+    assert "home-personal-news-v37" in frontend
     assert "MAX_SYMBOLS = 20" in frontend
     assert "AbortController" in frontend
     assert "hydrateMarket(section, items, seq).catch" in frontend

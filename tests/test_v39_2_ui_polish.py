@@ -7,8 +7,8 @@ def test_v392_visual_asset_is_preserved_under_release_ui():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/ui_polish_v39_2.css?v=20260913v392" in boot
     assert "data-ui-polish-v392" in boot
-    assert "home.dataset.uiVersion = 'v40-stage12'" in boot
-    assert "home.dataset.visualVersion = 'v39'" in boot
+    polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
+    assert "section.dataset.visualVersion = 'v41.4'" in polish
 
 
 def test_v392_unifies_global_surfaces_and_mobile_touch_targets():
@@ -29,8 +29,9 @@ def test_v392_unifies_global_surfaces_and_mobile_touch_targets():
 
 def test_release_keeps_home_order_and_v39_visual_contract():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
-    assert "market-watchlist-news-body-status" in boot
-    assert "home.dataset.newsVersion = 'v40'" in boot
-    assert "home.dataset.visualVersion = 'v39'" in boot
+    assert "market-ai-top3-watchlist-news-body-status" in boot
+    assert "/static/js/personalized_news_v40.js" in boot
+    polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
+    assert "section.dataset.visualVersion = 'v41.4'" in polish
     assert "/static/css/release_ui_v40.css" in boot
     assert "/static/css/comparison_ui_v40.css" in boot

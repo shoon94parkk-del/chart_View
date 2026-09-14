@@ -7,8 +7,8 @@ def test_v391_visual_asset_is_loaded_under_release_ui():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/home_visual_v39_1.css?v=20260913v391" in boot
     assert "data-home-visual-v391" in boot
-    assert "home.dataset.visualVersion = 'v39'" in boot
-    assert "home.dataset.uiVersion = 'v40-stage12'" in boot
+    polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
+    assert "section.dataset.visualVersion = 'v41.4'" in polish
 
 
 def test_v391_news_range_visual_and_watchlist_emphasis_are_preserved():

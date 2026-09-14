@@ -8,7 +8,8 @@ def test_v393_visual_css_is_preserved_but_unstable_js_is_retired():
     assert "/static/css/clarity_v39_3.css?v=20260913v393" in boot
     assert "/static/js/clarity_v39_3.js" not in boot
     assert "/static/js/personalization_v36.js" not in boot
-    assert "home.dataset.uiVersion = 'v40-stage12'" in boot
+    polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
+    assert "section.dataset.visualVersion = 'v41.4'" in polish
 
 
 def test_v40_detail_uses_explicit_state_instead_of_mutation_observer():

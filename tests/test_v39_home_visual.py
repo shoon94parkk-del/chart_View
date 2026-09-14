@@ -7,7 +7,8 @@ def test_v39_visual_asset_is_loaded_and_versioned():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
     assert "/static/css/home_visual_v39.css?v=20260913v39" in boot
     assert "homeVisualV39" in boot
-    assert "home.dataset.visualVersion = 'v39'" in boot
+    polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
+    assert "section.dataset.visualVersion = 'v41.4'" in polish
 
 
 def test_v39_has_distinct_home_hierarchy_and_mobile_rules():
@@ -26,6 +27,5 @@ def test_v39_has_distinct_home_hierarchy_and_mobile_rules():
 
 def test_v39_keeps_home_order_while_news_owner_moves_to_v40():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
-    assert "market-watchlist-news-body-status" in boot
-    assert "home.dataset.newsVersion = 'v40'" in boot
+    assert "market-ai-top3-watchlist-news-body-status" in boot
     assert "/static/js/personalized_news_v40.js" in boot
