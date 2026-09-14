@@ -3,7 +3,9 @@
   const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const money = (n) => Number.isFinite(+n) ? Math.round(+n).toLocaleString('ko-KR') : '-';
   const pct = (n) => Number.isFinite(+n) ? `${+n > 0 ? '+' : ''}${(+n).toFixed(2)}%` : '-';
+  const RAW_URL = 'https://raw.githubusercontent.com/shoon94parkk-del/chart_View/main/static/data/ai_daily_rankings.json';
   let loaded = false;
+  let loading = false;
 
   function addStyle() {
     if (document.getElementById('ai-daily-widget-style')) return;
@@ -27,16 +29,33 @@
       #home-tab .ai-daily-reason{margin:10px 0 0;color:#6b7684;font-size:12px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
       #home-tab .ai-daily-badge{display:inline-block;margin-top:10px;padding:5px 8px;border-radius:999px;background:#eef6ff;color:#1b64da;font-size:10px;font-weight:800}
       #home-tab .ai-daily-status{margin-top:11px;padding-top:10px;border-top:1px solid #f0f2f5;color:#8b95a1;font-size:10px;line-height:1.4}
+      #home-tab .ai-daily-retry{border:0;background:#eef6ff;color:#1b64da;border-radius:10px;padding:8px 12px;font-weight:800;font-size:12px;margin-left:6px}
       @media(max-width:700px){#home-tab .ai-daily-section{padding:14px}#home-tab .ai-daily-grid{grid-template-columns:1fr}#home-tab .ai-daily-card{padding:13px}#home-tab .ai-daily-head{align-items:center}#home-tab .ai-daily-head h2{font-size:18px}#home-tab .ai-daily-reason{-webkit-line-clamp:3}}
     `;
     document.head.appendChild(style);
   }
 
+  async function fetchJson(url, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const sep = url.includes('?') ? '&' : '?';
+      const r = await fetch(`${url}${sep}t=${Date.now()}`, {cache:'no-store', signal: controller.signal});
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function getLatestDay() {
-    const r = await fetch('/static/data/ai_daily_rankings.json', {cache:'no-store'});
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    const days = Array.isArray(d.days) ? d.days : [];
+    let data = null;
+    try {
+      data = await fetchJson('/static/data/ai_daily_rankings.json', 2500);
+    } catch (_) {
+      data = await fetchJson(RAW_URL, 4500);
+    }
+    const days = Array.isArray(data?.days) ? data.days : [];
     return [...days].sort((a,b)=>String(b.tradeDate||'').localeCompare(String(a.tradeDate||'')))[0] || null;
   }
 
@@ -59,21 +78,25 @@
       section = document.createElement('section');
       section.id = 'ai-daily-section';
       section.className = 'ai-daily-section';
-      section.innerHTML = '<div style="color:#8b95a1;font-size:13px">오늘의 추천을 불러오는 중...</div>';
+      section.innerHTML = '<div style="color:#8b95a1;font-size:13px">오늘의 TOP3 불러오는 중...</div>';
       watchlist.prepend(section);
     } else if (section.parentElement !== watchlist || watchlist.firstElementChild !== section) {
       watchlist.prepend(section);
     }
-    if (loaded) return;
+    if (loaded || loading) return;
+    loading = true;
     try {
       const day = await getLatestDay();
       const html = cardMarkup(day);
-      if (!html) { section.remove(); return; }
+      if (!html) throw new Error('empty ranking data');
       section.innerHTML = html;
       loaded = true;
     } catch (e) {
       console.error('[AI daily widget]', e);
-      section.remove();
+      section.innerHTML = '<span style="color:#8b95a1;font-size:13px">TOP3 데이터를 불러오지 못했습니다.</span><button type="button" class="ai-daily-retry">다시 시도</button>';
+      section.querySelector('.ai-daily-retry')?.addEventListener('click', () => { loading = false; section.innerHTML = '<div style="color:#8b95a1;font-size:13px">오늘의 TOP3 불러오는 중...</div>'; ensure(0); }, {once:true});
+    } finally {
+      loading = false;
     }
   }
 
