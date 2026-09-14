@@ -36,7 +36,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/hotfix-news-consensus-v48.yml .github/workflows/hotfix-news-consensus-v48-retry.yml scripts/apply_news_consensus_v48.py
+          git rm -f .github/workflows/hotfix-news-consensus-v48.yml .github/workflows/hotfix-news-consensus-v48-retry.yml scripts/apply_news_consensus_v48.py
           git add news_summary_service.py consensus_service.py tests/test_news_consensus_regression_v48.py
           git commit -m "fix: restore factual news summaries and consensus fallback"
           git push origin HEAD:main
