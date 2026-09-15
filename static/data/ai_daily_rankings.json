@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T17:25:00+09:00",
+  "updated": "2026-09-15T20:26:55+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -64,6 +64,65 @@
         "universeCount": 2650,
         "usableStocks": 2603,
         "finalPriceCrossCheck": "pending_second_independent_source"
+      }
+    },
+    {
+      "tradeDate": "2026-09-15",
+      "status": "잠정 TOP3 — 2026-09-15 종가 기준, 보조 가격소스 불일치 88건은 후보에서 제외",
+      "top3": [
+        {
+          "rank": 1,
+          "code": "282880",
+          "symbol": "282880.KQ",
+          "name": "코윈로보틱스",
+          "close": 10360.0,
+          "previousClose": 9980.0,
+          "changePct": 3.81,
+          "totalScore": 87,
+          "technicalScore": 29,
+          "grade": "가격 2차 검증 완료",
+          "reason": "기술 점수 29/30 · 20일선·60일선 위 · 20일선 상향 돌파 · 거래량 4.35배 · 5일 수익률 +4.65%."
+        },
+        {
+          "rank": 2,
+          "code": "007540",
+          "symbol": "007540.KS",
+          "name": "샘표",
+          "close": 50500.0,
+          "previousClose": 53200.0,
+          "changePct": -5.08,
+          "totalScore": 81,
+          "technicalScore": 29,
+          "grade": "가격 2차 검증 완료",
+          "reason": "기술 점수 29/30 · 20일선·60일선 위 · 거래량 1.32배 · 5일 수익률 +17.58%."
+        },
+        {
+          "rank": 3,
+          "code": "023160",
+          "symbol": "023160.KQ",
+          "name": "태광",
+          "close": 27300.0,
+          "previousClose": 28350.0,
+          "changePct": -3.7,
+          "totalScore": 78,
+          "technicalScore": 29,
+          "grade": "가격 2차 검증 완료",
+          "reason": "기술 점수 29/30 · 20일선·60일선 위 · 거래량 1.61배 · 5일 수익률 +1.87%."
+        }
+      ],
+      "verification": {
+        "tradeDate": "2026-09-15",
+        "generatedAt": "2026-09-15T20:26:55+09:00",
+        "sourceUniverseCount": 2495,
+        "exactDateUniverseCount": 2495,
+        "candidateCount": 100,
+        "candidateExactDateCount": 100,
+        "secondaryProvider": "Naver Finance KRX/Koscom",
+        "priceVerifiedCount": 12,
+        "pricePendingCount": 0,
+        "priceMismatchCount": 88,
+        "aiInputReady": false,
+        "policy": "AI must read screener_top100.json before the large screener.json. Only exact tradeDate rows are eligible. verified can be used directly; pending must be retried only for the final TOP10; mismatch blocks A/TOP3 until resolved. Never infer that screener.json is empty from a large-file fetch failure."
       }
     }
   ]

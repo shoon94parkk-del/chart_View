@@ -1,14 +1,14 @@
 {
-  "tradeDate": "2026-09-11",
-  "generatedAt": "2026-09-15T00:15:18+09:00",
-  "sourceUniverseCount": 2603,
-  "exactDateUniverseCount": 2603,
+  "tradeDate": "2026-09-15",
+  "generatedAt": "2026-09-15T20:26:55+09:00",
+  "sourceUniverseCount": 2495,
+  "exactDateUniverseCount": 2495,
   "candidateCount": 100,
   "candidateExactDateCount": 100,
   "secondaryProvider": "Naver Finance KRX/Koscom",
-  "priceVerifiedCount": 0,
-  "pricePendingCount": 100,
-  "priceMismatchCount": 0,
-  "aiInputReady": true,
+  "priceVerifiedCount": 12,
+  "pricePendingCount": 0,
+  "priceMismatchCount": 88,
+  "aiInputReady": false,
   "policy": "AI must read screener_top100.json before the large screener.json. Only exact tradeDate rows are eligible. verified can be used directly; pending must be retried only for the final TOP10; mismatch blocks A/TOP3 until resolved. Never infer that screener.json is empty from a large-file fetch failure."
 }
