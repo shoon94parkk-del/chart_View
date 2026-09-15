@@ -2,8 +2,11 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
-    # 17:30 KST on Korean weekdays, after the regular market close
-    - cron: '30 8 * * 1-5'
+    # GitHub scheduled runs can be delayed or occasionally missed. Run three
+    # independent post-close attempts. The generator itself refuses stale dates.
+    # 18:20 / 18:50 / 19:20 KST on Korean weekdays.
+    - cron: '20,50 9 * * 1-5'
+    - cron: '20 10 * * 1-5'
   workflow_dispatch:
   push:
     branches: [main]
@@ -17,14 +20,16 @@ permissions:
 
 concurrency:
   group: korean-screener
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - uses: actions/setup-python@v5
         with:
@@ -34,7 +39,9 @@ jobs:
       - name: Install screener dependencies
         run: pip install 'yfinance>=0.2.50' pandas requests lxml html5lib
 
-      - name: Generate precomputed screener
+      - name: Generate exact-date screener
+        env:
+          REQUIRE_KST_TRADE_DATE: '1'
         run: python scripts/generate_screener.py
 
       - name: Export and cross-check top 100 candidates
@@ -51,17 +58,18 @@ jobs:
           verification = top.get('verification') or {}
           stocks = top.get('stocks') or []
           trade_date = str(top.get('tradeDate') or '')
+          exact = int(verification.get('exactDateUniverseCount') or 0)
+          universe = int(meta.get('universeCount') or 0)
 
           assert trade_date, 'missing tradeDate'
           assert trade_date == str(meta.get('tradeDate') or ''), 'tradeDate mismatch between meta and top100'
           assert len(stocks) == 100, f'top100 must contain 100 rows, got {len(stocks)}'
           assert verification.get('candidateExactDateCount') == 100, 'top100 contains stale-date rows'
+          assert exact >= max(100, int(universe * 0.90)), f'exact-date coverage too low: {exact}/{universe}'
           assert verification.get('priceMismatchCount', 0) == 0, 'secondary source price mismatch detected'
-          print(
-              'AI input OK:', trade_date,
-              'verified=', verification.get('priceVerifiedCount'),
-              'pending=', verification.get('pricePendingCount'),
-          )
+          print('AI input OK:', trade_date, 'exact=', exact, '/', universe,
+                'verified=', verification.get('priceVerifiedCount'),
+                'pending=', verification.get('pricePendingCount'))
           PY
 
       - name: Refresh AI recommendation track record
@@ -76,5 +84,8 @@ jobs:
             echo "No screener changes"
           else
             git commit -m "data: refresh Korean stock screener and validation"
+            # Another cache workflow may have committed while this long job ran.
+            # Rebase once before pushing instead of losing the daily screener.
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
