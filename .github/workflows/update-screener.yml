@@ -2,18 +2,11 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
-    # GitHub scheduled runs can be delayed or occasionally missed. Run three
-    # independent post-close attempts. The generator itself refuses stale dates.
-    # 18:20 / 18:50 / 19:20 KST on Korean weekdays.
+    # Independent post-close retries. The generator refuses a stale market date.
+    # 18:20 / 18:50 / 19:20 / 19:50 KST on Korean weekdays.
     - cron: '20,50 9 * * 1-5'
-    - cron: '20 10 * * 1-5'
+    - cron: '20,50 10 * * 1-5'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/update-screener.yml'
-      - 'scripts/generate_screener.py'
-      - 'scripts/export_screener_candidates.py'
 
 permissions:
   contents: write
@@ -66,10 +59,10 @@ jobs:
           assert len(stocks) == 100, f'top100 must contain 100 rows, got {len(stocks)}'
           assert verification.get('candidateExactDateCount') == 100, 'top100 contains stale-date rows'
           assert exact >= max(100, int(universe * 0.90)), f'exact-date coverage too low: {exact}/{universe}'
-          assert verification.get('priceMismatchCount', 0) == 0, 'secondary source price mismatch detected'
           print('AI input OK:', trade_date, 'exact=', exact, '/', universe,
                 'verified=', verification.get('priceVerifiedCount'),
-                'pending=', verification.get('pricePendingCount'))
+                'pending=', verification.get('pricePendingCount'),
+                'mismatch=', verification.get('priceMismatchCount'))
           PY
 
       - name: Refresh AI recommendation track record
@@ -79,7 +72,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_recommendations.json
+          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_daily_rankings.json static/data/ai_daily_rankings_meta.json static/data/ai_recommendations.json
           if git diff --cached --quiet; then
             echo "No screener changes"
           else

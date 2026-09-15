@@ -59,7 +59,7 @@
       const medal = x.rank === 1 ? '🥇' : x.rank === 2 ? '🥈' : '🥉';
       return `<details class="ai-daily-card"><summary aria-label="${esc(x.name || x.symbol)} 추천 사유 보기"><span class="ai-daily-rank">${medal} ${x.rank}위</span><span class="ai-daily-name">${esc(x.name || x.symbol)}</span><span class="ai-daily-score">${esc(x.totalScore)}점</span><span class="ai-daily-price">${money(x.close)}원 · <span class="${cls}">${pct(x.changePct)}</span></span><span class="ai-daily-arrow" aria-hidden="true">⌄</span></summary><div class="ai-daily-detail"><p class="ai-daily-reason">${esc(x.reason || '')}</p><span class="ai-daily-badge">${esc(x.grade || '관찰')}</span></div></details>`;
     }).join('');
-    return `<div class="ai-daily-head"><div><h2>오늘의 AI TOP3</h2><p>${esc(day.tradeDate)} 확정 종가 기준 · 업황 70 + 기술 30</p></div><a class="ai-daily-more" href="/static/recommendations.html">전체 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
+    return `<div class="ai-daily-head"><div><h2>오늘의 AI TOP3</h2><p>${esc(day.tradeDate)} 종가 기준 · 기술 스크리너 자동 선별</p></div><a class="ai-daily-more" href="/static/recommendations.html">성과 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
   }
 
   function getHost() {
@@ -96,7 +96,10 @@
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 10000);
       try {
-        const r = await fetch('/static/data/ai_daily_rankings.json?v=20260914v1', { cache: 'default', signal: controller.signal });
+        const metaResponse = await fetch('/static/data/ai_daily_rankings_meta.json?v=20260915v1', { cache: 'no-store', signal: controller.signal });
+        const meta = metaResponse.ok ? await metaResponse.json() : {};
+        const version = encodeURIComponent(meta.updated || '20260915v1');
+        const r = await fetch(`/static/data/ai_daily_rankings.json?v=${version}`, { cache: 'default', signal: controller.signal });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
         const days = Array.isArray(data?.days) ? data.days : [];
