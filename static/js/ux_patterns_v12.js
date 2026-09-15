@@ -113,11 +113,12 @@
       const volume = rows.map((r) => textNum(qs('td[data-label="거래량"]', r)?.textContent)).filter(Number.isFinite);
       const upRate = daily.length ? Math.round(daily.filter((x) => x > 0).length / daily.length * 100) : null;
       const avgRsi = rsi.length ? rsi.reduce((a, b) => a + b, 0) / rsi.length : null;
-      const volume2x = volume.filter((x) => x >= 2).length;
+      const volumePresetCount = textNum(qs('[data-screen-preset="volume"] [data-screen-preset-count]')?.textContent);
+      const volume2x = Number.isFinite(volumePresetCount) ? volumePresetCount : volume.filter((x) => x >= 2).length;
       strip.innerHTML = `
         <div><span>조건 일치</span><strong>${total.toLocaleString('ko-KR')}</strong></div>
-        <div><span>상승 비율</span><strong>${upRate === null ? '-' : `${upRate}%`}</strong></div>
-        <div><span>평균 RSI</span><strong>${avgRsi === null ? '-' : avgRsi.toFixed(1)}</strong></div>
+        <div><span>표시 종목 상승</span><strong>${upRate === null ? '-' : `${upRate}%`}</strong></div>
+        <div><span>표시 평균 RSI</span><strong>${avgRsi === null ? '-' : avgRsi.toFixed(1)}</strong></div>
         <div><span>거래량 2x+</span><strong>${volume2x.toLocaleString('ko-KR')}</strong></div>`;
     };
     render();

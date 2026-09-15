@@ -237,7 +237,8 @@
     const value = document.getElementById('screener-value')?.selectedOptions?.[0]?.textContent;
     const sort = document.getElementById('screener-sort')?.selectedOptions?.[0]?.textContent;
     const market = document.querySelector('[data-screen-market].active')?.textContent?.trim();
-    const preset = document.querySelector('[data-screen-preset].active')?.textContent?.trim();
+    const activePreset = document.querySelector('[data-screen-preset].active');
+    const preset = activePreset?.querySelector('span')?.textContent?.trim() || activePreset?.textContent?.trim();
     const custom = typeof window.__getScreenerCustomFilters === 'function' ? window.__getScreenerCustomFilters() : {};
     const direct = [
       custom.rsiMin != null ? `RSI ${custom.rsiMin}+` : '',

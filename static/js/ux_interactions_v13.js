@@ -16,6 +16,8 @@
   }
 
   function currentRsi35Count() {
+    const presetCount = numberFrom(qs('[data-screen-preset="oversold"] [data-screen-preset-count]')?.textContent);
+    if (Number.isFinite(presetCount)) return presetCount;
     return qsa('#screener-results tbody tr')
       .map((row) => numberFrom(qs('td[data-label="RSI"]', row)?.textContent))
       .filter((value) => Number.isFinite(value) && value <= 35).length;

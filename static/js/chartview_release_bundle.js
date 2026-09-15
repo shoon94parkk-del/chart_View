@@ -12,6 +12,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let minValue = 0;
   let sortKey = 'score';
   let quickFilter = 'none';
+  const SCORE_MAX = 30;
+  const CANDIDATE_SCORE_MIN = 22;
   const customFilters = { rsiMin: null, rsiMax: null, volumeMin: null, ret20Min: null, scoreMin: null, trend: 'any' };
 
   const esc = (value) => String(value ?? '')
@@ -84,13 +86,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           </div>
 
           <div class="screener-row screen-scroll-row">
-            <button class="screen-chip" data-screen-preset="candidate">종합 후보</button>
-            <button class="screen-chip" data-screen-preset="momentum">추세+거래량</button>
-            <button class="screen-chip" data-screen-preset="oversold">RSI 과매도</button>
-            <button class="screen-chip" data-screen-preset="volume">거래량 2배+</button>
-            <button class="screen-chip" data-screen-preset="cross20">20일선 돌파</button>
-            <button class="screen-chip" data-screen-preset="aligned">정배열</button>
-            <button class="screen-chip active" data-screen-preset="all">전체 보기</button>
+            <button class="screen-chip" data-screen-preset="candidate"><span>종합 후보</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip" data-screen-preset="momentum"><span>추세+거래량</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip" data-screen-preset="oversold"><span>RSI 과매도</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip" data-screen-preset="volume"><span>거래량 2배+</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip" data-screen-preset="cross20"><span>20일선 돌파</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip" data-screen-preset="aligned"><span>정배열</span><small data-screen-preset-count>…</small></button>
+            <button class="screen-chip active" data-screen-preset="all"><span>전체 보기</span><small data-screen-preset-count>…</small></button>
           </div>
 
           <details class="screener-custom-filters">
@@ -100,7 +102,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
               <label><span>RSI 최대</span><input type="number" inputmode="decimal" min="0" max="100" step="1" placeholder="예: 60" data-screen-custom="rsiMax"></label>
               <label><span>거래량 배수 이상</span><input type="number" inputmode="decimal" min="0" step="0.1" placeholder="예: 1.5" data-screen-custom="volumeMin"></label>
               <label><span>20일 수익률 이상</span><input type="number" inputmode="decimal" step="1" placeholder="예: -5" data-screen-custom="ret20Min"></label>
-              <label><span>기술점수 이상</span><input type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="예: 50" data-screen-custom="scoreMin"></label>
+              <label><span>기술점수 이상 (30점 만점)</span><input type="number" inputmode="numeric" min="0" max="30" step="1" placeholder="예: 18" data-screen-custom="scoreMin"></label>
               <label><span>추세 상태</span><select data-screen-custom="trend"><option value="any">전체</option><option value="above20">20일선 위</option><option value="cross20">20일선 돌파</option><option value="aligned">정배열</option></select></label>
               <button type="button" class="screener-custom-reset" data-screen-custom-reset>직접 조건 지우기</button>
             </div>
@@ -109,11 +111,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
         <div id="screener-summary" class="screener-summary">탭을 열면 최신 스크리너 데이터를 불러옵니다.</div>
         <div id="screener-results"><div class="screener-empty">종목 발굴 탭을 열어주세요.</div></div>
-        <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 탐색용 지표이며 투자판단 점수가 아닙니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
+        <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
   }
 
-  function matches(row) {
+  function matchesBase(row) {
     if (market !== 'ALL' && row.market !== market) return false;
     if ((row.avgValue20 || 0) < minValue) return false;
 
@@ -134,15 +136,33 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const query = (document.getElementById('screener-search')?.value || '').trim().toLowerCase();
     if (query && !`${row.name} ${row.code} ${row.symbol}`.toLowerCase().includes(query)) return false;
 
-    if (preset === 'oversold') return row.rsi14 !== null && row.rsi14 <= 35;
-    if (preset === 'volume') return (row.volumeRatio || 0) >= 2;
-    if (preset === 'cross20') return row.cross20 === true;
-    if (preset === 'aligned') return row.aligned === true;
-    if (preset === 'momentum') return (row.volumeRatio || 0) >= 1.5 && (row.aligned === true || row.cross20 === true) && (row.rsi14 == null || row.rsi14 < 70);
-    if (preset === 'candidate') {
-      return (row.score || 0) >= 55 && (row.rsi14 === null || row.rsi14 <= 65) && (row.volumeRatio || 0) >= 1.2;
+    return true;
+  }
+
+  function matchesPreset(row, targetPreset = preset) {
+    if (targetPreset === 'oversold') return row.rsi14 !== null && row.rsi14 <= 35;
+    if (targetPreset === 'volume') return (row.volumeRatio || 0) >= 2;
+    if (targetPreset === 'cross20') return row.cross20 === true;
+    if (targetPreset === 'aligned') return row.aligned === true;
+    if (targetPreset === 'momentum') return (row.volumeRatio || 0) >= 1.5 && (row.aligned === true || row.cross20 === true) && (row.rsi14 == null || row.rsi14 < 70);
+    if (targetPreset === 'candidate') {
+      return (row.score || 0) >= CANDIDATE_SCORE_MIN && (row.rsi14 === null || row.rsi14 <= 65) && (row.volumeRatio || 0) >= 1.2;
     }
     return true;
+  }
+
+  function matches(row) {
+    return matchesBase(row) && matchesPreset(row);
+  }
+
+  function updatePresetCounts() {
+    if (!payload?.stocks) return;
+    document.querySelectorAll('[data-screen-preset]').forEach((button) => {
+      const count = payload.stocks.filter((row) => matchesBase(row) && matchesPreset(row, button.dataset.screenPreset)).length;
+      const badge = button.querySelector('[data-screen-preset-count]');
+      if (badge) badge.textContent = count.toLocaleString('ko-KR');
+      button.setAttribute('aria-label', `${button.querySelector('span')?.textContent || ''} ${count.toLocaleString('ko-KR')}개`);
+    });
   }
 
   function sortRows(rows) {
@@ -169,6 +189,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const summary = document.getElementById('screener-summary');
     if (!results || !summary) return;
 
+    updatePresetCounts();
     let rows = sortRows(payload.stocks.filter(matches));
     const total = rows.length;
     const shown = Math.min(total, 200);
@@ -183,7 +204,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
-      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수</th><th>액션</th></tr></thead>
+      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
       <tbody>${rows.map((row) => `
         <tr>
           <td data-label="종목"><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
@@ -3421,11 +3442,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const volume = rows.map((r) => textNum(qs('td[data-label="거래량"]', r)?.textContent)).filter(Number.isFinite);
       const upRate = daily.length ? Math.round(daily.filter((x) => x > 0).length / daily.length * 100) : null;
       const avgRsi = rsi.length ? rsi.reduce((a, b) => a + b, 0) / rsi.length : null;
-      const volume2x = volume.filter((x) => x >= 2).length;
+      const volumePresetCount = textNum(qs('[data-screen-preset="volume"] [data-screen-preset-count]')?.textContent);
+      const volume2x = Number.isFinite(volumePresetCount) ? volumePresetCount : volume.filter((x) => x >= 2).length;
       strip.innerHTML = `
         <div><span>조건 일치</span><strong>${total.toLocaleString('ko-KR')}</strong></div>
-        <div><span>상승 비율</span><strong>${upRate === null ? '-' : `${upRate}%`}</strong></div>
-        <div><span>평균 RSI</span><strong>${avgRsi === null ? '-' : avgRsi.toFixed(1)}</strong></div>
+        <div><span>표시 종목 상승</span><strong>${upRate === null ? '-' : `${upRate}%`}</strong></div>
+        <div><span>표시 평균 RSI</span><strong>${avgRsi === null ? '-' : avgRsi.toFixed(1)}</strong></div>
         <div><span>거래량 2x+</span><strong>${volume2x.toLocaleString('ko-KR')}</strong></div>`;
     };
     render();
@@ -3522,6 +3544,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function currentRsi35Count() {
+    const presetCount = numberFrom(qs('[data-screen-preset="oversold"] [data-screen-preset-count]')?.textContent);
+    if (Number.isFinite(presetCount)) return presetCount;
     return qsa('#screener-results tbody tr')
       .map((row) => numberFrom(qs('td[data-label="RSI"]', row)?.textContent))
       .filter((value) => Number.isFinite(value) && value <= 35).length;
@@ -4961,7 +4985,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const value = document.getElementById('screener-value')?.selectedOptions?.[0]?.textContent;
     const sort = document.getElementById('screener-sort')?.selectedOptions?.[0]?.textContent;
     const market = document.querySelector('[data-screen-market].active')?.textContent?.trim();
-    const preset = document.querySelector('[data-screen-preset].active')?.textContent?.trim();
+    const activePreset = document.querySelector('[data-screen-preset].active');
+    const preset = activePreset?.querySelector('span')?.textContent?.trim() || activePreset?.textContent?.trim();
     const custom = typeof window.__getScreenerCustomFilters === 'function' ? window.__getScreenerCustomFilters() : {};
     const direct = [
       custom.rsiMin != null ? `RSI ${custom.rsiMin}+` : '',

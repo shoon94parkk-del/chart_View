@@ -127,7 +127,9 @@
       const html = cardMarkup(day);
       if (!html) throw new Error('empty ranking data');
       const current = placeSection();
-      if (current) current.innerHTML = html;
+      if (current) {
+        current.innerHTML = html;
+      }
     } catch (e) {
       const current = placeSection();
       if (!current) return;

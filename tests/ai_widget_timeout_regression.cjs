@@ -8,5 +8,5 @@ test('AI ranking timeout remains recoverable without reporting an expected abort
 
   assert.match(widget, /setTimeout\(\(\) => controller\.abort\(\), 10000\)/);
   assert.match(widget, /e\?\.name !== 'AbortError'/);
-  assert.match(template, /ai_daily_widget\.js\?v=20260914v7/);
+  assert.match(template, /ai_daily_widget\.js\?v=20260915v8/);
 });
