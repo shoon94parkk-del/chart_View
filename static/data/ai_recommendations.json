@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-15T20:26:55+09:00",
+  "updated": "2026-09-15T21:07:42+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -16,7 +16,8 @@
       "statusLabel": "성과 추적 중",
       "grade": "A 후보/가격 2중검증 대기",
       "reason": "유럽 방산 수출의 장기 확장성이 강화되고 상반기 매출·영업이익 성장도 강하다. RSI 58.2, 20일선 재돌파와 거래량 증가로 단기 진입 신호도 개선됐다.",
-      "score": 91
+      "score": 91,
+      "analysisSource": "GPT 스크리너 재분석"
     },
     {
       "recommendedDate": "2026-09-14",
@@ -33,7 +34,8 @@
       "statusLabel": "성과 추적 중",
       "grade": "A 후보/가격 2중검증 대기",
       "reason": "방산·레이저 대공무기·우주 사업의 구조적 성장과 실적 개선이 이어지는 가운데, 거래량 3.05배와 20일선 상향 돌파가 확인돼 오늘 기술적 타이밍이 가장 강한 축에 속한다.",
-      "score": 88
+      "score": 88,
+      "analysisSource": "GPT 스크리너 재분석"
     },
     {
       "recommendedDate": "2026-09-14",
@@ -49,46 +51,31 @@
       "status": "tracking",
       "statusLabel": "성과 추적 중",
       "grade": "B 눌림대기",
-      "reason": "반도체 검사장비 수주잔고가 역대 최대 수준이고 2027년 큰 폭의 실적 레버리지가 예상된다. 다만 최근 20거래일 약 45% 상승 후 오늘 -8.19% 조정이라 즉시 추격보다 눌림 안정 확인이 우선이다.",
-      "score": 86
+      "reason": "반도체 검사장비 수주잔고가 역대 최대 수준이고 2027년 큰 폭의 실적 레버리지가 예상된다. 다만 최근 급등 후 조정이라 즉시 추격보다 눌림 안정 확인이 우선이다.",
+      "score": 86,
+      "analysisSource": "GPT 스크리너 재분석"
     },
     {
       "recommendedDate": "2026-09-15",
       "rank": 1,
-      "symbol": "282880.KQ",
-      "code": "282880",
-      "name": "코윈로보틱스",
-      "recommendedPrice": 10360.0,
-      "currentPrice": 10360.0,
+      "symbol": "121600.KQ",
+      "code": "121600",
+      "name": "나노신소재",
+      "recommendedPrice": 50800.0,
+      "currentPrice": 50800.0,
       "returnPct": 0.0,
       "bestReturnPct": 0,
       "lastUpdatedTradeDate": "2026-09-15",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
-      "grade": "가격 2차 검증 완료",
-      "reason": "기술 점수 29/30 · 20일선·60일선 위 · 20일선 상향 돌파 · 거래량 4.35배 · 5일 수익률 +4.65%.",
-      "score": 87
+      "grade": "A 성장우선",
+      "reason": "CNT 도전재와 AI/HBM용 CMP Slurry가 동시에 성장하는 구조이며 2026년 상반기 매출 +34%, 영업이익 +278.4%로 실적 레버리지가 확인됐다. 2Q 영업이익도 시장 기대를 크게 웃돌았고, Chart View 기술점수 30/30으로 성장성과 진입 타이밍이 함께 강하다.",
+      "score": 88,
+      "analysisSource": "GPT 스크리너 재분석"
     },
     {
       "recommendedDate": "2026-09-15",
       "rank": 2,
-      "symbol": "007540.KS",
-      "code": "007540",
-      "name": "샘표",
-      "recommendedPrice": 50500.0,
-      "currentPrice": 50500.0,
-      "returnPct": 0.0,
-      "bestReturnPct": 0,
-      "lastUpdatedTradeDate": "2026-09-15",
-      "status": "tracking",
-      "statusLabel": "성과 추적 중",
-      "grade": "가격 2차 검증 완료",
-      "reason": "기술 점수 29/30 · 20일선·60일선 위 · 거래량 1.32배 · 5일 수익률 +17.58%.",
-      "score": 81
-    },
-    {
-      "recommendedDate": "2026-09-15",
-      "rank": 3,
       "symbol": "023160.KQ",
       "code": "023160",
       "name": "태광",
@@ -99,9 +86,28 @@
       "lastUpdatedTradeDate": "2026-09-15",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
-      "grade": "가격 2차 검증 완료",
-      "reason": "기술 점수 29/30 · 20일선·60일선 위 · 거래량 1.61배 · 5일 수익률 +1.87%.",
-      "score": 78
+      "grade": "A 성장우선",
+      "reason": "LNG·플랜트·조선 피팅 수요의 구조적 확대와 캐나다 LNG 대형 수주가 실적에 연결되는 기업이다. 상반기 매출 +23%, 영업이익 +10%로 성장 중이며 오늘 -3.7% 조정에도 RSI 59.2, 20·60일선 위를 유지해 추격 부담이 낮아졌다.",
+      "score": 87,
+      "analysisSource": "GPT 스크리너 재분석"
+    },
+    {
+      "recommendedDate": "2026-09-15",
+      "rank": 3,
+      "symbol": "033640.KQ",
+      "code": "033640",
+      "name": "네패스",
+      "recommendedPrice": 23900.0,
+      "currentPrice": 23900.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-15",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "B 성장우선/추격주의",
+      "reason": "AI/HBM 확대에 따른 첨단 패키징 국산화와 체질 개선 방향을 높게 평가했다. Chart View 기술점수 29/30으로 모멘텀도 강하지만 당일 상승폭과 최근 변동성이 커서 성장성은 높게 보되 신규 추격매수는 눌림 확인이 낫다.",
+      "score": 84,
+      "analysisSource": "GPT 스크리너 재분석"
     }
   ]
 }

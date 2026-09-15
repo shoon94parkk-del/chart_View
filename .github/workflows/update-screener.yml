@@ -65,7 +65,7 @@ jobs:
                 'mismatch=', verification.get('priceMismatchCount'))
           PY
 
-      - name: Refresh AI recommendation track record
+      - name: Refresh GPT-reviewed recommendation track record
         run: python scripts/update_ai_recommendations.py
 
       - name: Commit refreshed data
