@@ -3,9 +3,9 @@ name: Update Korean Stock Screener
 on:
   schedule:
     # Independent post-close retries. The generator refuses a stale market date.
-    # 18:20 / 18:50 / 19:20 / 19:50 KST on Korean weekdays.
-    - cron: '20,50 9 * * 1-5'
-    - cron: '20,50 10 * * 1-5'
+    # 16:20 / 16:50 / 17:20 / 17:50 KST on Korean weekdays.
+    - cron: '20,50 7 * * 1-5'
+    - cron: '20,50 8 * * 1-5'
   workflow_dispatch:
 
 permissions:
