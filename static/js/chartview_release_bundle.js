@@ -5756,8 +5756,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           return res.json();
         })
         .then((payload) => {
-          // Translation providers can fail transiently. The API deliberately
-          // returns a non-cached fallback; retry once before exposing it.
+          // Retry transient provider failures before exposing a fallback.
           if (payload?.translationError && !retry) return fetchSummary(true);
           return payload;
         });
