@@ -8,5 +8,5 @@ test('chart tab resize has a timer fallback for throttled animation frames', () 
 
   assert.match(source, /const resize = \(\) => window\.dispatchEvent\(new Event\('resize'\)\)/);
   assert.match(source, /setTimeout\(resize, 80\)/);
-  assert.match(template, /chartview_release_bundle\.js\?v=20260915v11/);
+  assert.match(template, /chartview_release_bundle\.js\?v=20260916v12/);
 });

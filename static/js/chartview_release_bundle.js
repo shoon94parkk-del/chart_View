@@ -5750,11 +5750,18 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       activeSummaryJobs += 1;
       const params = new URLSearchParams({ url: job.url, title: job.title });
       if (job.snippet) params.set('snippet', job.snippet.slice(0, 1100));
-      fetch(`/api/news-summary?${params}`, { cache: 'default' })
+      const fetchSummary = (retry = false) => fetch(`/api/news-summary?${params}${retry ? `&retry=${Date.now()}` : ''}`, { cache: 'no-store' })
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
         })
+        .then((payload) => {
+          // Translation providers can fail transiently. The API deliberately
+          // returns a non-cached fallback; retry once before exposing it.
+          if (payload?.translationError && !retry) return fetchSummary(true);
+          return payload;
+        });
+      fetchSummary()
         .then((payload) => {
           summaryCache.set(job.key, payload);
           job.resolve(payload);
