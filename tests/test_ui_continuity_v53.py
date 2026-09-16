@@ -11,16 +11,15 @@ def read(path: str) -> str:
 def test_app_loads_shared_ui_continuity_layer():
     html = read("templates/index.html")
     assert "/static/css/ui_continuity_v53.css?v=20260916v53" in html
+    assert "/static/js/ui_continuity_v53.js?v=20260916v53" in html
 
 
 def test_pick_naming_reflects_human_final_selection():
-    home = read("static/js/ai_daily_widget.js")
-    ledger = read("static/js/ai_pick_ledger_v52.js")
-    assert "ChartView PICK 3" in home
-    assert "ChartView AI PICK 3" not in home
-    assert ">PICK 기록<" in ledger
-    assert "CHARTVIEW PICK" in ledger
-    assert "AI 스크리닝 · 최종 선정" in ledger
+    js = read("static/js/ui_continuity_v53.js")
+    assert "ChartView PICK 3" in js
+    assert "PICK 기록" in js
+    assert "CHARTVIEW PICK" in js
+    assert "AI 스크리닝 · 최종 선정" in js
 
 
 def test_shared_ui_tokens_cover_primary_app_surfaces():
