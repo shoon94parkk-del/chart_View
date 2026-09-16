@@ -1,3 +1,4 @@
+/* ChartView UI continuity v53: naming and semantics only; feature logic stays in existing modules. */
 (() => {
   'use strict';
 
