@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-16T19:16:45+09:00",
+  "updated": "2026-09-16T19:20:02+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -107,6 +107,60 @@
       "grade": "B 성장우선/추격주의",
       "reason": "AI/HBM 확대에 따른 첨단 패키징 국산화와 체질 개선 방향을 높게 평가했다. Chart View 기술점수 29/30으로 모멘텀도 강하지만 당일 상승폭과 최근 변동성이 커서 성장성은 높게 보되 신규 추격매수는 눌림 확인이 낫다.",
       "score": 84,
+      "analysisSource": "GPT 스크리너 재분석"
+    },
+    {
+      "recommendedDate": "2026-09-16",
+      "rank": 1,
+      "symbol": "222800.KQ",
+      "code": "222800",
+      "name": "심텍",
+      "recommendedPrice": 130700.0,
+      "currentPrice": 130700.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-16",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "A 성장우선",
+      "reason": "AI 서버용 SOCAMM·고부가 반도체 기판 출하 확대와 2분기 매출·영업이익 급증으로 실적 레버리지가 강하다. 다만 대규모 CAPEX와 고객 투자·반도체 업황 둔화 시 이익 변동성이 커질 수 있다.",
+      "score": 90,
+      "analysisSource": "GPT 스크리너 재분석"
+    },
+    {
+      "recommendedDate": "2026-09-16",
+      "rank": 2,
+      "symbol": "095340.KQ",
+      "code": "095340",
+      "name": "ISC",
+      "recommendedPrice": 191900.0,
+      "currentPrice": 191900.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-16",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "A 성장우선",
+      "reason": "AI GPU·CPU·ASIC 테스트소켓 수요 확대로 2분기 매출과 영업이익이 고성장했고 HBM·SOCAMM2 및 신규 고객 확대가 이어진다. 다만 높은 밸류에이션 프리미엄과 AI 투자·고객 집중도가 핵심 리스크다.",
+      "score": 89,
+      "analysisSource": "GPT 스크리너 재분석"
+    },
+    {
+      "recommendedDate": "2026-09-16",
+      "rank": 3,
+      "symbol": "000660.KS",
+      "code": "000660",
+      "name": "SK하이닉스",
+      "recommendedPrice": 1759000.0,
+      "currentPrice": 1759000.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-16",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "A 성장우선/밸류주의",
+      "reason": "HBM4 양산 확대와 장기공급계약, AI 서버 메모리 수요로 구조적 성장과 현금창출력이 강하다. 다만 경쟁사의 HBM4 추격, HBM 마진 정상화와 현재 주가의 높아진 기대치가 핵심 리스크다.",
+      "score": 87,
       "analysisSource": "GPT 스크리너 재분석"
     }
   ]
