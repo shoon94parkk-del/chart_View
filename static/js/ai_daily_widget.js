@@ -6,6 +6,9 @@
   const pct = (n) => Number.isFinite(+n) ? `${+n > 0 ? '+' : ''}${(+n).toFixed(2)}%` : '-';
   let cachedDay = null;
   let fetching = null;
+  let newsActionObserver = null;
+  let observedNewsSection = null;
+  let newsActionQueued = false;
 
   function addStyle() {
     if (document.getElementById('ai-daily-widget-style')) return;
@@ -34,6 +37,15 @@
       #home-tab .ai-daily-badge{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef6ff;color:#1b64da;font-size:10px;font-weight:800}
       #home-tab .ai-daily-status{margin-top:8px;color:#8b95a1;font-size:9px;line-height:1.35}
       #home-tab .ai-daily-retry{border:0;background:#eef6ff;color:#1b64da;border-radius:10px;padding:8px 12px;font-weight:800;font-size:12px;margin-left:6px}
+
+      #home-personal-news-v37 .news-v40-head{align-items:center;gap:10px}
+      #home-personal-news-v37 .news-v40-head>div:first-child{min-width:0}
+      #home-personal-news-v37 .home-news-head-actions-v51{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 0 auto;margin-left:auto}
+      #home-personal-news-v37 .home-news-head-action-v51{appearance:none;box-sizing:border-box;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;margin:0!important;padding:0 11px!important;border:1px solid #e5e8eb!important;border-radius:999px!important;background:#fff!important;color:#4e5968!important;font:inherit!important;font-size:12px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important;text-decoration:none!important;cursor:pointer!important;box-shadow:none!important;transition:background .15s ease,border-color .15s ease,color .15s ease,transform .1s ease}
+      #home-personal-news-v37 .home-news-head-action-v51:hover{background:#f7f8fa!important;border-color:#d1d6db!important;color:#333d4b!important}
+      #home-personal-news-v37 .home-news-head-action-v51:active{transform:translateY(1px)}
+      #home-personal-news-v37 .home-news-head-action-v51:focus-visible{outline:2px solid rgba(49,130,246,.32)!important;outline-offset:2px}
+
       @media(max-width:700px){
         #home-tab .ai-daily-section{padding:13px}
         #home-tab .ai-daily-head{align-items:center;margin-bottom:9px}
@@ -46,6 +58,9 @@
         #home-tab .ai-daily-arrow{align-self:center}
         #home-tab .ai-daily-detail{padding:0 11px 11px}
         #home-tab .ai-daily-status{display:none}
+        #home-personal-news-v37 .news-v40-head{align-items:flex-start;gap:8px}
+        #home-personal-news-v37 .home-news-head-actions-v51{gap:5px;margin-top:1px}
+        #home-personal-news-v37 .home-news-head-action-v51{min-height:32px!important;padding:0 9px!important;font-size:11px!important}
       }
     `;
     document.head.appendChild(style);
@@ -60,7 +75,7 @@
       return `<details class="ai-daily-card"><summary aria-label="${esc(x.name || x.symbol)} 추천 사유 보기"><span class="ai-daily-rank">${medal} ${x.rank}위</span><span class="ai-daily-name">${esc(x.name || x.symbol)}</span><span class="ai-daily-score">${esc(x.totalScore)}점</span><span class="ai-daily-price">${money(x.close)}원 · <span class="${cls}">${pct(x.changePct)}</span></span><span class="ai-daily-arrow" aria-hidden="true">⌄</span></summary><div class="ai-daily-detail"><p class="ai-daily-reason">${esc(x.reason || '')}</p><span class="ai-daily-badge">${esc(x.grade || '관찰')}</span></div></details>`;
     }).join('');
     const model = day?.analysis?.model ? ` · ${esc(day.analysis.model)} 검토` : ' · GPT 스크리너 재분석';
-    return `<div class="ai-daily-head"><div><h2>오늘의 AI TOP3</h2><p>${esc(day.tradeDate)} 종가 기준${model}</p></div><a class="ai-daily-more" href="/static/recommendations.html">성과 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
+    return `<div class="ai-daily-head"><div><h2>ChartView AI PICK 3</h2><p>${esc(day.tradeDate)} 종가 기준${model}</p></div><a class="ai-daily-more" href="/static/recommendations.html">성과 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
   }
 
   function getHost() {
@@ -88,6 +103,66 @@
       host.home.prepend(section);
     }
     return section;
+  }
+
+  function syncNewsHeaderActions() {
+    const section = document.getElementById('home-personal-news-v37');
+    const head = section?.querySelector('.news-v40-head');
+    if (!section || !head) return false;
+
+    let actions = head.querySelector('[data-home-news-head-actions-v51]');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'home-news-head-actions-v51';
+      actions.dataset.homeNewsHeadActionsV51 = '1';
+      head.appendChild(actions);
+    }
+
+    const all = head.querySelector('[data-v41-news-all]') || section.querySelector('[data-v41-news-all]');
+    const refresh = head.querySelector('[data-news-v40-refresh]') || section.querySelector('[data-news-v40-refresh]');
+
+    if (all) {
+      all.classList.add('home-news-head-action-v51');
+      all.setAttribute('aria-label', '관심종목 핵심 뉴스 전체보기');
+      if (all.parentElement !== actions) actions.appendChild(all);
+    }
+    if (refresh) {
+      refresh.classList.add('home-news-head-action-v51');
+      refresh.setAttribute('aria-label', '관심종목 핵심 뉴스 새로고침');
+      if (refresh.parentElement !== actions) actions.appendChild(refresh);
+    }
+
+    if (all && refresh && actions.firstElementChild !== all) actions.insertBefore(all, refresh);
+    if (all && refresh && all.nextElementSibling !== refresh) actions.insertBefore(refresh, all.nextElementSibling);
+    return Boolean(all || refresh);
+  }
+
+  function scheduleNewsHeaderActions() {
+    if (newsActionQueued) return;
+    newsActionQueued = true;
+    requestAnimationFrame(() => {
+      newsActionQueued = false;
+      syncNewsHeaderActions();
+      observeNewsHeader();
+    });
+  }
+
+  function observeNewsHeader() {
+    const section = document.getElementById('home-personal-news-v37');
+    if (!section) return false;
+    if (section === observedNewsSection && newsActionObserver) return true;
+    newsActionObserver?.disconnect();
+    observedNewsSection = section;
+    newsActionObserver = new MutationObserver(scheduleNewsHeaderActions);
+    newsActionObserver.observe(section, { childList: true, subtree: true });
+    return true;
+  }
+
+  function installNewsHeaderActions(attempt = 0) {
+    addStyle();
+    const ready = syncNewsHeaderActions();
+    observeNewsHeader();
+    if (!ready && attempt < 60) setTimeout(() => installNewsHeaderActions(attempt + 1), 150);
   }
 
   async function loadDay() {
@@ -125,7 +200,7 @@
       section.innerHTML = cardMarkup(cachedDay);
       return;
     }
-    section.innerHTML = '<div style="color:#8b95a1;font-size:13px">오늘의 TOP3 불러오는 중...</div>';
+    section.innerHTML = '<div style="color:#8b95a1;font-size:13px">AI PICK 3 불러오는 중...</div>';
     try {
       const day = await loadDay();
       const html = cardMarkup(day);
@@ -137,7 +212,7 @@
     } catch (e) {
       const current = placeSection();
       if (!current) return;
-      current.innerHTML = '<span style="color:#8b95a1;font-size:13px">TOP3 데이터를 불러오지 못했습니다.</span><button type="button" class="ai-daily-retry">다시 시도</button>';
+      current.innerHTML = '<span style="color:#8b95a1;font-size:13px">AI PICK 데이터를 불러오지 못했습니다.</span><button type="button" class="ai-daily-retry">다시 시도</button>';
       current.querySelector('.ai-daily-retry')?.addEventListener('click', () => { cachedDay = null; mount(0); }, { once: true });
       if (e?.name !== 'AbortError') console.error('[AI daily widget]', e);
     }
@@ -189,16 +264,22 @@
   }
 
   window.__ensureAiDailyTop3 = () => mount(0);
+  document.addEventListener('chartview:v37-news-rendered', scheduleNewsHeaderActions);
   document.addEventListener('click', (event) => {
-    if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => mount(0), 120);
+    if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) {
+      setTimeout(() => mount(0), 120);
+      setTimeout(() => installNewsHeaderActions(0), 120);
+    }
   });
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       mount(0);
+      installNewsHeaderActions(0);
       installChartVisibilityFix();
     }, { once: true });
   } else {
     mount(0);
+    installNewsHeaderActions(0);
     installChartVisibilityFix();
   }
 })();
