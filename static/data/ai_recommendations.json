@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-16T20:25:57+09:00",
+  "updated": "2026-09-16T20:57:25+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -118,7 +118,7 @@
       "recommendedPrice": 31400.0,
       "currentPrice": 31400.0,
       "returnPct": 0.0,
-      "bestReturnPct": 0,
+      "bestReturnPct": 0.0,
       "lastUpdatedTradeDate": "2026-09-16",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
@@ -130,13 +130,13 @@
     {
       "recommendedDate": "2026-09-16",
       "rank": 2,
-      "symbol": "204270.KQ",
-      "code": "204270",
+      "symbol": "204620.KQ",
+      "code": "204620",
       "name": "글로벌텍스프리",
       "recommendedPrice": 5880.0,
-      "currentPrice": 21550.0,
-      "returnPct": 266.5,
-      "bestReturnPct": 266.5,
+      "currentPrice": 5880.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
       "lastUpdatedTradeDate": "2026-09-16",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
