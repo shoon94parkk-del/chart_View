@@ -5,6 +5,15 @@
   let attempts = 0;
   let queued = false;
 
+  function ensureHomeSummaryV54() {
+    if (document.querySelector('script[data-home-summary-v54]')) return;
+    const script = document.createElement('script');
+    script.src = '/static/js/home_summary_v54.js?v=20260917v54';
+    script.async = false;
+    script.dataset.homeSummaryV54 = '1';
+    document.head.appendChild(script);
+  }
+
   function ensurePickOrigin(head) {
     if (!head || head.querySelector('.cv-pick-origin')) return;
     const eyebrow = head.querySelector('.ai-ledger-eyebrow');
@@ -72,6 +81,7 @@
   }
 
   function init() {
+    ensureHomeSummaryV54();
     sync();
     const timer = setInterval(() => {
       sync();
