@@ -3,11 +3,16 @@ name: Update Korean Stock Screener
 on:
   schedule:
     # Primary run at 16:00 KST, then 20-minute retries through 17:40.
-    # GitHub scheduled workflows can be delayed, so repeated slots reduce the
-    # chance that one missed trigger prevents the daily screener refresh.
     - cron: '0,20,40 7 * * 1-5'
     - cron: '0,20,40 8 * * 1-5'
   workflow_dispatch:
+  # Independent recovery path: Macro Cache is a separate workflow/schedule.
+  # If every screener cron is missed, its next post-close completion can recover.
+  workflow_run:
+    workflows:
+      - Update Macro Cache
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -42,7 +47,9 @@ jobs:
           from pathlib import Path
 
           kst = timezone(timedelta(hours=9))
-          today = datetime.now(kst).date().isoformat()
+          now = datetime.now(kst)
+          today = now.date().isoformat()
+          event = os.environ.get('EVENT_NAME') or ''
           meta_path = Path('static/data/screener_meta.json')
           current = ''
           if meta_path.exists():
@@ -51,12 +58,18 @@ jobs:
               except Exception as exc:
                   print('Unable to read existing screener meta:', exc)
 
-          # Manual runs are always allowed so the full pipeline can be tested.
-          force = os.environ.get('EVENT_NAME') == 'workflow_dispatch'
-          should_run = force or current != today
+          force = event == 'workflow_dispatch'
+          post_close_backup = event == 'workflow_run' and now.weekday() < 5 and now.hour >= 16
+          scheduled = event == 'schedule'
+          should_run = force or (current != today and (scheduled or post_close_backup))
 
-          print(f'KST today={today} existing_trade_date={current or "missing"} event={os.environ.get("EVENT_NAME")}')
-          print('Decision:', 'RUN full screener' if should_run else 'SKIP: today already published')
+          print(
+              f'KST now={now.isoformat(timespec="seconds")} '
+              f'existing_trade_date={current or "missing"} event={event}'
+          )
+          if event == 'workflow_run' and not post_close_backup:
+              print('Backup trigger ignored before 16:00 KST or outside Korean weekdays')
+          print('Decision:', 'RUN full screener' if should_run else 'SKIP')
 
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
               fh.write(f'should_run={str(should_run).lower()}\n')
@@ -124,8 +137,6 @@ jobs:
             echo "No screener changes"
           else
             git commit -m "data: refresh Korean stock screener and validation"
-            # Another cache workflow may have committed while this long job ran.
-            # Rebase once before pushing instead of losing the daily screener.
             git pull --rebase origin main
             git push origin HEAD:main
           fi
