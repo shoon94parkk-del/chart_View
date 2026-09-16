@@ -135,6 +135,23 @@
     return Boolean(market && body);
   }
 
+  let homeOrderTimer = null;
+  function scheduleHomeOrder() {
+    if (homeOrderTimer) clearTimeout(homeOrderTimer);
+    homeOrderTimer = setTimeout(() => {
+      homeOrderTimer = null;
+      enforceHomeOrder();
+    }, 0);
+  }
+
+  function installHomeOrderObserver() {
+    const home = document.querySelector('#home-tab .home-v8');
+    if (!home || home.dataset.homeOrderObserver === '1' || typeof MutationObserver === 'undefined') return;
+    home.dataset.homeOrderObserver = '1';
+    const observer = new MutationObserver(scheduleHomeOrder);
+    observer.observe(home, { childList: true });
+  }
+
   function ensureHome(attempt = 0) {
     ensureAllAssets();
     settleInitialHome();
@@ -143,6 +160,7 @@
       try { window.__renderHomeWatchlist(); } catch (_) { }
     }
     enforceHomeOrder();
+    installHomeOrderObserver();
     const market = document.getElementById('home-market-v9');
     const body = document.getElementById('home-v8-body');
     const watchlist = document.getElementById('home-watchlist-v30');
@@ -152,6 +170,7 @@
   function restartSoon() {
     ensureAllAssets();
     settleInitialHome();
+    installHomeOrderObserver();
     setTimeout(() => ensureHome(0), 50);
     setTimeout(enforceHomeOrder, 500);
     setTimeout(enforceHomeOrder, 1500);
