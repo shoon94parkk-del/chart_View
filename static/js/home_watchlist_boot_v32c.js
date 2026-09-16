@@ -120,7 +120,9 @@
 
     if (market && home.firstElementChild !== market) home.insertBefore(market, home.firstElementChild);
     let anchor = market || null;
-    for (const node of [aiTop3, watchlist, news, body, status]) {
+    // Put the detailed market brief directly below MARKET NOW; AI and personal
+    // sections follow the primary market context instead of interrupting it.
+    for (const node of [body, aiTop3, watchlist, news, status]) {
       if (!node) continue;
       if (anchor) {
         if (anchor.nextElementSibling !== node) anchor.insertAdjacentElement('afterend', node);
@@ -129,7 +131,7 @@
       }
       anchor = node;
     }
-    home.dataset.homeOrder = 'market-ai-top3-watchlist-news-body-status';
+    home.dataset.homeOrder = 'market-body-ai-top3-watchlist-news-status';
     return Boolean(market && body);
   }
 

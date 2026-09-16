@@ -7,7 +7,7 @@ def test_v36_visual_asset_is_preserved_but_detail_js_is_replaced():
     assert '/static/js/personalization_v36.js' not in boot
     assert '/static/js/single_detail_v40.js?v=' in boot
     assert '/static/js/detail_visibility_v40_1.js?v=' in boot
-    assert "home.dataset.homeOrder = 'market-ai-top3-watchlist-news-body-status'" in boot
+    assert "home.dataset.homeOrder = 'market-body-ai-top3-watchlist-news-status'" in boot
 
 
 def test_single_stock_detail_does_not_auto_mutate_compare_list():
