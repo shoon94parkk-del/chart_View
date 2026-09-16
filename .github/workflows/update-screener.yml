@@ -2,10 +2,11 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
-    # Independent post-close retries. The generator refuses a stale market date.
-    # 16:20 / 16:50 / 17:20 / 17:50 KST on Korean weekdays.
-    - cron: '20,50 7 * * 1-5'
-    - cron: '20,50 8 * * 1-5'
+    # Primary run at 16:00 KST, then 20-minute retries through 17:40.
+    # GitHub scheduled workflows can be delayed, so repeated slots reduce the
+    # chance that one missed trigger prevents the daily screener refresh.
+    - cron: '0,20,40 7 * * 1-5'
+    - cron: '0,20,40 8 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -24,23 +25,67 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Sync latest main before deciding whether to run
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Check whether today's screener is already published
+        id: preflight
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          kst = timezone(timedelta(hours=9))
+          today = datetime.now(kst).date().isoformat()
+          meta_path = Path('static/data/screener_meta.json')
+          current = ''
+          if meta_path.exists():
+              try:
+                  current = str(json.loads(meta_path.read_text(encoding='utf-8')).get('tradeDate') or '')
+              except Exception as exc:
+                  print('Unable to read existing screener meta:', exc)
+
+          # Manual runs are always allowed so the full pipeline can be tested.
+          force = os.environ.get('EVENT_NAME') == 'workflow_dispatch'
+          should_run = force or current != today
+
+          print(f'KST today={today} existing_trade_date={current or "missing"} event={os.environ.get("EVENT_NAME")}')
+          print('Decision:', 'RUN full screener' if should_run else 'SKIP: today already published')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+              fh.write(f'should_run={str(should_run).lower()}\n')
+              fh.write(f'kst_today={today}\n')
+              fh.write(f'existing_trade_date={current}\n')
+          PY
+
       - uses: actions/setup-python@v5
+        if: steps.preflight.outputs.should_run == 'true'
         with:
           python-version: '3.11'
           cache: pip
 
       - name: Install screener dependencies
+        if: steps.preflight.outputs.should_run == 'true'
         run: pip install 'yfinance>=0.2.50' pandas requests lxml html5lib
 
       - name: Generate exact-date screener
+        if: steps.preflight.outputs.should_run == 'true'
         env:
           REQUIRE_KST_TRADE_DATE: '1'
         run: python scripts/generate_screener.py
 
       - name: Export and cross-check top 100 candidates
+        if: steps.preflight.outputs.should_run == 'true'
         run: python scripts/export_screener_candidates.py
 
       - name: Validate AI input contract
+        if: steps.preflight.outputs.should_run == 'true'
         run: |
           python - <<'PY'
           import json
@@ -66,9 +111,11 @@ jobs:
           PY
 
       - name: Refresh GPT-reviewed recommendation track record
+        if: steps.preflight.outputs.should_run == 'true'
         run: python scripts/update_ai_recommendations.py
 
       - name: Commit refreshed data
+        if: steps.preflight.outputs.should_run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
