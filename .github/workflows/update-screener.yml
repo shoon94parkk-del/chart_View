@@ -14,6 +14,7 @@ on:
       - 'scripts/generate_screener.py'
       - 'scripts/export_screener_candidates.py'
       - 'scripts/update_ai_recommendations.py'
+      - 'scripts/validate_ai_rankings.py'
   # Independent recovery path: Macro Cache is a separate workflow/schedule.
   # If every screener cron is missed, its next post-close completion can recover.
   workflow_run:
@@ -136,6 +137,10 @@ jobs:
                 'pending=', verification.get('pricePendingCount'),
                 'mismatch=', verification.get('priceMismatchCount'))
           PY
+
+      - name: Validate GPT TOP3 symbol/name identity contract
+        if: steps.preflight.outputs.should_run == 'true'
+        run: python scripts/validate_ai_rankings.py
 
       - name: Refresh GPT-reviewed recommendation track record
         if: steps.preflight.outputs.should_run == 'true'

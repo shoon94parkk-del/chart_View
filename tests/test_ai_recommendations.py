@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 
 SPEC = importlib.util.spec_from_file_location("ai_recommendations", Path("scripts/update_ai_recommendations.py"))
 module = importlib.util.module_from_spec(SPEC)
@@ -15,6 +17,29 @@ def reviewed_day():
     }
 
 
+def three_pick_day(trade_date="2026-09-15"):
+    day = reviewed_day()
+    day["tradeDate"] = trade_date
+    day["analysis"]["candidateTradeDate"] = trade_date
+    day["top3"] = [
+        {"rank": 1, "symbol": "000001.KS", "code": "000001", "name": "테스트1", "close": 100, "totalScore": 90, "grade": "A", "reason": "근거"},
+        {"rank": 2, "symbol": "000002.KS", "code": "000002", "name": "테스트2", "close": 200, "totalScore": 80, "grade": "B", "reason": "근거"},
+        {"rank": 3, "symbol": "000003.KS", "code": "000003", "name": "테스트3", "close": 300, "totalScore": 70, "grade": "B", "reason": "근거"},
+    ]
+    return day
+
+
+def screener(trade_date="2026-09-16", first_price=110):
+    return {
+        "tradeDate": trade_date,
+        "stocks": [
+            {"symbol": "000001.KS", "code": "000001", "name": "테스트1", "price": first_price},
+            {"symbol": "000002.KS", "code": "000002", "name": "테스트2", "price": 210},
+            {"symbol": "000003.KS", "code": "000003", "name": "테스트3", "price": 330},
+        ],
+    }
+
+
 def test_only_completed_gpt_review_can_enter_track_record():
     day = reviewed_day()
     assert module.is_gpt_reviewed_day(day)
@@ -23,10 +48,29 @@ def test_only_completed_gpt_review_can_enter_track_record():
 
 
 def test_track_record_reprices_only_gpt_reviewed_days():
-    day = reviewed_day()
-    day["top3"] = [{"rank": 1, "symbol": "000001.KS", "code": "000001", "name": "테스트", "close": 100, "totalScore": 90, "grade": "A", "reason": "근거"}, {"rank": 2, "symbol": "000002.KS", "code": "000002", "name": "제외", "close": 100, "totalScore": 80, "grade": "B", "reason": "근거"}, {"rank": 3, "symbol": "000003.KS", "code": "000003", "name": "제외", "close": 100, "totalScore": 70, "grade": "B", "reason": "근거"}]
+    day = three_pick_day()
     technical_only = {"tradeDate": "2026-09-16", "analysis": {"sourceType": "technical_screener"}, "top3": day["top3"]}
-    rows = module.refresh_records([day, technical_only], {"tradeDate": "2026-09-16", "stocks": [{"symbol": "000001.KS", "price": 110}]}, [])
+    rows = module.refresh_records([day, technical_only], screener(), [])
     assert len(rows) == 3
     assert rows[0]["returnPct"] == 10.0
     assert rows[0]["analysisSource"] == "GPT 스크리너 재분석"
+
+
+def test_same_day_recommendation_always_starts_at_zero_return():
+    day = three_pick_day("2026-09-16")
+    rows = module.refresh_records([day], screener("2026-09-16", first_price=999), [])
+    assert rows[0]["recommendedPrice"] == 100
+    assert rows[0]["currentPrice"] == 100
+    assert rows[0]["returnPct"] == 0.0
+
+
+def test_name_symbol_identity_mismatch_blocks_return_calculation():
+    day = three_pick_day("2026-09-16")
+    day["top3"][0]["name"] = "글로벌텍스프리"
+    bad_screener = screener("2026-09-16")
+    bad_screener["stocks"][0]["name"] = "제이앤티씨"
+    bad_screener["stocks"].append({"symbol": "204620.KQ", "code": "204620", "name": "글로벌텍스프리", "price": 5880})
+
+    with pytest.raises(ValueError, match="identity mismatch") as exc:
+        module.refresh_records([day], bad_screener, [])
+    assert "204620.KQ" in str(exc.value)
