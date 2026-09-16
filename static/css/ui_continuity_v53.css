@@ -1,0 +1,282 @@
+/* ChartView UI continuity v53: shared visual language across the app. */
+:root{
+  --cv-page-gutter:16px;
+  --cv-card-radius:20px;
+  --cv-control-radius:12px;
+  --cv-section-gap:14px;
+  --cv-border:#e5e8eb;
+  --cv-surface:#fff;
+  --cv-soft:#f7f8fa;
+  --cv-text:#191f28;
+  --cv-muted:#6b7684;
+  --cv-primary:#3182f6;
+  --cv-card-shadow:0 4px 18px rgba(15,23,42,.04);
+}
+
+#home-tab,#watchlist-tab,#chart-tab,#fwdper-tab,#screener-tab,#macro-tab{
+  color:var(--cv-text);
+}
+
+/* One card language across the main destinations. */
+.home-v8-block,
+#home-tab .ai-daily-section,
+.watchlist-v30-searchbox,
+.watchlist-v33-searchbox,
+.watchlist-v33-summary>div,
+#chart-tab .chart-section,
+#fwdper-tab .per-section,
+#screener-tab .screener-section,
+#macro-tab .macro-section,
+.revision-gap-panel{
+  border-color:var(--cv-border)!important;
+  border-radius:var(--cv-card-radius)!important;
+  box-shadow:var(--cv-card-shadow)!important;
+}
+
+/* Shared control geometry. */
+.screener-search,.screen-select,
+.ai-ledger-search,.ai-ledger-select,
+.watchlist-v30-searchrow input,
+.decision-valuation-nav .metric-chip,
+.stock-brief-tab{
+  border-radius:var(--cv-control-radius)!important;
+}
+
+/* Shared hierarchy: blue eyebrow, dark heading, quiet supporting copy. */
+.home-v8-kicker,.watchlist-v30-eyebrow,.ai-ledger-eyebrow,.ideas-kicker{
+  color:var(--cv-primary)!important;
+  font-weight:850!important;
+  letter-spacing:.07em;
+}
+
+.ai-ledger-head h2,.watchlist-v30-head h2,.home-v8-hero h2,
+.revision-gap-head h3{
+  color:var(--cv-text)!important;
+  letter-spacing:-.035em;
+}
+
+.ai-ledger-head p,.watchlist-v30-head p,.home-v8-hero p,.revision-gap-head p{
+  color:var(--cv-muted)!important;
+}
+
+.cv-pick-origin{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  margin:3px 0 1px;
+  padding:0 8px;
+  border-radius:999px;
+  background:#eef6ff;
+  color:#1b64da;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+/* Discovery segmented control follows the same inset treatment as the rest of the app. */
+#screener-tab .discovery-subnav{
+  border-color:var(--cv-border)!important;
+  border-radius:14px!important;
+  background:#f2f4f6!important;
+}
+#screener-tab .discovery-subtab{
+  border-radius:10px!important;
+}
+#screener-tab .discovery-subtab.active{
+  color:var(--cv-text)!important;
+  box-shadow:0 1px 4px rgba(15,23,42,.07)!important;
+}
+
+/* Ledger: one summary surface instead of four floating boxes. */
+#screener-tab .ai-ledger-kpis{
+  overflow:hidden;
+  border:1px solid var(--cv-border);
+  border-radius:16px;
+  background:var(--cv-surface);
+  gap:0!important;
+}
+#screener-tab .ai-ledger-kpi{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+#screener-tab .ai-ledger-kpi:not(:last-child){border-right:1px solid #f0f2f4!important}
+
+/* Filters are grouped as one control surface to reduce visual box count. */
+#screener-tab .ai-ledger-tools{
+  padding:8px;
+  border:1px solid var(--cv-border);
+  border-radius:16px;
+  background:var(--cv-surface);
+}
+#screener-tab .ai-ledger-search,#screener-tab .ai-ledger-select{
+  border-color:transparent!important;
+  background:var(--cv-soft)!important;
+  box-shadow:none!important;
+}
+#screener-tab .ai-ledger-search:focus,#screener-tab .ai-ledger-select:focus{
+  border-color:#8ab8ff!important;
+  background:#fff!important;
+}
+#screener-tab .ai-ledger-table{
+  border-color:var(--cv-border)!important;
+  border-radius:16px!important;
+}
+
+/* Revision/price gap: flatten nested cards into one continuous list surface. */
+.revision-gap-panel{
+  background:transparent!important;
+}
+.revision-gap-grid{
+  overflow:hidden;
+  border:1px solid var(--cv-border);
+  border-radius:16px;
+  background:var(--cv-surface);
+}
+.revision-gap-card{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.revision-gap-card+.revision-gap-card{
+  border-top:1px solid #edf0f3!important;
+}
+.revision-gap-metrics>div{
+  box-shadow:none!important;
+}
+
+@media(max-width:720px){
+  :root{
+    --cv-page-gutter:16px;
+    --cv-card-radius:18px;
+    --cv-section-gap:12px;
+  }
+
+  /* Keep the same page rhythm in every bottom-nav destination. */
+  .home-tab{
+    padding-left:var(--cv-page-gutter)!important;
+    padding-right:var(--cv-page-gutter)!important;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom))!important;
+  }
+  .watchlist-v30,.watchlist-v33{
+    padding-left:var(--cv-page-gutter)!important;
+    padding-right:var(--cv-page-gutter)!important;
+    padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+  }
+  #chart-tab,#fwdper-tab,#screener-tab,#macro-tab{
+    padding-bottom:calc(84px + env(safe-area-inset-bottom));
+  }
+  body.app-shell-ready{
+    padding-bottom:calc(72px + env(safe-area-inset-bottom))!important;
+  }
+
+  .home-v8-block,
+  #home-tab .ai-daily-section,
+  .watchlist-v30-searchbox,
+  .watchlist-v33-searchbox,
+  #chart-tab .chart-section,
+  #fwdper-tab .per-section,
+  #macro-tab .macro-section{
+    border-radius:var(--cv-card-radius)!important;
+  }
+
+  #screener-tab .screener-section{
+    margin-left:var(--cv-page-gutter)!important;
+    margin-right:var(--cv-page-gutter)!important;
+    padding:14px!important;
+    border-radius:var(--cv-card-radius)!important;
+  }
+
+  #screener-tab .discovery-subnav{
+    width:calc(100% - (var(--cv-page-gutter) * 2))!important;
+    margin:0 var(--cv-page-gutter) 14px!important;
+    padding:4px!important;
+  }
+  #screener-tab .discovery-subtab{
+    min-height:42px!important;
+    font-size:12px!important;
+  }
+
+  #screener-tab .ai-ledger-panel{
+    padding:0 var(--cv-page-gutter) calc(24px + env(safe-area-inset-bottom));
+  }
+  #screener-tab .ai-ledger-head{
+    display:block!important;
+    margin-bottom:12px!important;
+  }
+  #screener-tab .ai-ledger-data-date{
+    display:inline-flex;
+    margin-top:8px;
+  }
+  #screener-tab .ai-ledger-head h2{font-size:21px!important}
+  #screener-tab .ai-ledger-head p{font-size:12px!important;line-height:1.55!important}
+
+  #screener-tab .ai-ledger-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    margin-bottom:10px!important;
+  }
+  #screener-tab .ai-ledger-kpi{
+    min-height:76px;
+    padding:12px 14px!important;
+  }
+  #screener-tab .ai-ledger-kpi:nth-child(1),#screener-tab .ai-ledger-kpi:nth-child(2){border-bottom:1px solid #f0f2f4!important}
+  #screener-tab .ai-ledger-kpi:nth-child(2n){border-right:0!important}
+  #screener-tab .ai-ledger-kpi b{font-size:19px!important}
+
+  #screener-tab .ai-ledger-tools{
+    grid-template-columns:1fr 1fr!important;
+    gap:6px!important;
+    margin-bottom:8px!important;
+  }
+  #screener-tab .ai-ledger-search-wrap{grid-column:1/-1!important}
+  #screener-tab .ai-ledger-tools [data-ledger-sort]{grid-column:1/-1!important}
+  #screener-tab .ai-ledger-search,#screener-tab .ai-ledger-select{
+    min-height:42px!important;
+    font-size:12px!important;
+  }
+  #screener-tab .ai-ledger-row{
+    padding:11px 12px!important;
+  }
+
+  .revision-gap-panel{
+    margin-bottom:16px!important;
+    padding:0!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  .revision-gap-head{
+    padding:0 2px 10px;
+    margin-bottom:0!important;
+  }
+  .revision-gap-count{
+    margin-top:7px!important;
+    background:#f2f4f6!important;
+    color:#6b7684!important;
+  }
+  .revision-gap-grid{
+    grid-template-columns:1fr!important;
+    gap:0!important;
+    border-radius:var(--cv-card-radius)!important;
+  }
+  .revision-gap-card{
+    padding:14px 15px!important;
+  }
+  .revision-gap-metrics{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:0!important;
+    margin:11px 0!important;
+    padding:10px 0;
+    border-top:1px solid #f0f2f4;
+    border-bottom:1px solid #f0f2f4;
+  }
+  .revision-gap-metrics>div{
+    padding:0 7px!important;
+    border-radius:0!important;
+    background:transparent!important;
+  }
+  .revision-gap-metrics>div+div{border-left:1px solid #f0f2f4}
+  .revision-gap-highlight{background:transparent!important}
+  .revision-gap-metrics span{font-size:8.5px!important}
+  .revision-gap-metrics strong{font-size:11.5px!important}
+  .revision-gap-note{padding:0 2px}
+}
