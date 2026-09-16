@@ -1,0 +1,45 @@
+name: Update Home Market Snapshot
+
+on:
+  schedule:
+    # Every 15 minutes on weekdays. GitHub schedules are UTC.
+    - cron: '*/15 * * * 1-5'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_home_snapshot.py'
+      - '.github/workflows/update-home-snapshot.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: home-market-snapshot
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install snapshot dependency
+        run: pip install requests
+      - name: Generate persistent snapshot
+        run: python scripts/generate_home_snapshot.py
+      - name: Commit refreshed snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/home_snapshot.json
+          if git diff --cached --quiet; then
+            echo "No snapshot changes"
+          else
+            git commit -m "data: refresh home market snapshot"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

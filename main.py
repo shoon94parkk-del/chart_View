@@ -793,10 +793,28 @@ async def macro_data():
 
 
 def _seed_home_snapshot_from_disk():
-    """Best-effort cold-start seed from the committed daily valuation cache."""
+    """Best-effort cold-start seed from the persistent home snapshot."""
     if HOME_SNAPSHOT_CACHE.get("data"):
         return HOME_SNAPSHOT_CACHE["data"]
     results = []
+    try:
+        import json as _json
+        snapshot_path = os.path.join(os.path.dirname(__file__), "static", "data", "home_snapshot.json")
+        with open(snapshot_path, "r", encoding="utf-8") as f:
+            disk_snapshot = _json.load(f)
+        results = [row for row in (disk_snapshot.get("heatmap", {}).get("results") or []) if isinstance(row, dict)]
+        if results:
+            HOME_SNAPSHOT_CACHE["data"] = {
+                "heatmap": {"results": results},
+                "macro": MACRO_CACHE.get("data"),
+                "generatedAt": disk_snapshot.get("generatedAt"),
+                "source": disk_snapshot.get("source") or "disk-seed",
+                "errors": disk_snapshot.get("errors") or [],
+            }
+            HOME_SNAPSHOT_CACHE["timestamp"] = 0.0
+            return HOME_SNAPSHOT_CACHE["data"]
+    except Exception as exc:
+        print(f"[HOME] persistent snapshot unavailable: {exc}")
     try:
         import json as _json
         cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
