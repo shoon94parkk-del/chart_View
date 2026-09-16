@@ -6,6 +6,14 @@ on:
     - cron: '0,20,40 7 * * 1-5'
     - cron: '0,20,40 8 * * 1-5'
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/update-screener.yml'
+      - 'scripts/generate_screener.py'
+      - 'scripts/export_screener_candidates.py'
+      - 'scripts/update_ai_recommendations.py'
   # Independent recovery path: Macro Cache is a separate workflow/schedule.
   # If every screener cron is missed, its next post-close completion can recover.
   workflow_run:
@@ -58,7 +66,7 @@ jobs:
               except Exception as exc:
                   print('Unable to read existing screener meta:', exc)
 
-          force = event == 'workflow_dispatch'
+          force = event in {'workflow_dispatch', 'push'}
           post_close_backup = event == 'workflow_run' and now.weekday() < 5 and now.hour >= 16
           scheduled = event == 'schedule'
           should_run = force or (current != today and (scheduled or post_close_backup))
@@ -93,7 +101,7 @@ jobs:
           REQUIRE_KST_TRADE_DATE: '1'
         run: python scripts/generate_screener.py
 
-      - name: Export and cross-check top 100 candidates
+      - name: Export and cross-check blended candidates
         if: steps.preflight.outputs.should_run == 'true'
         run: python scripts/export_screener_candidates.py
 
@@ -111,13 +119,19 @@ jobs:
           trade_date = str(top.get('tradeDate') or '')
           exact = int(verification.get('exactDateUniverseCount') or 0)
           universe = int(meta.get('universeCount') or 0)
+          candidate_count = int(verification.get('candidateCount') or 0)
+          technical_count = int(verification.get('technicalDiscoveryCount') or 0)
 
           assert trade_date, 'missing tradeDate'
-          assert trade_date == str(meta.get('tradeDate') or ''), 'tradeDate mismatch between meta and top100'
-          assert len(stocks) == 100, f'top100 must contain 100 rows, got {len(stocks)}'
-          assert verification.get('candidateExactDateCount') == 100, 'top100 contains stale-date rows'
+          assert trade_date == str(meta.get('tradeDate') or ''), 'tradeDate mismatch between meta and candidate pool'
+          assert len(stocks) >= 100, f'candidate pool must contain at least 100 rows, got {len(stocks)}'
+          assert candidate_count == len(stocks), f'candidateCount mismatch: {candidate_count} != {len(stocks)}'
+          assert technical_count == 100, f'technical discovery pool must remain 100, got {technical_count}'
+          assert all(str(row.get('date') or '') == trade_date for row in stocks), 'candidate pool contains stale-date rows'
           assert exact >= max(100, int(universe * 0.90)), f'exact-date coverage too low: {exact}/{universe}'
-          print('AI input OK:', trade_date, 'exact=', exact, '/', universe,
+          print('AI input OK:', trade_date,
+                'candidates=', len(stocks),
+                'exact=', exact, '/', universe,
                 'verified=', verification.get('priceVerifiedCount'),
                 'pending=', verification.get('pricePendingCount'),
                 'mismatch=', verification.get('priceMismatchCount'))
