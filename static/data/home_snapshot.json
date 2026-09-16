@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-16T13:31:39.597728+00:00",
+  "generatedAt": "2026-09-16T17:44:58.649001+00:00",
   "source": "github-actions-yahoo-chart",
   "heatmap": {
     "results": [
@@ -8,7 +8,7 @@
         "name": "SamsungElec",
         "price": 253500.0,
         "change": -5.9369,
-        "marketCap": 11757106,
+        "marketCap": 0,
         "asOf": "2026-09-16T06:30:28+00:00",
         "stale": false
       },
@@ -17,62 +17,62 @@
         "name": "SK hynix",
         "price": 1759000.0,
         "change": -5.2263,
-        "marketCap": 2857754,
+        "marketCap": 0,
         "asOf": "2026-09-16T06:30:10+00:00",
         "stale": false
       },
       {
         "ticker": "NVDA",
         "name": "NVIDIA Corporation",
-        "price": 213.36,
-        "change": -4.6095,
-        "marketCap": 5226887,
-        "asOf": "2026-09-16T13:31:35+00:00",
+        "price": 214.74,
+        "change": -3.9925,
+        "marketCap": 46860584,
+        "asOf": "2026-09-16T17:44:55+00:00",
         "stale": false
       },
       {
         "ticker": "AAPL",
         "name": "Apple Inc.",
-        "price": 332.99,
-        "change": 5.5971,
-        "marketCap": 1509765,
-        "asOf": "2026-09-16T13:31:36+00:00",
+        "price": 333.13,
+        "change": 5.6415,
+        "marketCap": 15476378,
+        "asOf": "2026-09-16T17:44:53+00:00",
         "stale": false
       },
       {
         "ticker": "MSFT",
         "name": "Microsoft Corporation",
-        "price": 493.0,
-        "change": 0.2746,
-        "marketCap": 629249,
-        "asOf": "2026-09-16T13:31:37+00:00",
+        "price": 493.435,
+        "change": 0.3631,
+        "marketCap": 6685858,
+        "asOf": "2026-09-16T17:44:56+00:00",
         "stale": false
       },
       {
         "ticker": "META",
         "name": "Meta Platforms, Inc.",
-        "price": 679.83,
-        "change": 3.9988,
-        "marketCap": 1303280,
-        "asOf": "2026-09-16T13:31:37+00:00",
+        "price": 675.16,
+        "change": 3.2844,
+        "marketCap": 8765346,
+        "asOf": "2026-09-16T17:44:53+00:00",
         "stale": false
       },
       {
         "ticker": "TSLA",
         "name": "Tesla, Inc.",
-        "price": 356.434,
-        "change": -3.0929,
-        "marketCap": 923143,
-        "asOf": "2026-09-16T13:31:38+00:00",
+        "price": 360.34,
+        "change": -2.0309,
+        "marketCap": 18907089,
+        "asOf": "2026-09-16T17:44:56+00:00",
         "stale": false
       },
       {
         "ticker": "GOOGL",
         "name": "Alphabet Inc.",
-        "price": 347.13,
-        "change": 4.9841,
-        "marketCap": 767474,
-        "asOf": "2026-09-16T13:31:38+00:00",
+        "price": 344.935,
+        "change": 4.3203,
+        "marketCap": 7774481,
+        "asOf": "2026-09-16T17:44:55+00:00",
         "stale": false
       }
     ]
