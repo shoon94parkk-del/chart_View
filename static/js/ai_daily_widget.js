@@ -10,6 +10,23 @@
   let observedNewsSection = null;
   let newsActionQueued = false;
 
+  function installAiLedgerAssets() {
+    if (!document.getElementById('ai-pick-ledger-v52-style')) {
+      const link = document.createElement('link');
+      link.id = 'ai-pick-ledger-v52-style';
+      link.rel = 'stylesheet';
+      link.href = '/static/css/ai_pick_ledger_v52.css?v=20260916v52';
+      document.head.appendChild(link);
+    }
+    if (!document.getElementById('ai-pick-ledger-v52-script')) {
+      const script = document.createElement('script');
+      script.id = 'ai-pick-ledger-v52-script';
+      script.src = '/static/js/ai_pick_ledger_v52.js?v=20260916v52';
+      script.async = false;
+      document.body.appendChild(script);
+    }
+  }
+
   function addStyle() {
     if (document.getElementById('ai-daily-widget-style')) return;
     const style = document.createElement('style');
@@ -75,7 +92,7 @@
       return `<details class="ai-daily-card"><summary aria-label="${esc(x.name || x.symbol)} 추천 사유 보기"><span class="ai-daily-rank">${medal} ${x.rank}위</span><span class="ai-daily-name">${esc(x.name || x.symbol)}</span><span class="ai-daily-score">${esc(x.totalScore)}점</span><span class="ai-daily-price">${money(x.close)}원 · <span class="${cls}">${pct(x.changePct)}</span></span><span class="ai-daily-arrow" aria-hidden="true">⌄</span></summary><div class="ai-daily-detail"><p class="ai-daily-reason">${esc(x.reason || '')}</p><span class="ai-daily-badge">${esc(x.grade || '관찰')}</span></div></details>`;
     }).join('');
     const model = day?.analysis?.model ? ` · ${esc(day.analysis.model)} 검토` : ' · GPT 스크리너 재분석';
-    return `<div class="ai-daily-head"><div><h2>ChartView AI PICK 3</h2><p>${esc(day.tradeDate)} 종가 기준${model}</p></div><a class="ai-daily-more" href="/static/recommendations.html">성과 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
+    return `<div class="ai-daily-head"><div><h2>ChartView AI PICK 3</h2><p>${esc(day.tradeDate)} 종가 기준${model}</p></div><a class="ai-daily-more" href="/?tab=screener&view=ai-picks">전체 기록 →</a></div><div class="ai-daily-grid">${cards}</div>${day.status ? `<div class="ai-daily-status">${esc(day.status)}</div>` : ''}`;
   }
 
   function getHost() {
@@ -263,6 +280,7 @@
     setTimeout(() => refit(true), 0);
   }
 
+  installAiLedgerAssets();
   window.__ensureAiDailyTop3 = () => mount(0);
   document.addEventListener('chartview:v37-news-rendered', scheduleNewsHeaderActions);
   document.addEventListener('click', (event) => {
