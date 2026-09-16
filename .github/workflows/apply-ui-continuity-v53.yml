@@ -1,0 +1,56 @@
+name: Apply UI Continuity v53
+
+on:
+  push:
+    branches: [feature/ui-continuity-v53]
+    paths:
+      - '.github/workflows/apply-ui-continuity-v53.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/ui-continuity-v53
+      - name: Inject versioned continuity assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('templates/index.html')
+          text = p.read_text(encoding='utf-8')
+
+          css = '    <link rel="stylesheet" href="/static/css/ui_continuity_v53.css?v=20260916v53">\n'
+          if css not in text:
+              marker = '        data-home-polish-v414 data-home-watchlist-compact-v46 data-home-news-cards-v47>\n'
+              if marker not in text:
+                  raise SystemExit('release bundle marker not found')
+              text = text.replace(marker, marker + css, 1)
+
+          js = '    <script defer src="/static/js/ui_continuity_v53.js?v=20260916v53"></script>\n'
+          if js not in text:
+              marker = '    <script defer src="/static/js/ai_daily_widget.js?v=20260916v52"></script>\n'
+              if marker not in text:
+                  raise SystemExit('AI widget marker not found')
+              text = text.replace(marker, marker + js, 1)
+
+          p.write_text(text, encoding='utf-8')
+          PY
+      - name: Verify injections
+        run: |
+          grep -F '/static/css/ui_continuity_v53.css?v=20260916v53' templates/index.html
+          grep -F '/static/js/ui_continuity_v53.js?v=20260916v53' templates/index.html
+      - name: Commit patch
+        run: |
+          if git diff --quiet -- templates/index.html; then
+            echo 'Nothing to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html
+          git commit -m 'ui: load shared continuity layer'
+          git push origin HEAD:feature/ui-continuity-v53
