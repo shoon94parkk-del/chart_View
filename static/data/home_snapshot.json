@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-09-16T08:06:42.856977+00:00",
+  "source": "github-actions-yahoo-chart",
+  "heatmap": {
+    "results": [
+      {
+        "ticker": "005930.KS",
+        "name": "SamsungElec",
+        "price": 253500.0,
+        "change": -5.9369,
+        "marketCap": 12527191,
+        "asOf": "2026-09-16T06:30:28+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "000660.KS",
+        "name": "SK hynix",
+        "price": 1759000.0,
+        "change": -5.2263,
+        "marketCap": 2996567,
+        "asOf": "2026-09-16T06:30:10+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "NVDA",
+        "name": "NVIDIA Corporation",
+        "price": 212.17,
+        "change": -6.0072,
+        "marketCap": 85131691,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "AAPL",
+        "name": "Apple Inc.",
+        "price": 331.34,
+        "change": 4.7815,
+        "marketCap": 31420574,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "MSFT",
+        "name": "Microsoft Corporation",
+        "price": 497.12,
+        "change": 0.6418,
+        "marketCap": 17700788,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "META",
+        "name": "Meta Platforms, Inc.",
+        "price": 670.24,
+        "change": 9.2521,
+        "marketCap": 18598822,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "TSLA",
+        "name": "Tesla, Inc.",
+        "price": 356.58,
+        "change": -3.1454,
+        "marketCap": 30215079,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "GOOGL",
+        "name": "Alphabet Inc.",
+        "price": 344.98,
+        "change": 1.9565,
+        "marketCap": 21480287,
+        "asOf": "2026-09-15T20:00:01+00:00",
+        "stale": false
+      }
+    ]
+  },
+  "errors": []
+}
