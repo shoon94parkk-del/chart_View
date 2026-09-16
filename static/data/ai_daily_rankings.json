@@ -44,7 +44,7 @@
       },
       "top3": [
         {"rank":1,"code":"003160","symbol":"003160.KS","name":"디아이","close":31400,"previousClose":29700,"changePct":5.72,"companyScore":35,"industryScore":15,"valuationScore":8,"catalystRiskScore":8,"technicalScore":26,"totalScore":92,"grade":"사용자 확정 1위","reason":"SK하이닉스 HBM4 Wafer Tester 대규모 수주가 실제 매출과 이익으로 연결되고 있으며 P&T7 Wafer Test 증설과 차세대 HBM 검사장비 전환이 추가 성장축이다. 다만 HBM4 발주가 단기 피크를 형성하거나 HBM5가 기존 장비 업그레이드만으로 대응될 경우 신규 장비 매출이 기대보다 작아질 수 있다."},
-        {"rank":2,"code":"204270","symbol":"204270.KQ","name":"글로벌텍스프리","close":5880,"previousClose":5710,"changePct":2.98,"companyScore":29,"industryScore":13,"valuationScore":8,"catalystRiskScore":8,"technicalScore":27,"totalScore":85,"grade":"사용자 확정 2위","reason":"외국인 관광객 증가와 화장품·리테일 소비 확대가 택스리펀드 거래액과 수수료 매출 증가로 직결되는 구조이며 최근 실적도 고성장을 이어가고 있다. 다만 관광객 유입, 환율, 정책 변화와 특정 소비채널 의존도가 핵심 리스크다."},
+        {"rank":2,"code":"204620","symbol":"204620.KQ","name":"글로벌텍스프리","close":5880,"previousClose":5710,"changePct":2.98,"companyScore":29,"industryScore":13,"valuationScore":8,"catalystRiskScore":8,"technicalScore":27,"totalScore":85,"grade":"사용자 확정 2위","reason":"외국인 관광객 증가와 화장품·리테일 소비 확대가 택스리펀드 거래액과 수수료 매출 증가로 직결되는 구조이며 최근 실적도 고성장을 이어가고 있다. 다만 관광객 유입, 환율, 정책 변화와 특정 소비채널 의존도가 핵심 리스크다."},
         {"rank":3,"code":"000660","symbol":"000660.KS","name":"SK하이닉스","close":1759000,"previousClose":1690000,"changePct":4.08,"companyScore":35,"industryScore":15,"valuationScore":7,"catalystRiskScore":8,"technicalScore":23,"totalScore":88,"grade":"사용자 확정 3위","reason":"HBM4 양산 확대와 AI 서버 메모리 수요, 장기공급계약을 기반으로 구조적 성장과 높은 현금창출력이 이어지고 있다. 다만 경쟁사의 HBM4 추격, HBM 마진 정상화와 메모리 투자 사이클 고점 가능성이 핵심 리스크다."}
       ]
     }
