@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-15T21:05:00+09:00",
+  "updated": "2026-09-16T19:19:29+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -26,6 +26,27 @@
       ],
       "top10": [],
       "verification": {"tradeDate":"2026-09-15","source":"Chart View daily screener","universeCount":2649,"usableStocks":2495,"exactDateCoverage":0.9419,"rankingPolicy":"fundamental/industry growth 70 + technical 30; growth takes priority over screener technical rank","note":"Chart View screener prices are used as the ranking baseline per user instruction; secondary-source mismatch does not exclude a screener candidate from growth-first ranking."}
+    },
+    {
+      "tradeDate": "2026-09-16",
+      "status": "GPT 검토 TOP3 — 2026-09-16 종가 기준",
+      "analysis": {
+        "sourceType": "gpt_screener_review",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-09-16",
+        "analyzedAt": "2026-09-16T19:19:29+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2",
+        "weights": {"companyGrowth": 35, "industry": 15, "valuation": 10, "catalystRisk": 10, "technical": 30}
+      },
+      "top3": [
+        {"rank":1,"code":"222800","symbol":"222800.KQ","name":"심텍","close":130700,"previousClose":125500,"changePct":4.14,"companyScore":34,"industryScore":15,"valuationScore":7,"catalystRiskScore":8,"technicalScore":26,"totalScore":90,"grade":"A 성장우선","reason":"AI 서버용 SOCAMM·고부가 반도체 기판 출하 확대와 2분기 매출·영업이익 급증으로 실적 레버리지가 강하다. 다만 대규모 CAPEX와 고객 투자·반도체 업황 둔화 시 이익 변동성이 커질 수 있다."},
+        {"rank":2,"code":"095340","symbol":"095340.KQ","name":"ISC","close":191900,"previousClose":181600,"changePct":5.67,"companyScore":34,"industryScore":15,"valuationScore":6,"catalystRiskScore":8,"technicalScore":26,"totalScore":89,"grade":"A 성장우선","reason":"AI GPU·CPU·ASIC 테스트소켓 수요 확대로 2분기 매출과 영업이익이 고성장했고 HBM·SOCAMM2 및 신규 고객 확대가 이어진다. 다만 높은 밸류에이션 프리미엄과 AI 투자·고객 집중도가 핵심 리스크다."},
+        {"rank":3,"code":"000660","symbol":"000660.KS","name":"SK하이닉스","close":1759000,"previousClose":1690000,"changePct":4.08,"companyScore":35,"industryScore":15,"valuationScore":7,"catalystRiskScore":7,"technicalScore":23,"totalScore":87,"grade":"A 성장우선/밸류주의","reason":"HBM4 양산 확대와 장기공급계약, AI 서버 메모리 수요로 구조적 성장과 현금창출력이 강하다. 다만 경쟁사의 HBM4 추격, HBM 마진 정상화와 현재 주가의 높아진 기대치가 핵심 리스크다."}
+      ]
     }
   ]
 }
