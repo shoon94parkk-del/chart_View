@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-16T20:57:25+09:00",
+  "updated": "2026-09-16T21:00:37+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -136,7 +136,7 @@
       "recommendedPrice": 5880.0,
       "currentPrice": 5880.0,
       "returnPct": 0.0,
-      "bestReturnPct": 0,
+      "bestReturnPct": 0.0,
       "lastUpdatedTradeDate": "2026-09-16",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
