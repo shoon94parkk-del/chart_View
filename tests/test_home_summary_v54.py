@@ -10,7 +10,7 @@ def read(path: str) -> str:
 
 def test_home_summary_v54_is_loaded_with_fresh_cache_key():
     html = read("templates/index.html")
-    assert "/static/js/home_summary_v54.js?v=20260916v54" in html
+    assert "/static/js/home_summary_v54.js?v=20260917v54" in html
 
 
 def test_home_watchlist_is_limited_to_four_with_more_link():
