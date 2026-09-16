@@ -8,10 +8,10 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_index_loads_ai_pick_ledger_assets():
-    html = read("templates/index.html")
-    assert "/static/css/ai_pick_ledger_v52.css" in html
-    assert "/static/js/ai_pick_ledger_v52.js" in html
+def test_ai_daily_widget_loads_ai_pick_ledger_assets():
+    js = read("static/js/ai_daily_widget.js")
+    assert "/static/css/ai_pick_ledger_v52.css" in js
+    assert "/static/js/ai_pick_ledger_v52.js" in js
 
 
 def test_home_ai_pick_link_opens_discovery_ledger():
