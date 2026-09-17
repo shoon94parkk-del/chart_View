@@ -17,12 +17,17 @@ def test_home_watchlist_keeps_one_month_return_and_four_item_summary():
 
 
 def test_chartview_pick_uses_recommendation_close_to_current_price():
-    widget = read("static/js/ai_daily_widget.js")
+    html = read("templates/index.html")
+    path = Path("static/js/pick_performance_v56.js")
 
-    assert "/static/data/ai_recommendations.json" in widget
-    assert "recommendedPrice" in widget
-    assert "currentPrice" in widget
-    assert "/api/compare?tickers=" in widget
-    assert "추천 종가" in widget
-    assert "→ 현재" in widget
-    assert "ai-daily-rank\">" not in widget
+    assert "/static/js/pick_performance_v56.js?v=20260917v56" in html
+    assert path.exists(), "PICK performance layer must exist"
+
+    script = path.read_text(encoding="utf-8")
+    assert "/static/data/ai_recommendations.json" in script
+    assert "recommendedPrice" in script
+    assert "currentPrice" in script
+    assert "/api/compare?tickers=" in script
+    assert "추천 종가" in script
+    assert "→ 현재" in script
+    assert ".ai-daily-rank" in script and ".remove()" in script
