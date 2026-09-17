@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-09-17T06:36:27.691667+00:00",
+  "generatedAt": "2026-09-17T12:08:35.654584+00:00",
   "source": "github-actions-yahoo-chart",
   "heatmap": {
     "results": [
       {
         "ticker": "005930.KS",
         "name": "SamsungElec",
-        "price": 252750.0,
-        "change": -6.0409,
-        "marketCap": 9625295,
-        "asOf": "2026-09-17T06:16:23+00:00",
+        "price": 252500.0,
+        "change": -6.1338,
+        "marketCap": 12925345,
+        "asOf": "2026-09-17T06:30:12+00:00",
         "stale": false
       },
       {
         "ticker": "000660.KS",
         "name": "SK hynix",
-        "price": 1744000.0,
-        "change": -5.8824,
-        "marketCap": 2333094,
-        "asOf": "2026-09-17T06:16:24+00:00",
+        "price": 1745000.0,
+        "change": -5.8284,
+        "marketCap": 3013101,
+        "asOf": "2026-09-17T06:30:13+00:00",
         "stale": false
       },
       {
