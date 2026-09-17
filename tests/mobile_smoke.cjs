@@ -55,7 +55,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.equal(response.status(), 200);
       await page.locator('.app-bottom-nav').waitFor({timeout:30000});
       await page.locator('#home-watchlist-v30').waitFor({timeout:30000});
-      await page.locator('#home-watchlist-v30').getByText('MY STOCKS · 1달 수익률').waitFor();
+      await page.locator('#home-watchlist-v30').getByText('MY STOCKS · 추천 후 수익률').waitFor();
       assert.ok(await page.locator('#home-tab').evaluate(el => el.classList.contains('active')), `${width}: Home body must be active after fresh load`);
       assert.ok(await page.locator('.app-bottom-btn[data-app-mode="home"]').evaluate(el => el.classList.contains('active')), `${width}: Home bottom navigation must be active after fresh load`);
       assert.equal(await page.evaluate(() => window.__homeNavMismatchObserved), false, `${width}: Home body and bottom navigation diverged during fresh load`);

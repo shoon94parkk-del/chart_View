@@ -11,7 +11,7 @@ def read(path: str) -> str:
 def test_app_loads_shared_ui_continuity_layer():
     html = read("templates/index.html")
     assert "/static/css/ui_continuity_v53.css?v=20260916v53" in html
-    assert "/static/js/ui_continuity_v53.js?v=20260916v53" in html
+    assert "/static/js/ui_continuity_v53.js?v=20260917v54" in html
 
 
 def test_pick_naming_reflects_human_final_selection():
