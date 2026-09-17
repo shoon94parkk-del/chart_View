@@ -29,6 +29,7 @@ def test_ai_pick_deep_link_is_not_overridden_by_initial_home_boot():
 
 
 def test_home_pick_history_click_counts_as_user_navigation():
+    # The initial Home boot reasserts Home after 250 ms unless this trusted click is marked as navigation.
     js = read("static/js/home_watchlist_boot_v32c.js")
     mark = js.split("const markUserNavigation", 1)[1].split("document.addEventListener", 1)[0]
     assert ".ai-daily-more" in mark
