@@ -2,7 +2,7 @@ name: Update Korean Stock Screener
 
 on:
   schedule:
-    # Primary run at 16:00 KST, then 20-minute retries through 17:40.
+    # GitHub cron is a backup path. External watchdog/Cloudflare can dispatch this workflow.
     - cron: '0,20,40 7 * * 1-5'
     - cron: '0,20,40 8 * * 1-5'
   workflow_dispatch:
@@ -13,10 +13,6 @@ on:
       - '.github/workflows/update-screener.yml'
       - 'scripts/generate_screener.py'
       - 'scripts/export_screener_candidates.py'
-      - 'scripts/update_ai_recommendations.py'
-      - 'scripts/validate_ai_rankings.py'
-  # Independent recovery path: Macro Cache is a separate workflow/schedule.
-  # If every screener cron is missed, its next post-close completion can recover.
   workflow_run:
     workflows:
       - Update Macro Cache
@@ -50,11 +46,9 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
-          import json
-          import os
+          import json, os
           from datetime import datetime, timedelta, timezone
           from pathlib import Path
-
           kst = timezone(timedelta(hours=9))
           now = datetime.now(kst)
           today = now.date().isoformat()
@@ -62,28 +56,16 @@ jobs:
           meta_path = Path('static/data/screener_meta.json')
           current = ''
           if meta_path.exists():
-              try:
-                  current = str(json.loads(meta_path.read_text(encoding='utf-8')).get('tradeDate') or '')
-              except Exception as exc:
-                  print('Unable to read existing screener meta:', exc)
-
+              try: current = str(json.loads(meta_path.read_text(encoding='utf-8')).get('tradeDate') or '')
+              except Exception as exc: print('Unable to read existing screener meta:', exc)
           force = event in {'workflow_dispatch', 'push'}
           post_close_backup = event == 'workflow_run' and now.weekday() < 5 and now.hour >= 16
           scheduled = event == 'schedule'
           should_run = force or (current != today and (scheduled or post_close_backup))
-
-          print(
-              f'KST now={now.isoformat(timespec="seconds")} '
-              f'existing_trade_date={current or "missing"} event={event}'
-          )
-          if event == 'workflow_run' and not post_close_backup:
-              print('Backup trigger ignored before 16:00 KST or outside Korean weekdays')
+          print(f'KST now={now.isoformat(timespec="seconds")} existing_trade_date={current or "missing"} event={event}')
           print('Decision:', 'RUN full screener' if should_run else 'SKIP')
-
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
               fh.write(f'should_run={str(should_run).lower()}\n')
-              fh.write(f'kst_today={today}\n')
-              fh.write(f'existing_trade_date={current}\n')
           PY
 
       - uses: actions/setup-python@v5
@@ -112,7 +94,6 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
           top = json.loads(Path('static/data/screener_top100.json').read_text(encoding='utf-8'))
           meta = json.loads(Path('static/data/screener_meta.json').read_text(encoding='utf-8'))
           verification = top.get('verification') or {}
@@ -122,40 +103,27 @@ jobs:
           universe = int(meta.get('universeCount') or 0)
           candidate_count = int(verification.get('candidateCount') or 0)
           technical_count = int(verification.get('technicalDiscoveryCount') or 0)
-
-          assert trade_date, 'missing tradeDate'
-          assert trade_date == str(meta.get('tradeDate') or ''), 'tradeDate mismatch between meta and candidate pool'
-          assert len(stocks) >= 100, f'candidate pool must contain at least 100 rows, got {len(stocks)}'
-          assert candidate_count == len(stocks), f'candidateCount mismatch: {candidate_count} != {len(stocks)}'
-          assert technical_count == 100, f'technical discovery pool must remain 100, got {technical_count}'
-          assert all(str(row.get('date') or '') == trade_date for row in stocks), 'candidate pool contains stale-date rows'
-          assert exact >= max(100, int(universe * 0.90)), f'exact-date coverage too low: {exact}/{universe}'
-          print('AI input OK:', trade_date,
-                'candidates=', len(stocks),
-                'exact=', exact, '/', universe,
-                'verified=', verification.get('priceVerifiedCount'),
-                'pending=', verification.get('pricePendingCount'),
-                'mismatch=', verification.get('priceMismatchCount'))
+          assert trade_date and trade_date == str(meta.get('tradeDate') or '')
+          assert len(stocks) >= 100
+          assert candidate_count == len(stocks)
+          assert technical_count == 100
+          assert all(str(row.get('date') or '') == trade_date for row in stocks)
+          assert exact >= max(100, int(universe * 0.90))
+          print('AI input OK:', trade_date, 'candidates=', len(stocks), 'exact=', exact, '/', universe)
           PY
 
-      - name: Validate GPT TOP3 symbol/name identity contract
-        if: steps.preflight.outputs.should_run == 'true'
-        run: python scripts/validate_ai_rankings.py
-
-      - name: Refresh GPT-reviewed recommendation track record
-        if: steps.preflight.outputs.should_run == 'true'
-        run: python scripts/update_ai_recommendations.py
-
-      - name: Commit refreshed data
+      - name: Commit screener data only
         if: steps.preflight.outputs.should_run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_daily_rankings.json static/data/ai_daily_rankings_meta.json static/data/ai_recommendations.json
+          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json
           if git diff --cached --quiet; then
             echo "No screener changes"
-          else
-            git commit -m "data: refresh Korean stock screener and validation"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            exit 0
           fi
+          git commit -m "data: refresh Korean stock screener and validation"
+          # Preserve generated screener files across concurrent main updates without touching AI ranking files.
+          git fetch origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
