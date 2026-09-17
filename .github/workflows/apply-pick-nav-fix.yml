@@ -35,19 +35,16 @@ jobs:
               "event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn')",
               "event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn,.ai-daily-more')",
           )
-
           replace(
               'templates/index.html',
               '/static/js/home_watchlist_boot_v32c.js?v=20260916v45',
               '/static/js/home_watchlist_boot_v32c.js?v=20260918v59',
           )
-
           replace(
               'main.py',
-              "results = [row for row in (disk_snapshot.get(\"heatmap\", {}).get(\"results\") or []) if isinstance(row, dict)]",
-              "results = [{**row, \"stale\": True} for row in (disk_snapshot.get(\"heatmap\", {}).get(\"results\") or []) if isinstance(row, dict)]",
+              'results = [row for row in (disk_snapshot.get("heatmap", {}).get("results") or []) if isinstance(row, dict)]',
+              'results = [{**row, "stale": True} for row in (disk_snapshot.get("heatmap", {}).get("results") or []) if isinstance(row, dict)]',
           )
-
           replace(
               'tests/test_app_regressions.py',
               "disk = json.loads(Path('static/data/valuation_cache.json').read_text())",
@@ -57,17 +54,19 @@ jobs:
           mobile = Path('tests/mobile_smoke.cjs')
           text = mobile.read_text(encoding='utf-8')
           anchor = "      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: home overflow`);\n"
-          addition = """      const pickHistory = page.locator('#ai-daily-section .ai-daily-more');
-      await pickHistory.waitFor({timeout:30000});
-      await pickHistory.click();
-      await delay(450);
-      await page.locator('#screener-tab.active').waitFor({timeout:10000});
-      await page.locator('[data-discovery-panel=\"ai-picks\"]:not([hidden])').waitFor({timeout:10000});
-      assert.equal(await page.locator('.app-bottom-btn[data-app-mode=\"discover\"]').evaluate(el => el.classList.contains('active')), true, `${width}: PICK history must keep discover navigation active`);
-      assert.equal(await page.locator('#home-tab').evaluate(el => el.classList.contains('active')), false, `${width}: PICK history bounced back to Home`);
-      await page.locator('.app-bottom-btn[data-app-mode=\"home\"]').click();
-      await page.locator('#home-tab.active').waitFor({timeout:10000});
-"""
+          lines = [
+              "      const pickHistory = page.locator('#ai-daily-section .ai-daily-more');",
+              "      await pickHistory.waitFor({timeout:30000});",
+              "      await pickHistory.click();",
+              "      await delay(450);",
+              "      await page.locator('#screener-tab.active').waitFor({timeout:10000});",
+              "      await page.locator('[data-discovery-panel=\"ai-picks\"]:not([hidden])').waitFor({timeout:10000});",
+              "      assert.equal(await page.locator('.app-bottom-btn[data-app-mode=\"discover\"]').evaluate(el => el.classList.contains('active')), true, `${width}: PICK history must keep discover navigation active`);",
+              "      assert.equal(await page.locator('#home-tab').evaluate(el => el.classList.contains('active')), false, `${width}: PICK history bounced back to Home`);",
+              "      await page.locator('.app-bottom-btn[data-app-mode=\"home\"]').click();",
+              "      await page.locator('#home-tab.active').waitFor({timeout:10000});",
+          ]
+          addition = '\n'.join(lines) + '\n'
           if anchor not in text:
               raise SystemExit('mobile smoke insertion anchor missing')
           mobile.write_text(text.replace(anchor, anchor + addition, 1), encoding='utf-8')
