@@ -56,9 +56,10 @@
     if(cachedDay)return cachedDay;
     if(fetching)return fetching;
     fetching=(async()=>{
-      const m=await fetch(`/static/data/ai_daily_rankings_meta.json?t=${Date.now()}`,{cache:'no-store'});
+      const m=await fetch('/static/data/ai_daily_rankings_meta.json',{cache:'no-store'});
       const meta=m.ok?await m.json():{};
-      const r=await fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(meta.updated||Date.now())}`,{cache: 'default'});
+      const version=meta.updated||meta.tradeDate||'latest';
+      const r=await fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache: 'default'});
       if(!r.ok)throw new Error(`HTTP ${r.status}`);
       const data=await r.json();
       cachedDay=[...(data.days||[])].sort((a,b)=>String(b.tradeDate||'').localeCompare(String(a.tradeDate||'')))[0]||null;
