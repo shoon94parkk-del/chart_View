@@ -20,6 +20,23 @@ def test_home_ai_pick_link_opens_discovery_ledger():
     assert '전체 기록 →' in js
 
 
+def test_ai_pick_deep_link_is_not_overridden_by_initial_home_boot():
+    js = read("static/js/home_watchlist_boot_v32c.js")
+    assert "wantsAiPickLedger" in js
+    assert "params.get('tab') === 'screener'" in js
+    assert "params.get('view') === 'ai-picks'" in js
+    assert "if (wantsAiPickLedger())" in js
+
+
+def test_home_pick_mobile_layout_has_named_grid_areas_and_nonwrapping_score_badge():
+    js = read("static/js/ai_daily_widget.js")
+    compact = js.replace(" ", "")
+    assert "grid-template-areas" in js
+    assert "grid-area:name" in compact
+    assert "grid-area:score" in compact
+    assert "white-space:nowrap" in compact
+
+
 def test_ledger_module_contains_dense_discovery_contract_without_rank_column():
     js = read("static/js/ai_pick_ledger_v52.js")
     assert 'data-discovery-view="screener"' in js
