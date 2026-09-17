@@ -251,42 +251,48 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     });
   }
 
-  async function screenerDataUrl() {
+  async function loadMeta() {
     try {
-      const response = await fetch('/static/data/screener_meta.json', { cache: 'no-store' });
+      const response = await fetch(`/static/data/screener_meta.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`meta HTTP ${response.status}`);
-      const meta = await response.json();
-      const version = meta.tradeDate || meta.updated || 'latest';
-      return `/static/data/screener.json?v=${encodeURIComponent(version)}`;
-    } catch (_) {
-      return `/static/data/screener.json?v=${Date.now()}`;
+      return await response.json();
+    } catch (error) {
+      console.warn('[Screener] meta refresh failed', error);
+      return null;
     }
   }
 
   async function loadData() {
-    if (payload) {
-      render();
-      return payload;
-    }
     if (loadingPromise) return loadingPromise;
 
-    const results = document.getElementById('screener-results');
-    if (results) results.innerHTML = '<div class="screener-loading"><div class="spinner"></div><span>스크리너 데이터를 불러오는 중...</span></div>';
+    loadingPromise = (async () => {
+      const meta = await loadMeta();
+      const expectedTradeDate = String(meta?.tradeDate || '');
 
-    loadingPromise = screenerDataUrl()
-      .then((url) => fetch(url, { cache: 'force-cache' }))
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then((data) => {
-        payload = data;
+      if (payload && (!expectedTradeDate || String(payload.tradeDate || '') === expectedTradeDate)) {
         render();
-        return data;
-      })
+        return payload;
+      }
+
+      const results = document.getElementById('screener-results');
+      if (results) results.innerHTML = '<div class="screener-loading"><div class="spinner"></div><span>스크리너 데이터를 불러오는 중...</span></div>';
+
+      const version = meta?.updated || expectedTradeDate || Date.now();
+      const response = await fetch(`/static/data/screener.json?v=${encodeURIComponent(version)}&t=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (expectedTradeDate && String(data.tradeDate || '') !== expectedTradeDate) {
+        throw new Error(`stale screener payload: expected ${expectedTradeDate}, got ${data.tradeDate || '-'}`);
+      }
+      payload = data;
+      render();
+      return data;
+    })()
       .catch((error) => {
         console.error('Screener load failed:', error);
-        if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+        const results = document.getElementById('screener-results');
+        if (payload) render();
+        else if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
         throw error;
       })
       .finally(() => { loadingPromise = null; });
@@ -362,9 +368,19 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   window.__getScreenerQuickFilter = function () { return quickFilter; };
 
+  function refreshIfVisible() {
+    const tab = document.getElementById('screener-tab');
+    if (!tab || !tab.classList.contains('active')) return;
+    loadData().catch(() => {});
+  }
+
   function init() {
     installTab();
     bind();
+    window.addEventListener('pageshow', refreshIfVisible);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshIfVisible();
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
