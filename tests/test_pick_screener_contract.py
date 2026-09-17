@@ -18,10 +18,12 @@ def test_pick_ledger_contains_latest_daily_pick():
     assert latest_codes == ledger_codes
 
 
-def test_pick_prices_are_not_older_than_screener_trade_date():
+def test_pick_prices_match_current_screener_trade_date():
     screener = load('screener_meta.json')['tradeDate']
     recs = load('ai_recommendations.json')['recommendations']
-    assert all(str(x.get('lastUpdatedTradeDate') or '') >= screener for x in recs)
+    assert recs
+    assert all(str(x.get('lastUpdatedTradeDate') or '') == screener for x in recs)
+    assert all(float(x.get('currentPrice') or 0) > 0 for x in recs)
 
 
 def test_screener_display_source_matches_meta_date():
