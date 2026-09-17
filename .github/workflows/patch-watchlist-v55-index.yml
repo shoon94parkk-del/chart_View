@@ -1,0 +1,41 @@
+name: Patch watchlist v55 asset
+
+on:
+  push:
+    branches:
+      - fix/watchlist-recommendation-baseline-v55
+    paths:
+      - .github/workflows/patch-watchlist-v55-index.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/watchlist-recommendation-baseline-v55
+      - name: Wire v55 asset and remove temporary workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('templates/index.html')
+          text = path.read_text(encoding='utf-8')
+          marker = '    <script defer src="/static/js/promo_v1.js?v=20260914v2"></script>'
+          asset = '    <script defer src="/static/js/recommendation_watchlist_v55.js?v=20260917v55"></script>\n'
+          if asset.strip() not in text:
+              if marker not in text:
+                  raise SystemExit('promo marker not found')
+              text = text.replace(marker, asset + marker)
+              path.write_text(text, encoding='utf-8')
+          PY
+          rm .github/workflows/patch-watchlist-v55-index.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add templates/index.html .github/workflows/patch-watchlist-v55-index.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: wire recommendation watchlist v55"
+            git push origin HEAD:fix/watchlist-recommendation-baseline-v55
+          fi
