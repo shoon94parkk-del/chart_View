@@ -16,24 +16,48 @@
   bootGuard.textContent = 'body.app-booting:not(.cv-home-ready) #app,body.app-booting:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
   document.head.appendChild(bootGuard);
 
+  function wantsAiPickLedger() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tab') === 'screener' && params.get('view') === 'ai-picks';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function revealAppShell() {
+    document.body.classList.add('cv-home-ready', 'app-shell-ready');
+    document.body.classList.remove('app-booting');
+    bootGuard.remove();
+  }
+
   function settleInitialHome(attempt = 0) {
     if (initialHomeSettled) return true;
     if (attempt === 0) {
       if (initialHomePending) return false;
       initialHomePending = true;
     }
+
+    // A direct PICK-ledger URL is an explicit route. Never overwrite it with
+    // the default Home route while the application is booting.
+    if (wantsAiPickLedger()) {
+      initialHomeSettled = true;
+      initialHomePending = false;
+      revealAppShell();
+      return true;
+    }
+
     const home = document.getElementById('home-tab');
     if (home && typeof window.__openAppTab === 'function') {
       try { window.__openAppTab('home', { history: false }); } catch (_) { }
       initialHomeSettled = true;
       initialHomePending = false;
-      document.body.classList.add('cv-home-ready', 'app-shell-ready');
-      document.body.classList.remove('app-booting');
-      bootGuard.remove();
+      revealAppShell();
       // Some legacy DOMContentLoaded handlers restore the chart after Home opens.
-      // Re-assert the intended first route once, but never override a real click.
+      // Re-assert the intended first route once, but never override a real click
+      // or an explicit PICK-ledger deep link.
       setTimeout(() => {
-        if (!userChangedView && document.getElementById('home-tab')) {
+        if (!userChangedView && !wantsAiPickLedger() && document.getElementById('home-tab')) {
           try { window.__openAppTab('home', { history: false }); } catch (_) { }
         }
       }, 250);
@@ -45,8 +69,7 @@
     }
     initialHomeSettled = true;
     initialHomePending = false;
-    document.body.classList.remove('app-booting');
-    bootGuard.remove();
+    revealAppShell();
     return false;
   }
 
