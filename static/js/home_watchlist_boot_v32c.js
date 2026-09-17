@@ -6,7 +6,7 @@
   let userChangedView = false;
 
   const markUserNavigation = (event) => {
-    if (event.isTrusted && event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn')) userChangedView = true;
+    if (event.isTrusted && event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn,.ai-daily-more')) userChangedView = true;
   };
   document.addEventListener('pointerdown', markUserNavigation, true);
   document.addEventListener('click', markUserNavigation, true);
