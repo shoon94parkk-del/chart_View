@@ -114,6 +114,10 @@
     document.head.appendChild(style);
   }
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
   function setBaseline(node, symbol, perf) {
     if (!node) return;
     let baseline = node.querySelector('.watch-rec-baseline-v55');
@@ -122,16 +126,15 @@
       baseline.className = 'watch-rec-baseline-v55';
       node.appendChild(baseline);
     }
-    if (!perf.rec) {
-      baseline.textContent = perf.current !== null ? `추천 기록 없음 · 현재 ${formatPrice(symbol, perf.current)}` : '추천 기록 없음';
-      return;
-    }
-    baseline.textContent = `추천 ${dateLabel(perf.rec.recommendedDate)} 종가 ${formatPrice(symbol, perf.rec.recommendedPrice)} → 현재 ${formatPrice(symbol, perf.current)}`;
+    const text = !perf.rec
+      ? (perf.current !== null ? `추천 기록 없음 · 현재 ${formatPrice(symbol, perf.current)}` : '추천 기록 없음')
+      : `추천 ${dateLabel(perf.rec.recommendedDate)} 종가 ${formatPrice(symbol, perf.rec.recommendedPrice)} → 현재 ${formatPrice(symbol, perf.current)}`;
+    setText(baseline, text);
   }
 
   function applyReturnNode(node, value) {
     if (!node) return;
-    node.textContent = formatReturn(value);
+    setText(node, formatReturn(value));
     node.classList.remove('up', 'down', 'flat', 'no-rec-v55');
     node.classList.add(returnClass(value));
     if (value === null) node.classList.add('no-rec-v55');
@@ -140,10 +143,8 @@
   function syncHome(quotes) {
     const section = document.getElementById('home-watchlist-v30');
     if (!section) return;
-    const kicker = section.querySelector('.home-watchlist-v30-head span');
-    if (kicker) kicker.textContent = 'MY STOCKS · 추천 후 수익률';
-    const more = section.querySelector('[data-home-watch-all]');
-    if (more) more.textContent = '더보기 →';
+    setText(section.querySelector('.home-watchlist-v30-head span'), 'MY STOCKS · 추천 후 수익률');
+    setText(section.querySelector('[data-home-watch-all]'), '더보기 →');
 
     const cards = [...section.querySelectorAll('[data-home-watch-open]')];
     cards.forEach((card, index) => {
@@ -153,8 +154,7 @@
       if (hidden) return;
       const symbol = String(card.dataset.homeWatchOpen || '').toUpperCase();
       const perf = performance(symbol, quotes);
-      const price = card.querySelector('[data-home-watch-price]');
-      if (price) price.textContent = formatPrice(symbol, perf.current);
+      setText(card.querySelector('[data-home-watch-price]'), formatPrice(symbol, perf.current));
       applyReturnNode(card.querySelector('[data-home-watch-return]'), perf.ret);
       setBaseline(card, symbol, perf);
     });
@@ -163,18 +163,16 @@
   function syncWatchlistHeader() {
     const tab = document.getElementById('watchlist-tab');
     if (!tab) return;
-    const intro = tab.querySelector('.watchlist-v30-head p');
-    if (intro) intro.textContent = '추천일 종가와 현재가를 같은 기준으로 비교합니다.';
+    setText(tab.querySelector('.watchlist-v30-head p'), '추천일 종가와 현재가를 같은 기준으로 비교합니다.');
     const summary = tab.querySelector('.watchlist-v33-summary');
     if (summary) summary.setAttribute('aria-label', '관심종목 요약 · 추천일 종가 대비 현재가 기준');
     const labels = summary?.querySelectorAll('div > span') || [];
-    if (labels[1]) labels[1].textContent = '추천 후 상승';
-    if (labels[2]) labels[2].textContent = '추천 후 하락';
+    if (labels[1]) setText(labels[1], '추천 후 상승');
+    if (labels[2]) setText(labels[2], '추천 후 하락');
     tab.querySelectorAll('[data-watch-sort="return-desc"],[data-watch-sort="return-asc"]').forEach((button) => {
-      button.textContent = button.dataset.watchSort === 'return-desc' ? '추천 수익률↑' : '추천 수익률↓';
+      setText(button, button.dataset.watchSort === 'return-desc' ? '추천 수익률↑' : '추천 수익률↓');
     });
-    const footer = tab.querySelector('.watchlist-v30-footer-note');
-    if (footer) footer.textContent = '수익률은 ChartView 추천일 종가 대비 현재가 기준입니다. 추천 이력이 없는 종목은 수익률을 표시하지 않습니다.';
+    setText(tab.querySelector('.watchlist-v30-footer-note'), '수익률은 ChartView 추천일 종가 대비 현재가 기준입니다. 추천 이력이 없는 종목은 수익률을 표시하지 않습니다.');
   }
 
   function syncWatchlistCards(quotes) {
@@ -189,20 +187,17 @@
         if (perf.ret > 0) up += 1;
         else if (perf.ret < 0) down += 1;
       }
-      const price = card.querySelector('[data-watch-price]');
-      if (price) price.textContent = formatPrice(symbol, perf.current);
+      setText(card.querySelector('[data-watch-price]'), formatPrice(symbol, perf.current));
       applyReturnNode(card.querySelector('[data-watch-return]'), perf.ret);
       const meta = card.querySelector('.watchlist-v30-meta');
       if (meta) {
-        meta.textContent = perf.rec
+        setText(meta, perf.rec
           ? `추천 ${dateLabel(perf.rec.recommendedDate)} 종가 ${formatPrice(symbol, perf.rec.recommendedPrice)} → 현재 ${formatPrice(symbol, perf.current)}`
-          : `추천 기록 없음${perf.current !== null ? ` · 현재 ${formatPrice(symbol, perf.current)}` : ''}`;
+          : `추천 기록 없음${perf.current !== null ? ` · 현재 ${formatPrice(symbol, perf.current)}` : ''}`);
       }
     }
-    const upNode = tab.querySelector('[data-watch-summary-up]');
-    const downNode = tab.querySelector('[data-watch-summary-down]');
-    if (upNode) upNode.textContent = String(up);
-    if (downNode) downNode.textContent = String(down);
+    setText(tab.querySelector('[data-watch-summary-up]'), String(up));
+    setText(tab.querySelector('[data-watch-summary-down]'), String(down));
 
     const activeSort = tab.querySelector('[data-watch-sort].active')?.dataset.watchSort;
     if ((activeSort === 'return-desc' || activeSort === 'return-asc') && rows.length) {
@@ -215,7 +210,9 @@
         if (av === null) return 1;
         if (bv === null) return -1;
         return (av - bv) * direction;
-      }).forEach((row) => grid?.appendChild(row));
+      }).forEach((row) => {
+        if (grid && row.parentElement === grid && row !== grid.lastElementChild) grid.appendChild(row);
+      });
     }
   }
 
@@ -223,14 +220,20 @@
     document.querySelectorAll('#ai-daily-section .ai-daily-rank').forEach((rank) => rank.remove());
   }
 
+  function observeDom() {
+    if (observer && document.body) observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   function sync() {
     queued = false;
+    observer?.disconnect();
     ensureStyle();
     const quotes = quoteMap();
     syncHome(quotes);
     syncWatchlistHeader();
     syncWatchlistCards(quotes);
     syncPicks();
+    observeDom();
   }
 
   function schedule() {
@@ -241,17 +244,16 @@
 
   function boot() {
     ensureStyle();
+    if (typeof MutationObserver !== 'undefined') observer = new MutationObserver(schedule);
+    observeDom();
     loadRecommendations();
     schedule();
-    if (typeof MutationObserver !== 'undefined') {
-      observer = new MutationObserver(schedule);
-      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    }
     document.addEventListener('chartview:watchlist-change', schedule);
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-bottom-btn,.watchlist-v33-refresh,[data-watch-sort]')) setTimeout(schedule, 120);
     }, true);
     setInterval(schedule, 30000);
+    setInterval(loadRecommendations, 5 * 60 * 1000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
