@@ -802,7 +802,7 @@ def _seed_home_snapshot_from_disk():
         snapshot_path = os.path.join(os.path.dirname(__file__), "static", "data", "home_snapshot.json")
         with open(snapshot_path, "r", encoding="utf-8") as f:
             disk_snapshot = _json.load(f)
-        results = [row for row in (disk_snapshot.get("heatmap", {}).get("results") or []) if isinstance(row, dict)]
+        results = [{**row, "stale": True} for row in (disk_snapshot.get("heatmap", {}).get("results") or []) if isinstance(row, dict)]
         if results:
             HOME_SNAPSHOT_CACHE["data"] = {
                 "heatmap": {"results": results},

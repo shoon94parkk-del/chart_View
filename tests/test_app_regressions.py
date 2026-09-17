@@ -138,7 +138,7 @@ def test_macro_exposes_observation_date_range_separately_from_collection_time():
 
 def test_seed_keeps_original_data_date():
     cache = {'data': None, 'timestamp': 0, 'refreshing': False}
-    disk = json.loads(Path('static/data/valuation_cache.json').read_text())
+    disk = json.loads(Path('static/data/home_snapshot.json').read_text())
     with patch.object(main, 'HOME_SNAPSHOT_CACHE', cache):
         data = main._seed_home_snapshot_from_disk()
     assert data['generatedAt'] == disk['generatedAt']
