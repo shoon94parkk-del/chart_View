@@ -50,14 +50,18 @@ jobs:
           html = re.sub(r'ai_daily_widget\.js\?v=[^"\s]+', f'ai_daily_widget.js?v={token}', html)
           path.write_text(html, encoding='utf-8', newline='\n')
           PY
-      - name: Verify changed JavaScript
+      - name: JavaScript syntax
         run: |
           node --check static/js/screener.js
           node --check static/js/ai_daily_widget.js
           node --check static/js/ai_pick_ledger_v52.js
           node --check static/js/chartview_release_bundle.js
-          node --test tests/screener_freshness_regression.cjs
-          python -m pytest -q tests/test_ai_pick_ledger_ui.py tests/test_frontend_bundle.py
+      - name: Screener freshness regression
+        run: node --test tests/screener_freshness_regression.cjs
+      - name: PICK ledger regression
+        run: python -m pytest -q tests/test_ai_pick_ledger_ui.py
+      - name: Bundle freshness regression
+        run: python -m pytest -q tests/test_frontend_bundle.py
       - name: Commit generated release files
         run: |
           git config user.name 'github-actions[bot]'
