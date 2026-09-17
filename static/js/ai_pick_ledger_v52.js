@@ -262,7 +262,6 @@
       <div class="ai-ledger-item">
         <button type="button" class="ai-ledger-row" data-ledger-row="${esc(id)}" aria-expanded="false">
           <span class="ai-ledger-cell ledger-date" data-label="추천일">${esc(row.recommendedDate || '-')}</span>
-          <span class="ai-ledger-cell ledger-rank" data-label="순위">${esc(row.rank || '-')}위</span>
           <span class="ai-ledger-cell ledger-stock" data-label="종목"><strong>${esc(row.name || row.symbol || '-')}</strong><small>${esc(row.code || String(row.symbol || '').split('.')[0] || '')}</small></span>
           <span class="ai-ledger-cell ledger-entry" data-label="추천가">${price(row.recommendedPrice)}</span>
           <span class="ai-ledger-cell ledger-current" data-label="현재가">${price(row.currentPrice)}</span>
@@ -297,7 +296,7 @@
     content.innerHTML = `
       <div class="ai-ledger-table" role="table" aria-label="AI PICK 추천 원장">
         <div class="ai-ledger-table-head" role="row">
-          <span>추천일</span><span>순위</span><span>종목</span><span>추천가</span><span>현재가</span><span>수익률</span><span>최고수익률</span><span>점수</span><span aria-hidden="true"></span>
+          <span>추천일</span><span>종목</span><span>추천가</span><span>현재가</span><span>수익률</span><span>최고수익률</span><span>점수</span><span aria-hidden="true"></span>
         </div>
         <div class="ai-ledger-table-body">${visible.map(rowMarkup).join('')}</div>
       </div>`;
