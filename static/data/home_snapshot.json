@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T20:20:55.509049+00:00",
+  "generatedAt": "2026-09-17T23:00:16.546560+00:00",
   "source": "github-actions-yahoo-chart",
   "heatmap": {
     "results": [
@@ -26,7 +26,7 @@
         "name": "NVIDIA Corporation",
         "price": 219.34,
         "change": 0.4488,
-        "marketCap": 92249429,
+        "marketCap": 92845751,
         "asOf": "2026-09-17T20:00:00+00:00",
         "stale": false
       },
@@ -35,7 +35,7 @@
         "name": "Apple Inc.",
         "price": 337.0,
         "change": 3.1938,
-        "marketCap": 36188003,
+        "marketCap": 36423997,
         "asOf": "2026-09-17T20:00:01+00:00",
         "stale": false
       },
@@ -44,7 +44,7 @@
         "name": "Microsoft Corporation",
         "price": 497.75,
         "change": 1.0783,
-        "marketCap": 17638517,
+        "marketCap": 17779010,
         "asOf": "2026-09-17T20:00:01+00:00",
         "stale": false
       },
@@ -53,7 +53,7 @@
         "name": "Meta Platforms, Inc.",
         "price": 682.31,
         "change": 5.8863,
-        "marketCap": 15263771,
+        "marketCap": 15740199,
         "asOf": "2026-09-17T20:00:01+00:00",
         "stale": false
       },
@@ -62,7 +62,7 @@
         "name": "Tesla, Inc.",
         "price": 366.2,
         "change": 0.7262,
-        "marketCap": 37852555,
+        "marketCap": 38770658,
         "asOf": "2026-09-17T20:00:00+00:00",
         "stale": false
       },
@@ -71,7 +71,7 @@
         "name": "Alphabet Inc.",
         "price": 347.33,
         "change": 4.4287,
-        "marketCap": 19031438,
+        "marketCap": 19151604,
         "asOf": "2026-09-17T20:00:01+00:00",
         "stale": false
       }
