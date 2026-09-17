@@ -57,7 +57,8 @@
       // Re-assert the intended first route once, but never override a real click
       // or an explicit PICK-ledger deep link.
       setTimeout(() => {
-        if (!userChangedView && !wantsAiPickLedger() && document.getElementById('home-tab')) {
+        if (!userChangedView && document.getElementById('home-tab')) {
+          if (wantsAiPickLedger()) return;
           try { window.__openAppTab('home', { history: false }); } catch (_) { }
         }
       }, 250);
