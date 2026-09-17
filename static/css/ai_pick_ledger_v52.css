@@ -23,21 +23,21 @@
 #screener-tab .ai-ledger-search:focus,#screener-tab .ai-ledger-select:focus{border-color:#8ab8ff;box-shadow:0 0 0 3px rgba(49,130,246,.1)}
 #screener-tab .ai-ledger-summary{min-height:22px;margin:3px 1px 8px;color:#8b95a1;font-size:11px;font-weight:700}
 #screener-tab .ai-ledger-table{overflow:hidden;border:1px solid #e5e8eb;border-radius:14px;background:#fff}
-#screener-tab .ai-ledger-table-head,#screener-tab .ai-ledger-row{display:grid;grid-template-columns:92px 46px minmax(150px,1.45fr) 92px 92px 86px 98px 62px 20px;align-items:center;column-gap:8px}
+#screener-tab .ai-ledger-table-head,#screener-tab .ai-ledger-row{display:grid;grid-template-columns:92px minmax(150px,1.45fr) 92px 92px 86px 98px 62px 20px;align-items:center;column-gap:8px}
 #screener-tab .ai-ledger-table-head{min-height:38px;padding:0 12px;border-bottom:1px solid #edf0f3;background:#f8f9fb;color:#8b95a1;font-size:10px;font-weight:800;letter-spacing:-.1px}
 #screener-tab .ai-ledger-item+ .ai-ledger-item{border-top:1px solid #f0f2f4}
 #screener-tab .ai-ledger-row{width:100%;min-height:54px;padding:7px 12px;border:0;background:#fff;color:#333d4b;text-align:left;font:inherit;cursor:pointer;transition:background .12s ease}
 #screener-tab .ai-ledger-row:hover{background:#fafbfc}
 #screener-tab .ai-ledger-row:focus-visible{position:relative;z-index:1;outline:2px solid rgba(49,130,246,.3);outline-offset:-2px}
 #screener-tab .ai-ledger-cell{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}
-#screener-tab .ledger-date,#screener-tab .ledger-rank{color:#6b7684;font-size:11px;font-weight:700}
+#screener-tab .ledger-date{color:#6b7684;font-size:11px;font-weight:700}
 #screener-tab .ledger-stock{display:grid;gap:2px}
 #screener-tab .ledger-stock strong{overflow:hidden;text-overflow:ellipsis;color:#191f28;font-size:13px;font-weight:850;white-space:nowrap}
 #screener-tab .ledger-stock small{color:#9aa4b0;font-size:10px;font-weight:650}
 #screener-tab .ledger-return,#screener-tab .ledger-best,#screener-tab .ledger-score{font-weight:850}
 #screener-tab .ai-ledger-chevron{color:#a8b0ba;font-size:14px;transition:transform .15s ease}
 #screener-tab .ai-ledger-row[aria-expanded="true"] .ai-ledger-chevron{transform:rotate(180deg)}
-#screener-tab .ai-ledger-detail{padding:10px 14px 12px 158px;border-top:1px dashed #edf0f3;background:#fbfcfe}
+#screener-tab .ai-ledger-detail{padding:10px 14px 12px 112px;border-top:1px dashed #edf0f3;background:#fbfcfe}
 #screener-tab .ai-ledger-detail-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 #screener-tab .ai-ledger-detail-meta span{padding:4px 7px;border-radius:999px;background:#eef5ff;color:#245cab;font-size:10px;font-weight:800}
 #screener-tab .ai-ledger-detail p{margin:0;color:#59636f;font-size:12px;line-height:1.55}
@@ -48,8 +48,8 @@
 #screener-tab .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
 @media(max-width:900px){
-  #screener-tab .ai-ledger-table-head,#screener-tab .ai-ledger-row{grid-template-columns:86px 42px minmax(135px,1.35fr) 84px 84px 82px 92px 56px 18px;column-gap:6px}
-  #screener-tab .ai-ledger-detail{padding-left:142px}
+  #screener-tab .ai-ledger-table-head,#screener-tab .ai-ledger-row{grid-template-columns:86px minmax(135px,1.35fr) 84px 84px 82px 92px 56px 18px;column-gap:6px}
+  #screener-tab .ai-ledger-detail{padding-left:104px}
 }
 
 @media(max-width:700px){
@@ -74,7 +74,6 @@
   #screener-tab .ai-ledger-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'meta stock return' 'price price metrics';column-gap:8px;row-gap:5px;min-height:68px;padding:10px 11px}
   #screener-tab .ai-ledger-cell{font-size:11px}
   #screener-tab .ledger-date{grid-area:meta;align-self:start;color:#8b95a1;font-size:9px}
-  #screener-tab .ledger-rank{grid-area:meta;align-self:end;margin-top:18px;color:#4e5968;font-size:10px}
   #screener-tab .ledger-stock{grid-area:stock;align-self:center}
   #screener-tab .ledger-stock strong{font-size:14px}
   #screener-tab .ledger-stock small{font-size:9px}
