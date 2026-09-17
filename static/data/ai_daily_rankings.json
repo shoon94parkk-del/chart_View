@@ -1,51 +1,38 @@
 {
-  "updated": "2026-09-16T20:12:00+09:00",
+  "updated": "2026-09-17T19:20:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
-      "status": "GPT 검토 TOP3 — 9/14 확정종가 1차 검증 완료, 독립 2차 가격소스 반영 대기",
-      "analysis": {"sourceType": "gpt_screener_review", "status": "complete", "model": "GPT scheduled review (legacy)", "candidateTradeDate": "2026-09-14", "analyzedAt": "2026-09-14T17:25:00+09:00", "candidateFile": "static/data/screener_top100.json"},
-      "scorePolicy": {"version": "growth-first-v2", "weights": {"companyGrowth": 35, "industry": 15, "valuation": 10, "catalystRisk": 10, "technical": 30}},
       "top3": [
-        {"rank":1,"code":"012450","symbol":"012450.KS","name":"한화에어로스페이스","close":1137000,"previousClose":1081000,"changePct":5.18,"totalScore":91,"technicalScore":26,"industryScore":20,"companyScore":24,"valuationScore":11,"catalystRiskScore":10,"grade":"A 후보/가격 2중검증 대기","reason":"유럽 방산 수출의 장기 확장성이 강화되고 상반기 매출·영업이익 성장도 강하다. RSI 58.2, 20일선 재돌파와 거래량 증가로 단기 진입 신호도 개선됐다."},
-        {"rank":2,"code":"272210","symbol":"272210.KS","name":"한화시스템","close":75000,"previousClose":70900,"changePct":5.78,"totalScore":88,"technicalScore":29,"industryScore":19,"companyScore":22,"valuationScore":9,"catalystRiskScore":9,"grade":"A 후보/가격 2중검증 대기","reason":"방산·레이저 대공무기·우주 사업의 구조적 성장과 실적 개선이 이어지는 가운데, 거래량 3.05배와 20일선 상향 돌파가 확인돼 오늘 기술적 타이밍이 가장 강한 축에 속한다."},
-        {"rank":3,"code":"064290","symbol":"064290.KQ","name":"인텍플러스","close":44850,"previousClose":48850,"changePct":-8.19,"totalScore":86,"technicalScore":28,"industryScore":19,"companyScore":23,"valuationScore":7,"catalystRiskScore":9,"grade":"B 눌림대기","reason":"반도체 검사장비 수주잔고가 역대 최대 수준이고 2027년 큰 폭의 실적 레버리지가 예상된다. 다만 최근 급등 후 조정이라 즉시 추격보다 눌림 안정 확인이 우선이다."}
-      ],
-      "top10": [],
-      "verification": {"fullUniverse":true,"tradeDateMatched":true,"universeCount":2650,"usableStocks":2603,"finalPriceCrossCheck":"pending_second_independent_source"}
+        {"rank":1,"code":"012450","symbol":"012450.KS","name":"한화에어로스페이스","close":1137000,"previousClose":1081000,"changePct":5.18,"totalScore":91,"grade":"A 후보","reason":"유럽 방산 수출의 장기 확장성과 실적 성장."},
+        {"rank":2,"code":"272210","symbol":"272210.KS","name":"한화시스템","close":75000,"previousClose":70900,"changePct":5.78,"totalScore":88,"grade":"A 후보","reason":"방산·우주 사업의 구조적 성장과 실적 개선."},
+        {"rank":3,"code":"064290","symbol":"064290.KQ","name":"인텍플러스","close":44850,"previousClose":48850,"changePct":-8.19,"totalScore":86,"grade":"B 눌림대기","reason":"첨단 패키징 검사장비 성장과 실적 레버리지."}
+      ]
     },
     {
       "tradeDate": "2026-09-15",
-      "status": "GPT 검토 성장성 우선 TOP3 — Chart View 9/15 전체시장 스크리너 후보를 기반으로 펀더멘털 70점 우선 재평가",
-      "analysis": {"sourceType": "gpt_screener_review", "status": "complete", "model": "GPT scheduled review", "candidateTradeDate": "2026-09-15", "analyzedAt": "2026-09-15T20:54:00+09:00", "candidateFile": "static/data/screener_top100.json"},
-      "scorePolicy": {"version": "growth-first-v2", "weights": {"companyGrowth": 35, "industry": 15, "valuation": 10, "catalystRisk": 10, "technical": 30}},
       "top3": [
-        {"rank":1,"code":"121600","symbol":"121600.KQ","name":"나노신소재","close":50800,"previousClose":49200,"changePct":3.25,"totalScore":88,"technicalScore":30,"industryScore":19,"companyScore":23,"valuationScore":7,"catalystRiskScore":9,"grade":"A 성장우선","reason":"CNT 도전재와 AI/HBM용 CMP Slurry가 동시에 성장하는 구조이며 2026년 상반기 매출 +34%, 영업이익 +278.4%로 실적 레버리지가 확인됐다. 2Q 영업이익도 시장 기대를 크게 웃돌았고, Chart View 기술점수 30/30으로 성장성과 진입 타이밍이 함께 강하다."},
-        {"rank":2,"code":"023160","symbol":"023160.KQ","name":"태광","close":27300,"previousClose":28350,"changePct":-3.70,"totalScore":87,"technicalScore":29,"industryScore":20,"companyScore":23,"valuationScore":8,"catalystRiskScore":7,"grade":"A 성장우선","reason":"LNG·플랜트·조선 피팅 수요의 구조적 확대와 캐나다 LNG 대형 수주가 실적에 연결되는 기업이다. 상반기 매출 +23%, 영업이익 +10%로 성장 중이며 오늘 -3.7% 조정에도 RSI 59.2, 20·60일선 위를 유지해 추격 부담이 낮아졌다."},
-        {"rank":3,"code":"033640","symbol":"033640.KQ","name":"네패스","close":23900,"previousClose":22200,"changePct":7.66,"totalScore":84,"technicalScore":29,"industryScore":20,"companyScore":21,"valuationScore":6,"catalystRiskScore":8,"grade":"B 성장우선/추격주의","reason":"AI/HBM 확대에 따른 첨단 패키징 국산화와 체질 개선 방향을 높게 평가했다. Chart View 기술점수 29/30으로 모멘텀도 강하지만 당일 상승폭과 최근 변동성이 커서 성장성은 높게 보되 신규 추격매수는 눌림 확인이 낫다."}
-      ],
-      "top10": [],
-      "verification": {"tradeDate":"2026-09-15","source":"Chart View daily screener","universeCount":2649,"usableStocks":2495,"exactDateCoverage":0.9419,"rankingPolicy":"fundamental/industry growth 70 + technical 30; growth takes priority over screener technical rank","note":"Chart View screener prices are used as the ranking baseline per user instruction; secondary-source mismatch does not exclude a screener candidate from growth-first ranking."}
+        {"rank":1,"code":"121600","symbol":"121600.KQ","name":"나노신소재","close":50800,"previousClose":49200,"changePct":3.25,"totalScore":88,"grade":"A 성장우선","reason":"CNT 도전재와 AI/HBM용 CMP Slurry 성장."},
+        {"rank":2,"code":"023160","symbol":"023160.KQ","name":"태광","close":27300,"previousClose":28350,"changePct":-3.70,"totalScore":87,"grade":"A 성장우선","reason":"LNG·플랜트·조선 피팅 수요 확대."},
+        {"rank":3,"code":"033640","symbol":"033640.KQ","name":"네패스","close":23900,"previousClose":22200,"changePct":7.66,"totalScore":84,"grade":"B 성장우선/추격주의","reason":"AI/HBM 첨단 패키징 국산화 성장."}
+      ]
     },
     {
       "tradeDate": "2026-09-16",
-      "status": "사용자 확정 TOP3 — 2026-09-16 종가 기준",
-      "analysis": {
-        "sourceType": "gpt_screener_review",
-        "status": "complete",
-        "model": "GPT-5.6 Sol",
-        "candidateTradeDate": "2026-09-16",
-        "analyzedAt": "2026-09-16T20:12:00+09:00",
-        "candidateFile": "static/data/screener_top100.json"
-      },
-      "scorePolicy": {
-        "version": "growth-first-v2",
-        "weights": {"companyGrowth": 35, "industry": 15, "valuation": 10, "catalystRisk": 10, "technical": 30}
-      },
       "top3": [
-        {"rank":1,"code":"003160","symbol":"003160.KS","name":"디아이","close":31400,"previousClose":29700,"changePct":5.72,"companyScore":35,"industryScore":15,"valuationScore":8,"catalystRiskScore":8,"technicalScore":26,"totalScore":92,"grade":"사용자 확정 1위","reason":"SK하이닉스 HBM4 Wafer Tester 대규모 수주가 실제 매출과 이익으로 연결되고 있으며 P&T7 Wafer Test 증설과 차세대 HBM 검사장비 전환이 추가 성장축이다. 다만 HBM4 발주가 단기 피크를 형성하거나 HBM5가 기존 장비 업그레이드만으로 대응될 경우 신규 장비 매출이 기대보다 작아질 수 있다."},
-        {"rank":2,"code":"204620","symbol":"204620.KQ","name":"글로벌텍스프리","close":5880,"previousClose":5710,"changePct":2.98,"companyScore":29,"industryScore":13,"valuationScore":8,"catalystRiskScore":8,"technicalScore":27,"totalScore":85,"grade":"사용자 확정 2위","reason":"외국인 관광객 증가와 화장품·리테일 소비 확대가 택스리펀드 거래액과 수수료 매출 증가로 직결되는 구조이며 최근 실적도 고성장을 이어가고 있다. 다만 관광객 유입, 환율, 정책 변화와 특정 소비채널 의존도가 핵심 리스크다."},
-        {"rank":3,"code":"000660","symbol":"000660.KS","name":"SK하이닉스","close":1759000,"previousClose":1690000,"changePct":4.08,"companyScore":35,"industryScore":15,"valuationScore":7,"catalystRiskScore":8,"technicalScore":23,"totalScore":88,"grade":"사용자 확정 3위","reason":"HBM4 양산 확대와 AI 서버 메모리 수요, 장기공급계약을 기반으로 구조적 성장과 높은 현금창출력이 이어지고 있다. 다만 경쟁사의 HBM4 추격, HBM 마진 정상화와 메모리 투자 사이클 고점 가능성이 핵심 리스크다."}
+        {"rank":1,"code":"003160","symbol":"003160.KS","name":"디아이","close":31400,"previousClose":29700,"changePct":5.72,"totalScore":92,"grade":"사용자 확정","reason":"HBM4 Wafer Tester 수주와 차세대 검사장비 성장."},
+        {"rank":2,"code":"204620","symbol":"204620.KQ","name":"글로벌텍스프리","close":5880,"previousClose":5710,"changePct":2.98,"totalScore":85,"grade":"사용자 확정","reason":"외국인 관광객 및 리테일 소비 확대 수혜."},
+        {"rank":3,"code":"000660","symbol":"000660.KS","name":"SK하이닉스","close":1759000,"previousClose":1690000,"changePct":4.08,"totalScore":88,"grade":"사용자 확정","reason":"HBM4와 AI 서버 메모리 수요의 구조적 성장."}
+      ]
+    },
+    {
+      "tradeDate": "2026-09-17",
+      "status": "사용자 확정 TOP3 — 2026-09-17 종가 기준",
+      "analysis": {"sourceType":"user_final_selection","status":"complete","model":"GPT-5.6 Sol","candidateTradeDate":"2026-09-17","analyzedAt":"2026-09-17T19:00:00+09:00","candidateFile":"static/data/screener_top100.json"},
+      "top3": [
+        {"rank":1,"code":"251970","symbol":"251970.KQ","name":"펌텍코리아","close":61900,"previousClose":61300,"changePct":0.98,"totalScore":0,"grade":"사용자 확정","reason":"K-뷰티 글로벌 성장에 따른 화장품 용기 수요 확대와 생산능력 확장."},
+        {"rank":2,"code":"039030","symbol":"039030.KQ","name":"이오테크닉스","close":462500,"previousClose":468000,"changePct":-1.18,"totalScore":0,"grade":"사용자 확정","reason":"AI/HBM 및 첨단 패키징 확대에 따른 레이저 공정 장비 성장."},
+        {"rank":3,"code":"064290","symbol":"064290.KQ","name":"인텍플러스","close":48350,"previousClose":50800,"changePct":-4.82,"totalScore":0,"grade":"사용자 확정","reason":"첨단 패키징 복잡도 상승에 따른 3D 광학 검사 수요 확대."}
       ]
     }
   ]
