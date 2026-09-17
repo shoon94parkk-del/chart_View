@@ -56,6 +56,53 @@ def test_track_record_reprices_only_gpt_reviewed_days():
     assert rows[0]["analysisSource"] == "GPT 스크리너 재분석"
 
 
+def test_user_final_selection_is_a_publishable_track_record_day():
+    day = three_pick_day()
+    day["analysis"] = {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": day["tradeDate"],
+    }
+    rows = module.refresh_records([day], screener(), [])
+    assert len(rows) == 3
+    assert rows[0]["returnPct"] == 10.0
+    assert rows[0]["analysisSource"] == "사용자 최종 선택"
+
+
+def test_existing_legacy_pick_day_is_repriced_and_metadata_is_preserved():
+    day = three_pick_day()
+    day.pop("analysis")
+    existing = [
+        {
+            "recommendedDate": "2026-09-15",
+            "rank": pick["rank"],
+            "symbol": pick["symbol"],
+            "code": pick["code"],
+            "name": pick["name"],
+            "recommendedPrice": pick["close"],
+            "currentPrice": pick["close"],
+            "returnPct": 0.0,
+            "bestReturnPct": 0.0,
+            "lastUpdatedTradeDate": "2026-09-15",
+            "grade": "기존 등급",
+            "reason": "기존 상세 사유",
+            "score": 77,
+            "analysisSource": "기존 공개 기록",
+        }
+        for pick in day["top3"]
+    ]
+    rows = module.refresh_records([day], screener(), existing)
+    assert len(rows) == 3
+    assert rows[0]["currentPrice"] == 110
+    assert rows[0]["returnPct"] == 10.0
+    assert rows[0]["lastUpdatedTradeDate"] == "2026-09-16"
+    assert rows[0]["reason"] == "기존 상세 사유"
+    assert rows[0]["grade"] == "기존 등급"
+    assert rows[0]["score"] == 77
+    assert rows[0]["analysisSource"] == "기존 공개 기록"
+
+
 def test_same_day_recommendation_always_starts_at_zero_return():
     day = three_pick_day("2026-09-16")
     rows = module.refresh_records([day], screener("2026-09-16", first_price=999), [])
