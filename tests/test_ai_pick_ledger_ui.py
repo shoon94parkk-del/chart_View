@@ -28,6 +28,14 @@ def test_ai_pick_deep_link_is_not_overridden_by_initial_home_boot():
     assert "if (wantsAiPickLedger())" in js
 
 
+def test_pick_view_retries_until_shell_exists_and_uses_app_navigation():
+    js = read("static/js/ai_pick_ledger_v52.js")
+    compact = js.replace(" ", "")
+    assert "functionopenView(view,attempt=0)" in compact
+    assert "setTimeout(()=>openView(view,attempt+1),100)" in compact
+    assert "window.__openAppTab('screener')" in js
+
+
 def test_home_pick_mobile_layout_has_named_grid_areas_and_nonwrapping_score_badge():
     js = read("static/js/ai_daily_widget.js")
     compact = js.replace(" ", "")
