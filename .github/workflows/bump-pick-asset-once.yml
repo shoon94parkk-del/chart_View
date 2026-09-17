@@ -1,0 +1,30 @@
+name: Bump PICK asset once
+
+on:
+  push:
+    branches: [fix/watchlist-pick-performance-20260917]
+    paths:
+      - '.github/workflows/bump-pick-asset-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/watchlist-pick-performance-20260917
+      - name: Bump immutable asset version
+        run: |
+          sed -i 's#recommendation_watchlist_v55.js?v=20260917v55#recommendation_watchlist_v55.js?v=20260917v56#' templates/index.html
+          grep -q 'recommendation_watchlist_v55.js?v=20260917v56' templates/index.html
+      - name: Commit version bump
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: bump PICK performance asset version'
+          git push origin HEAD:fix/watchlist-pick-performance-20260917
