@@ -9,6 +9,9 @@ on:
       - 'static/css/**'
       - '!static/css/chartview_release_bundle.css'
       - 'scripts/build_frontend_bundle.py'
+      - 'tests/screener_freshness_regression.cjs'
+      - 'tests/test_ai_pick_ledger_ui.py'
+      - 'tests/test_frontend_bundle.py'
       - '.github/workflows/build-frontend-release.yml'
 
 permissions:
