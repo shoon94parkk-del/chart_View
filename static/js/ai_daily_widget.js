@@ -62,8 +62,8 @@
       const meta=m.ok?await m.json():{};
       const version=meta.updated||meta.tradeDate||'latest';
       const [rankResponse,recommendationResponse]=await Promise.all([
-        fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache:'default'}),
-        fetch(`/static/data/ai_recommendations.json?v=${encodeURIComponent(version)}`,{cache:'default'}),
+        fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
+        fetch(`/static/data/ai_recommendations.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
       ]);
       if(!rankResponse.ok)throw new Error(`HTTP ${rankResponse.status}: rankings`);
       if(!recommendationResponse.ok)throw new Error(`HTTP ${recommendationResponse.status}: recommendations`);
