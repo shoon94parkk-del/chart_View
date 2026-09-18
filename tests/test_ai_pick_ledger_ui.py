@@ -35,6 +35,14 @@ def test_home_pick_history_click_counts_as_user_navigation():
     assert ".ai-daily-more" in mark
 
 
+def test_pick_ledger_activates_bottom_discover_navigation_before_legacy_tab():
+    js = read("static/js/ai_pick_ledger_v52.js")
+    block = js.split("function openMainScreener()", 1)[1].split("function openView", 1)[0]
+    assert '[data-app-mode="discover"]' in block
+    assert "bottom.click()" in block
+    assert block.index("bottom.click()") < block.index("button.click()")
+
+
 def test_home_pick_focuses_on_cumulative_performance_and_compact_today_names():
     js = read("static/js/ai_daily_widget.js")
     assert "/static/data/ai_recommendations.json" in js
