@@ -1,9 +1,9 @@
 (() => {
   'use strict';
   const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const money = (n) => Number.isFinite(+n) ? Math.round(+n).toLocaleString('ko-KR') : '-';
   const pct = (n) => Number.isFinite(+n) ? `${+n > 0 ? '+' : ''}${(+n).toFixed(2)}%` : '-';
-  let cachedDay = null;
+  const tone = (n) => Number(n) > 0 ? 'up' : Number(n) < 0 ? 'down' : 'flat';
+  let cachedHomeData = null;
   let fetching = null;
 
   function installAiLedgerAssets() {
@@ -11,7 +11,7 @@
       const link = document.createElement('link'); link.id='ai-pick-ledger-v52-style'; link.rel='stylesheet'; link.href='/static/css/ai_pick_ledger_v52.css?v=20260917v58'; document.head.appendChild(link);
     }
     if (!document.getElementById('ai-pick-ledger-v52-script')) {
-      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=20260917v58'; script.async=false; document.body.appendChild(script);
+      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=20260918v59'; script.async=false; document.body.appendChild(script);
     }
   }
 
@@ -19,20 +19,22 @@
     if(document.getElementById('ai-daily-widget-style'))return;
     const style=document.createElement('style');
     style.id='ai-daily-widget-style';
-    style.textContent=`#home-tab .ai-daily-section{margin:0 0 16px;padding:16px;background:#fff;border:1px solid #dce9fb;border-radius:20px}#home-tab .ai-daily-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:11px}#home-tab .ai-daily-head h2{margin:0;font-size:20px;color:#191f28}#home-tab .ai-daily-head p{margin:4px 0 0;font-size:12px;color:#8b95a1}#home-tab .ai-daily-more{border:0;background:transparent;color:#3182f6;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;text-decoration:none}#home-tab .ai-daily-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}#home-tab .ai-daily-card{background:#fff;border:1px solid #edf1f5;border-radius:15px;overflow:hidden}#home-tab .ai-daily-card summary{list-style:none;cursor:pointer;padding:11px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"rank name score" "price price arrow";align-items:center;gap:5px 8px}#home-tab .ai-daily-rank{grid-area:rank;font-size:11px;font-weight:900;color:#6b7684}#home-tab .ai-daily-name{grid-area:name;min-width:0;font-size:15px;font-weight:800;color:#191f28;overflow-wrap:anywhere}#home-tab .ai-daily-score{grid-area:score;justify-self:end;display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#eef6ff;color:#1b64da;font-size:11px;font-weight:800;line-height:1.2;white-space:nowrap}#home-tab .ai-daily-price{grid-area:price;min-width:0;font-size:12px;color:#4e5968;overflow-wrap:anywhere}#home-tab .ai-daily-arrow{grid-area:arrow;justify-self:end;color:#8b95a1;font-size:11px;transition:transform .15s ease}#home-tab .ai-daily-card[open] .ai-daily-arrow{transform:rotate(180deg)}#home-tab .ai-daily-price .up{color:#f04452}#home-tab .ai-daily-price .down{color:#3182f6}#home-tab .ai-daily-detail{padding:10px 12px;border-top:1px solid #f3f5f7}#home-tab .ai-daily-reason{margin:0;color:#6b7684;font-size:12px;line-height:1.55}#home-tab .ai-daily-badge{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef6ff;color:#1b64da;font-size:10px;font-weight:800}@media(max-width:700px){#home-tab .ai-daily-grid{grid-template-columns:1fr}#home-tab .ai-daily-section{padding:13px}#home-tab .ai-daily-card summary{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"rank name score" "price price arrow"}#home-tab .ai-daily-name{white-space:normal}#home-tab .ai-daily-score{white-space:nowrap}}`;
+    style.textContent=`#home-tab .ai-daily-section{margin:0 0 16px;padding:18px;background:#fff;border:1px solid #dce9fb;border-radius:20px}#home-tab .ai-daily-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}#home-tab .ai-daily-head h2{margin:0;font-size:21px;color:#191f28;letter-spacing:-.02em}#home-tab .ai-daily-head p{margin:5px 0 0;font-size:12px;color:#8b95a1}#home-tab .ai-daily-more{border:0;background:transparent;color:#3182f6;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;text-decoration:none;padding-top:3px}#home-tab .ai-daily-performance{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(190px,.65fr);gap:10px}#home-tab .ai-daily-performance-main{min-width:0;padding:17px 18px;border-radius:17px;background:#f7f9fc;border:1px solid #edf1f5}#home-tab .ai-daily-performance-label{display:block;font-size:12px;font-weight:800;color:#6b7684;margin-bottom:6px}#home-tab .ai-daily-performance-value{display:block;font-size:34px;line-height:1.1;font-weight:900;letter-spacing:-.04em;color:#333d4b}#home-tab .ai-daily-performance-value.up{color:#f04452}#home-tab .ai-daily-performance-value.down{color:#3182f6}#home-tab .ai-daily-performance-main small{display:block;margin-top:8px;color:#8b95a1;font-size:11px}#home-tab .ai-daily-kpis{display:grid;grid-template-columns:1fr;gap:8px}#home-tab .ai-daily-kpi{padding:12px 14px;border-radius:15px;border:1px solid #edf1f5;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px}#home-tab .ai-daily-kpi span{font-size:11px;color:#8b95a1;font-weight:700}#home-tab .ai-daily-kpi b{font-size:16px;color:#333d4b}#home-tab .ai-daily-today{display:flex;align-items:center;gap:9px;margin-top:12px;min-width:0}#home-tab .ai-daily-today-label{font-size:11px;font-weight:800;color:#8b95a1;white-space:nowrap}#home-tab .ai-daily-today-chips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}#home-tab .ai-daily-today-chip{display:inline-flex;align-items:center;max-width:100%;padding:5px 8px;border-radius:999px;background:#eef6ff;color:#1b64da;font-size:11px;font-weight:800;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:700px){#home-tab .ai-daily-section{padding:14px}#home-tab .ai-daily-performance{grid-template-columns:1fr}#home-tab .ai-daily-performance-main{padding:15px 16px}#home-tab .ai-daily-performance-value{font-size:31px}#home-tab .ai-daily-kpis{grid-template-columns:1fr 1fr;gap:8px}#home-tab .ai-daily-kpi{display:block;padding:10px 12px}#home-tab .ai-daily-kpi span,#home-tab .ai-daily-kpi b{display:block}#home-tab .ai-daily-kpi b{margin-top:3px;font-size:15px}#home-tab .ai-daily-today{align-items:flex-start}}`;
     document.head.appendChild(style);
   }
 
-  function cardMarkup(day){
-    const rows=Array.isArray(day?.top3)?day.top3.slice(0,3):[];
-    if(!rows.length)return'';
-    const cards=rows.map(x=>{
-      const c=Number(x.changePct)>0?'up':Number(x.changePct)<0?'down':'';
-      const score=Number(x.totalScore)>0?`${esc(x.totalScore)}점`:'사용자 PICK';
-      const name=esc(x.name||x.symbol);
-      return `<details class="ai-daily-card"><summary aria-label="${name} 추천 사유 보기"><span class="ai-daily-rank">PICK</span><span class="ai-daily-name">${name}</span><span class="ai-daily-score">${score}</span><span class="ai-daily-price">${money(x.close)}원 · <span class="${c}">${pct(x.changePct)}</span></span><span class="ai-daily-arrow" aria-hidden="true">⌄</span></summary><div class="ai-daily-detail"><p class="ai-daily-reason">${esc(x.reason||'')}</p><span class="ai-daily-badge">${esc(x.grade||'관찰')}</span></div></details>`;
-    }).join('');
-    return `<div class="ai-daily-head"><div><h2>ChartView PICK 3</h2><p>${esc(day.tradeDate)} 종가 기준</p></div><a class="ai-daily-more" href="/?tab=screener&view=ai-picks">전체 기록 →</a></div><div class="ai-daily-grid">${cards}</div>`;
+  function summaryMarkup(payload){
+    const day=payload?.day;
+    const rows=Array.isArray(payload?.recommendations)?payload.recommendations:[];
+    const today=Array.isArray(day?.top3)?day.top3.slice(0,3):[];
+    if(!day && !rows.length)return'';
+    const tracked=rows.filter(row=>Number.isFinite(Number(row.returnPct)));
+    const avgReturn=tracked.length?tracked.reduce((sum,row)=>sum+Number(row.returnPct),0)/tracked.length:null;
+    const wins=tracked.filter(row=>Number(row.returnPct)>0).length;
+    const winRate=tracked.length?Math.round(wins/tracked.length*100):0;
+    const latestClose=tracked.reduce((max,row)=>String(row.lastUpdatedTradeDate||'')>max?String(row.lastUpdatedTradeDate||''):max,'')||day?.tradeDate||'';
+    const chips=today.map(row=>`<span class="ai-daily-today-chip">${esc(row.name||row.symbol||'-')}</span>`).join('');
+    return `<div class="ai-daily-head"><div><h2>ChartView PICK</h2><p>${esc(day?.tradeDate||latestClose)} 최종 선정 · 누적 성과 추적</p></div><a class="ai-daily-more" href="/?tab=screener&view=ai-picks">전체 기록 →</a></div><div class="ai-daily-performance"><div class="ai-daily-performance-main"><span class="ai-daily-performance-label">누적 PICK 평균 수익률</span><strong class="ai-daily-performance-value ${tone(avgReturn)}">${pct(avgReturn)}</strong><small>${esc(latestClose)} 종가 기준 · 추천 종목 동일가중 평균</small></div><div class="ai-daily-kpis"><div class="ai-daily-kpi"><span>누적 추천</span><b>${rows.length.toLocaleString('ko-KR')}건</b></div><div class="ai-daily-kpi"><span>수익 구간</span><b>${winRate}%</b></div></div></div><div class="ai-daily-today"><span class="ai-daily-today-label">오늘 PICK</span><div class="ai-daily-today-chips">${chips||'<span class="ai-daily-today-chip">선정 대기</span>'}</div></div>`;
   }
 
   function getHost(){
@@ -52,18 +54,23 @@
     return s;
   }
 
-  async function loadDay(){
-    if(cachedDay)return cachedDay;
+  async function loadHomeData(){
+    if(cachedHomeData)return cachedHomeData;
     if(fetching)return fetching;
     fetching=(async()=>{
       const m=await fetch('/static/data/ai_daily_rankings_meta.json',{cache:'no-store'});
       const meta=m.ok?await m.json():{};
       const version=meta.updated||meta.tradeDate||'latest';
-      const r=await fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache: 'default'});
-      if(!r.ok)throw new Error(`HTTP ${r.status}`);
-      const data=await r.json();
-      cachedDay=[...(data.days||[])].sort((a,b)=>String(b.tradeDate||'').localeCompare(String(a.tradeDate||'')))[0]||null;
-      return cachedDay;
+      const [rankResponse,recommendationResponse]=await Promise.all([
+        fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
+        fetch(`/static/data/ai_recommendations.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
+      ]);
+      if(!rankResponse.ok)throw new Error(`HTTP ${rankResponse.status}: rankings`);
+      if(!recommendationResponse.ok)throw new Error(`HTTP ${recommendationResponse.status}: recommendations`);
+      const [rankings,recommendations]=await Promise.all([rankResponse.json(),recommendationResponse.json()]);
+      const day=[...(rankings.days||[])].sort((a,b)=>String(b.tradeDate||'').localeCompare(String(a.tradeDate||'')))[0]||null;
+      cachedHomeData={day,recommendations:Array.isArray(recommendations?.recommendations)?recommendations.recommendations:[]};
+      return cachedHomeData;
     })().finally(()=>fetching=null);
     return fetching;
   }
@@ -72,8 +79,8 @@
     const s=placeSection();
     if(!s){if(attempt<80)setTimeout(()=>mount(attempt+1),100);return;}
     addStyle();
-    try{const d=await loadDay();s.innerHTML=cardMarkup(d);}
-    catch(e){s.innerHTML='<span style="color:#8b95a1;font-size:13px">PICK 데이터를 불러오지 못했습니다.</span>';}
+    try{const data=await loadHomeData();s.innerHTML=summaryMarkup(data);}
+    catch(e){s.innerHTML='<span style="color:#8b95a1;font-size:13px">PICK 데이터를 불러오지 못했습니다.</span>';console.error('[ChartView PICK home]',e);}
   }
 
   document.addEventListener('click',(event)=>{
@@ -89,5 +96,5 @@
   addStyle();
   mount();
   document.addEventListener('DOMContentLoaded',()=>mount());
-  window.addEventListener('pageshow',()=>{cachedDay=null;mount();});
+  window.addEventListener('pageshow',()=>{cachedHomeData=null;mount();});
 })();

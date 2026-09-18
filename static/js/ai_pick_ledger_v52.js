@@ -155,10 +155,10 @@
   }
 
   function openMainScreener() {
+    const bottom = document.querySelector('[data-app-mode="discover"], [data-app-mode="screener"]');
+    if (bottom && !bottom.classList.contains('active')) bottom.click();
     const button = document.querySelector('[data-tab="screener"]');
     if (button && !button.classList.contains('active')) button.click();
-    const bottom = document.querySelector('[data-app-mode="screener"], [data-app-mode="discover"]');
-    if (bottom && !document.getElementById('screener-tab')?.classList.contains('active')) bottom.click();
   }
 
   function openView(view) {
