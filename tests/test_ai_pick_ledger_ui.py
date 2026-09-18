@@ -35,13 +35,15 @@ def test_home_pick_history_click_counts_as_user_navigation():
     assert ".ai-daily-more" in mark
 
 
-def test_home_pick_mobile_layout_has_named_grid_areas_and_nonwrapping_score_badge():
+def test_home_pick_focuses_on_cumulative_performance_and_compact_today_names():
     js = read("static/js/ai_daily_widget.js")
-    compact = js.replace(" ", "")
-    assert "grid-template-areas" in js
-    assert "grid-area:name" in compact
-    assert "grid-area:score" in compact
-    assert "white-space:nowrap" in compact
+    assert "/static/data/ai_recommendations.json" in js
+    assert "누적 PICK 평균 수익률" in js
+    assert "수익 구간" in js
+    assert "누적 추천" in js
+    assert "오늘 PICK" in js
+    assert "ai-daily-today-chip" in js
+    assert "ai-daily-card" not in js
 
 
 def test_ledger_module_contains_dense_discovery_contract_without_rank_column():
