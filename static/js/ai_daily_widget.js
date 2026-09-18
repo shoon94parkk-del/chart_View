@@ -11,7 +11,7 @@
       const link = document.createElement('link'); link.id='ai-pick-ledger-v52-style'; link.rel='stylesheet'; link.href='/static/css/ai_pick_ledger_v52.css?v=20260917v58'; document.head.appendChild(link);
     }
     if (!document.getElementById('ai-pick-ledger-v52-script')) {
-      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=20260917v58'; script.async=false; document.body.appendChild(script);
+      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=20260918v59'; script.async=false; document.body.appendChild(script);
     }
   }
 
