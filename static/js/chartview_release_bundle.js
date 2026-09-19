@@ -5940,10 +5940,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       })
       .catch(() => {
         if (!box.isConnected) return;
-        box.classList.remove('is-loading');
-        box.classList.add('is-error');
-        label.textContent = '요약 실패';
-        text.textContent = '기사 본문 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        box.classList.remove('is-loading', 'is-error');
+        label.textContent = '기사 핵심';
+        text.textContent = snippet || originalTitle || '원문에서 자세한 내용을 확인해 주세요.';
       });
   }
 
