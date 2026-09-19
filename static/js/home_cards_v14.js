@@ -2,6 +2,7 @@
   'use strict';
 
   let sourcePromise = null;
+  let sourceKey = '';
   let renderBusy = false;
   let renderQueued = false;
 
@@ -67,13 +68,21 @@
   }
 
   function loadSources() {
-    if (!sourcePromise) {
-      sourcePromise = Promise.all([
-        fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { stocks: [] }).catch(() => ({ stocks: [] })),
-        fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { quotes: {} }).catch(() => ({ quotes: {} })),
-        fetch('/static/data/valuation_cache.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { quotes: {} }).catch(() => ({ quotes: {} })),
-        fetch('/api/macro', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-      ]);
+    const key = [...new Set(selectedTickersNow())].slice(0, 6).join(',');
+    if (!sourcePromise || sourceKey !== key) {
+      sourceKey = key;
+      sourcePromise = fetch(`/api/home-insights?tickers=${encodeURIComponent(key)}`, { cache: 'default' })
+        .then((r) => {
+          if (!r.ok) throw new Error(`home insights HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((data) => [
+          data?.screener || { stocks: [] },
+          data?.consensus || { quotes: {} },
+          data?.valuation || { quotes: {} },
+          data?.macro || null,
+        ])
+        .catch(() => [{ stocks: [] }, { quotes: {} }, { quotes: {} }, null]);
     }
     return sourcePromise;
   }
