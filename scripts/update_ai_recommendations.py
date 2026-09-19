@@ -66,7 +66,7 @@ def is_user_final_selection_day(day: dict) -> bool:
         and analysis.get("status") == "complete"
         and bool(analysis.get("model"))
         and str(analysis.get("candidateTradeDate") or "") == date
-        and len(day.get("top3") or []) == 3
+        and 1 <= len(day.get("top3") or []) <= 3
     )
 
 
