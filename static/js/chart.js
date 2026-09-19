@@ -38,7 +38,9 @@ async function fetchChartData(period = currentPeriod, signal = undefined) {
 
 function prefetchChartPeriods() {
     if (customDateRange || !selectedTickers.length) return;
-    ['1mo', '3mo'].filter((p) => p !== currentPeriod).forEach((p) => fetchChartData(p).catch(() => {}));
+    ['1mo', '3mo', '6mo', 'ytd', '1y']
+        .filter((p) => p !== currentPeriod)
+        .forEach((p) => fetchChartData(p).catch(() => {}));
 }
 
 // 티커 → 기업명 매핑 (검색/추가 시 저장)
