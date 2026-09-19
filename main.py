@@ -44,6 +44,12 @@ HOME_MAJOR_TICKERS = [
 ]
 HOME_SNAPSHOT_LOCK = asyncio.Lock()
 
+# P0-2: Home support data is immutable for a running Render revision.
+# Keep parsed source files in memory so each Home request does not re-read/re-parse
+# the full Korean screener JSON.
+HOME_INSIGHTS_SOURCE_CACHE = {"data": None, "timestamp": 0.0}
+HOME_INSIGHTS_SOURCE_TTL = 300
+
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
 # V37 personalized watchlist news router.
@@ -314,18 +320,37 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
   "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "source": "Yahoo Finance Chart"}
 
 
-@app.get("/api/home-insights")
-async def home_insights(tickers: str = ""):
-    """Return only the screener rows needed by Home instead of shipping the full ~1.5MB universe."""
+def _load_home_insight_sources():
+    """Load large Home support JSON once per process/TTL instead of on every request."""
     import json
     from pathlib import Path
 
+    now = time.time()
+    cached = HOME_INSIGHTS_SOURCE_CACHE.get("data")
+    if cached and now - HOME_INSIGHTS_SOURCE_CACHE.get("timestamp", 0.0) < HOME_INSIGHTS_SOURCE_TTL:
+        return cached
+
     data_dir = Path(__file__).resolve().parent / "static" / "data"
+    data = {
+        "screener": json.loads((data_dir / "screener.json").read_text(encoding="utf-8")),
+        "consensus": json.loads((data_dir / "consensus_cache.json").read_text(encoding="utf-8")),
+        "valuation": json.loads((data_dir / "valuation_cache.json").read_text(encoding="utf-8")),
+        "macro": json.loads((data_dir / "macro_cache.json").read_text(encoding="utf-8")),
+    }
+    HOME_INSIGHTS_SOURCE_CACHE["data"] = data
+    HOME_INSIGHTS_SOURCE_CACHE["timestamp"] = now
+    return data
+
+
+@app.get("/api/home-insights")
+async def home_insights(tickers: str = ""):
+    """Return only the screener rows needed by Home, backed by a parsed-source memory cache."""
     try:
-        screener = json.loads((data_dir / "screener.json").read_text(encoding="utf-8"))
-        consensus = json.loads((data_dir / "consensus_cache.json").read_text(encoding="utf-8"))
-        valuation = json.loads((data_dir / "valuation_cache.json").read_text(encoding="utf-8"))
-        macro = json.loads((data_dir / "macro_cache.json").read_text(encoding="utf-8"))
+        sources = _load_home_insight_sources()
+        screener = sources["screener"]
+        consensus = sources["consensus"]
+        valuation = sources["valuation"]
+        macro = sources["macro"]
 
         requested = {x.strip().upper() for x in tickers.split(",") if x.strip()}
         consensus_quotes = consensus.get("quotes") or {}
@@ -371,6 +396,7 @@ async def home_insights(tickers: str = ""):
                 "generatedAt": valuation.get("generatedAt"),
             },
             "macro": macro,
+            "cacheMode": "parsed-source-memory",
         }
         return JSONResponse(
             content=payload,
@@ -1056,6 +1082,30 @@ async def valuation_data(tickers: str):
         else: errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
     return {"stocks": stocks, "errors": errors, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
   "source": "Yahoo Finance Chart + Fundamentals"}
+
+
+@app.get("/api/valuation-bands")
+async def valuation_bands_data(tickers: str, years: int = Query(default=3, ge=1, le=10)):
+    """Batch valuation-band lookup so Home needs one request, not up to eight."""
+    symbols = list(dict.fromkeys(t.strip().upper() for t in tickers.split(",") if t.strip()))
+    if not symbols or len(symbols) > 8:
+        raise HTTPException(400, "밸류에이션 밴드는 1개 이상 8개 이하 종목을 조회할 수 있습니다.")
+    if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
+        raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
+
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_valuation_bands, symbol, years) for symbol in symbols],
+        return_exceptions=True,
+    )
+    bands, errors = {}, []
+    for symbol, item in zip(symbols, fetched):
+        if isinstance(item, Exception):
+            errors.append({"ticker": symbol, "message": str(item)})
+        elif item:
+            bands[symbol] = item
+        else:
+            errors.append({"ticker": symbol, "message": "밸류에이션 밴드를 계산하지 못했습니다."})
+    return {"bands": bands, "errors": errors, "years": years}
 
 
 @app.get("/api/valuation-band")
