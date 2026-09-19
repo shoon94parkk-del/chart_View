@@ -119,7 +119,16 @@ jobs:
           assert 'install_patch(_legacy)' in shim
           chart=Path('static/js/chart.js').read_text(encoding='utf-8')
           assert 'handleScale: { mouseWheel: false, pinch: true }' in chart
-          print('app UX invariants OK: V42 prelaunch contracts')
+          # P0-2 performance/reliability contracts.
+          assert 'src="https://unpkg.com/lightweight-charts' not in html
+          assert 'function loadLightweightCharts()' in chart
+          priority=Path('static/js/home_priority_v10.js').read_text(encoding='utf-8')
+          assert '/api/valuation-bands?tickers=' in priority
+          assert '/api/valuation-band?ticker=' not in priority
+          assert 'HOME_INSIGHTS_SOURCE_TTL = 300' in main
+          assert '@app.get("/api/valuation-bands")' in main
+          assert Path('.github/workflows/screener-production-freshness.yml').exists()
+          print('app UX invariants OK: V42 + P0-2 contracts')
           PY
 
   mobile:
