@@ -27,6 +27,8 @@ router = APIRouter()
 
 SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
+SUMMARY_DISK_TTL = 60 * 60 * 24 * 7
+SUMMARY_DISK_PATH = __import__("pathlib").Path(__file__).resolve().parent / "static" / "data" / "news_summary_cache.json"
 SUMMARY_CACHE_VERSION = "v48-fact-first"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
@@ -501,6 +503,38 @@ def _trim_summary(text: str, limit: int = 360) -> str:
     return (clipped[:cut] if cut >= int(limit * 0.7) else clipped).rstrip(" ,·") + "…"
 
 
+def _disk_cache_load() -> dict[str, dict]:
+    try:
+        payload = json.loads(SUMMARY_DISK_PATH.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def _disk_cache_get(key: str) -> dict | None:
+    row = _disk_cache_load().get(key)
+    if not isinstance(row, dict) or time.time() - float(row.get("cachedAt") or 0) >= SUMMARY_DISK_TTL:
+        return None
+    data = row.get("data")
+    return data if isinstance(data, dict) else None
+
+
+def _disk_cache_put(key: str, data: dict) -> None:
+    try:
+        rows = _disk_cache_load()
+        now = time.time()
+        rows = {k: v for k, v in rows.items() if isinstance(v, dict) and now - float(v.get("cachedAt") or 0) < SUMMARY_DISK_TTL}
+        rows[key] = {"cachedAt": now, "data": data}
+        if len(rows) > 1500:
+            rows = dict(sorted(rows.items(), key=lambda pair: float(pair[1].get("cachedAt") or 0), reverse=True)[:1200])
+        SUMMARY_DISK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = SUMMARY_DISK_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(SUMMARY_DISK_PATH)
+    except OSError:
+        pass
+
+
 def _cache_key(url: str, title: str, snippet: str) -> str:
     raw = f"{SUMMARY_CACHE_VERSION}\n{url}\n{title}\n{snippet[:800]}".encode("utf-8", errors="ignore")
     return hashlib.sha256(raw).hexdigest()
@@ -512,6 +546,11 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
         cached = SUMMARY_CACHE.get(key)
         if cached and time.time() - float(cached.get("cachedAt") or 0) < SUMMARY_CACHE_TTL:
             return {**cached["data"], "cache": "hit"}
+    persisted = _disk_cache_get(key)
+    if persisted:
+        with _SUMMARY_LOCK:
+            SUMMARY_CACHE[key] = {"cachedAt": time.time(), "data": persisted}
+        return {**persisted, "cache": "disk_hit"}
 
     with _SUMMARY_SEMAPHORE:
         clean_title = _clean_text(title)
@@ -588,6 +627,7 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
                 oldest = sorted(SUMMARY_CACHE.items(), key=lambda pair: float(pair[1].get("cachedAt") or 0))[:200]
                 for old_key, _ in oldest:
                     SUMMARY_CACHE.pop(old_key, None)
+        _disk_cache_put(key, result)
     return {**result, "cache": "miss"}
 
 
