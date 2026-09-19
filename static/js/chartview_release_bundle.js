@@ -5772,6 +5772,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   const summaryCache = new Map();
   const summaryQueue = [];
   const SUMMARY_CONCURRENCY = 3;
+  const SUMMARY_STORAGE_PREFIX = 'chartview-news-summary-v1:';
+  const SUMMARY_STORAGE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   let activeSummaryJobs = 0;
 
   function cleanTitle(title) {
@@ -5780,6 +5782,18 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   function summaryKey(url, title, snippet) {
     return `${url}|${title}|${String(snippet || '').slice(0, 240)}`;
+  }
+
+  function readStoredSummary(key) {
+    try {
+      const row = JSON.parse(localStorage.getItem(SUMMARY_STORAGE_PREFIX + key) || 'null');
+      if (!row?.payload || !row.savedAt || Date.now() - row.savedAt > SUMMARY_STORAGE_MAX_AGE) return null;
+      return row.payload;
+    } catch (_) { return null; }
+  }
+
+  function writeStoredSummary(key, payload) {
+    try { localStorage.setItem(SUMMARY_STORAGE_PREFIX + key, JSON.stringify({ savedAt: Date.now(), payload })); } catch (_) {}
   }
 
   function pumpSummaryQueue() {
@@ -5801,6 +5815,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       fetchSummary()
         .then((payload) => {
           summaryCache.set(job.key, payload);
+          writeStoredSummary(job.key, payload);
           job.resolve(payload);
         })
         .catch(job.reject)
@@ -5814,6 +5829,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   function loadContentSummary(url, title, snippet = '') {
     const key = summaryKey(url, title, snippet);
     if (summaryCache.has(key)) return Promise.resolve(summaryCache.get(key));
+    const stored = readStoredSummary(key);
+    if (stored) { summaryCache.set(key, stored); return Promise.resolve(stored); }
     return new Promise((resolve, reject) => {
       summaryQueue.push({ key, url, title, snippet, resolve, reject });
       pumpSummaryQueue();
