@@ -58,18 +58,10 @@
     if(cachedHomeData)return cachedHomeData;
     if(fetching)return fetching;
     fetching=(async()=>{
-      const m=await fetch('/static/data/ai_daily_rankings_meta.json',{cache:'no-store'});
-      const meta=m.ok?await m.json():{};
-      const version=meta.updated||meta.tradeDate||'latest';
-      const [rankResponse,recommendationResponse]=await Promise.all([
-        fetch(`/static/data/ai_daily_rankings.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
-        fetch(`/static/data/ai_recommendations.json?v=${encodeURIComponent(version)}`,{cache: 'default'}),
-      ]);
-      if(!rankResponse.ok)throw new Error(`HTTP ${rankResponse.status}: rankings`);
-      if(!recommendationResponse.ok)throw new Error(`HTTP ${recommendationResponse.status}: recommendations`);
-      const [rankings,recommendations]=await Promise.all([rankResponse.json(),recommendationResponse.json()]);
-      const day=[...(rankings.days||[])].sort((a,b)=>String(b.tradeDate||'').localeCompare(String(a.tradeDate||'')))[0]||null;
-      cachedHomeData={day,recommendations:Array.isArray(recommendations?.recommendations)?recommendations.recommendations:[]};
+      const response=await fetch('/api/home-bootstrap',{cache:'default'});
+      if(!response.ok)throw new Error(`HTTP ${response.status}: home bootstrap`);
+      const data=await response.json();
+      cachedHomeData={day:data?.day||null,recommendations:Array.isArray(data?.recommendations)?data.recommendations:[]};
       return cachedHomeData;
     })().finally(()=>fetching=null);
     return fetching;
