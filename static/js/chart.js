@@ -11,6 +11,35 @@ let currentPeriod = '1mo';
 let customDateRange = null;
 let chartRequestController = null;
 let chartLoadSeq = 0;
+const chartDataCache = new Map();
+const chartDataInflight = new Map();
+
+function chartCacheKey(period = currentPeriod) {
+    const range = customDateRange ? `${customDateRange.start}:${customDateRange.end}` : '';
+    return `${selectedTickers.join(',')}|${period}|${range}`;
+}
+
+async function fetchChartData(period = currentPeriod, signal = undefined) {
+    const key = chartCacheKey(period);
+    if (chartDataCache.has(key)) return chartDataCache.get(key);
+    if (chartDataInflight.has(key)) return chartDataInflight.get(key);
+    let url = `/api/compare?tickers=${encodeURIComponent(selectedTickers.join(','))}&period=${period}`;
+    if (customDateRange) url += `&start=${customDateRange.start}&end=${customDateRange.end}`;
+    const job = fetch(url, { cache: 'default', signal }).then(async (res) => {
+        if (!res.ok) throw new Error(`차트 API 오류 (${res.status})`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        chartDataCache.set(key, data);
+        return data;
+    }).finally(() => chartDataInflight.delete(key));
+    chartDataInflight.set(key, job);
+    return job;
+}
+
+function prefetchChartPeriods() {
+    if (customDateRange || !selectedTickers.length) return;
+    ['1mo', '3mo'].filter((p) => p !== currentPeriod).forEach((p) => fetchChartData(p).catch(() => {}));
+}
 
 // 티커 → 기업명 매핑 (검색/추가 시 저장)
 const tickerNameMap = { '005930.KS': '삼성전자' };
@@ -284,16 +313,8 @@ async function loadData() {
     chartStatus();
 
     try {
-        let url = `/api/compare?tickers=${encodeURIComponent(selectedTickers.join(','))}&period=${currentPeriod}`;
-        if (customDateRange) {
-            url += `&start=${customDateRange.start}&end=${customDateRange.end}`;
-        }
-
-        const res = await fetch(url, { cache: 'no-store', signal: chartRequestController.signal });
-        if (!res.ok) throw new Error(`차트 API 오류 (${res.status})`);
-        const data = await res.json();
+        const data = await fetchChartData(currentPeriod, chartRequestController.signal);
         if (seq !== chartLoadSeq) return;
-        if (data.error) throw new Error(data.error);
 
         const stocks = Array.isArray(data.stocks) ? data.stocks : [];
         Object.keys(series).forEach(t => {
@@ -316,6 +337,7 @@ async function loadData() {
         if (stocks.length) chart.timeScale().fitContent();
         updateTags();
         updateLegend(stocks);
+        prefetchChartPeriods();
 
         if (!stocks.length && selectedTickers.length) {
             chartStatus('시세 데이터를 가져오지 못했습니다.');
