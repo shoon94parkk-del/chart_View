@@ -72,7 +72,7 @@ async def cache_static_assets(request: Request, call_next):
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
         if request.url.path.startswith("/static/data/"):
-            response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=3600"
+            response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=86400"
         elif request.query_params.get("v"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         else:
