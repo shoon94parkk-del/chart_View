@@ -6867,7 +6867,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     let timer = null;
     new MutationObserver(() => {
       clearTimeout(timer);
-      timer = setTimeout(renderBriefTabs, 100);
+      timer = setTimeout(() => {
+        if (document.getElementById('chart-tab')?.classList.contains('active')) renderBriefTabs();
+      }, 100);
     }).observe(tags, { childList: true, subtree: true });
   }
 
@@ -6875,7 +6877,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     installHome();
     installBrief();
     observeSelection();
-    renderBriefTabs();
+    // P0 performance: the stock brief belongs to the analysis screen.
+    // Do not fetch compare/valuation/consensus while the user is still on Home.
     document.addEventListener('chartview:watchlist-change', () => {
       if (activeBriefTicker && briefCache.has(activeBriefTicker)) briefCache.get(activeBriefTicker).then((data) => renderBrief(activeBriefTicker, data));
     });
