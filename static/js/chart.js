@@ -397,6 +397,9 @@ async function loadData() {
         });
 
         if (stocks.length) chart.timeScale().fitContent();
+        // Data is already on the chart; hide the loader before publishing the legend
+        // so the UI never gets a one-frame vertical jump.
+        showLoading(false);
         updateTags();
         updateLegend(stocks);
         prefetchChartPeriods();
@@ -446,6 +449,11 @@ function showLoading(show) {
     if (!indicator) {
         indicator = document.createElement('div');
         indicator.className = 'ux-inline-loader';
+        indicator.style.position = 'absolute';
+        indicator.style.top = '84px';
+        indicator.style.right = '16px';
+        indicator.style.zIndex = '8';
+        indicator.style.margin = '0';
         indicator.innerHTML = '<span class="ux-mini-spinner"></span><span>차트 업데이트 중</span>';
         const header = section.querySelector('.chart-header');
         if (header) header.insertAdjacentElement('afterend', indicator); else section.prepend(indicator);
