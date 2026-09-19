@@ -111,10 +111,9 @@ function initChart() {
     setDefaultDates();
 
     updateTags();
-    // The chart tab can be hidden during app startup, which gives LightweightCharts
-    // a zero-width canvas. Load immediately, then resize/repaint once the tab is visible.
-    loadData();
-    requestAnimationFrame(() => ensureChartVisible());
+    // P0 performance: do not fetch chart data during Home boot.
+    // The existing navigation resize hook calls ensureChartVisible() when the user
+    // actually opens the chart, which then loads the current period on demand.
 }
 
 function ensureChartVisible() {
