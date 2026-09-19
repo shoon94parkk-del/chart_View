@@ -63,7 +63,7 @@ const chartOptions = {
         horzLines: { color: '#E5E8EB' },
     },
     crosshair: {
-        mode: 0 // LightweightCharts.CrosshairMode.Normal,
+        mode: 0, // LightweightCharts.CrosshairMode.Normal
         vertLine: { color: '#8B95A1', width: 1, style: 2 },
         horzLine: { color: '#8B95A1', width: 1, style: 2 },
     },
