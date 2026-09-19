@@ -146,7 +146,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('#chart-tab.active').waitFor();
       if (width === 384) {
         await page.route('**/api/compare?*', r => r.fulfill({status:503,...json({error:'test unavailable'})}));
-        await page.locator('.period-chip[data-period="3mo"]').click();
+        await page.locator('.period-chip[data-period="max"]').click();
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();
         assert.equal(await page.locator('#legend .legend-item').count(),0);
         await page.screenshot({path:'test-results/384-chart-retry.png',fullPage:true});
