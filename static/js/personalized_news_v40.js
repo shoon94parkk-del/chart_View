@@ -270,11 +270,25 @@
   }
 
   function boot(attempt = 0) {
-    if (!ensureSection()) {
+    const section = ensureSection();
+    if (!section) {
       if (attempt < 120) setTimeout(() => boot(attempt + 1), 250);
       return;
     }
-    loadNews(false);
+    if (section.dataset.newsV40Lazy === '1') return;
+    section.dataset.newsV40Lazy = '1';
+
+    const load = () => loadNews(false);
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        load();
+      }, { rootMargin: '500px 0px' });
+      observer.observe(section);
+    } else {
+      setTimeout(load, 2200);
+    }
   }
 
   document.addEventListener('chartview:watchlist-change', () => setTimeout(() => loadNews(false), 40));
