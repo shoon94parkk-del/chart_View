@@ -13,6 +13,7 @@ let chartRequestController = null;
 let chartLoadSeq = 0;
 const chartDataCache = new Map();
 const chartDataInflight = new Map();
+let chartLibraryPromise = null;
 
 function chartCacheKey(period = currentPeriod) {
     const range = customDateRange ? `${customDateRange.start}:${customDateRange.end}` : '';
@@ -62,7 +63,7 @@ const chartOptions = {
         horzLines: { color: '#E5E8EB' },
     },
     crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
+        mode: 0 // LightweightCharts.CrosshairMode.Normal,
         vertLine: { color: '#8B95A1', width: 1, style: 2 },
         horzLine: { color: '#8B95A1', width: 1, style: 2 },
     },
@@ -93,32 +94,72 @@ function getShortDisplayName(ticker) {
     return ticker;
 }
 
+function loadLightweightCharts() {
+    if (window.LightweightCharts) return Promise.resolve(window.LightweightCharts);
+    if (chartLibraryPromise) return chartLibraryPromise;
+
+    chartLibraryPromise = new Promise((resolve, reject) => {
+        let script = document.querySelector('script[data-lightweight-charts]');
+        if (!script) {
+            script = document.createElement('script');
+            script.src = 'https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js';
+            script.async = true;
+            script.dataset.lightweightCharts = '1';
+            document.head.appendChild(script);
+        }
+
+        const finish = () => {
+            if (window.LightweightCharts) resolve(window.LightweightCharts);
+            else reject(new Error('Lightweight Charts library unavailable'));
+        };
+        script.addEventListener('load', finish, { once: true });
+        script.addEventListener('error', () => reject(new Error('Lightweight Charts library failed to load')), { once: true });
+        if (window.LightweightCharts) finish();
+    }).catch((error) => {
+        chartLibraryPromise = null;
+        throw error;
+    });
+
+    return chartLibraryPromise;
+}
+
 // 차트 초기화
 function initChart() {
+    if (chart) return chart;
     const container = document.getElementById('chart-container');
+    if (!container || !window.LightweightCharts) return null;
 
-    chart = LightweightCharts.createChart(container, {
+    chart = window.LightweightCharts.createChart(container, {
         ...chartOptions,
-        width: container.clientWidth,
+        width: Math.max(container.clientWidth, 1),
         height: 260,
     });
 
     window.addEventListener('resize', () => {
-        chart.resize(container.clientWidth, 260);
+        if (chart && container.clientWidth > 0) chart.resize(container.clientWidth, 260);
     });
 
-    // 날짜 기본값 설정
     setDefaultDates();
-
     updateTags();
-    // P0 performance: do not fetch chart data during Home boot.
-    // The existing navigation resize hook calls ensureChartVisible() when the user
-    // actually opens the chart, which then loads the current period on demand.
+    return chart;
 }
 
-function ensureChartVisible() {
+async function ensureChartReady() {
+    if (chart) return true;
+    try {
+        await loadLightweightCharts();
+        return !!initChart();
+    } catch (error) {
+        console.error('Chart library load error:', error);
+        chartStatus('차트 모듈을 불러오지 못했습니다. 다시 시도해주세요.');
+        return false;
+    }
+}
+
+async function ensureChartVisible() {
     const container = document.getElementById('chart-container');
-    if (!chart || !container) return false;
+    if (!container) return false;
+    if (!chart && !(await ensureChartReady())) return false;
     const width = container.clientWidth;
     if (width <= 0) return false;
     chart.resize(width, 260);
@@ -130,6 +171,7 @@ function ensureChartVisible() {
     return true;
 }
 window.__ensureChartVisible = ensureChartVisible;
+window.__ensureChartReady = ensureChartReady;
 
 // 날짜 기본값
 function setDefaultDates() {
@@ -318,6 +360,7 @@ function updateTags() {
 // 데이터 로드
 async function loadData() {
     const seq = ++chartLoadSeq;
+    if (!chart && !(await ensureChartReady())) return;
     if (chartRequestController) chartRequestController.abort();
     chartRequestController = new AbortController();
 
@@ -412,7 +455,10 @@ function showLoading(show) {
 
 // 이벤트 리스너
 document.addEventListener('DOMContentLoaded', () => {
-    initChart();
+    // Keep cheap UI state ready, but defer the chart library and chart instance
+    // until the user actually enters analysis.
+    setDefaultDates();
+    updateTags();
 
     const chartTab = document.getElementById('chart-tab');
     if (chartTab) {
