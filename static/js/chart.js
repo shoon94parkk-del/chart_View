@@ -111,6 +111,22 @@ function initChart() {
     setDefaultDates();
 
     updateTags();
+    // The chart tab can be hidden during app startup, which gives LightweightCharts
+    // a zero-width canvas. Load immediately, then resize/repaint once the tab is visible.
+    loadData();
+    requestAnimationFrame(() => ensureChartVisible());
+}
+
+function ensureChartVisible() {
+    const container = document.getElementById('chart-container');
+    if (!chart || !container) return;
+    const width = container.clientWidth;
+    if (width <= 0) return;
+    chart.resize(width, 260);
+    if (Object.keys(series).length) {
+        chart.timeScale().fitContent();
+        return;
+    }
     loadData();
 }
 
@@ -396,6 +412,18 @@ function showLoading(show) {
 // 이벤트 리스너
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
+
+    const chartTab = document.getElementById('chart-tab');
+    if (chartTab) {
+        new MutationObserver(() => {
+            if (chartTab.classList.contains('active')) requestAnimationFrame(() => ensureChartVisible());
+        }).observe(chartTab, { attributes: true, attributeFilter: ['class'] });
+    }
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('.tab-btn[data-tab="chart"]')) {
+            setTimeout(ensureChartVisible, 0);
+        }
+    });
 
     const dateSection = document.querySelector('#chart-tab .date-section');
     const customDateToggle = document.getElementById('custom-date-toggle');
