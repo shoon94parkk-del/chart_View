@@ -77,4 +77,6 @@ jobs:
             exit 0
           fi
           git commit -m 'build: refresh frontend release bundle'
+          git fetch origin main
+          git rebase -X theirs origin/main
           git push origin HEAD:main
