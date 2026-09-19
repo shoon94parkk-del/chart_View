@@ -314,6 +314,72 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
   "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "source": "Yahoo Finance Chart"}
 
 
+@app.get("/api/home-insights")
+async def home_insights(tickers: str = ""):
+    """Return only the screener rows needed by Home instead of shipping the full ~1.5MB universe."""
+    import json
+    from pathlib import Path
+
+    data_dir = Path(__file__).resolve().parent / "static" / "data"
+    try:
+        screener = json.loads((data_dir / "screener.json").read_text(encoding="utf-8"))
+        consensus = json.loads((data_dir / "consensus_cache.json").read_text(encoding="utf-8"))
+        valuation = json.loads((data_dir / "valuation_cache.json").read_text(encoding="utf-8"))
+        macro = json.loads((data_dir / "macro_cache.json").read_text(encoding="utf-8"))
+
+        requested = {x.strip().upper() for x in tickers.split(",") if x.strip()}
+        consensus_quotes = consensus.get("quotes") or {}
+        keep = set(consensus_quotes) | requested
+        stocks = screener.get("stocks") or []
+
+        def number(value, fallback=-1e30):
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return fallback
+
+        volume_rows = sorted(stocks, key=lambda row: number(row.get("volumeRatio")), reverse=True)[:5]
+        signal_rows = [
+            row for row in stocks
+            if number(row.get("score")) >= 52
+            and (
+                number(row.get("volumeRatio")) >= 1.2
+                or row.get("cross20") is True
+                or row.get("aligned") is True
+                or number(row.get("rsi14"), 1e30) <= 35
+            )
+        ]
+        signal_rows.sort(
+            key=lambda row: (number(row.get("score")), number(row.get("volumeRatio"))),
+            reverse=True,
+        )
+        keep.update(str(row.get("symbol") or "").upper() for row in volume_rows + signal_rows[:12])
+        compact_stocks = [row for row in stocks if str(row.get("symbol") or "").upper() in keep]
+
+        payload = {
+            "screener": {
+                "stocks": compact_stocks,
+                "tradeDate": screener.get("tradeDate"),
+                "generatedAt": screener.get("generatedAt"),
+            },
+            "consensus": {
+                "quotes": consensus_quotes,
+                "generatedAt": consensus.get("generatedAt"),
+            },
+            "valuation": {
+                "quotes": valuation.get("quotes") or {},
+                "generatedAt": valuation.get("generatedAt"),
+            },
+            "macro": macro,
+        }
+        return JSONResponse(
+            content=payload,
+            headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=3600"},
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"home insights unavailable: {exc}")
+
+
 @app.get("/api/home-bootstrap")
 async def home_bootstrap():
     """Return the small set of precomputed files needed by the home PICK widget in one request."""
