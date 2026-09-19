@@ -2235,11 +2235,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   function scheduleChartResize(tabId) {
     if (tabId !== 'chart') return;
-    const resize = () => window.dispatchEvent(new Event('resize'));
+    const refresh = () => {
+      window.dispatchEvent(new Event('resize'));
+      if (typeof window.__ensureChartVisible === 'function') window.__ensureChartVisible();
+    };
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+      requestAnimationFrame(refresh);
     });
-    setTimeout(resize, 80);
+    setTimeout(refresh, 80);
   }
 
   function openTab(tabId, options = {}) {
