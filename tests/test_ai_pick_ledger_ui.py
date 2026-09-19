@@ -46,6 +46,7 @@ def test_pick_ledger_activates_bottom_discover_navigation_before_legacy_tab():
 def test_home_pick_focuses_on_cumulative_performance_and_compact_today_names():
     js = read("static/js/ai_daily_widget.js")
     assert "/api/home-bootstrap" in js
+    assert "data-fallback-route" in js
     assert "누적 PICK 평균 수익률" in js
     assert "수익 구간" in js
     assert "누적 추천" in js
