@@ -244,11 +244,12 @@
     const seq = ++enhanceSeq;
     section.dataset.priorityLoading = '1';
     try {
-      const [consensus, screener, valuation] = await Promise.all([
-        fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { quotes: {} }),
-        fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { stocks: [] }),
-        fetch('/static/data/valuation_cache.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { quotes: {} }),
-      ]);
+      const insightResponse = await fetch('/api/home-insights', { cache: 'default' });
+      if (!insightResponse.ok) throw new Error(`home insights HTTP ${insightResponse.status}`);
+      const insights = await insightResponse.json();
+      const consensus = insights?.consensus || { quotes: {} };
+      const screener = insights?.screener || { stocks: [] };
+      const valuation = insights?.valuation || { quotes: {} };
       const candidates = await rankRows(buildRows(consensus, screener, valuation));
       if (seq !== enhanceSeq || !document.body.contains(section)) return;
       renderCandidates(section, candidates);
