@@ -14,7 +14,7 @@ body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중
 .ux-sector-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;background:transparent;padding:5px 2px 9px;font:inherit;font-size:13px;font-weight:700;color:#4E5968;cursor:pointer;min-height:40px}
 .sector-section.ux-collapsed .sector-scroll-container{display:none}
 .search-result-item{gap:14px}.search-result-item .name{font-weight:650}.search-result-item .symbol{white-space:nowrap;color:#6B7684}
-.ux-data-status{margin:-2px 20px 10px;padding:9px 12px;border-radius:10px;background:#F7F8FA;color:#6B7684;font-size:11px;line-height:1.4}
+.ux-data-status{margin:-2px 20px 10px;padding:9px 12px;border-radius:10px;background:#F7F8FA;color:#6B7684;font-size:11px;line-height:1.4}.chart-section>.ux-data-status:empty{display:none!important}
 .ticker-tag{background:#F2F7FF;border-color:#DCEBFF}
 
 /* nonblocking loaders */
