@@ -1,0 +1,107 @@
+name: Screener Production Freshness
+
+on:
+  schedule:
+    # 18:15 KST on weekdays, after the post-close screener retry window.
+    - cron: '15 9 * * 1-5'
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Update Korean Stock Screener
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: screener-production-freshness
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Verify workflow source succeeded
+        if: github.event_name == 'workflow_run'
+        env:
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          if [ "$UPSTREAM_CONCLUSION" != "success" ]; then
+            echo "Update Korean Stock Screener concluded: $UPSTREAM_CONCLUSION"
+            exit 1
+          fi
+
+      - name: Verify production screener freshness
+        env:
+          APP_URL: https://chart-view-bsg6.onrender.com
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+          from pathlib import Path
+
+          expected = json.loads(Path('static/data/screener_meta.json').read_text(encoding='utf-8'))
+          expected_date = str(expected.get('tradeDate') or '')
+          expected_updated = str(expected.get('updated') or '')
+          if not expected_date or not expected_updated:
+              raise SystemExit(f'invalid repository screener meta: {expected}')
+
+          app_url = os.environ['APP_URL'].rstrip('/')
+          hook = os.environ.get('RENDER_DEPLOY_HOOK_URL', '').strip()
+
+          def read_production():
+              url = f"{app_url}/static/data/screener_meta.json?freshness={time.time_ns()}"
+              req = urllib.request.Request(url, headers={
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'User-Agent': 'ChartView-Screener-Watchdog/1.0',
+              })
+              with urllib.request.urlopen(req, timeout=15) as response:
+                  return json.loads(response.read().decode('utf-8'))
+
+          def matches(payload):
+              return (
+                  str(payload.get('tradeDate') or '') == expected_date
+                  and str(payload.get('updated') or '') == expected_updated
+              )
+
+          deploy_requested = False
+          last = None
+          for attempt in range(30):
+              try:
+                  last = read_production()
+                  print(
+                      f"attempt={attempt + 1} repo={expected_date}/{expected_updated} "
+                      f"production={last.get('tradeDate')}/{last.get('updated')}"
+                  )
+                  if matches(last):
+                      print('Production screener matches repository metadata.')
+                      raise SystemExit(0)
+              except Exception as exc:
+                  print(f'production metadata check failed: {exc}')
+
+              if attempt == 2 and hook and not deploy_requested:
+                  try:
+                      req = urllib.request.Request(hook, method='POST')
+                      with urllib.request.urlopen(req, timeout=20) as response:
+                          print('Render redeploy requested:', response.status)
+                      deploy_requested = True
+                  except Exception as exc:
+                      print('Render redeploy hook failed:', exc)
+
+              time.sleep(10)
+
+          raise SystemExit(
+              'production screener freshness mismatch after retry window: '
+              f'repo={expected_date}/{expected_updated} production={last}'
+          )
+          PY
