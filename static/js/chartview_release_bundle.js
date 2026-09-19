@@ -253,7 +253,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   async function loadMeta() {
     try {
-      const response = await fetch(`/static/data/screener_meta.json?t=${Date.now()}`, { cache: 'no-store' });
+      const response = await fetch('/static/data/screener_meta.json', { cache: 'default' });
       if (!response.ok) throw new Error(`meta HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -277,8 +277,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const results = document.getElementById('screener-results');
       if (results) results.innerHTML = '<div class="screener-loading"><div class="spinner"></div><span>스크리너 데이터를 불러오는 중...</span></div>';
 
-      const version = meta?.updated || expectedTradeDate || Date.now();
-      const response = await fetch(`/static/data/screener.json?v=${encodeURIComponent(version)}&t=${Date.now()}`, { cache: 'no-store' });
+      const version = meta?.updated || expectedTradeDate || 'current';
+      const response = await fetch(`/static/data/screener.json?v=${encodeURIComponent(version)}`, { cache: 'default' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (expectedTradeDate && String(data.tradeDate || '') !== expectedTradeDate) {
@@ -2235,14 +2235,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   function scheduleChartResize(tabId) {
     if (tabId !== 'chart') return;
-    const refresh = () => {
-      window.dispatchEvent(new Event('resize'));
-      if (typeof window.__ensureChartVisible === 'function') window.__ensureChartVisible();
-    };
+    const resize = () => window.dispatchEvent(new Event('resize'));
     requestAnimationFrame(() => {
-      requestAnimationFrame(refresh);
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
-    setTimeout(refresh, 80);
+    setTimeout(resize, 80);
   }
 
   function openTab(tabId, options = {}) {
@@ -3287,11 +3284,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const seq = ++enhanceSeq;
     section.dataset.priorityLoading = '1';
     try {
-      const [consensus, screener, valuation] = await Promise.all([
-        fetch('/static/data/consensus_cache.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { quotes: {} }),
-        fetch('/static/data/screener.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { stocks: [] }),
-        fetch('/static/data/valuation_cache.json', { cache: 'force-cache' }).then((r) => r.ok ? r.json() : { quotes: {} }),
-      ]);
+      const insightResponse = await fetch('/api/home-insights', { cache: 'default' });
+      if (!insightResponse.ok) throw new Error(`home insights HTTP ${insightResponse.status}`);
+      const insights = await insightResponse.json();
+      const consensus = insights?.consensus || { quotes: {} };
+      const screener = insights?.screener || { stocks: [] };
+      const valuation = insights?.valuation || { quotes: {} };
       const candidates = await rankRows(buildRows(consensus, screener, valuation));
       if (seq !== enhanceSeq || !document.body.contains(section)) return;
       renderCandidates(section, candidates);
@@ -4723,6 +4721,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else boot(0);
 })();
 ;
+
 /* --- static/js/news_status_v40_1.js --- */
 (() => {
   'use strict';
@@ -5766,8 +5765,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   const summaryCache = new Map();
   const summaryQueue = [];
   const SUMMARY_CONCURRENCY = 3;
-  const SUMMARY_STORAGE_PREFIX = 'chartview-news-summary-v1:';
-  const SUMMARY_STORAGE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   let activeSummaryJobs = 0;
 
   function cleanTitle(title) {
@@ -5776,18 +5773,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   function summaryKey(url, title, snippet) {
     return `${url}|${title}|${String(snippet || '').slice(0, 240)}`;
-  }
-
-  function readStoredSummary(key) {
-    try {
-      const row = JSON.parse(localStorage.getItem(SUMMARY_STORAGE_PREFIX + key) || 'null');
-      if (!row?.payload || !row.savedAt || Date.now() - row.savedAt > SUMMARY_STORAGE_MAX_AGE) return null;
-      return row.payload;
-    } catch (_) { return null; }
-  }
-
-  function writeStoredSummary(key, payload) {
-    try { localStorage.setItem(SUMMARY_STORAGE_PREFIX + key, JSON.stringify({ savedAt: Date.now(), payload })); } catch (_) {}
   }
 
   function pumpSummaryQueue() {
@@ -5809,7 +5794,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       fetchSummary()
         .then((payload) => {
           summaryCache.set(job.key, payload);
-          writeStoredSummary(job.key, payload);
           job.resolve(payload);
         })
         .catch(job.reject)
@@ -5823,8 +5807,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   function loadContentSummary(url, title, snippet = '') {
     const key = summaryKey(url, title, snippet);
     if (summaryCache.has(key)) return Promise.resolve(summaryCache.get(key));
-    const stored = readStoredSummary(key);
-    if (stored) { summaryCache.set(key, stored); return Promise.resolve(stored); }
     return new Promise((resolve, reject) => {
       summaryQueue.push({ key, url, title, snippet, resolve, reject });
       pumpSummaryQueue();
@@ -5934,9 +5916,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       })
       .catch(() => {
         if (!box.isConnected) return;
-        box.classList.remove('is-loading', 'is-error');
-        label.textContent = '기사 핵심';
-        text.textContent = snippet || originalTitle || '원문에서 자세한 내용을 확인해 주세요.';
+        box.classList.remove('is-loading');
+        box.classList.add('is-error');
+        label.textContent = '요약 실패';
+        text.textContent = '기사 본문 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
       });
   }
 
