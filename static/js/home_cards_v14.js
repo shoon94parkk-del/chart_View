@@ -311,7 +311,11 @@
     const timer = setInterval(() => {
       attempts += 1;
       installNavIcons();
-      if (qs('#home-v8-body') && !qs('#home-v8-body .home14-stack')) renderHome14();
+      if (qs('#home-v8-body') && !qs('#home-v8-body .home14-stack')) {
+        const run = () => renderHome14();
+        if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 3500 });
+        else setTimeout(run, 2200);
+      }
       if (attempts >= 30) clearInterval(timer);
     }, 300);
 
@@ -321,7 +325,7 @@
 
     const observer = new MutationObserver((mutations) => {
       const changed = mutations.some((m) => Array.from(m.addedNodes || []).some((node) => node.nodeType === 1 && !node.closest?.('.home14-stack')));
-      if (changed && qs('#home-v8-body')) setTimeout(renderHome14, 80);
+      if (changed && qs('#home-v8-body') && qs('#home-v8-body .home14-stack')) setTimeout(renderHome14, 80);
       installNavIcons();
     });
     observer.observe(document.body, { childList: true, subtree: true });
