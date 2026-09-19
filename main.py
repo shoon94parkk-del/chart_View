@@ -314,6 +314,31 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
   "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "source": "Yahoo Finance Chart"}
 
 
+@app.get("/api/home-bootstrap")
+async def home_bootstrap():
+    """Return the small set of precomputed files needed by the home PICK widget in one request."""
+    import json
+    from pathlib import Path
+
+    data_dir = Path(__file__).resolve().parent / "static" / "data"
+    try:
+        rankings = json.loads((data_dir / "ai_daily_rankings.json").read_text(encoding="utf-8"))
+        recommendations = json.loads((data_dir / "ai_recommendations.json").read_text(encoding="utf-8"))
+        days = rankings.get("days") or []
+        day = max(days, key=lambda item: str(item.get("tradeDate") or ""), default=None)
+        payload = {
+            "day": day,
+            "recommendations": recommendations.get("recommendations") or [],
+            "version": recommendations.get("updated") or rankings.get("updated") or "",
+        }
+        return JSONResponse(
+            content=payload,
+            headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=3600"},
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"home bootstrap unavailable: {exc}")
+
+
 @app.get("/api/popular")
 async def popular():
     """인기 종목"""
