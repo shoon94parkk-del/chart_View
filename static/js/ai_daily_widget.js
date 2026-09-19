@@ -5,6 +5,14 @@
   const tone = (n) => Number(n) > 0 ? 'up' : Number(n) < 0 ? 'down' : 'flat';
   let cachedHomeData = null;
   let fetching = null;
+  const HOME_PICK_CACHE_KEY = 'chartview-home-pick-v1';
+
+  function readPickCache(){
+    try{return JSON.parse(localStorage.getItem(HOME_PICK_CACHE_KEY)||'null');}catch(_){return null;}
+  }
+  function writePickCache(data){
+    try{localStorage.setItem(HOME_PICK_CACHE_KEY,JSON.stringify(data));}catch(_){}
+  }
 
   function installAiLedgerAssets() {
     if (!document.getElementById('ai-pick-ledger-v52-style')) {
@@ -62,6 +70,7 @@
       if(!response.ok)throw new Error(`HTTP ${response.status}: home bootstrap`);
       const data=await response.json();
       cachedHomeData={day:data?.day||null,recommendations:Array.isArray(data?.recommendations)?data.recommendations:[]};
+      writePickCache(cachedHomeData);
       return cachedHomeData;
     })().finally(()=>fetching=null);
     return fetching;
@@ -71,6 +80,8 @@
     const s=placeSection();
     if(!s){if(attempt<80)setTimeout(()=>mount(attempt+1),100);return;}
     addStyle();
+    const saved=readPickCache();
+    if(saved&&!cachedHomeData)s.innerHTML=summaryMarkup(saved);
     try{const data=await loadHomeData();s.innerHTML=summaryMarkup(data);}
     catch(e){s.innerHTML='<span style="color:#8b95a1;font-size:13px">PICK 데이터를 불러오지 못했습니다.</span>';console.error('[ChartView PICK home]',e);}
   }
