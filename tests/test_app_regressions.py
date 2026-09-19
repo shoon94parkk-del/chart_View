@@ -196,6 +196,6 @@ def test_versioned_assets_are_immutable_and_fonts_stay_local():
     unversioned = client.get('/static/chartview-mark.svg')
     assert unversioned.headers['cache-control'].startswith('public, max-age=3600')
     widget = Path('static/js/ai_daily_widget.js').read_text(encoding='utf-8')
-    assert "ai_daily_rankings.json?v=" in widget
+    assert "/api/home-bootstrap" in widget
     assert "cache: 'default'" in widget
     assert 'Date.now()' not in widget
