@@ -103,10 +103,15 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
             tab:inspect('#chart-tab'), filter:inspect('#global-filter'), section:inspect('#chart-tab .chart-section'),
             header:inspect('#chart-tab .chart-header'), periods:inspect('#chart-tab .v40-chart-periods'),
             quick:inspect('#chart-tab .quick-periods'), date:inspect('#custom-date-toggle'), chart:inspect('#chart-container')
-          }
+          },
+          chartChildren:[...document.querySelector('#chart-tab .chart-section').children].map((el) => {
+            const r=el.getBoundingClientRect(), cs=getComputedStyle(el);
+            return {tag:el.tagName,id:el.id,cls:el.className,hidden:el.hidden,display:cs.display,position:cs.position,top:Math.round(r.top),bottom:Math.round(r.bottom),height:Math.round(r.height),marginTop:cs.marginTop,marginBottom:cs.marginBottom};
+          })
         };
       });
       console.log('COMPARE_GEOMETRY', width, JSON.stringify(metrics.geometry));
+      console.log('CHART_CHILDREN', width, JSON.stringify(metrics.chartChildren));
       assert(metrics.scrollWidth <= width, `${width}: analysis overflow`);
       assert.equal(metrics.navCount,5); assert.equal(metrics.navRows,1);
       assert.equal(metrics.legacyBriefVisible,false);
