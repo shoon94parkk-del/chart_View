@@ -249,7 +249,7 @@
 
   async function loadMeta() {
     try {
-      const response = await fetch(`/static/data/screener_meta.json?t=${Date.now()}`, { cache: 'no-store' });
+      const response = await fetch('/static/data/screener_meta.json', { cache: 'default' });
       if (!response.ok) throw new Error(`meta HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -273,8 +273,8 @@
       const results = document.getElementById('screener-results');
       if (results) results.innerHTML = '<div class="screener-loading"><div class="spinner"></div><span>스크리너 데이터를 불러오는 중...</span></div>';
 
-      const version = meta?.updated || expectedTradeDate || Date.now();
-      const response = await fetch(`/static/data/screener.json?v=${encodeURIComponent(version)}&t=${Date.now()}`, { cache: 'no-store' });
+      const version = meta?.updated || expectedTradeDate || 'current';
+      const response = await fetch(`/static/data/screener.json?v=${encodeURIComponent(version)}`, { cache: 'default' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (expectedTradeDate && String(data.tradeDate || '') !== expectedTradeDate) {
