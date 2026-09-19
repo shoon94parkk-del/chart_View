@@ -119,16 +119,18 @@ function initChart() {
 
 function ensureChartVisible() {
     const container = document.getElementById('chart-container');
-    if (!chart || !container) return;
+    if (!chart || !container) return false;
     const width = container.clientWidth;
-    if (width <= 0) return;
+    if (width <= 0) return false;
     chart.resize(width, 260);
     if (Object.keys(series).length) {
         chart.timeScale().fitContent();
-        return;
+        return true;
     }
     loadData();
+    return true;
 }
+window.__ensureChartVisible = ensureChartVisible;
 
 // 날짜 기본값
 function setDefaultDates() {
