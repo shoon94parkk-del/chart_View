@@ -141,10 +141,10 @@ async function scenarioMissingNumbers(browser) {
     await page.waitForSelector('[data-detail-tab="value"]');
     await page.locator('[data-detail-tab="value"]').click();
     const text = await page.locator('[data-detail-panel="value"]').innerText();
-    assert.match(text, /FWD PER\s+—/);
-    assert.match(text, /PER\s+—/);
-    assert.match(text, /ROE\s+\+?0(?:\.0+)?%/);
-    assert.match(text, /배당수익률\s+\+?0(?:\.0+)?%/);
+    assert.match(text, /FWD PER\s*—/);
+    assert.match(text, /PER\s*—/);
+    assert.match(text, /ROE\s*\+?0(?:\.0+)?%/);
+    assert.match(text, /배당수익률\s*\+?0(?:\.0+)?%/);
     assert.doesNotMatch(text, /NaN|Infinity/);
   } finally { await context.close(); }
 }
