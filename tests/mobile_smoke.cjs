@@ -1,4 +1,5 @@
 // Browser regressions run in CI in an isolated context; no saved user state is used.
+// Final PICK days may intentionally contain between one and three selected names.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
