@@ -96,6 +96,8 @@ async function mockData(page) {
   assert.equal(await page.locator('#home-market-v9-grid').evaluate(el => getComputedStyle(el).display), 'grid', 'mobile market expansion should use a visible grid');
   assert.match(await marketToggle.textContent(), /접기/);
 
+  // Home news is intentionally lazy-loaded for first-paint performance.
+  await page.evaluate(() => window.__reloadPersonalizedNewsV40?.(true));
   await page.waitForSelector('#home-personal-news-v37 .news-v40-card .news-v412-summary', { state: 'visible' });
   await page.waitForSelector('#home-personal-news-v37 .news-v412-market-ready', { state: 'visible' });
   await page.waitForFunction(() => {
