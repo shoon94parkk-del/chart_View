@@ -4432,6 +4432,20 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let newsController = null;
   const marketCache = new Map();
   const marketInflight = new Map();
+  const NEWS_CACHE_PREFIX = 'chartview-news-v40:';
+  const NEWS_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+
+  function newsCacheKey(rows) { return NEWS_CACHE_PREFIX + rows.map((r) => r.symbol).join(','); }
+  function readNewsCache(rows) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(newsCacheKey(rows)) || 'null');
+      if (!saved?.payload || !saved.savedAt || Date.now() - saved.savedAt > NEWS_CACHE_MAX_AGE) return null;
+      return saved.payload;
+    } catch (_) { return null; }
+  }
+  function writeNewsCache(rows, payload) {
+    try { localStorage.setItem(newsCacheKey(rows), JSON.stringify({ savedAt: Date.now(), payload })); } catch (_) {}
+  }
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -4670,7 +4684,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       renderArticles(section, { items: [], groups: [], errors: [] }, rows, seq);
       return;
     }
-    renderStatus(section, force ? '최신 뉴스를 다시 조회하고 있습니다.' : '관심종목 뉴스를 조회하고 있습니다.', `${rows.length}개 종목 전체를 조회 대상으로 사용합니다.`);
+    const cached = !force ? readNewsCache(rows) : null;
+    if (cached) {
+      const cachedItems = renderArticles(section, cached, rows, seq);
+      hydrateMarket(section, cachedItems, seq).catch(() => {});
+      renderStatus(section, `${rows.length}개 관심종목 · 저장된 뉴스 먼저 표시`, '최신 뉴스는 백그라운드에서 확인하고 있습니다.');
+    } else {
+      renderStatus(section, force ? '최신 뉴스를 다시 조회하고 있습니다.' : '관심종목 뉴스를 조회하고 있습니다.', `${rows.length}개 종목 전체를 조회 대상으로 사용합니다.`);
+    }
     try {
       const params = new URLSearchParams({ tickers: rows.map((r) => r.symbol).join(','), names: rows.map((r) => r.name || r.symbol).join('|') });
       if (force) params.set('_', Date.now().toString());
@@ -4678,6 +4699,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = await response.json();
       if (seq !== loadSeq) return;
+      writeNewsCache(rows, payload);
       const items = renderArticles(section, payload, rows, seq);
       hydrateMarket(section, items, seq).catch(() => {});
     } catch (error) {
