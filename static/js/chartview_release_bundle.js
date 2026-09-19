@@ -3144,27 +3144,36 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     });
   }
 
-  async function getBandPercentile(symbol) {
-    if (bandCache.has(symbol)) return bandCache.get(symbol);
-    const promise = (async () => {
+  async function getBandPercentiles(symbols) {
+    const unique = [...new Set(symbols)].filter(Boolean);
+    const missing = unique.filter((symbol) => !bandCache.has(symbol));
+    if (missing.length) {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 2200);
+      const timer = setTimeout(() => controller.abort(), 3500);
       try {
-        const response = await fetch(`/api/valuation-band?ticker=${encodeURIComponent(symbol)}&years=3`, {
-          cache: 'no-store', signal: controller.signal,
+        const response = await fetch(`/api/valuation-bands?tickers=${encodeURIComponent(missing.join(','))}&years=3`, {
+          cache: 'default', signal: controller.signal,
         });
-        if (!response.ok) return null;
-        const payload = await response.json();
-        const value = num(payload?.per?.stats?.percentile);
-        return value === null ? null : clamp(value);
+        if (response.ok) {
+          const payload = await response.json();
+          const bands = payload?.bands || {};
+          missing.forEach((symbol) => {
+            const value = num(bands?.[symbol]?.per?.stats?.percentile);
+            bandCache.set(symbol, value === null ? null : clamp(value));
+          });
+        }
       } catch (_) {
-        return null;
+        missing.forEach((symbol) => {
+          if (!bandCache.has(symbol)) bandCache.set(symbol, null);
+        });
       } finally {
         clearTimeout(timer);
       }
-    })();
-    bandCache.set(symbol, promise);
-    return promise;
+    }
+    unique.forEach((symbol) => {
+      if (!bandCache.has(symbol)) bandCache.set(symbol, null);
+    });
+    return bandCache;
   }
 
   async function rankRows(rows) {
@@ -3174,10 +3183,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       .sort((a, b) => b.scores.total - a.scores.total)
       .slice(0, 8);
 
-    await Promise.all(eligible.map(async (row) => {
-      row.perPercentile = await getBandPercentile(row.symbol);
+    const percentiles = await getBandPercentiles(eligible.map((row) => row.symbol));
+    eligible.forEach((row) => {
+      row.perPercentile = percentiles.get(row.symbol) ?? null;
       row.scores = computeScore(row);
-    }));
+    });
 
     return eligible.sort((a, b) => b.scores.total - a.scores.total).slice(0, 3);
   }
