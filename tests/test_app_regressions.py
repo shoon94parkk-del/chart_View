@@ -197,5 +197,5 @@ def test_versioned_assets_are_immutable_and_fonts_stay_local():
     assert unversioned.headers['cache-control'].startswith('public, max-age=3600')
     widget = Path('static/js/ai_daily_widget.js').read_text(encoding='utf-8')
     assert "/api/home-bootstrap" in widget
-    assert "cache: 'default'" in widget
+    assert "cache:'default'" in widget.replace(" ", "")
     assert 'Date.now()' not in widget
