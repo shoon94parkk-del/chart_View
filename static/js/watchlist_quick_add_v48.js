@@ -100,13 +100,15 @@
         });
         card.appendChild(button);
       }
-      button.setAttribute('data-watch-quick-name', name);
+      if (button.getAttribute('data-watch-quick-name') !== name) button.setAttribute('data-watch-quick-name', name);
       const active = selected.has(symbol);
       button.classList.toggle('active', active);
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
-      button.setAttribute('aria-label', active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`);
-      button.textContent = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      const aria = active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`;
+      const label = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
+      if (button.textContent !== label) button.textContent = label;
     });
     return true;
   }
@@ -173,7 +175,15 @@
       return;
     }
     if (observer) observer.disconnect();
-    observer = new MutationObserver(() => schedule());
+    observer = new MutationObserver((mutations) => {
+      const meaningful = mutations.some((mutation) => {
+        if (mutation.target?.closest?.('[data-watch-quick-add]')) return false;
+        return [...mutation.addedNodes, ...mutation.removedNodes].some((node) =>
+          node.nodeType === 1 && (!node.matches?.('[data-watch-quick-add]') || node.querySelector?.('[data-watch-card]'))
+        );
+      });
+      if (meaningful) schedule();
+    });
     observer.observe(grid, { childList: true, subtree: true });
     schedule();
   }

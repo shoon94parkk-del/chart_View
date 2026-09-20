@@ -225,33 +225,58 @@ function clearChartData() {
     updateLegend([]);
 }
 
-function chartTradeDate(data) {
-    const dates = (Array.isArray(data?.stocks) ? data.stocks : [])
-        .map((stock) => Array.isArray(stock?.data) && stock.data.length ? stock.data[stock.data.length - 1]?.time : null)
-        .filter(Boolean)
-        .map(String)
-        .sort();
-    return dates.length ? dates[dates.length - 1] : '';
+function normalizeChartDate(value) {
+    if (value === null || value === undefined || value === '') return null;
+    let date;
+    if (typeof value === 'number' || /^\\d{10,13}$/.test(String(value))) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return null;
+        date = new Date(numeric < 1e12 ? numeric * 1000 : numeric);
+    } else {
+        const raw = String(value).trim();
+        date = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
+    }
+    if (Number.isNaN(date.getTime())) return null;
+    return date;
+}
+
+function chartTradeDates(data) {
+    return (Array.isArray(data?.stocks) ? data.stocks : []).map((stock) => {
+        const raw = Array.isArray(stock?.data) && stock.data.length ? stock.data[stock.data.length - 1]?.time : null;
+        const date = normalizeChartDate(raw);
+        return { ticker: stock?.ticker || '', raw, date, day: date ? date.toISOString().slice(0, 10) : '' };
+    }).filter((item) => item.day);
+}
+
+function formatKstTime(value) {
+    const date = normalizeChartDate(value);
+    if (!date) return '';
+    try {
+        return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+    } catch (_) { return ''; }
 }
 
 function updateChartFreshness(data, stale = false) {
     const unit = document.querySelector('#chart-tab .chart-unit');
     if (!unit) return;
-    const tradeDate = chartTradeDate(data);
-    const fetchedAt = data?.timestamp ? String(data.timestamp) : '';
-    const shortTrade = tradeDate ? String(tradeDate).slice(5).replace('-', '.') : '';
-    const shortFetch = fetchedAt.length >= 16 ? fetchedAt.slice(11, 16) : '';
+    const tradeDates = chartTradeDates(data);
+    const uniqueDays = [...new Set(tradeDates.map((item) => item.day))];
+    const latestDay = uniqueDays.slice().sort().at(-1) || '';
+    const shortTrade = latestDay ? latestDay.slice(5).replace('-', '.') : '';
+    const fetchedAt = data?.timestamp || '';
+    const shortFetch = formatKstTime(fetchedAt);
+    const mixedDates = uniqueDays.length > 1;
     const parts = [
         stale ? '이전 캐시' : '',
-        shortTrade ? `${shortTrade} 거래` : '',
-        shortFetch ? `${shortFetch} 조회` : '',
+        mixedDates ? '종목별 기준일 상이' : (shortTrade ? `${shortTrade} 거래` : '기준일 미확인'),
+        shortFetch ? `${shortFetch} KST 조회` : '',
     ].filter(Boolean);
-    unit.textContent = parts.length ? parts.join(' · ') : '기간 시작=0%';
+    unit.textContent = parts.join(' · ');
     unit.dataset.stale = stale ? 'true' : 'false';
     unit.title = [
         '수익률은 기간 시작=0% 기준',
-        tradeDate ? `실제 거래일 ${tradeDate}` : '',
-        fetchedAt ? `서버 조회 ${fetchedAt}` : '',
+        mixedDates ? tradeDates.map((item) => `${item.ticker || '종목'} ${item.day}`).join(', ') : (latestDay ? `실제 거래일 ${latestDay}` : '실제 거래일 미확인'),
+        fetchedAt ? `서버 조회 ${String(fetchedAt)} · 화면 표시는 KST` : '서버 조회 시각 미확인',
     ].filter(Boolean).join(' · ');
 }
 

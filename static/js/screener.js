@@ -16,6 +16,7 @@
   const SCORE_MAX = 30;
   const CANDIDATE_SCORE_MIN = 22;
   const customFilters = { rsiMin: null, rsiMax: null, volumeMin: null, ret20Min: null, scoreMin: null, trend: 'any' };
+  const screenerState = { lastSuccessAt: 0, expectedTradeDate: '', displayedTradeDate: '', lastError: '', isStale: false, metaKnown: true };
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -107,6 +108,7 @@
               <label><span>추세 상태</span><select data-screen-custom="trend"><option value="any">전체</option><option value="above20">20일선 위</option><option value="cross20">20일선 돌파</option><option value="aligned">정배열</option></select></label>
               <button type="button" class="screener-custom-reset" data-screen-custom-reset>직접 조건 지우기</button>
             </div>
+            <div class="screener-custom-error" data-screen-custom-error role="alert" hidden></div>
           </details>
         </div>
 
@@ -115,6 +117,25 @@
         <button type="button" class="screener-to-top" data-screener-top aria-label="스크리너 맨 위로">↑ 맨 위로</button>
         <div class="screener-note">가격은 실시간 현재가가 아니라 스크리너 기준 거래일의 종가입니다. 기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
+  }
+
+  function validateCustomFilters(next = customFilters) {
+    const errors = [];
+    const finite = (value) => value == null || Number.isFinite(Number(value));
+    if (!finite(next.rsiMin) || (next.rsiMin != null && (next.rsiMin < 0 || next.rsiMin > 100))) errors.push('RSI 최소는 0~100 사이 숫자여야 합니다.');
+    if (!finite(next.rsiMax) || (next.rsiMax != null && (next.rsiMax < 0 || next.rsiMax > 100))) errors.push('RSI 최대는 0~100 사이 숫자여야 합니다.');
+    if (next.rsiMin != null && next.rsiMax != null && next.rsiMin > next.rsiMax) errors.push('RSI 최소는 최대보다 클 수 없습니다.');
+    if (!finite(next.volumeMin) || (next.volumeMin != null && next.volumeMin < 0)) errors.push('거래량 배수는 0 이상이어야 합니다.');
+    if (!finite(next.ret20Min)) errors.push('20일 수익률은 유효한 숫자여야 합니다.');
+    if (!finite(next.scoreMin) || (next.scoreMin != null && (next.scoreMin < 0 || next.scoreMin > SCORE_MAX))) errors.push(`기술점수는 0~${SCORE_MAX} 사이여야 합니다.`);
+    return errors;
+  }
+
+  function showCustomFilterErrors(errors = []) {
+    const node = document.querySelector('[data-screen-custom-error]');
+    if (!node) return;
+    node.hidden = errors.length === 0;
+    node.textContent = errors.join(' ');
   }
 
   function matchesBase(row) {
@@ -223,7 +244,10 @@
 
     const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
     const sortLabel = ({ score: '기술점수 높은순', volumeRatio: '거래량 급증순', rsi: 'RSI 낮은순', ret20: '20일 수익률순', avgValue20: '평균 거래대금순' })[sortKey] || '기술점수 높은순';
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 종가 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > shown ? ` (상위 ${shown})` : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
+    const freshness = screenerState.isStale
+      ? `갱신 실패 · ${payload.tradeDate || '-'} 데이터 유지`
+      : (!screenerState.metaKnown ? '최신 여부 미확인' : '');
+    summary.textContent = [`${total.toLocaleString('ko-KR')}개 조건 일치`, `${payload.tradeDate || '-'} 종가 기준`, sortLabel, `${shown.toLocaleString('ko-KR')}개 표시${total > shown ? ` (상위 ${shown})` : ''}`, quickLabel, freshness].filter(Boolean).join(' · ');
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -295,6 +319,8 @@
     loadingPromise = (async () => {
       const meta = await loadMeta();
       const expectedTradeDate = String(meta?.tradeDate || '');
+      screenerState.metaKnown = Boolean(meta);
+      screenerState.expectedTradeDate = expectedTradeDate;
 
       if (payload && (!expectedTradeDate || String(payload.tradeDate || '') === expectedTradeDate)) {
         render();
@@ -312,14 +338,22 @@
         throw new Error(`stale screener payload: expected ${expectedTradeDate}, got ${data.tradeDate || '-'}`);
       }
       payload = data;
+      screenerState.lastSuccessAt = Date.now();
+      screenerState.displayedTradeDate = String(data.tradeDate || '');
+      screenerState.lastError = '';
+      screenerState.isStale = false;
       render();
       return data;
     })()
       .catch((error) => {
         console.error('Screener load failed:', error);
+        screenerState.lastError = error?.message || '갱신 실패';
+        screenerState.isStale = Boolean(payload);
+        screenerState.displayedTradeDate = String(payload?.tradeDate || '');
         const results = document.getElementById('screener-results');
         if (payload) render();
-        else if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+        else if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. <button type="button" data-screener-retry>다시 시도</button></div>';
+        results?.querySelector('[data-screener-retry]')?.addEventListener('click', () => loadData().catch(() => {}), { once: true });
         throw error;
       })
       .finally(() => { loadingPromise = null; });
@@ -385,18 +419,24 @@
     });
 
     const readCustomFilters = () => {
+      const next = { ...customFilters };
       document.querySelectorAll('[data-screen-custom]').forEach((control) => {
         const key = control.dataset.screenCustom;
-        customFilters[key] = key === 'trend' ? control.value : (control.value === '' ? null : Number(control.value));
+        next[key] = key === 'trend' ? control.value : (control.value === '' ? null : Number(control.value));
       });
+      const errors = validateCustomFilters(next);
+      showCustomFilterErrors(errors);
+      if (errors.length) return false;
+      Object.assign(customFilters, next);
       const count = Object.entries(customFilters).filter(([key, value]) => key === 'trend' ? value !== 'any' : value != null).length;
       const countNode = document.querySelector('[data-screen-custom-count]');
       if (countNode) countNode.textContent = String(count);
       document.dispatchEvent(new CustomEvent('screener:customfilter', { detail: { count } }));
+      return true;
     };
     document.querySelectorAll('[data-screen-custom]').forEach((control) => {
       control.addEventListener(control.tagName === 'SELECT' ? 'change' : 'input', () => {
-        readCustomFilters();
+        if (!readCustomFilters()) return;
         preset = 'all';
         document.querySelectorAll('[data-screen-preset]').forEach((item) => item.classList.toggle('active', item.dataset.screenPreset === 'all'));
         render();
