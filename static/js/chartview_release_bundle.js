@@ -5249,8 +5249,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       }
       const quote = quotes[symbol] || {};
       const tradeDate = shortDate(quote.tradeDate);
-      const refreshed = quote.updatedAt ? new Date(Number(quote.updatedAt)).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
-      const text = tradeDate ? `${tradeDate} 거래 · 1달` : (refreshed ? `${refreshed} 저장 시세 · 1달` : '기준일 확인 중 · 1달');
+      const refreshed = quote.updatedAt ? new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(Number(quote.updatedAt))) : '';
+      const text = [tradeDate ? `${tradeDate} 거래` : '기준일 확인 중', refreshed ? `${refreshed} KST 조회` : '', '1달'].filter(Boolean).join(' · ');
       if (basis.textContent !== text) basis.textContent = text;
     });
   }
@@ -6822,11 +6822,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function homeCheckedAt(raw) {
-    const match = String(raw || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-    if (match) return `${match[2]}.${match[3]} ${match[4]}:${match[5]}`;
     try {
-      return new Intl.DateTimeFormat('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-        .format(new Date()).replace(/\. /g, '.').replace(/\.$/, '');
+      const date = raw ? new Date(raw) : new Date();
+      if (Number.isNaN(date.getTime())) return '최신';
+      const label = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+        .format(date).replace(/\. /g, '.').replace(/\.$/, '');
+      return `${label} KST`;
     } catch (_) { return '최신'; }
   }
 
@@ -6848,9 +6849,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       <section class="home-v8-block home16-major-card">
         <div class="home-block-head home16-head">
           <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
-          <small>${esc(homeCheckedAt(generatedAt))} 조회</small>
+          <div class="home16-head-actions"><small>${esc(homeCheckedAt(generatedAt))} 조회</small><span class="home16-strip-nav" aria-label="주요 종목 목록 이동"><button type="button" data-home-strip-prev aria-label="이전 주요 종목">‹</button><button type="button" data-home-strip-next aria-label="다음 주요 종목">›</button></span></div>
         </div>
-        <div class="home16-stock-strip">${rows.map((row) => `
+        <div class="home16-stock-strip" data-home-stock-strip tabindex="0" aria-label="주요 종목 가로 목록. 좌우 방향키로 이동할 수 있습니다.">${rows.map((row) => `
           <button type="button" class="home16-stock" data-home-symbol="${esc(row.symbol)}" data-home-name="${esc(row.name)}">
             <span class="home16-ring">${homeLogo(row)}</span>
             <strong>${esc(row.name)}</strong>
@@ -7101,6 +7102,31 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function bindHomeActions(root) {
+    const strip = root.querySelector('[data-home-stock-strip]');
+    const prev = root.querySelector('[data-home-strip-prev]');
+    const next = root.querySelector('[data-home-strip-next]');
+    const syncStripNav = () => {
+      if (!strip) return;
+      const max = Math.max(0, strip.scrollWidth - strip.clientWidth);
+      if (prev) prev.disabled = strip.scrollLeft <= 2;
+      if (next) next.disabled = strip.scrollLeft >= max - 2;
+    };
+    const moveStrip = (direction) => {
+      if (!strip) return;
+      const card = strip.querySelector('.home16-stock');
+      const step = Math.max(card?.getBoundingClientRect().width || 88, 88) + 12;
+      strip.scrollBy({ left: direction * step * 2, behavior: 'smooth' });
+      setTimeout(syncStripNav, 280);
+    };
+    prev?.addEventListener('click', () => moveStrip(-1));
+    next?.addEventListener('click', () => moveStrip(1));
+    strip?.addEventListener('scroll', syncStripNav, { passive: true });
+    strip?.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      moveStrip(event.key === 'ArrowRight' ? 1 : -1);
+    });
+    syncStripNav();
     root.querySelectorAll('[data-home-symbol]').forEach((button) => button.addEventListener('click', () => openAnalysis(button.dataset.homeSymbol, button.dataset.homeName)));
     root.querySelector('[data-home-discover]')?.addEventListener('click', () => {
       if (typeof window.__openAppTab === 'function') window.__openAppTab('revision');

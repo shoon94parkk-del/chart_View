@@ -83,8 +83,8 @@
       }
       const quote = quotes[symbol] || {};
       const tradeDate = shortDate(quote.tradeDate);
-      const refreshed = quote.updatedAt ? new Date(Number(quote.updatedAt)).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
-      const text = tradeDate ? `${tradeDate} 거래 · 1달` : (refreshed ? `${refreshed} 저장 시세 · 1달` : '기준일 확인 중 · 1달');
+      const refreshed = quote.updatedAt ? new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(Number(quote.updatedAt))) : '';
+      const text = [tradeDate ? `${tradeDate} 거래` : '기준일 확인 중', refreshed ? `${refreshed} KST 조회` : '', '1달'].filter(Boolean).join(' · ');
       if (basis.textContent !== text) basis.textContent = text;
     });
   }
