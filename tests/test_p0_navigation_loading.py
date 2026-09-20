@@ -102,8 +102,10 @@ def test_screener_opens_top_first_and_has_one_tap_top_control():
     ledger = read("static/js/ai_pick_ledger_v52.js")
     assert "window.__openScreenerDiscoveryView?.()" in nav
     assert "window.__openScreenerDiscoveryView = () => openView('screener')" in ledger
-    assert "window.__resetScreenerScroll?.({ smooth: false })" in nav
+    assert "window.__openScreenerAtTop?.()" in nav
     assert "window.__resetScreenerScroll = resetScreenerScroll" in js
+    assert "window.__openScreenerAtTop = function" in js
+    assert "window.scrollTo({ top: 0" in js
     assert "data-screener-top" in js
     assert "기술점수 높은순" in js
     assert 'class="screen-rank"' in js
