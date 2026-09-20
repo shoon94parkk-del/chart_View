@@ -4726,8 +4726,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       return [];
     }
 
-    renderStatus(section, `${rows.length}개 관심종목 · TOP ${items.length}`, errors.length ? `${errors.length}개 종목은 부분 실패 · 정상 결과는 유지했습니다.` : '제목·출처·발행 시각을 먼저 표시했습니다.');
-    if (grid) grid.innerHTML = items.map((item, index) => {
+    const directCount = items.filter((item) => item?.relationType === 'direct').length;
+    renderStatus(section, `${rows.length}개 관심종목 · 직접 관련 ${directCount}건 우선`, errors.length ? `${errors.length}개 종목은 부분 실패 · 정상 결과는 유지했습니다.` : '직접 관련 기사를 먼저, 업종·간접 관련 기사는 아래에 분리했습니다.');
+
+    const cardHtml = (item, index) => {
       const meta = impactMeta(impactScore(item));
       const relation = relationMeta(item);
       return `<article class="news-v40-card ${index === 0 ? 'is-lead' : ''}" data-impact="${meta.level}" data-news-symbol="${esc(item.symbol)}" data-news-summary-seed="${esc(item.summarySeed || '')}">
@@ -4738,7 +4740,15 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         <div class="news-v40-actions"><button type="button" data-news-v40-detail="${esc(item.symbol)}" data-news-v40-name="${esc(item.name || item.symbol)}">상세 보기</button><a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">원문 보기 →</a></div>
         <details class="news-v40-market"><summary>5거래일 가격 흐름</summary><div data-news-v40-market="${esc(item.symbol)}"><span>가격 흐름 불러오는 중…</span></div></details>
       </article>`;
-    }).join('');
+    };
+    const direct = items.filter((item) => item?.relationType === 'direct');
+    const related = items.filter((item) => item?.relationType !== 'direct');
+    if (grid) grid.innerHTML = [
+      direct.length ? '<div class="news-v40-group-label is-direct">직접 관련 뉴스</div>' : '',
+      ...direct.map((item, index) => cardHtml(item, index)),
+      related.length ? '<div class="news-v40-group-label is-related">업종·간접 관련</div>' : '',
+      ...related.map((item, index) => cardHtml(item, direct.length + index)),
+    ].join('');
     document.dispatchEvent(new CustomEvent('chartview:v37-news-rendered'));
     return items;
   }
@@ -6381,7 +6391,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     section.dataset.compactVersion = 'v46';
     section.innerHTML = `
       <div class="home-block-head home-watchlist-v30-head">
-        <div><span>MY STOCKS · 1달 수익률</span><h3>내 관심종목</h3></div>
+        <div><span>MY STOCKS · 가격 / 1달 수익률</span><h3>내 관심종목</h3></div>
         <button type="button" data-home-watch-all>전체보기 →</button>
       </div>
       ${rows.length ? `<div class="home-watchlist-v30-chips">${rows.map((row) => {
@@ -6392,7 +6402,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         return `<button type="button" class="home-watch-compact-v46" data-home-watch-open="${esc(symbol)}" data-home-watch-name="${esc(name)}" aria-label="${esc(name)} 상세 보기">
           <span class="home-watch-v33-top"><strong>${esc(name)}</strong><i>${marketLabel(symbol)}</i></span>
           <small>${esc(symbol)}</small>
-          <span class="home-watch-v33-quote"><b data-home-watch-price>${formatPrice(symbol, quote.price)}</b><em class="${cls}" data-home-watch-return>${returnText(quote.return)}</em></span>
+          <span class="home-watch-v33-quote"><b data-home-watch-price>${formatPrice(symbol, quote.price)}</b><em class="${cls}" data-home-watch-return><span>1달</span> ${returnText(quote.return)}</em></span>
         </button>`;
       }).join('')}</div>` : '<div class="home-watchlist-v30-empty"><strong>관심종목을 추가해 보세요</strong><span>가격과 1달 수익률을 홈에서 바로 확인할 수 있습니다.</span></div>'}`;
 
