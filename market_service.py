@@ -204,7 +204,7 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
             value = None
         else:
             first = points[0][1]
-            line_data = [{"time": ts, "value": round((close - first) / first * 100, 2)} for ts, close in points]
+            line_data = [{"time": ts, "value": round((close - first) / first * 100, 2), "price": round(close, 4)} for ts, close in points]
             last_close = points[-1][1]
             price = _positive(meta.get("regularMarketPrice")) or last_close
             name = _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or symbol
