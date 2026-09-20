@@ -11,6 +11,8 @@ def test_initial_route_and_scroll_have_one_owner():
     nav = read("static/js/ux_v3.js")
     boot = read("static/js/home_watchlist_boot_v32c.js")
     assert "function resolveInitialRoute()" in nav
+    assert "function applyInitialRoute(route, attempt = 0)" in nav
+    assert "attempt < 160" in nav
     assert "history.scrollRestoration = 'manual'" in nav
     assert "function rememberCurrentScroll()" in nav
     assert "function restoreScroll(" in nav
