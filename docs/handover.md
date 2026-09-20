@@ -89,4 +89,4 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Production URL: https://chart-view-pkv8.onrender.com
 - Implemented: direct date-range validation and accessible labels, loading/empty state separation for detail charts, explicit 0% return baseline, clearer watchlist/comparison wording, and current-production CI verification.
 - Release rule: keep source assets and generated `chartview_release_bundle.js` synchronized; `python scripts/build_frontend_bundle.py --check` must stay green.
-- Regression focus: reversed/future dates must preserve the previous valid chart; detail must not show “차트 자료 없음” while compare data is loading; production checks must target the pkv8 Render service.
+- Regression focus: reversed/future dates must preserve the previous valid chart; detail must not show “차트 자료 없음” while compare data is loading; production checks must target the pkv8 Render service.\n- News summary quality gate: translated Korean summaries are no longer rejected just because the raw English headline has no token overlap; cache version is v50-quality-language.
