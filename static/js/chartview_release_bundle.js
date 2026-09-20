@@ -20,6 +20,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   const SCORE_MAX = 30;
   const CANDIDATE_SCORE_MIN = 22;
   const customFilters = { rsiMin: null, rsiMax: null, volumeMin: null, ret20Min: null, scoreMin: null, trend: 'any' };
+  const screenerState = { lastSuccessAt: 0, expectedTradeDate: '', displayedTradeDate: '', lastError: '', isStale: false, metaKnown: true };
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -111,6 +112,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
               <label><span>추세 상태</span><select data-screen-custom="trend"><option value="any">전체</option><option value="above20">20일선 위</option><option value="cross20">20일선 돌파</option><option value="aligned">정배열</option></select></label>
               <button type="button" class="screener-custom-reset" data-screen-custom-reset>직접 조건 지우기</button>
             </div>
+            <div class="screener-custom-error" data-screen-custom-error role="alert" hidden></div>
           </details>
         </div>
 
@@ -119,6 +121,25 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         <button type="button" class="screener-to-top" data-screener-top aria-label="스크리너 맨 위로">↑ 맨 위로</button>
         <div class="screener-note">가격은 실시간 현재가가 아니라 스크리너 기준 거래일의 종가입니다. 기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
+  }
+
+  function validateCustomFilters(next = customFilters) {
+    const errors = [];
+    const finite = (value) => value == null || Number.isFinite(Number(value));
+    if (!finite(next.rsiMin) || (next.rsiMin != null && (next.rsiMin < 0 || next.rsiMin > 100))) errors.push('RSI 최소는 0~100 사이 숫자여야 합니다.');
+    if (!finite(next.rsiMax) || (next.rsiMax != null && (next.rsiMax < 0 || next.rsiMax > 100))) errors.push('RSI 최대는 0~100 사이 숫자여야 합니다.');
+    if (next.rsiMin != null && next.rsiMax != null && next.rsiMin > next.rsiMax) errors.push('RSI 최소는 최대보다 클 수 없습니다.');
+    if (!finite(next.volumeMin) || (next.volumeMin != null && next.volumeMin < 0)) errors.push('거래량 배수는 0 이상이어야 합니다.');
+    if (!finite(next.ret20Min)) errors.push('20일 수익률은 유효한 숫자여야 합니다.');
+    if (!finite(next.scoreMin) || (next.scoreMin != null && (next.scoreMin < 0 || next.scoreMin > SCORE_MAX))) errors.push(`기술점수는 0~${SCORE_MAX} 사이여야 합니다.`);
+    return errors;
+  }
+
+  function showCustomFilterErrors(errors = []) {
+    const node = document.querySelector('[data-screen-custom-error]');
+    if (!node) return;
+    node.hidden = errors.length === 0;
+    node.textContent = errors.join(' ');
   }
 
   function matchesBase(row) {
@@ -227,7 +248,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
     const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
     const sortLabel = ({ score: '기술점수 높은순', volumeRatio: '거래량 급증순', rsi: 'RSI 낮은순', ret20: '20일 수익률순', avgValue20: '평균 거래대금순' })[sortKey] || '기술점수 높은순';
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 종가 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > shown ? ` (상위 ${shown})` : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
+    const freshness = screenerState.isStale
+      ? `갱신 실패 · ${payload.tradeDate || '-'} 데이터 유지`
+      : (!screenerState.metaKnown ? '최신 여부 미확인' : '');
+    summary.textContent = [`${total.toLocaleString('ko-KR')}개 조건 일치`, `${payload.tradeDate || '-'} 종가 기준`, sortLabel, `${shown.toLocaleString('ko-KR')}개 표시${total > shown ? ` (상위 ${shown})` : ''}`, quickLabel, freshness].filter(Boolean).join(' · ');
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -299,6 +323,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     loadingPromise = (async () => {
       const meta = await loadMeta();
       const expectedTradeDate = String(meta?.tradeDate || '');
+      screenerState.metaKnown = Boolean(meta);
+      screenerState.expectedTradeDate = expectedTradeDate;
 
       if (payload && (!expectedTradeDate || String(payload.tradeDate || '') === expectedTradeDate)) {
         render();
@@ -316,14 +342,22 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         throw new Error(`stale screener payload: expected ${expectedTradeDate}, got ${data.tradeDate || '-'}`);
       }
       payload = data;
+      screenerState.lastSuccessAt = Date.now();
+      screenerState.displayedTradeDate = String(data.tradeDate || '');
+      screenerState.lastError = '';
+      screenerState.isStale = false;
       render();
       return data;
     })()
       .catch((error) => {
         console.error('Screener load failed:', error);
+        screenerState.lastError = error?.message || '갱신 실패';
+        screenerState.isStale = Boolean(payload);
+        screenerState.displayedTradeDate = String(payload?.tradeDate || '');
         const results = document.getElementById('screener-results');
         if (payload) render();
-        else if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+        else if (results) results.innerHTML = '<div class="screener-empty">스크리너 데이터를 불러오지 못했습니다. <button type="button" data-screener-retry>다시 시도</button></div>';
+        results?.querySelector('[data-screener-retry]')?.addEventListener('click', () => loadData().catch(() => {}), { once: true });
         throw error;
       })
       .finally(() => { loadingPromise = null; });
@@ -389,18 +423,24 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     });
 
     const readCustomFilters = () => {
+      const next = { ...customFilters };
       document.querySelectorAll('[data-screen-custom]').forEach((control) => {
         const key = control.dataset.screenCustom;
-        customFilters[key] = key === 'trend' ? control.value : (control.value === '' ? null : Number(control.value));
+        next[key] = key === 'trend' ? control.value : (control.value === '' ? null : Number(control.value));
       });
+      const errors = validateCustomFilters(next);
+      showCustomFilterErrors(errors);
+      if (errors.length) return false;
+      Object.assign(customFilters, next);
       const count = Object.entries(customFilters).filter(([key, value]) => key === 'trend' ? value !== 'any' : value != null).length;
       const countNode = document.querySelector('[data-screen-custom-count]');
       if (countNode) countNode.textContent = String(count);
       document.dispatchEvent(new CustomEvent('screener:customfilter', { detail: { count } }));
+      return true;
     };
     document.querySelectorAll('[data-screen-custom]').forEach((control) => {
       control.addEventListener(control.tagName === 'SELECT' ? 'change' : 'input', () => {
-        readCustomFilters();
+        if (!readCustomFilters()) return;
         preset = 'all';
         document.querySelectorAll('[data-screen-preset]').forEach((item) => item.classList.toggle('active', item.dataset.screenPreset === 'all'));
         render();
@@ -449,7 +489,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
-
 /* --- static/js/valuation_meta.js --- */
 // Field-level valuation provenance for transparency without sacrificing mobile comparison density.
 (() => {
@@ -1565,6 +1604,26 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (down) down.textContent = values.length ? String(values.filter((x) => x < 0).length) : '-';
   }
 
+  function tradeDateLabel(value) {
+    if (value === null || value === undefined || value === '') return '기준일 미확인';
+    let date;
+    if (typeof value === 'number' || /^\\d{10,13}$/.test(String(value))) {
+      const n = Number(value);
+      date = new Date(n < 1e12 ? n * 1000 : n);
+    } else {
+      const raw = String(value);
+      date = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
+    }
+    if (Number.isNaN(date.getTime())) return '기준일 미확인';
+    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')} 종가`;
+  }
+
+  function quoteMetaText(quote, fresh = false) {
+    if (!quote) return '1달 수익률 · 시세 불러오는 중';
+    const received = timeLabel(quote.updatedAt);
+    return ['1달 수익률', tradeDateLabel(quote.tradeDate), received ? `${received} 조회` : '', fresh ? '방금 갱신' : '저장된 시세'].filter(Boolean).join(' · ');
+  }
+
   function quoteMarkup(row) {
     const quote = quoteFor(row.symbol);
     const price = formatPrice(row.symbol, quote?.price);
@@ -1645,7 +1704,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           <div class="watchlist-v30-section-head"><h3>최근 본 종목</h3><small>최대 8개</small></div>
           <div id="watchlist-v30-recents" class="watchlist-v30-recents"></div>
         </section>
-        <p class="watchlist-v30-footer-note">관심종목은 이 기기에 저장됩니다. 가격은 Yahoo Finance 공개 데이터를 기준으로 표시됩니다.</p>
+        <p class="watchlist-v30-footer-note">관심종목은 이 기기에 저장됩니다. 카드의 거래 기준일과 조회 시각을 함께 확인하세요. 실제 출처를 확인할 수 없는 시세는 출처 미확인으로 취급합니다.</p>
       </main>`;
     bindSearch(tab);
     tab.querySelectorAll('[data-watch-sort]').forEach((button) => button.addEventListener('click', () => {
@@ -1737,7 +1796,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
             <i class="watchlist-v33-market">${marketLabel(row.symbol)}</i>
           </span>
           <span class="watchlist-v30-quote"><strong data-watch-price>${q.price}</strong><b class="watchlist-v30-return ${q.cls}" data-watch-return>${q.ret}</b></span>
-          <small class="watchlist-v30-meta">1달 수익률 · ${quoteFor(row.symbol) ? '저장된 시세' : '시세 불러오는 중'}</small>
+          <small class="watchlist-v30-meta">${esc(quoteMetaText(quoteFor(row.symbol), false))}</small>
           <span class="watchlist-v33-analysis-link">종목분석 <b>›</b></span>
         </button>
         <button type="button" class="watchlist-v30-star" data-watch-remove="${esc(row.symbol)}" aria-label="${esc(row.name)} 관심종목 해제">★</button>
@@ -1770,7 +1829,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         ret.textContent = returnText(quote?.return);
         ret.className = `watchlist-v30-return ${returnClass(quote?.return)}`;
       }
-      if (meta) meta.textContent = `1달 수익률 · ${fresh ? '방금 갱신' : '저장된 시세'}`;
+      if (meta) meta.textContent = quoteMetaText(quote, fresh);
     }
     const home = document.querySelector(`[data-home-watch-open="${CSS.escape(symbol)}"]`);
     if (home) {
@@ -1844,7 +1903,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         const quote = {
           price: stock.price == null ? null : Number(stock.price),
           return: stock.return == null ? null : Number(stock.return),
-          tradeDate: String(tradeDate || ''),
+          tradeDate: tradeDate || '',
+          quoteAsOf: stock.quoteAsOf || stock.asOf || tradeDate || '',
+          receivedAt: data.timestamp || '',
+          source: stock.source || data.source || '출처 미확인',
+          priceBasis: stock.priceBasis || 'provider',
           updatedAt: Date.now(),
         };
         received += 1;
@@ -1999,7 +2062,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
-
 /* --- static/js/watchlist_quick_add_v48.js --- */
 (() => {
   'use strict';
@@ -2103,13 +2165,15 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         });
         card.appendChild(button);
       }
-      button.setAttribute('data-watch-quick-name', name);
+      if (button.getAttribute('data-watch-quick-name') !== name) button.setAttribute('data-watch-quick-name', name);
       const active = selected.has(symbol);
       button.classList.toggle('active', active);
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
-      button.setAttribute('aria-label', active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`);
-      button.textContent = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      const aria = active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`;
+      const label = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
+      if (button.textContent !== label) button.textContent = label;
     });
     return true;
   }
@@ -2176,7 +2240,15 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       return;
     }
     if (observer) observer.disconnect();
-    observer = new MutationObserver(() => schedule());
+    observer = new MutationObserver((mutations) => {
+      const meaningful = mutations.some((mutation) => {
+        if (mutation.target?.closest?.('[data-watch-quick-add]')) return false;
+        return [...mutation.addedNodes, ...mutation.removedNodes].some((node) =>
+          node.nodeType === 1 && (!node.matches?.('[data-watch-quick-add]') || node.querySelector?.('[data-watch-card]'))
+        );
+      });
+      if (meaningful) schedule();
+    });
     observer.observe(grid, { childList: true, subtree: true });
     schedule();
   }
@@ -2198,7 +2270,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else boot();
 })();
 ;
-
 /* --- static/js/ux_v3.js --- */
 (() => {
   'use strict';
