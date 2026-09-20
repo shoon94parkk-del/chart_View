@@ -220,6 +220,8 @@
     const pbr = displayValue(D()?.formatMultiple?.(value?.pbr, 1), 'valuation');
     const psr = displayValue(D()?.formatMultiple?.(value?.psr, 1), 'valuation');
     const ev = displayValue(D()?.formatMultiple?.(value?.evEbitda, 1), 'valuation');
+    const fwdMeta = value?.fieldMeta?.forwardPE || {};
+    const fwdPeriod = String(fwdMeta.period || '').trim() || '기간 미확인';
 
     section.hidden = false;
     section.innerHTML = `
@@ -242,7 +244,7 @@
         <div class="detail-source-status" role="status">${[['compare','차트'],['valuation','재무'],['consensus','컨센서스']].map(([key,label]) => detailSession?.status[key] === 'error' ? `${label} 조회 실패 <button type="button" data-detail-retry-source="${key}">다시 시도</button>` : detailSession?.status[key] === 'loading' ? `${label} 불러오는 중…` : '').filter(Boolean).join(' · ')}</div>
         <div class="detail-v40-metrics">
           ${metric(`${periodLabel} 수익률`, ret, basis.start && basis.end ? `${shortDate(basis.start)}~${shortDate(basis.end)}` : '실제 관측 구간')}
-          ${metric('FWD PER', fwd, '예상 기간 미확인')}
+          ${metric('예상 PER', fwd, fwdPeriod)}
           ${metric('EPS 전망 30일', eps, rev.kind === 'unavailable' ? '분모 0 등 계산 불가' : '컨센서스 변화')}
         </div>
         <nav class="detail-v40-tabs" aria-label="단일 종목 상세 영역">
@@ -258,7 +260,7 @@
         </section>
         <section class="detail-v40-panel" data-detail-panel="value" hidden>
           <div class="detail-v40-value-list">
-            ${valueRow('FWD PER', fwd, valueBasis(value, 'forwardPE', '예상 기간 미확인 · 제공처 기준'), { badge: '예상 기간 미확인' })}
+            ${valueRow('예상 PER', fwd, valueBasis(value, 'forwardPE', '예상 기간 미확인 · 제공처 기준'), { badge: fwdPeriod })}
             ${valueRow('PER', trailing, valueBasis(value, 'trailingPE', 'TTM/최근 실적 기준'))}
             ${valueRow('ROE', roe, valueBasis(value, 'roe', 'API 제공 ROE 단위 그대로 표시'))}
             ${valueRow('PBR', pbr, valueBasis(value, 'pbr', '최근 공시/제공처 기준'))}
@@ -268,14 +270,31 @@
           </div>
         </section>
         <section class="detail-v40-panel" data-detail-panel="decision" hidden>
-          <div class="detail-v40-decision-note"><strong>투자판단 근거</strong><span>매수·매도 점수가 아니라 현재 공개 데이터에서 확인할 항목을 정리합니다.</span></div>
-          <div class="detail-v40-decision-grid">
-            ${metric(`가격 모멘텀 · ${periodLabel}`,  ret)}
-            ${metric('EPS 전망 · 30일', eps)}
-            ${metric('FWD PER', fwd, '예상 기간 미확인')}
-            ${metric('ROE', roe)}
+          <div class="detail-v40-decision-note"><strong>분석 요약</strong><span>관찰된 사실, 비교할 기준, 추가 확인 항목을 나눠서 봅니다.</span></div>
+          <div class="detail-v40-decision-sections">
+            <section class="detail-v40-decision-section" aria-label="관찰된 사실">
+              <h4>관찰된 사실</h4>
+              <div class="detail-v40-decision-grid">
+                ${metric(periodLabel + ' 수익률', ret, basis.start && basis.end ? shortDate(basis.start) + '~' + shortDate(basis.end) : '실제 관측 구간')}
+                ${metric('EPS 전망 · 30일', eps, rev.kind === 'unavailable' ? '분모 0 등 계산 불가' : '컨센서스 변화')}
+              </div>
+            </section>
+            <section class="detail-v40-decision-section" aria-label="비교할 기준">
+              <h4>비교할 기준</h4>
+              <div class="detail-v40-decision-grid">
+                ${metric('예상 PER', fwd, fwdPeriod)}
+                ${metric('ROE', roe, valueBasis(value, 'roe', '최근 제공값 기준'))}
+              </div>
+            </section>
+            <section class="detail-v40-decision-section detail-v40-checks" aria-label="확인이 필요한 점">
+              <h4>확인이 필요한 점</h4>
+              <ul>
+                <li><strong>예상 PER 기간</strong><span>${esc(fwdPeriod)}</span></li>
+                <li><strong>예상 PER 원자료</strong><span>${esc(valueBasis(value, 'forwardPE', '제공처 기준 · 기간 미확인'))}</span></li>
+                <li><strong>비교 해석</strong><span>업종·자본구조·기준일이 다른 종목과는 단순 순위 비교를 피하세요.</span></li>
+              </ul>
+            </section>
           </div>
-          <p>높거나 낮은 단일 지표만으로 결론내리지 말고 업종, 자본구조, 전망 기간과 원자료 기준을 함께 확인하세요.</p>
         </section>
       </div>`;
 
