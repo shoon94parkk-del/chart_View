@@ -9,10 +9,12 @@ let series = {};
 let selectedTickers = ['AAPL', 'NVDA', '005930.KS'];
 let currentPeriod = '1mo';
 let customDateRange = null;
-let chartRequestController = null;
 let chartLoadSeq = 0;
 const chartDataCache = new Map();
 const chartDataInflight = new Map();
+const CHART_CACHE_TTL = 5 * 60 * 1000;
+const CHART_PREFETCH_CONCURRENCY = 2;
+let chartPrefetchGeneration = 0;
 let chartLibraryPromise = null;
 
 function chartCacheKey(period = currentPeriod) {
@@ -20,28 +22,57 @@ function chartCacheKey(period = currentPeriod) {
     return `${selectedTickers.join(',')}|${period}|${range}`;
 }
 
-async function fetchChartData(period = currentPeriod, signal = undefined) {
+function cachedChartEntry(period = currentPeriod) {
+    return chartDataCache.get(chartCacheKey(period)) || null;
+}
+
+function isChartCacheFresh(entry) {
+    return Boolean(entry?.data && Date.now() - Number(entry.storedAt || 0) < CHART_CACHE_TTL);
+}
+
+async function fetchChartData(period = currentPeriod, options = {}) {
     const key = chartCacheKey(period);
-    if (chartDataCache.has(key)) return chartDataCache.get(key);
+    const cached = chartDataCache.get(key);
+    if (!options.force && isChartCacheFresh(cached)) return cached.data;
     if (chartDataInflight.has(key)) return chartDataInflight.get(key);
+
     let url = `/api/compare?tickers=${encodeURIComponent(selectedTickers.join(','))}&period=${period}`;
     if (customDateRange) url += `&start=${customDateRange.start}&end=${customDateRange.end}`;
-    const job = fetch(url, { cache: 'default', signal }).then(async (res) => {
+
+    // Shared in-flight requests are intentionally not tied to the active UI AbortController.
+    // chartLoadSeq decides which response is allowed to paint, so rapid period changes cannot
+    // cancel a request that another period switch or background prefetch is already sharing.
+    const job = fetch(url, { cache: 'default' }).then(async (res) => {
         if (!res.ok) throw new Error(`차트 API 오류 (${res.status})`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        chartDataCache.set(key, data);
+        chartDataCache.set(key, { data, storedAt: Date.now() });
         return data;
     }).finally(() => chartDataInflight.delete(key));
     chartDataInflight.set(key, job);
     return job;
 }
 
-function prefetchChartPeriods() {
+async function prefetchChartPeriods() {
     if (customDateRange || !selectedTickers.length) return;
-    ['1mo', '3mo', '6mo', 'ytd', '1y']
-        .filter((p) => p !== currentPeriod)
-        .forEach((p) => fetchChartData(p).catch(() => {}));
+    const generation = ++chartPrefetchGeneration;
+    const queue = ['1mo', '3mo', '6mo', 'ytd', '1y']
+        .filter((period) => period !== currentPeriod && !isChartCacheFresh(cachedChartEntry(period)));
+
+    const worker = async () => {
+        while (queue.length && generation === chartPrefetchGeneration) {
+            const period = queue.shift();
+            if (!period) return;
+            try { await fetchChartData(period); } catch (_) { }
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(CHART_PREFETCH_CONCURRENCY, queue.length) }, worker));
+}
+
+function scheduleChartPrefetch() {
+    const run = () => prefetchChartPeriods().catch(() => {});
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1800 });
+    else setTimeout(run, 450);
 }
 
 // 티커 → 기업명 매핑 (검색/추가 시 저장)
@@ -191,6 +222,30 @@ function clearChartData() {
     Object.values(series).forEach(item => { try { chart.removeSeries(item); } catch (_) {} });
     series = {};
     updateLegend([]);
+}
+
+function chartTradeDate(data) {
+    const dates = (Array.isArray(data?.stocks) ? data.stocks : [])
+        .map((stock) => Array.isArray(stock?.data) && stock.data.length ? stock.data[stock.data.length - 1]?.time : null)
+        .filter(Boolean)
+        .map(String)
+        .sort();
+    return dates.length ? dates[dates.length - 1] : '';
+}
+
+function updateChartFreshness(data, stale = false) {
+    const header = document.querySelector('#chart-tab .chart-header');
+    if (!header) return;
+    let node = header.querySelector('.chart-freshness');
+    if (!node) {
+        node = document.createElement('small');
+        node.className = 'chart-freshness';
+        header.appendChild(node);
+    }
+    const tradeDate = chartTradeDate(data);
+    const fetchedAt = data?.timestamp ? String(data.timestamp).slice(0, 16) : '';
+    node.textContent = [stale ? '이전 캐시' : '', tradeDate ? `거래일 ${tradeDate}` : '', fetchedAt ? `조회 ${fetchedAt}` : ''].filter(Boolean).join(' · ');
+    node.dataset.stale = stale ? 'true' : 'false';
 }
 
 function chartStatus(message = '') {
@@ -360,9 +415,8 @@ function updateTags() {
 // 데이터 로드
 async function loadData() {
     const seq = ++chartLoadSeq;
+    chartPrefetchGeneration += 1;
     if (!chart && !(await ensureChartReady())) return;
-    if (chartRequestController) chartRequestController.abort();
-    chartRequestController = new AbortController();
 
     if (!selectedTickers.length) {
         clearChartData();
@@ -371,52 +425,65 @@ async function loadData() {
         return;
     }
 
+    const period = currentPeriod;
+    const key = chartCacheKey(period);
+    const staleEntry = chartDataCache.get(key);
     showLoading(true);
     chartStatus();
 
-    try {
-        const data = await fetchChartData(currentPeriod, chartRequestController.signal);
-        if (seq !== chartLoadSeq) return;
-
-        const stocks = Array.isArray(data.stocks) ? data.stocks : [];
-        Object.keys(series).forEach(t => {
-            try { chart.removeSeries(series[t]); } catch (e) { }
+    const paint = (data, stale = false) => {
+        const stocks = Array.isArray(data?.stocks) ? data.stocks : [];
+        Object.keys(series).forEach((ticker) => {
+            try { chart.removeSeries(series[ticker]); } catch (_) { }
         });
         series = {};
 
-        stocks.forEach((stock, i) => {
+        stocks.forEach((stock) => {
             if (stock.name && !tickerNameMap[stock.ticker]) tickerNameMap[stock.ticker] = stock.name;
             if (!Array.isArray(stock.data) || stock.data.length === 0) return;
-            const s = chart.addLineSeries({
-                color: COLORS[selectedTickers.indexOf(stock.ticker) % COLORS.length],
+            const colorIndex = Math.max(0, selectedTickers.indexOf(stock.ticker));
+            const line = chart.addLineSeries({
+                color: COLORS[colorIndex % COLORS.length],
                 lineWidth: 2,
                 priceLineVisible: false,
             });
-            s.setData(stock.data);
-            series[stock.ticker] = s;
+            line.setData(stock.data);
+            series[stock.ticker] = line;
         });
 
         if (stocks.length) chart.timeScale().fitContent();
-        // Data is already on the chart; hide the loader before publishing the legend
-        // so the UI never gets a one-frame vertical jump.
-        showLoading(false);
         updateTags();
         updateLegend(stocks);
-        prefetchChartPeriods();
+        updateChartFreshness(data, stale);
+        return stocks;
+    };
+
+    // If an expired entry exists for this exact selection/period, show it immediately
+    // while refreshing instead of leaving a different period on screen.
+    if (staleEntry?.data && !isChartCacheFresh(staleEntry)) {
+        paint(staleEntry.data, true);
+    }
+
+    try {
+        const data = await fetchChartData(period);
+        if (seq !== chartLoadSeq || key !== chartCacheKey(period)) return;
+        const stocks = paint(data, false);
+        showLoading(false);
+        scheduleChartPrefetch();
 
         if (!stocks.length && selectedTickers.length) {
             chartStatus('시세 데이터를 가져오지 못했습니다.');
         } else if (data.errors?.length) {
             chartStatus('일부 종목의 시세를 가져오지 못했습니다.');
         }
-    } catch (e) {
-        if (e && e.name === 'AbortError') return;
+    } catch (error) {
         if (seq !== chartLoadSeq) return;
-        clearChartData();
-        chartStatus('차트 조회에 실패했습니다. 연결을 확인해주세요.');
-        console.error('Chart load error:', e);
+        const hasExistingChart = Object.keys(series).length > 0;
+        chartStatus(hasExistingChart
+            ? '새 데이터 갱신에 실패했습니다. 표시 중인 차트는 유지했습니다.'
+            : '차트 조회에 실패했습니다. 연결을 확인해주세요.');
+        console.error('Chart load error:', error);
     } finally {
-        // An older aborted request must not hide the loader for a newer request.
         if (seq === chartLoadSeq) showLoading(false);
     }
 }
