@@ -299,7 +299,14 @@
   }
 
   function resetScreenerScroll({ smooth = false } = {}) {
-    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+    if (smooth) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const scroller = document.scrollingElement || document.documentElement;
+      scroller.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    }
     const wrap = document.querySelector('#screener-tab .screener-table-wrap');
     if (wrap) {
       wrap.scrollTop = 0;
