@@ -332,14 +332,19 @@
           : mode === 'discover' ? 'screener'
           : lastMarket;
 
-        if (mode === 'discover') window.scrollTo({ top: 0, behavior: 'auto' });
+        const jumpDiscoverTop = () => {
+          const scroller = document.scrollingElement || document.documentElement;
+          scroller.scrollTop = 0;
+          document.documentElement.scrollTop = 0;
+          if (document.body) document.body.scrollTop = 0;
+        };
+        if (mode === 'discover') jumpDiscoverTop();
         navigateUserTab(targetTab);
         if (mode === 'discover') {
           window.__openScreenerDiscoveryView?.();
-          const pinDiscoverTop = () => window.scrollTo({ top: 0, behavior: 'auto' });
-          pinDiscoverTop();
-          requestAnimationFrame(pinDiscoverTop);
-          [40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay));
+          jumpDiscoverTop();
+          requestAnimationFrame(jumpDiscoverTop);
+          [40, 100, 220].forEach((delay) => setTimeout(jumpDiscoverTop, delay));
         }
 
         // The legacy switch function is installed by a DOMContentLoaded handler.
