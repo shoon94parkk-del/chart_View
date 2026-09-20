@@ -149,3 +149,4 @@ def test_screener_price_is_labeled_as_trade_date_close_not_realtime():
     assert "<th>현재가</th>" not in js
     assert 'data-label="현재가"' not in js
     assert ".screen-price-basis" in css
+    assert ".screen-close-price" in css
