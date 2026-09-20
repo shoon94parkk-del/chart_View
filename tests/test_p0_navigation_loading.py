@@ -74,3 +74,12 @@ def test_home_news_prefers_direct_relations():
 def test_chart_asset_key_tracks_hidden_loading_guard():
     html = read("templates/index.html")
     assert "/static/js/chart.js?v=20260920p06" in html
+
+
+
+def test_desktop_chart_periods_do_not_wrap():
+    css = read("static/css/comparison_ui_v40.css")
+    block = css.split("#chart-tab .v40-chart-periods {", 1)[1].split("}", 1)[0]
+    quick = css.split("#chart-tab .v40-chart-periods .quick-periods", 1)[1].split("}", 1)[0]
+    assert "flex-wrap: nowrap" in block
+    assert "flex-wrap: nowrap" in quick
