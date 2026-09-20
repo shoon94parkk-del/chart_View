@@ -68,3 +68,9 @@ def test_home_news_prefers_direct_relations():
     block = js.split("function pickDiverse", 1)[1].split("function renderArticles", 1)[0]
     assert "relationType === 'direct'" in block
     assert "directB - directA" in block
+
+
+
+def test_chart_asset_key_tracks_hidden_loading_guard():
+    html = read("templates/index.html")
+    assert "/static/js/chart.js?v=20260920p05" in html
