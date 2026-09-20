@@ -2,7 +2,7 @@
 
 한국·미국 주식을 **차트, 밸류에이션, 투자판단 근거**까지 한 화면에서 비교하는 무료 모바일 웹앱입니다.
 
-**Live Demo → https://chart-view-bsg6.onrender.com**
+**Live Demo → https://chart-view-pkv8.onrender.com**
 
 > Public Beta · 무료 · 로그인 불필요 · 최대 6종목 비교
 
