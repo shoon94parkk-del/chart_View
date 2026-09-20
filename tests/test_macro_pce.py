@@ -2,9 +2,9 @@ from scripts.generate_macro_cache import INDICATORS, transform_yoy
 
 
 def test_pce_indicators_are_registered_with_expected_series():
-    assert INDICATORS["PCEPI"]["feed"] == "fredcsv:PCEPI"
+    assert INDICATORS["PCEPI"]["feed"] == "dbnomics:FRED/PCEPI"
     assert INDICATORS["PCEPI"]["transform"] == "yoy"
-    assert INDICATORS["PCETRIM12M159SFRBDAL"]["feed"] == "fredcsv:PCETRIM12M159SFRBDAL"
+    assert INDICATORS["PCETRIM12M159SFRBDAL"]["feed"] == "dbnomics:FRED/PCETRIM12M159SFRBDAL"
 
 
 def test_yoy_transform_uses_same_month_previous_year():
