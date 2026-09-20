@@ -83,3 +83,35 @@ def test_desktop_chart_periods_do_not_wrap():
     quick = css.split("#chart-tab .v40-chart-periods .quick-periods", 1)[1].split("}", 1)[0]
     assert "flex-wrap: nowrap" in block
     assert "flex-wrap: nowrap" in quick
+
+
+
+def test_clean_root_does_not_restore_previous_history_tab():
+    nav = read("static/js/ux_v3.js")
+    block = nav.split("function resolveInitialRoute()", 1)[1].split("function cleanRouteUrl()", 1)[0]
+    assert "history.state" not in block
+    assert "return { tab: 'home'" in block
+    assert "history.state" in nav.split("window.addEventListener('popstate'", 1)[1]
+
+
+def test_screener_opens_top_first_and_has_one_tap_top_control():
+    nav = read("static/js/ux_v3.js")
+    js = read("static/js/screener.js")
+    css = read("static/css/screener.css")
+    assert "window.__resetScreenerScroll?.({ smooth: false })" in nav
+    assert "window.__resetScreenerScroll = resetScreenerScroll" in js
+    assert "data-screener-top" in js
+    assert "기술점수 높은순" in js
+    assert 'class="screen-rank"' in js
+    assert ".screener-to-top{" in css
+
+
+def test_p1_home_pick_and_news_hierarchy():
+    pick = read("static/js/ai_daily_widget.js")
+    news = read("static/js/personalized_news_v40.js")
+    watch = read("static/js/home_watchlist_compact_v46.js")
+    assert "<h2>오늘 PICK</h2>" in pick
+    assert "watchlist.insertAdjacentElement('afterend',s)" in pick
+    assert "직접 관련 뉴스" in news
+    assert "업종·간접 관련" in news
+    assert "MY STOCKS · 가격 / 1달 수익률" in watch
