@@ -38,11 +38,11 @@ body:not(.app-detail-v40-open) #chart-tab #stock-brief-v8 { display: none; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   min-width: 0;
 }
-#chart-tab .v40-chart-periods .quick-periods { display: flex; flex-wrap: wrap; gap: 5px; }
+#chart-tab .v40-chart-periods .quick-periods { display: flex; flex-wrap: nowrap; gap: 5px; }
 #chart-tab .v40-chart-periods .period-chip,
 #chart-tab .v40-chart-periods #custom-date-toggle,
 #chart-tab .v40-chart-periods #apply-date-btn { min-height: 44px; }
