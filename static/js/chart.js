@@ -211,12 +211,36 @@ function setDefaultDates() {
     const monthAgo = new Date();
     monthAgo.setMonth(today.getMonth() - 1);
 
-    document.getElementById('end-date').value = localDate(today);
-    document.getElementById('start-date').value = localDate(monthAgo);
+    const endInput = document.getElementById('end-date');
+    const startInput = document.getElementById('start-date');
+    const todayValue = localDate(today);
+    if (endInput) {
+        endInput.value = todayValue;
+        endInput.max = todayValue;
+    }
+    if (startInput) {
+        startInput.value = localDate(monthAgo);
+        startInput.max = todayValue;
+    }
 }
 
 function localDate(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function setCustomDateError(message = '') {
+    const node = document.getElementById('custom-date-error');
+    const startInput = document.getElementById('start-date');
+    const endInput = document.getElementById('end-date');
+    const invalid = Boolean(message);
+    if (node) {
+        node.textContent = message;
+        node.hidden = !invalid;
+    }
+    [startInput, endInput].forEach((input) => {
+        if (!input) return;
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+    });
 }
 
 function clearChartData() {
@@ -451,11 +475,14 @@ async function loadData() {
     const seq = ++chartLoadSeq;
     chartPrefetchGeneration += 1;
     if (!chart && !(await ensureChartReady())) return false;
+    const chartSection = document.querySelector('#chart-tab .chart-section');
+    chartSection?.setAttribute('aria-busy', 'true');
 
     if (!selectedTickers.length) {
         clearChartData();
         chartStatus();
         showLoading(false);
+        chartSection?.setAttribute('aria-busy', 'false');
         return;
     }
 
@@ -506,7 +533,9 @@ async function loadData() {
         scheduleChartPrefetch();
 
         if (!stocks.length && selectedTickers.length) {
-            chartStatus('시세 데이터를 가져오지 못했습니다.');
+            chartStatus(customDateRange
+                ? '이 기간의 거래 데이터가 없습니다. 기간을 변경해 보세요.'
+                : '시세 데이터를 가져오지 못했습니다.');
         } else if (data.errors?.length) {
             chartStatus('일부 종목의 시세를 가져오지 못했습니다.');
         }
@@ -518,7 +547,10 @@ async function loadData() {
             : '차트 조회에 실패했습니다. 연결을 확인해주세요.');
         console.error('Chart load error:', error);
     } finally {
-        if (seq === chartLoadSeq) showLoading(false);
+        if (seq === chartLoadSeq) {
+            showLoading(false);
+            chartSection?.setAttribute('aria-busy', 'false');
+        }
     }
 }
 
@@ -695,18 +727,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 날짜 적용 버튼
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    [startDateInput, endDateInput].forEach((input) => input?.addEventListener('input', () => setCustomDateError('')));
     document.getElementById('apply-date-btn').addEventListener('click', () => {
-        const start = document.getElementById('start-date').value;
-        const end = document.getElementById('end-date').value;
+        const start = startDateInput?.value || '';
+        const end = endDateInput?.value || '';
+        const today = localDate(new Date());
 
-        if (start && end) {
-            if (start > end) {
-                alert('시작일은 종료일보다 늦을 수 없어요');
-                return;
-            }
-            customDateRange = { start, end };
-            document.querySelectorAll('.period-chip').forEach(b => b.classList.remove('active'));
-            loadData();
+        if (!start || !end) {
+            setCustomDateError('시작일과 종료일을 모두 선택해 주세요.');
+            return;
         }
+        if (start > end) {
+            setCustomDateError('시작일은 종료일보다 빠르거나 같아야 합니다.');
+            return;
+        }
+        if (start > today || end > today) {
+            setCustomDateError('미래 날짜는 조회할 수 없습니다. 오늘 이전 날짜를 선택해 주세요.');
+            return;
+        }
+
+        setCustomDateError('');
+        customDateRange = { start, end };
+        document.querySelectorAll('.period-chip').forEach(b => b.classList.remove('active'));
+        loadData();
     });
 });
