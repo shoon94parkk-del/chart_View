@@ -92,7 +92,7 @@ def test_clean_root_does_not_restore_previous_history_tab():
     assert "const state = history.state" not in block
     assert "state?.chartView" not in block
     assert "return { tab: 'home'" in block
-    assert "history.state" in nav.split("window.addEventListener('popstate'", 1)[1]
+    assert "event.state?.chartView" in nav.split("window.addEventListener('popstate'", 1)[1]
 
 
 def test_screener_opens_top_first_and_has_one_tap_top_control():
