@@ -181,7 +181,7 @@
 
   function timeBadge() {
     try {
-      return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).replace(/\. /g, '.').replace('.', '.') + ' KST';
+      return new Intl.DateTimeFormat('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).replace(/\. /g, '.').replace('.', '.');
     } catch (_) {
       return '최신';
     }
@@ -294,9 +294,7 @@
       const wrap = document.createElement('div');
       wrap.className = 'home14-stack';
       wrap.innerHTML = watchHtml(watchItems(screener, consensus, valuation)) + issuesHtml(buildIssues(screener, consensus, macro)) + signalsHtml(buildSignals(screener));
-      const summaryCard = qs('.home16-summary-card', root);
-      if (summaryCard) summaryCard.insertAdjacentElement('afterend', wrap);
-      else root.insertAdjacentElement('afterbegin', wrap);
+      root.insertAdjacentElement('afterbegin', wrap);
       root.classList.add('home-v14-ready');
       bindLogoFallbacks(wrap);
       bindActions(wrap);
