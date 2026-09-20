@@ -202,11 +202,10 @@
     }
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
-      <thead><tr><th>순위</th><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
+      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
       <tbody>${rows.map((row, index) => `
         <tr>
-          <td data-label="순위"><span class="screen-rank">#${index + 1}</span></td>
-          <td data-label="종목"><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
+          <td data-label="종목"><div class="screen-name"><span class="screen-rank">#${index + 1}</span> ${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
           <td data-label="현재가"><div>${num(row.price, 0)}원</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.change1d)}</div></td>
           <td data-label="RSI"><strong>${num(row.rsi14, 1)}</strong></td>
           <td data-label="거래량"><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
