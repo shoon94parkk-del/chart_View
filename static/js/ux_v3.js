@@ -8,6 +8,56 @@
   let openingAppTab = 0;
   let userNavigationStarted = false;
 
+  const ROUTE_TABS = new Set(['home', 'watchlist', 'chart', 'fwdper', 'ideas', 'screener', 'revision', 'macro', 'tools']);
+
+  function resolveInitialRoute() {
+    let params = null;
+    try { params = new URLSearchParams(window.location.search); } catch (_) { }
+    const requestedTab = params?.get('tab');
+    const symbol = String(params?.get('symbol') || '').trim().toUpperCase();
+    const name = String(params?.get('name') || '').trim();
+    if (requestedTab && ROUTE_TABS.has(requestedTab)) {
+      return { tab: requestedTab, explicit: true, view: params?.get('view') || '', symbol, name, scrollY: 0 };
+    }
+    if (symbol) return { tab: 'chart', explicit: true, view: 'detail', symbol, name, scrollY: 0 };
+    const state = history.state;
+    if (state?.chartView && ROUTE_TABS.has(state.tab)) {
+      return { tab: state.tab, explicit: false, view: state.view || '', symbol: state.symbol || '', name: state.name || '', scrollY: Number(state.scrollY) || 0 };
+    }
+    return { tab: 'home', explicit: false, view: '', symbol: '', name: '', scrollY: 0 };
+  }
+
+  function cleanRouteUrl() {
+    try {
+      const url = new URL(location.href);
+      ['tab', 'view', 'symbol', 'name'].forEach((key) => url.searchParams.delete(key));
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch (_) {
+      return location.pathname || '/';
+    }
+  }
+
+  function rememberCurrentScroll() {
+    if (!history.state?.chartView) return;
+    try {
+      history.replaceState({ ...history.state, scrollY: Math.max(0, Math.round(window.scrollY || 0)) }, '', location.href);
+    } catch (_) { }
+  }
+
+  function restoreScroll(scrollY) {
+    const top = Math.max(0, Number(scrollY) || 0);
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top, behavior: 'auto' })));
+  }
+
+  function openInitialDetail(route, attempt = 0) {
+    if (!route?.symbol) return;
+    if (typeof window.__openStockDetail === 'function') {
+      window.__openStockDetail(route.symbol, route.name || route.symbol, { history: false, instant: true });
+      return;
+    }
+    if (attempt < 60) setTimeout(() => openInitialDetail(route, attempt + 1), 50);
+  }
+
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
       const link = document.createElement('link');
@@ -22,9 +72,8 @@
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
-        if (document.querySelector('.app-bottom-nav') && !userNavigationStarted) {
-          openTab('home', { history: false });
-        }
+        // Initial route ownership lives in installAppNavigation().
+        // Loading Home assets must never redirect the current screen.
       }, { once: true });
       document.head.appendChild(script);
     }
@@ -71,11 +120,13 @@
   function commitHistory(tabId, replace = false) {
     if (handlingPopState || !window.history?.pushState) return;
     const state = history.state || {};
-    if (state.chartView && state.tab === tabId) return;
-    const payload = { chartView: true, tab: tabId };
+    if (!replace && state.chartView && state.tab === tabId && !state.view) return;
+    if (!replace) rememberCurrentScroll();
+    const payload = { chartView: true, tab: tabId, scrollY: 0 };
+    const url = cleanRouteUrl();
     try {
-      if (replace) history.replaceState(payload, '', location.href);
-      else history.pushState(payload, '', location.href);
+      if (replace) history.replaceState(payload, '', url);
+      else history.pushState(payload, '', url);
     } catch (_) { }
   }
 
@@ -263,9 +314,26 @@
     });
 
     document.body.classList.add('app-shell-ready');
-    try { history.replaceState({ chartView: true, tab: 'home' }, '', location.href); } catch (_) { }
-    if (document.getElementById('home-tab')) openTab('home', { history: false });
-    else syncNavigation('chart');
+    const route = resolveInitialRoute();
+    const payload = {
+      ...(history.state || {}),
+      chartView: true,
+      tab: route.tab,
+      scrollY: route.scrollY,
+    };
+    if (route.view) payload.view = route.view;
+    if (route.symbol) payload.symbol = route.symbol;
+    if (route.name) payload.name = route.name;
+    try { history.replaceState(payload, '', route.explicit ? location.href : cleanRouteUrl()); } catch (_) { }
+
+    if (document.getElementById(`${route.tab}-tab`)) {
+      openTab(route.tab, { history: false });
+      if (route.symbol) openInitialDetail(route);
+      else restoreScroll(route.scrollY);
+    } else {
+      syncNavigation('home');
+      restoreScroll(0);
+    }
   }
 
   function revealAllValuationMetrics() {
@@ -333,12 +401,24 @@
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-context-btn')) requestAnimationFrame(keepActiveContextVisible);
     });
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.addEventListener('popstate', (event) => {
-      const tab = event.state?.chartView ? event.state.tab : 'home';
+      const state = event.state?.chartView ? event.state : { tab: 'home', scrollY: 0 };
+      const tab = ROUTE_TABS.has(state.tab) ? state.tab : 'home';
       userNavigationStarted = true;
       handlingPopState = true;
-      try { openTab(tab || 'home', { history: false }); }
-      finally { handlingPopState = false; }
+      try {
+        if (state.view === 'detail' && state.symbol) {
+          openTab('chart', { history: false });
+          openInitialDetail({ tab: 'chart', symbol: state.symbol, name: state.name || state.symbol });
+        } else {
+          if (typeof window.__closeStockDetail === 'function' && window.ChartViewState?.detail?.open) {
+            window.__closeStockDetail({ force: true, restore: false });
+          }
+          openTab(tab, { history: false });
+          restoreScroll(state.scrollY);
+        }
+      } finally { handlingPopState = false; }
     });
   }
 
