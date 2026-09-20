@@ -62,6 +62,8 @@ app.add_middleware(
     allow_origins=[
         "https://chartview.apps.tossmini.com",        # 실제 서비스 환경
         "https://chartview.private-apps.tossmini.com", # 콘솔 QR 테스트 환경
+        "https://chart-view-toss.onrender.com",       # Render Toss preview
+        "https://chart-view-pkv8.onrender.com",       # current Chart View production
         "https://chart-view-bsg6.onrender.com",
         "http://localhost:8080",
         "http://127.0.0.1:8080",
