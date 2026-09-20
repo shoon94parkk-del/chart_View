@@ -60,7 +60,7 @@ def test_home_only_modules_are_scoped_away_from_analysis():
     assert "#chart-tab #home-market-v9" in css
     assert "#chart-tab #home-personal-news-v37" in css
     assert "min-height:132px" in css
-    assert ".chart-freshness" in css
+    assert '#chart-tab .chart-unit[data-stale="true"]' in css
 
 
 def test_home_news_prefers_direct_relations():
