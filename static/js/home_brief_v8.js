@@ -90,7 +90,7 @@
     return `
       <section class="home-v8-block home16-major-card">
         <div class="home-block-head home16-head">
-          <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
+          <div><span>주요 종목</span><h3>오늘 시황</h3></div>
           <div class="home16-head-actions"><small>${esc(homeCheckedAt(generatedAt))} 조회</small><span class="home16-strip-nav" aria-label="주요 종목 목록 이동"><button type="button" data-home-strip-prev aria-label="이전 주요 종목">‹</button><button type="button" data-home-strip-next aria-label="다음 주요 종목">›</button></span></div>
         </div>
         <div class="home16-stock-strip" data-home-stock-strip tabindex="0" aria-label="주요 종목 가로 목록. 좌우 방향키로 이동할 수 있습니다.">${rows.map((row) => `
@@ -134,7 +134,7 @@
     const basis = macroBasis(macro);
     return `
       <section class="home-v8-block home16-summary-card home18-summary-${level}">
-        <div class="home-block-head home16-head"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
+        <div class="home-block-head home16-head"><div><span>시장 상태</span><h3>한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
         <div class="home18-state-card">
           <div class="home18-traffic" aria-label="현재 시장 신호 ${esc(state.label)}">
             <i class="red ${level === 'red' ? 'active' : ''}"></i>
@@ -217,7 +217,7 @@
 
   function paintHome(root, snapshot) {
     const rows = majorRows(snapshot?.heatmap || { results: [] });
-    root.innerHTML = majorStocksHtml(rows, snapshot?.generatedAt) + marketSummaryHtml(snapshot?.macro);
+    root.innerHTML = marketSummaryHtml(snapshot?.macro) + majorStocksHtml(rows, snapshot?.generatedAt);
     bindHomeActions(root);
   }
 
