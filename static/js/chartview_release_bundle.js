@@ -2198,6 +2198,18 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (attempt < 60) setTimeout(() => openInitialDetail(route, attempt + 1), 50);
   }
 
+  function applyInitialRoute(route, attempt = 0) {
+    const target = document.getElementById(`${route.tab}-tab`);
+    if (!target) {
+      if (attempt < 160) setTimeout(() => applyInitialRoute(route, attempt + 1), 50);
+      return false;
+    }
+    openTab(route.tab, { history: false });
+    if (route.symbol) openInitialDetail(route);
+    else restoreScroll(route.scrollY);
+    return true;
+  }
+
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
       const link = document.createElement('link');
@@ -2466,14 +2478,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (route.name) payload.name = route.name;
     try { history.replaceState(payload, '', route.explicit ? location.href : cleanRouteUrl()); } catch (_) { }
 
-    if (document.getElementById(`${route.tab}-tab`)) {
-      openTab(route.tab, { history: false });
-      if (route.symbol) openInitialDetail(route);
-      else restoreScroll(route.scrollY);
-    } else {
-      syncNavigation('home');
-      restoreScroll(0);
-    }
+    // Home/watchlist are installed by later modules in the same deferred bundle.
+    // Keep route ownership here and wait for the requested tab instead of letting
+    // those modules redirect the user when they finish loading.
+    applyInitialRoute(route);
   }
 
   function revealAllValuationMetrics() {
