@@ -152,7 +152,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
         const legendBeforeFailure = await page.locator('#legend .legend-item').count();
         await page.locator('.period-chip[data-period="max"]').click();
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();
-        assert.match(await page.locator('#chart-status').textContent(), /기존 차트를 유지/);
+        assert.match(await page.locator('#chart-status').textContent(), /표시 중인 차트는 유지/);
         assert.equal(await page.locator('#legend .legend-item').count(), legendBeforeFailure, 'failed refresh must preserve the previous chart');
         await page.screenshot({path:'test-results/384-chart-retry.png',fullPage:true});
       }
