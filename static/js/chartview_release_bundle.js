@@ -2494,9 +2494,18 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         const targetTab = mode === 'home' ? 'home'
           : mode === 'watchlist' ? 'watchlist'
           : mode === 'analysis' ? lastAnalysis
-          : mode === 'discover' ? lastDiscover
+          : mode === 'discover' ? 'screener'
           : lastMarket;
+
+        if (mode === 'discover') window.scrollTo({ top: 0, behavior: 'auto' });
         navigateUserTab(targetTab);
+        if (mode === 'discover') {
+          window.__openScreenerDiscoveryView?.();
+          window.scrollTo({ top: 0, behavior: 'auto' });
+          requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
+          setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 160);
+        }
+
         // The legacy switch function is installed by a DOMContentLoaded handler.
         // Keep navigation state correct even when a user taps before its wrapper runs.
         syncNavigation(targetTab === 'market' ? 'macro' : targetTab);
