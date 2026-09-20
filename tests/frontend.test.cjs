@@ -53,3 +53,27 @@ test('revision and price-return difference is shown in percentage points', () =>
   assert.equal(pctPoint(-2), '-2.0%p');
   assert.equal(pctPoint(null), '-');
 });
+
+
+test('2026-09-21 audit contracts keep date, detail and production states explicit', () => {
+  const html = fs.readFileSync('templates/index.html', 'utf8');
+  const chart = fs.readFileSync('static/js/chart.js', 'utf8');
+  const detail = fs.readFileSync('static/js/single_detail_v40.js', 'utf8');
+  const watch = fs.readFileSync('static/js/watchlist_v30.js', 'utf8');
+  const quick = fs.readFileSync('static/js/watchlist_quick_add_v48.js', 'utf8');
+  const workflow = fs.readFileSync('.github/workflows/app-check.yml', 'utf8');
+
+  assert.match(html, /label for="start-date"/);
+  assert.match(html, /id="custom-date-error"/);
+  assert.match(html, /aria-label="비교종목 추가"/);
+  assert.match(chart, /시작일은 종료일보다 빠르거나 같아야 합니다/);
+  assert.match(chart, /미래 날짜는 조회할 수 없습니다/);
+  assert.match(chart, /aria-busy/);
+  assert.match(detail, /차트를 불러오는 중…/);
+  assert.match(detail, /이 기간의 거래 데이터가 없습니다/);
+  assert.match(detail, /detail-v42-zero-label/);
+  assert.match(watch, /수익률 높은순/);
+  assert.match(quick, /비교에 추가/);
+  assert.match(workflow, /chart-view-pkv8\.onrender\.com/);
+  assert.doesNotMatch(workflow, /chart-view-bsg6\.onrender\.com/);
+});

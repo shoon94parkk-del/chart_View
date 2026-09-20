@@ -8,22 +8,22 @@
     <title>Chart View | 한국·미국 주식 차트·밸류에이션 비교</title>
     <meta name="description" content="한국·미국 주식 최대 6종목의 수익률 차트, 밸류에이션, 투자판단 근거와 시장 지표를 로그인 없이 한 화면에서 비교합니다.">
     <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="https://chart-view-bsg6.onrender.com/">
+    <link rel="canonical" href="https://chart-view-pkv8.onrender.com/">
     <link rel="icon" type="image/svg+xml" href="/static/chartview-mark.svg">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ko_KR">
     <meta property="og:site_name" content="Chart View">
     <meta property="og:title" content="Chart View | 한국·미국 주식 차트·밸류에이션 비교">
     <meta property="og:description" content="최대 6종목의 차트, FWD PER·PER·PBR·ROE와 투자판단 근거를 한 화면에서. 무료 · 로그인 불필요.">
-    <meta property="og:url" content="https://chart-view-bsg6.onrender.com/">
-    <meta property="og:image" content="https://chart-view-bsg6.onrender.com/static/social-card.svg">
+    <meta property="og:url" content="https://chart-view-pkv8.onrender.com/">
+    <meta property="og:image" content="https://chart-view-pkv8.onrender.com/static/social-card.svg">
     <meta property="og:image:type" content="image/svg+xml">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Chart View | 주식 비교를 더 빠르게">
     <meta name="twitter:description" content="한국·미국 주식을 차트와 밸류에이션으로 한 번에 비교하는 무료 웹앱">
-    <meta name="twitter:image" content="https://chart-view-bsg6.onrender.com/static/social-card.svg">
+    <meta name="twitter:image" content="https://chart-view-pkv8.onrender.com/static/social-card.svg">
     <style>
         body.app-booting:not(.app-shell-ready) #app { visibility: hidden; }
         body.app-booting:not(.app-shell-ready)::before { content: '차트뷰 불러오는 중…'; position: fixed; inset: 0; display: grid; place-items: center; color: #6b7684; font: 700 14px/1.5 system-ui, sans-serif; background: #f7f8fa; }
@@ -42,7 +42,7 @@
         data-detail-ui-v40 data-comparison-ui-v40 data-comparison-compact-v401 data-news-status-v401
         data-my-hub-v41 data-news-readability-v412 data-news-summary-expand-v48 data-resilience-v413
         data-home-polish-v414 data-home-watchlist-compact-v46 data-home-news-cards-v47>
-    <link rel="stylesheet" href="/static/css/ui_continuity_v53.css?v=20260916v53">
+    <link rel="stylesheet" href="/static/css/ui_continuity_v53.css?v=20260921audit1">
     <link rel="stylesheet" href="/static/css/p2_revisit_v1.css?v=20260920p2">
 </head>
 
@@ -66,7 +66,7 @@
                         <input type="text" id="unified-input" placeholder="종목명 · 6자리 코드 · 티커 검색" autocomplete="off">
                         <div id="search-results" class="search-results hidden"></div>
                     </div>
-                    <button id="add-btn" class="btn-add">+</button>
+                    <button type="button" id="add-btn" class="btn-add" aria-label="비교종목 추가">+</button>
                 </div>
                 <div class="search-hint">한국 종목은 KOSPI/KOSDAQ 자동 구분 · 회사명/6자리 코드/티커 · 최대 6종목</div>
                 <!-- 선택된 종목 태그 -->
@@ -193,22 +193,23 @@
                 </button>
                 <div id="custom-date-fields" class="date-row" hidden>
                     <div class="date-field">
-                        <label>시작일</label>
-                        <input type="date" id="start-date">
+                        <label for="start-date">시작일</label>
+                        <input type="date" id="start-date" aria-describedby="custom-date-error">
                     </div>
                     <span class="date-sep">~</span>
                     <div class="date-field">
-                        <label>종료일</label>
-                        <input type="date" id="end-date">
+                        <label for="end-date">종료일</label>
+                        <input type="date" id="end-date" aria-describedby="custom-date-error">
                     </div>
-                    <button id="apply-date-btn" class="btn-apply">적용</button>
+                    <button type="button" id="apply-date-btn" class="btn-apply">적용</button>
                 </div>
+                <div id="custom-date-error" class="custom-date-error" role="alert" hidden></div>
             </section>
 
             <!-- 차트 영역 -->
             <section class="chart-section">
                 <div class="chart-header">
-                    <span class="chart-title">수익률 비교</span>
+                    <span class="chart-title">선택 기간 수익률</span>
                     <span class="chart-unit">%</span>
                 </div>
                 <div id="chart-container"></div>
@@ -295,11 +296,11 @@
         </div>
     </div>
 
-    <script defer src="/static/js/chart.js?v=20260920p06"></script>
+    <script defer src="/static/js/chart.js?v=20260921audit1"></script>
     <script defer src="/static/js/fwdper.js?v=20260912v28"></script>
     <script defer src="/static/js/valuation_bands.js?v=20260912v35"></script>
     <script defer src="/static/js/macro.js?v=20260912v35"></script>
-    <script defer src="/static/js/chartview_release_bundle.js?v=p1news49"
+    <script defer src="/static/js/chartview_release_bundle.js?v=69831dba276c"
         data-fast-screener data-valuation-meta data-investment-ideas data-dense-valuation data-revision-radar
         data-investment-tools-v22 data-watchlist-v30 data-watchlist-quick-add-v48 data-ux-v3 data-decision-ux-v7
         data-app-header-v5 data-home-market-v9 data-home-priority-v10 data-ux-patterns-v12 data-ux-interactions-v13

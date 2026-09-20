@@ -71,7 +71,7 @@
     } else {
       try { localStorage.setItem('chartview-selected-tickers-v1', JSON.stringify([...current, key])); } catch (_) { }
     }
-    flash(`${name || key} · 종목분석에 추가했어요.`);
+    flash(`${name || key} · 비교에 추가했어요.`);
     schedule();
   }
 
@@ -105,8 +105,8 @@
       button.classList.toggle('active', active);
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
-      const aria = active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`;
-      const label = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      const aria = active ? `${name} 비교에 포함됨` : `${name} 비교에 추가`;
+      const label = active ? '✓ 비교에 포함됨' : (full ? '최대 6개' : '+ 비교에 추가');
       if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
       if (button.textContent !== label) button.textContent = label;
     });

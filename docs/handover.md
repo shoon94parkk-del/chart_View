@@ -4,7 +4,7 @@
 
 ## 운영 경로
 
-- 운영 URL: https://chart-view-bsg6.onrender.com
+- 운영 URL: https://chart-view-pkv8.onrender.com
 - 저장소: https://github.com/shoon94parkk-del/chart_View
 - 기본 브랜치: `main`
 - Render 진입점: 루트 `main.py`
@@ -82,3 +82,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - 브라우저 저장 관심종목은 계정 동기화 데이터로 표현하지 않는다.
 - 배포가 확인되기 전 완료로 기록하지 않는다.
 - 운영 완료는 Render `live`만으로 판단하지 않고 main SHA/revision과 화면 동작을 함께 확인한다.
+
+
+## 2026-09-21 audit UX implementation
+
+- Production URL: https://chart-view-pkv8.onrender.com
+- Implemented: direct date-range validation and accessible labels, loading/empty state separation for detail charts, explicit 0% return baseline, clearer watchlist/comparison wording, and current-production CI verification.
+- Release rule: keep source assets and generated `chartview_release_bundle.js` synchronized; `python scripts/build_frontend_bundle.py --check` must stay green.
+- Regression focus: reversed/future dates must preserve the previous valid chart; detail must not show “차트 자료 없음” while compare data is loading; production checks must target the pkv8 Render service.\n- News summary quality gate: translated Korean summaries are no longer rejected just because the raw English headline has no token overlap; cache version is v50-quality-language.

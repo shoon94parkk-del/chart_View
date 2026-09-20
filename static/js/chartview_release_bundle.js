@@ -489,6 +489,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
+
 /* --- static/js/valuation_meta.js --- */
 // Field-level valuation provenance for transparency without sacrificing mobile comparison density.
 (() => {
@@ -1688,12 +1689,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           <div id="watchlist-v30-search-results" class="watchlist-v30-search-results"></div>
         </section>
         <section class="watchlist-v30-section watchlist-v33-main-section">
-          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목분석</small></div>
+          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
-              <button type="button" data-watch-sort="return-desc">1달 수익률↑</button>
-              <button type="button" data-watch-sort="return-asc">1달 수익률↓</button>
+              <button type="button" data-watch-sort="return-desc">수익률 높은순</button>
+              <button type="button" data-watch-sort="return-asc">수익률 낮은순</button>
               <button type="button" data-watch-sort="name">이름순</button>
             </div>
             <button type="button" class="watchlist-v33-refresh" data-watch-refresh aria-label="관심종목 시세 새로고침">↻ 새로고침</button>
@@ -2062,6 +2063,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
+
 /* --- static/js/watchlist_quick_add_v48.js --- */
 (() => {
   'use strict';
@@ -2136,7 +2138,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     } else {
       try { localStorage.setItem('chartview-selected-tickers-v1', JSON.stringify([...current, key])); } catch (_) { }
     }
-    flash(`${name || key} · 종목분석에 추가했어요.`);
+    flash(`${name || key} · 비교에 추가했어요.`);
     schedule();
   }
 
@@ -2170,8 +2172,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       button.classList.toggle('active', active);
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
-      const aria = active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`;
-      const label = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      const aria = active ? `${name} 비교에 포함됨` : `${name} 비교에 추가`;
+      const label = active ? '✓ 비교에 포함됨' : (full ? '최대 6개' : '+ 비교에 추가');
       if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
       if (button.textContent !== label) button.textContent = label;
     });
@@ -2270,6 +2272,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else boot();
 })();
 ;
+
 /* --- static/js/ux_v3.js --- */
 (() => {
   'use strict';
@@ -4327,11 +4330,17 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function sparkline(series) {
-    if (!Array.isArray(series) || series.length < 2) return '<div class="detail-v40-chart-empty">차트 자료 없음</div>';
+    if (!Array.isArray(series) || series.length < 2) {
+      const status = detailSession?.status?.compare;
+      if (status === 'loading') return '<div class="detail-v40-chart-empty is-loading" role="status">차트를 불러오는 중…</div>';
+      if (status === 'error') return '<div class="detail-v40-chart-empty is-error">차트 조회에 실패했습니다. 위의 다시 시도를 이용해 주세요.</div>';
+      return '<div class="detail-v40-chart-empty">이 기간의 거래 데이터가 없습니다.</div>';
+    }
     const points = series;
     const nums = points.map((row) => row.value);
     const min = Math.min(...nums), max = Math.max(...nums);
-    const low = min === max ? min - 1 : min, high = min === max ? max + 1 : max, span = high - low;
+    const rawLow = min === max ? min - 1 : min, rawHigh = min === max ? max + 1 : max;
+    const low = Math.min(0, rawLow), high = Math.max(0, rawHigh), span = high - low || 1;
     const width = 720, height = 220, left = 54, right = 12, top = 16, bottom = 22;
     const xy = points.map((row, index) => {
       const x = left + (index / Math.max(1, points.length - 1)) * (width - left - right);
@@ -4343,9 +4352,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
       <div class="detail-v42-chart-readout" data-detail-chart-readout>터치하거나 좌우키로 날짜별 수익률 확인</div>
       <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 흐름">
-        ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>`}
-        <text class="detail-v42-y-label" x="4" y="${top + 4}">${max.toFixed(1)}%</text>
-        <text class="detail-v42-y-label" x="4" y="${height-bottom}">${min.toFixed(1)}%</text>
+        ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/><text class="detail-v42-zero-label" x="4" y="${Math.max(top + 10, Math.min(height - bottom - 4, zeroY - 4)).toFixed(1)}">0%</text>`}
+        <text class="detail-v42-y-label" x="4" y="${top + 4}">${high.toFixed(1)}%</text>
+        <text class="detail-v42-y-label" x="4" y="${height-bottom}">${low.toFixed(1)}%</text>
         <polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="4" vector-effect="non-scaling-stroke"/>
       </svg>
       <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
@@ -4464,7 +4473,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         <nav class="detail-v40-tabs" aria-label="단일 종목 상세 영역">
           <button type="button" class="active" data-detail-tab="chart">차트</button>
           <button type="button" data-detail-tab="value">재무·밸류</button>
-          <button type="button" data-detail-tab="decision">투자판단</button>
+          <button type="button" data-detail-tab="decision">분석 요약</button>
         </nav>
         <section class="detail-v40-panel active" data-detail-panel="chart">
           <div class="detail-v40-panel-head"><div><strong>${periodLabel} 수익률 차트</strong><span>가격 자체가 아니라 기간 시작 대비 수익률 흐름입니다.</span></div><span>${periodLabel}</span></div>
@@ -6362,6 +6371,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   attachNewsObserver();
 })();
 ;
+
 /* --- static/js/resilience_v41_3.js --- */
 (() => {
   'use strict';

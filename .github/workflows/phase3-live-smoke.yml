@@ -59,7 +59,7 @@ jobs:
       - name: Wait for app build and verify public assets
         run: |
           set -euo pipefail
-          BASE='https://chart-view-bsg6.onrender.com'
+          BASE='https://chart-view-pkv8.onrender.com'
 
           ready=0
           for i in $(seq 1 42); do

@@ -182,7 +182,7 @@ jobs:
           node-version: '20'
       - name: Verify exact Render revision and release assets
         env:
-          APP_URL: https://chart-view-bsg6.onrender.com
+          APP_URL: https://chart-view-pkv8.onrender.com
           EXPECTED_SHA: ${{ github.sha }}
         run: python scripts/verify_deployed_release.py
       - name: Install production browser
@@ -191,11 +191,11 @@ jobs:
           npx playwright install --with-deps chromium >/dev/null
       - name: Verify production UI and navigation
         env:
-          APP_URL: https://chart-view-bsg6.onrender.com
+          APP_URL: https://chart-view-pkv8.onrender.com
         run: node tests/${{ matrix.suite }}.cjs
       - name: Confirm revision and assets stayed unchanged
         env:
-          APP_URL: https://chart-view-bsg6.onrender.com
+          APP_URL: https://chart-view-pkv8.onrender.com
           EXPECTED_SHA: ${{ github.sha }}
         run: python scripts/verify_deployed_release.py --attempts 1 --output test-results/release-after.json
       - uses: actions/upload-artifact@v4

@@ -17,8 +17,8 @@ def test_watchlist_keeps_one_month_return_contract():
 
     assert 'MY STOCKS · 1달 수익률' in watchlist
     assert '현재가와 1달 수익률' in watchlist
-    assert '1달 수익률↑' in watchlist
-    assert '1달 수익률↓' in watchlist
+    assert '수익률 높은순' in watchlist
+    assert '수익률 낮은순' in watchlist
 
     for token in ('#home-watchlist-v30', '#watchlist-tab', 'data-home-watch-return', 'data-watch-return'):
         assert token not in overlay

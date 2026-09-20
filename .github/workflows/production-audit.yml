@@ -32,7 +32,7 @@ jobs:
         run: python scripts/verify_deployed_release.py
       - name: Verify production mobile flows
         env:
-          APP_URL: https://chart-view-bsg6.onrender.com
+          APP_URL: https://chart-view-pkv8.onrender.com
           LIVE: '1'
         run: node tests/mobile_smoke.cjs
       - name: Confirm revision and assets stayed unchanged
