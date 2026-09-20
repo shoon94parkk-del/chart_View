@@ -330,3 +330,14 @@
     line-height:1.45;
   }
 }
+/* Audit phase 4: predictable desktop shell while preserving mobile bottom navigation. */
+@media(min-width:1024px){
+  #home-tab .home16-market-home{max-width:1120px!important;padding-left:16px;padding-right:16px;box-sizing:border-box}
+  #home-tab #home-v8-body{display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(320px,.7fr);align-items:start;gap:14px!important}
+  #home-tab #home-v8-body>.home-v8-block{min-width:0;height:100%}
+  #watchlist-tab,#chart-tab,#fwdper-tab,#screener-tab,#macro-tab{width:min(1120px,100%);margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+  #chart-tab .chart-section,#fwdper-tab .per-section,#screener-tab .screener-section,#macro-tab .macro-section{max-width:none!important}
+}
+@media(min-width:721px) and (max-width:1023px){
+  #home-tab .home16-market-home,#watchlist-tab,#chart-tab,#fwdper-tab,#screener-tab,#macro-tab{width:min(100%,768px);margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+}
