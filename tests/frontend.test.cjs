@@ -76,4 +76,16 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(quick, /비교에 추가/);
   assert.match(workflow, /chart-view-pkv8\.onrender\.com/);
   assert.doesNotMatch(workflow, /chart-view-bsg6\.onrender\.com/);
+  const pick = fs.readFileSync('static/js/ai_daily_widget.js', 'utf8');
+  const p2 = fs.readFileSync('static/js/p2_revisit_v1.js', 'utf8');
+  assert.match(pick, /최근 선정 PICK/);
+  assert.match(pick, /추천 건별 평균 수익률/);
+  assert.match(pick, /미평가 제외/);
+  assert.match(detail, /관찰된 사실/);
+  assert.match(detail, /비교할 기준/);
+  assert.match(detail, /확인이 필요한 점/);
+  assert.match(watch, /timeZone:\s*'Asia\/Seoul'/);
+  assert.doesNotMatch(watch, /방금 갱신/);
+  assert.match(p2, /window\.confirm\(preview\)/);
+  assert.match(p2, /기존 관심종목은 그대로입니다/);
 });
