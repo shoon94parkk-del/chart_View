@@ -4,8 +4,6 @@
   if (window.__chartViewReleaseUiV40) return;
   window.__chartViewReleaseUiV40 = true;
 
-  const basisCache = new Map();
-  const basisInflight = new Map();
   let homeObserver = null;
   let valuationObserver = null;
   let screenerObserver = null;
@@ -62,33 +60,20 @@
     return m ? `${m[2]}.${m[3]}` : '';
   };
 
-  async function fetchBasis(symbols) {
-    const missing = symbols.filter((symbol) => symbol && !basisCache.has(symbol));
-    for (let i = 0; i < missing.length; i += 6) {
-      const chunk = missing.slice(i, i + 6);
-      const key = chunk.join(',');
-      if (basisInflight.has(key)) { await basisInflight.get(key); continue; }
-      const job = fetch(`/api/compare?tickers=${encodeURIComponent(key)}&period=1mo`, { cache: 'no-store' })
-        .then((r) => r.ok ? r.json() : null)
-        .then((payload) => {
-          (payload?.stocks || []).forEach((stock) => {
-            const symbol = String(stock.ticker || '').toUpperCase();
-            const end = stock.actualEnd || stock.endDate || stock?.meta?.actualEnd || stock?.meta?.end || stock.asOf || '';
-            if (symbol) basisCache.set(symbol, end);
-          });
-        }).catch(() => {}).finally(() => basisInflight.delete(key));
-      basisInflight.set(key, job);
-      await job;
+  function readWatchlistQuoteCache() {
+    try {
+      const payload = JSON.parse(localStorage.getItem('chartview-watchlist-quotes-v33') || '{}');
+      return payload?.quotes && typeof payload.quotes === 'object' ? payload.quotes : {};
+    } catch (_) {
+      return {};
     }
   }
 
   async function decorateHomeWatchlist() {
     const section = document.getElementById('home-watchlist-v30');
     if (!section) return;
-    const buttons = [...section.querySelectorAll('[data-home-watch-open]')];
-    const symbols = buttons.map((button) => String(button.dataset.homeWatchOpen || '').toUpperCase()).filter(Boolean);
-    await fetchBasis(symbols);
-    buttons.forEach((button) => {
+    const quotes = readWatchlistQuoteCache();
+    section.querySelectorAll('[data-home-watch-open]').forEach((button) => {
       const symbol = String(button.dataset.homeWatchOpen || '').toUpperCase();
       let basis = button.querySelector('.home-watch-v40-basis');
       if (!basis) {
@@ -96,7 +81,10 @@
         basis.className = 'home-watch-v40-basis';
         button.appendChild(basis);
       }
-      const text = `${shortDate(basisCache.get(symbol)) || '기준 확인'} 거래 · 1달`;
+      const quote = quotes[symbol] || {};
+      const tradeDate = shortDate(quote.tradeDate);
+      const refreshed = quote.updatedAt ? new Date(Number(quote.updatedAt)).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+      const text = tradeDate ? `${tradeDate} 거래 · 1달` : (refreshed ? `${refreshed} 저장 시세 · 1달` : '기준일 확인 중 · 1달');
       if (basis.textContent !== text) basis.textContent = text;
     });
   }
