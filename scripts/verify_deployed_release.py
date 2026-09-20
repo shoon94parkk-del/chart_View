@@ -57,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument("--attempts", type=int, default=36)
     parser.add_argument("--output", default="test-results/release-verification.json")
     args = parser.parse_args()
-    result = verify(os.environ.get("APP_URL", "https://chart-view-bsg6.onrender.com"), os.environ.get("EXPECTED_SHA", ""), args.attempts)
+    result = verify(os.environ.get("APP_URL", "https://chart-view-pkv8.onrender.com"), os.environ.get("EXPECTED_SHA", ""), args.attempts)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
