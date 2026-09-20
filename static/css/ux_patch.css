@@ -88,8 +88,8 @@ body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중
 #screener-tab .home-v8,#screener-tab #home-market-v9,#screener-tab #home-watchlist-v30,#screener-tab #ai-daily-section,#screener-tab #home-personal-news-v37,
 #macro-tab .home-v8,#macro-tab #home-market-v9,#macro-tab #home-watchlist-v30,#macro-tab #ai-daily-section,#macro-tab #home-personal-news-v37{display:none!important}
 
-.chart-freshness{display:block;grid-column:1/-1;margin-top:2px;color:#8b95a1;font-size:12px;line-height:1.4;font-weight:600}
-.chart-freshness[data-stale="true"]{color:#a86600}
+#chart-tab .chart-unit{white-space:nowrap;font-size:12px!important;line-height:1.35!important}
+#chart-tab .chart-unit[data-stale="true"]{color:#a86600!important}
 
 @media(max-width:720px){
   #home-tab .home-v8 small,
