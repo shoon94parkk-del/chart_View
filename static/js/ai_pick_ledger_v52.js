@@ -331,6 +331,8 @@
     renderRows();
   }
 
+  window.__openScreenerDiscoveryView = () => openView('screener');
+
   window.__openAiPickLedger = () => {
     openMainScreener();
     if (!installShell()) {
