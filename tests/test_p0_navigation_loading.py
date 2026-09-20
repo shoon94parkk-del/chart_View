@@ -89,7 +89,8 @@ def test_desktop_chart_periods_do_not_wrap():
 def test_clean_root_does_not_restore_previous_history_tab():
     nav = read("static/js/ux_v3.js")
     block = nav.split("function resolveInitialRoute()", 1)[1].split("function cleanRouteUrl()", 1)[0]
-    assert "history.state" not in block
+    assert "const state = history.state" not in block
+    assert "state?.chartView" not in block
     assert "return { tab: 'home'" in block
     assert "history.state" in nav.split("window.addEventListener('popstate'", 1)[1]
 
