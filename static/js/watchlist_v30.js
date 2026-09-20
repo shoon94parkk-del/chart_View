@@ -185,7 +185,7 @@
     const ts = Number(timestamp);
     if (!Number.isFinite(ts) || ts <= 0) return '';
     try {
-      return new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(ts));
     } catch (_) { return ''; }
   }
 
@@ -193,7 +193,7 @@
     const node = document.querySelector('[data-watch-updated]');
     if (!node) return;
     const label = timeLabel(quoteCache.updatedAt);
-    node.textContent = label ? `${label} ${isFresh ? '갱신' : '캐시'}` : '시세 준비 중';
+    node.textContent = label ? `${label} KST 조회${isFresh ? '' : ' · 저장 시세'}` : '시세 준비 중';
     node.classList.toggle('fresh', Boolean(isFresh));
   }
 
@@ -224,7 +224,7 @@
   function quoteMetaText(quote, fresh = false) {
     if (!quote) return '1달 수익률 · 시세 불러오는 중';
     const received = timeLabel(quote.updatedAt);
-    return ['1달 수익률', tradeDateLabel(quote.tradeDate), received ? `${received} 조회` : '', fresh ? '방금 갱신' : '저장된 시세'].filter(Boolean).join(' · ');
+    return ['1달 수익률', tradeDateLabel(quote.tradeDate), received ? `${received} KST 조회` : ''].filter(Boolean).join(' · ');
   }
 
   function quoteMarkup(row) {
@@ -291,7 +291,7 @@
           <div id="watchlist-v30-search-results" class="watchlist-v30-search-results"></div>
         </section>
         <section class="watchlist-v30-section watchlist-v33-main-section">
-          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목 상세</small></div>
+          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>종목 목록</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
@@ -393,14 +393,14 @@
       const q = quoteMarkup(row);
       return `
       <article class="watchlist-v30-card watchlist-v33-card" data-watch-card="${esc(row.symbol)}">
-        <button type="button" class="watchlist-v30-open watchlist-v33-open" data-watch-open="${esc(row.symbol)}" data-watch-open-name="${esc(row.name)}" aria-label="${esc(row.name)} 종목분석 열기">
+        <button type="button" class="watchlist-v30-open watchlist-v33-open" data-watch-open="${esc(row.symbol)}" data-watch-open-name="${esc(row.name)}" aria-label="${esc(row.name)} 종목 상세 열기">
           <span class="watchlist-v33-card-top">
             <span class="watchlist-v30-id"><strong>${esc(row.name)}</strong><small>${esc(row.symbol)}</small></span>
             <i class="watchlist-v33-market">${marketLabel(row.symbol)}</i>
           </span>
           <span class="watchlist-v30-quote"><strong data-watch-price>${q.price}</strong><b class="watchlist-v30-return ${q.cls}" data-watch-return>${q.ret}</b></span>
           <small class="watchlist-v30-meta">${esc(quoteMetaText(quoteFor(row.symbol), false))}</small>
-          <span class="watchlist-v33-analysis-link">종목분석 <b>›</b></span>
+          <span class="watchlist-v33-analysis-link">상세 보기 <b>›</b></span>
         </button>
         <button type="button" class="watchlist-v30-star" data-watch-remove="${esc(row.symbol)}" aria-label="${esc(row.name)} 관심종목 해제">★</button>
       </article>`;
