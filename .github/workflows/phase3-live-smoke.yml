@@ -142,7 +142,9 @@ jobs:
 
           macro=json.load(open('/tmp/macro.json'))
           assert macro.get('cacheMode') == 'precomputed'
-          assert len(macro.get('results', [])) == 13
+          assert len(macro.get('results', [])) == 15
+          macro_symbols={x.get('original_symbol') or x.get('symbol') for x in macro.get('results', [])}
+          assert {'PCEPI','PCETRIM12M159SFRBDAL'} <= macro_symbols, macro_symbols
 
           print('Korea + global home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
           PY
