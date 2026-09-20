@@ -30,7 +30,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install cache dependency
-        run: pip install requests
+        run: pip install requests beautifulsoup4
 
       - name: Generate macro cache
         run: python scripts/generate_macro_cache.py
