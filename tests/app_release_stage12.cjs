@@ -181,7 +181,7 @@ async function scenarioNewsTwentyAndNonBlocking(browser) {
       const url = new URL(route.request().url());
       requestedCount = (url.searchParams.get('tickers') || '').split(',').filter(Boolean).length;
       const groups = watchlist.map((row, i) => ({ symbol: row.symbol, name: row.name, items: i < 3 ? [{}] : [], status: i === 19 ? 'error' : i < 3 ? 'success' : 'no_news' }));
-      const items = [0,1,2].map((i) => ({ symbol: watchlist[i].symbol, name: watchlist[i].name, title: `핵심 기사 ${i + 1}`, source: '테스트뉴스', publishedAt: new Date().toISOString(), url: `https://example.com/${i}`, score: 150 - i * 10 }));
+      const items = [0,1,2].map((i) => ({ symbol: watchlist[i].symbol, name: watchlist[i].name, title: `핵심 기사 ${i + 1}`, source: '테스트뉴스', publishedAt: new Date().toISOString(), url: `https://example.com/${i}`, score: 150 - i * 10, relationType: 'direct', relationBasis: '제목에 기업명 확인' }));
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items, groups, errors: [{ symbol: watchlist[19].symbol, code: 'provider_error:Timeout' }] }) });
     });
     await page.evaluate(() => window.__openAppTab('home'));
@@ -195,6 +195,10 @@ async function scenarioNewsTwentyAndNonBlocking(browser) {
     assert.match(await page.locator('.news-v40-status').innerText(), /부분 실패/);
     assert.match(await page.locator('.news-v40-groups').innerText(), /조회 실패/);
     assert.match(await page.locator('.news-v40-card').first().innerText(), /이벤트 참고 설명/);
+  } catch (error) {
+    fs.writeFileSync(path.join(OUT, 'news-failure.html'), await page.content());
+    await page.screenshot({path: path.join(OUT, 'news-failure.png'), fullPage:true});
+    throw error;
   } finally { await context.close(); }
 }
 
