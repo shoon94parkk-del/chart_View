@@ -170,6 +170,17 @@
       requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
     setTimeout(resize, 80);
+
+    const ensure = (attempt = 0) => {
+      const active = document.getElementById('chart-tab')?.classList.contains('active');
+      if (!active) return;
+      if (!document.body.classList.contains('app-booting') && typeof window.__ensureChartVisible === 'function') {
+        window.__ensureChartVisible();
+        return;
+      }
+      if (attempt < 40) setTimeout(() => ensure(attempt + 1), 50);
+    };
+    ensure();
   }
 
   function openTab(tabId, options = {}) {
