@@ -29,7 +29,7 @@ def test_v392_unifies_global_surfaces_and_mobile_touch_targets():
 
 def test_release_keeps_home_order_and_v39_visual_contract():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
-    assert "market-body-ai-top3-watchlist-news-status" in boot
+    assert "market-body-watchlist-ai-top3-news-status" in boot
     assert "/static/js/personalized_news_v40.js" in boot
     polish = (ROOT / "static/js/home_polish_v41_4.js").read_text(encoding="utf-8")
     assert "section.dataset.visualVersion = 'v41.4'" in polish
