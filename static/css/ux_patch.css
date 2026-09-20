@@ -100,3 +100,9 @@ body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중
   .ux-data-status{font-size:12px!important;line-height:1.45!important}
   .per-source,.mc-symbol,.mc-chart-dates{font-size:12px!important;line-height:1.4!important}
 }
+
+
+/* P1 home news hierarchy: company-direct first, industry/related second. */
+#home-tab .news-v40-group-label{grid-column:1/-1;margin:4px 2px 2px;padding:7px 9px;border-radius:10px;font-size:12px;font-weight:850;line-height:1.2}
+#home-tab .news-v40-group-label.is-direct{background:#eef6ff;color:#1769d2}
+#home-tab .news-v40-group-label.is-related{margin-top:10px;background:#f7f8fa;color:#6b7684}
