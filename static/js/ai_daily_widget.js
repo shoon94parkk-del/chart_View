@@ -19,7 +19,7 @@
       const link = document.createElement('link'); link.id='ai-pick-ledger-v52-style'; link.rel='stylesheet'; link.href='/static/css/ai_pick_ledger_v52.css?v=20260917v58'; document.head.appendChild(link);
     }
     if (!document.getElementById('ai-pick-ledger-v52-script')) {
-      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=20260918v59'; script.async=false; document.body.appendChild(script);
+      const script=document.createElement('script'); script.id='ai-pick-ledger-v52-script'; script.src='/static/js/ai_pick_ledger_v52.js?v=f18382446c5e'; script.async=false; document.body.appendChild(script);
     }
   }
 
@@ -37,13 +37,13 @@
     const rows=Array.isArray(payload?.recommendations)?payload.recommendations:[];
     const today=Array.isArray(day?.top3)?day.top3.slice(0,3):[];
     if(!day&&!rows.length)return'';
-    const tracked=rows.filter(row=>Number.isFinite(Number(row.returnPct)));
+    const tracked=rows.filter(row=>row.returnPct !== null && row.returnPct !== undefined && row.returnPct !== '' && Number.isFinite(Number(row.returnPct)));
     const avgReturn=tracked.length?tracked.reduce((sum,row)=>sum+Number(row.returnPct),0)/tracked.length:null;
     const wins=tracked.filter(row=>Number(row.returnPct)>0).length;
     const winRate=tracked.length?Math.round(wins/tracked.length*100):0;
     const latestClose=tracked.reduce((max,row)=>String(row.lastUpdatedTradeDate||'')>max?String(row.lastUpdatedTradeDate||''):max,'')||day?.tradeDate||'';
     const chips=today.map(row=>`<span class="ai-daily-today-chip">${esc(row.name||row.symbol||'-')}</span>`).join('');
-    return `<div class="ai-daily-head"><div><h2>오늘 PICK</h2><p>${esc(day?.tradeDate||latestClose)} 선정 · 핵심 후보만 홈에 표시</p></div><button type="button" class="ai-daily-more" data-ai-pick-ledger data-fallback-route="/?tab=screener&view=ai-picks">전체 기록 →</button></div><div class="ai-daily-today"><span class="ai-daily-today-label">선정 종목</span><div class="ai-daily-today-chips">${chips||'<span class="ai-daily-today-chip">선정 대기</span>'}</div></div><div class="ai-daily-performance"><div class="ai-daily-performance-main"><span class="ai-daily-performance-label">누적 평균</span><strong class="ai-daily-performance-value ${tone(avgReturn)}">${pct(avgReturn)}</strong><small>${esc(latestClose)} 종가 기준</small></div><div class="ai-daily-kpis"><div class="ai-daily-kpi"><span>누적</span><b>${rows.length.toLocaleString('ko-KR')}건</b></div><div class="ai-daily-kpi"><span>수익구간</span><b>${winRate}%</b></div></div></div>`;
+    return `<div class="ai-daily-head"><div><h2>오늘 PICK · ${today.length}종목</h2><p>${esc(day?.tradeDate||latestClose)} 선정 · AI 스크리닝 · 최종 선정</p></div><button type="button" class="ai-daily-more" data-ai-pick-ledger data-fallback-route="/?tab=screener&view=ai-picks">전체 기록 →</button></div><div class="ai-daily-today"><span class="ai-daily-today-label">선정 종목</span><div class="ai-daily-today-chips">${chips||'<span class="ai-daily-today-chip">선정 대기</span>'}</div></div><div class="ai-daily-performance"><div class="ai-daily-performance-main"><span class="ai-daily-performance-label">누적 평균</span><strong class="ai-daily-performance-value ${tone(avgReturn)}">${pct(avgReturn)}</strong><small>${esc(latestClose)} 종가 기준</small></div><div class="ai-daily-kpis"><div class="ai-daily-kpi"><span>누적</span><b>${rows.length.toLocaleString('ko-KR')}건</b></div><div class="ai-daily-kpi"><span>수익구간</span><b>${winRate}%</b></div></div></div>`;
   }
 
   function getHost(){

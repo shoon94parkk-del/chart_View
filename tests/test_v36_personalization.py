@@ -32,5 +32,5 @@ def test_compare_and_storage_state_are_owned_by_shared_state_module():
 
 def test_detail_exposes_period_price_basis_and_readable_chart():
     js = Path('static/js/single_detail_v40.js').read_text(encoding='utf-8')
-    for text in ('관측', '가격 기준', '거래 기준', '1달 수익률 차트', '조정주가', 'data-detail-chart-readout'):
+    for text in ('관측', '가격 기준', 'quoteTime(tradeDate)', '${periodLabel} 수익률 차트', '조정주가', 'data-detail-chart-readout'):
         assert text in js

@@ -129,7 +129,7 @@ def test_p1_home_pick_and_news_hierarchy():
     pick = read("static/js/ai_daily_widget.js")
     news = read("static/js/personalized_news_v40.js")
     watch = read("static/js/home_watchlist_compact_v46.js")
-    assert "<h2>오늘 PICK</h2>" in pick
+    assert "<h2>오늘 PICK · ${today.length}종목</h2>" in pick
     assert "watchlist.insertAdjacentElement('afterend',s)" in pick
     assert "직접 관련 뉴스" in news
     assert "업종·간접 관련" in news

@@ -8,6 +8,11 @@
   let minValue = 0;
   let sortKey = 'score';
   let quickFilter = 'none';
+  const PAGE_SIZE = 100;
+  let visibleCount = PAGE_SIZE;
+  let lastFilterKey = "";
+  let rowStats = {};
+  window.__getScreenerStats = () => rowStats;
   const SCORE_MAX = 30;
   const CANDIDATE_SCORE_MIN = 22;
   const customFilters = { rsiMin: null, rsiMax: null, volumeMin: null, ret20Min: null, scoreMin: null, trend: 'any' };
@@ -185,6 +190,14 @@
     return '<span class="screen-badge muted">이평선 아래</span>';
   }
 
+  function summarizeRows(rows) {
+    const valid = (v) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v));
+    const daily = rows.filter(r => valid(r.change1d));
+    return { total: rows.length, upRate: daily.length ? Math.round(daily.filter(r => Number(r.change1d) > 0).length / daily.length * 100) : null,
+      rsi35: rows.filter(r => valid(r.rsi14) && Number(r.rsi14) <= 35).length,
+      volume2x: rows.filter(r => valid(r.volumeRatio) && Number(r.volumeRatio) >= 2).length };
+  }
+
   function render() {
     if (!payload) return;
     const results = document.getElementById('screener-results');
@@ -194,12 +207,23 @@
     updatePresetCounts();
     let rows = sortRows(payload.stocks.filter(matches));
     const total = rows.length;
-    const shown = Math.min(total, 200);
-    rows = rows.slice(0, 200);
+    const filterKey = JSON.stringify([preset, market, minValue, sortKey, quickFilter, customFilters, document.getElementById('screener-search')?.value]);
+    if (filterKey !== lastFilterKey) { visibleCount = PAGE_SIZE; lastFilterKey = filterKey; }
+    rowStats = summarizeRows(rows);
+    const shown = Math.min(total, visibleCount);
+    rows = rows.slice(0, visibleCount);
+    let more = document.getElementById('screener-more');
+    if (!more) {
+      more = document.createElement('button'); more.id = 'screener-more'; more.className = 'screener-more'; more.type = 'button';
+      results.insertAdjacentElement('afterend', more);
+      more.addEventListener('click', () => { visibleCount += PAGE_SIZE; render(); });
+    }
+    more.hidden = shown >= total;
+    more.textContent = `다음 ${Math.min(PAGE_SIZE, total - shown)}개 더 보기 · ${shown}/${total}`;
 
     const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
     const sortLabel = ({ score: '기술점수 높은순', volumeRatio: '거래량 급증순', rsi: 'RSI 낮은순', ret20: '20일 수익률순', avgValue20: '평균 거래대금순' })[sortKey] || '기술점수 높은순';
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 종가 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
+    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 종가 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > shown ? ` (상위 ${shown})` : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';

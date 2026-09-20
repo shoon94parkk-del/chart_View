@@ -153,6 +153,9 @@
     document.querySelectorAll('.tab-content').forEach((content) => {
       const active = content === target;
       content.classList.toggle('active', active);
+      content.hidden = !active;
+      content.setAttribute('aria-hidden', String(!active));
+      content.inert = !active;
       content.style.display = active ? 'block' : 'none';
     });
     document.querySelectorAll('.tab-btn').forEach((button) => {

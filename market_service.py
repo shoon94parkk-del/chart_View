@@ -217,6 +217,8 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
                 "currency": meta.get("currency"),
                 "source": "Yahoo Chart",
                 "priceBasis": price_basis,
+                "quoteSource": "Yahoo Chart",
+                "quoteAsOf": datetime.fromtimestamp(meta["regularMarketTime"], tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
                 "requestedPeriod": period,
                 "startDate": datetime.fromtimestamp(points[0][0], tz=timezone.utc).date().isoformat(),
                 "endDate": datetime.fromtimestamp(points[-1][0], tz=timezone.utc).date().isoformat(),

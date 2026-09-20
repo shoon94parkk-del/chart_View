@@ -25,16 +25,6 @@
   }
 
   function syncPickNaming() {
-    const homeTitle = document.querySelector('#ai-daily-section .ai-daily-head h2');
-    if (homeTitle && homeTitle.textContent !== 'ChartView PICK 3') homeTitle.textContent = 'ChartView PICK 3';
-
-    const homeMeta = document.querySelector('#ai-daily-section .ai-daily-head p');
-    if (homeMeta && !homeMeta.dataset.cvPickMeta) {
-      const date = (homeMeta.textContent || '').split('·')[0].trim();
-      homeMeta.textContent = `${date} · AI 스크리닝 · 최종 선정`;
-      homeMeta.dataset.cvPickMeta = '1';
-    }
-
     const pickTab = document.querySelector('[data-discovery-view="ai-picks"]');
     if (pickTab && pickTab.textContent !== 'PICK 기록') pickTab.textContent = 'PICK 기록';
 

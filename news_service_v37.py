@@ -112,6 +112,10 @@ def _investment_relevance(title: str, context: str, market: str) -> tuple[float,
 
 
 def _relation_meta(title: str, context: str, name: str, symbol: str) -> tuple[str, str]:
+    aliases = {"NVDA": ("nvidia", "엔비디아"), "AAPL": ("apple", "애플"), "MSFT": ("microsoft", "마이크로소프트"), "005930.KS": ("samsung", "삼성전자"), "000660.KS": ("sk hynix", "sk하이닉스")}
+    for alias in aliases.get(symbol.upper(), ()):
+        if re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", f"{title} {context}".lower()):
+            return "direct", "기사 제목·요약에 기업명 확인"
     title_l = title.lower()
     context_l = context.lower()
     name_l = (name or "").strip().lower()
@@ -122,7 +126,11 @@ def _relation_meta(title: str, context: str, name: str, symbol: str) -> tuple[st
         return "direct", "제목에 기업명·티커 확인"
     if context_hit:
         return "direct", "제공처 기사 요약에 기업명·티커 확인"
-    return "related", "제공처 종목 태그 기준 · 공급망/경쟁/업종 연관 가능"
+    sectors = {"NVDA": ("hbm", "gpu", "반도체", "semiconductor"), "005930.KS": ("hbm", "dram", "반도체", "semiconductor"), "000660.KS": ("hbm", "dram", "반도체", "semiconductor"), "AAPL": ("smartphone", "스마트폰", "iphone", "아이폰")}
+    for term in sectors.get(symbol.upper(), ()):
+        if re.search(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])", f"{title_l} {context_l}"):
+            return "related", f"기사 제목·요약에 관련 업종 키워드 확인: {term}"
+    return "unverified", "기업·업종 관련 근거 미확인"
 
 
 def _news_score(title: str, published_ts: float, market: str, name: str, symbol: str, context: str = "") -> float:
@@ -232,6 +240,8 @@ def _fetch_naver_news(symbol: str, name: str) -> dict:
         context = _clean_text(raw.get("description"))
         investment_score, investment_tags = _investment_relevance(title, context, "KR")
         relation_type, relation_basis = _relation_meta(title, context, name, symbol)
+        if relation_type == "unverified":
+            continue
         items.append({
             "symbol": symbol,
             "name": name or symbol,
@@ -280,6 +290,8 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
         context = _clean_text(raw.get("summary"))
         investment_score, investment_tags = _investment_relevance(title, context, "US")
         relation_type, relation_basis = _relation_meta(title, context, name, symbol)
+        if relation_type == "unverified":
+            continue
         items.append({
             "symbol": symbol,
             "name": name or symbol,

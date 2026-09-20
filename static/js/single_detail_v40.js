@@ -7,6 +7,35 @@
   const DETAIL_ID = 'stock-detail-v40';
   let controller = null;
   let lastOrigin = null;
+  let detailSession = null;
+  const PERIODS = { '1mo': '1개월', '3mo': '3개월', '6mo': '6개월', ytd: 'YTD', '1y': '1년' };
+
+  function quotePresentation(stock, value) {
+    const valid = v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v));
+    const useStock = valid(stock?.price);
+    return { price: useStock ? stock.price : value?.price,
+      asOf: useStock ? (stock.quoteAsOf || '') : (value?.fieldMeta?.price?.asOf || ''),
+      source: useStock ? (stock.quoteSource || stock.source || '') : (value?.fieldMeta?.price?.source || value?.dataSource || '') };
+  }
+
+  function displayValue(formatted, source) {
+    return !formatted || formatted === '—' || formatted === '-' ? sourceStatus(source) : formatted;
+  }
+
+  function quoteTime(raw) {
+    if (!raw) return '시세 시각 미확인';
+    const date = new Date(raw);
+    if (!Number.isFinite(date.getTime())) return '시세 시각 미확인';
+    return new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date) + ' KST';
+  }
+
+  function sourceStatus(key) {
+    const status = detailSession?.status?.[key];
+    if (status === 'loading') return '불러오는 중';
+    if (status === 'error') return '조회 실패';
+    return '미제공';
+  }
+
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -77,7 +106,7 @@
 
   function sparkline(series) {
     if (!Array.isArray(series) || series.length < 2) return '<div class="detail-v40-chart-empty">차트 자료 없음</div>';
-    const points = series.slice(-80);
+    const points = series;
     const nums = points.map((row) => row.value);
     const min = Math.min(...nums), max = Math.max(...nums);
     const low = min === max ? min - 1 : min, high = min === max ? max + 1 : max, span = high - low;
@@ -89,9 +118,9 @@
     });
     const poly = xy.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const zeroY = low <= 0 && high >= 0 ? height - bottom - ((0 - low) / span) * (height - top - bottom) : null;
-    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="1달 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
+    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
       <div class="detail-v42-chart-readout" data-detail-chart-readout>터치하거나 좌우키로 날짜별 수익률 확인</div>
-      <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="1달 수익률 흐름">
+      <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 흐름">
         ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>`}
         <text class="detail-v42-y-label" x="4" y="${top + 4}">${max.toFixed(1)}%</text>
         <text class="detail-v42-y-label" x="4" y="${height-bottom}">${min.toFixed(1)}%</text>
@@ -105,7 +134,7 @@
     const root = section.querySelector('[data-detail-chart]');
     const svg = root?.querySelector('svg');
     const readout = root?.querySelector('[data-detail-chart-readout]');
-    const points = Array.isArray(series) ? series.slice(-80) : [];
+    const points = Array.isArray(series) ? series : [];
     if (!root || !svg || !readout || !points.length) return;
     let index = points.length - 1;
     const select = (next) => {
@@ -170,18 +199,21 @@
     const basis = basisText(stock);
     const compare = comparisonState(symbol);
     const watched = typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(symbol);
-    const price = D()?.formatPrice?.(symbol, stock?.price ?? value?.price) || '—';
+    const quote = quotePresentation(stock, value);
+    const price = D()?.formatPrice?.(symbol, quote.price) || '—';
+    const periodLabel = PERIODS[detailSession?.period || '1mo'];
+    const activeTab = section.querySelector('[data-detail-tab].active')?.dataset.detailTab || 'chart';
     const ret = D()?.formatPercent?.(stock?.return, 2) || '—';
-    const fwd = D()?.formatMultiple?.(value?.forwardPE, 1) || '—';
-    const eps = rev.kind === 'number' ? D().formatPercent(rev.value, 1) : rev.kind === 'unavailable' ? '계산 불가' : '—';
+    const fwd = displayValue(D()?.formatMultiple?.(value?.forwardPE, 1), 'valuation');
+    const eps = rev.kind === 'number' ? D().formatPercent(rev.value, 1) : rev.kind === 'unavailable' ? '계산 불가' : sourceStatus('consensus');
     const series = extractSeries(stock);
-    const tradeDate = basis.end || stock?.asOf || '';
-    const roe = D()?.formatPercent?.(value?.roe, 2) || '—';
-    const dividend = D()?.formatPercent?.(value?.dividendYield, 2) || '—';
-    const trailing = D()?.formatMultiple?.(value?.trailingPE, 1) || '—';
-    const pbr = D()?.formatMultiple?.(value?.pbr, 1) || '—';
-    const psr = D()?.formatMultiple?.(value?.psr, 1) || '—';
-    const ev = D()?.formatMultiple?.(value?.evEbitda, 1) || '—';
+    const tradeDate = quote.asOf;
+    const roe = displayValue(D()?.formatPercent?.(value?.roe, 2), 'valuation');
+    const dividend = displayValue(D()?.formatPercent?.(value?.dividendYield, 2), 'valuation');
+    const trailing = displayValue(D()?.formatMultiple?.(value?.trailingPE, 1), 'valuation');
+    const pbr = displayValue(D()?.formatMultiple?.(value?.pbr, 1), 'valuation');
+    const psr = displayValue(D()?.formatMultiple?.(value?.psr, 1), 'valuation');
+    const ev = displayValue(D()?.formatMultiple?.(value?.evEbitda, 1), 'valuation');
 
     section.hidden = false;
     section.innerHTML = `
@@ -195,11 +227,12 @@
           </div>
         </header>
         <section class="detail-v40-price" aria-label="현재 가격">
-          <div><span>현재가</span><strong>${esc(price)}</strong></div>
-          <small>${esc(shortDate(tradeDate))} 거래 기준 · 브라우저 조회 ${new Intl.DateTimeFormat('ko-KR', { hour:'2-digit', minute:'2-digit', hour12:false }).format(new Date())}</small>
+          <div><span>최근 시세</span><strong>${esc(price)}</strong></div>
+          <small>${esc(quoteTime(tradeDate))} · ${esc(quote.source || '출처 미확인')} · 스크리너 종가와 시점·출처가 다를 수 있음</small>
         </section>
+        <div class="detail-source-status" role="status">${[['compare','차트'],['valuation','재무'],['consensus','컨센서스']].map(([key,label]) => detailSession?.status[key] === 'error' ? `${label} 조회 실패 <button type="button" data-detail-retry-source="${key}">다시 시도</button>` : detailSession?.status[key] === 'loading' ? `${label} 불러오는 중…` : '').filter(Boolean).join(' · ')}</div>
         <div class="detail-v40-metrics">
-          ${metric('1달 수익률', ret, basis.start && basis.end ? `${shortDate(basis.start)}~${shortDate(basis.end)}` : '실제 관측 구간')}
+          ${metric(`${periodLabel} 수익률`, ret, basis.start && basis.end ? `${shortDate(basis.start)}~${shortDate(basis.end)}` : '실제 관측 구간')}
           ${metric('FWD PER', fwd, '예상 기간 미확인')}
           ${metric('EPS 전망 30일', eps, rev.kind === 'unavailable' ? '분모 0 등 계산 불가' : '컨센서스 변화')}
         </div>
@@ -209,7 +242,8 @@
           <button type="button" data-detail-tab="decision">투자판단</button>
         </nav>
         <section class="detail-v40-panel active" data-detail-panel="chart">
-          <div class="detail-v40-panel-head"><div><strong>1달 수익률 차트</strong><span>가격 자체가 아니라 기간 시작 대비 수익률 흐름입니다.</span></div><span>1달</span></div>
+          <div class="detail-v40-panel-head"><div><strong>${periodLabel} 수익률 차트</strong><span>가격 자체가 아니라 기간 시작 대비 수익률 흐름입니다.</span></div><span>${periodLabel}</span></div>
+          <div class="detail-periods" role="group" aria-label="상세 차트 기간">${Object.entries(PERIODS).map(([key,label]) => `<button type="button" data-detail-period="${key}" aria-pressed="${key === (detailSession?.period || '1mo')}">${label}</button>`).join('')}</div>
           <div class="detail-v40-chart">${sparkline(series)}</div>
           <div class="detail-v40-basis"><span>관측 ${esc(basis.start || '—')} ~ ${esc(basis.end || '—')}</span><span>가격 기준 ${esc(basis.priceBasis)}</span></div>
         </section>
@@ -227,7 +261,7 @@
         <section class="detail-v40-panel" data-detail-panel="decision" hidden>
           <div class="detail-v40-decision-note"><strong>투자판단 근거</strong><span>매수·매도 점수가 아니라 현재 공개 데이터에서 확인할 항목을 정리합니다.</span></div>
           <div class="detail-v40-decision-grid">
-            ${metric('가격 모멘텀 · 1달', ret)}
+            ${metric(`가격 모멘텀 · ${periodLabel}`,  ret)}
             ${metric('EPS 전망 · 30일', eps)}
             ${metric('FWD PER', fwd, '예상 기간 미확인')}
             ${metric('ROE', roe)}
@@ -240,6 +274,17 @@
     bindActions(section, symbol, name);
     bindTabs(section);
     bindChart(section, series);
+    section.querySelectorAll('[data-detail-tab]').forEach(el => el.classList.toggle('active', el.dataset.detailTab === activeTab));
+    section.querySelectorAll('[data-detail-panel]').forEach(el => { el.hidden = el.dataset.detailPanel !== activeTab; el.classList.toggle('active', !el.hidden); });
+    section.querySelectorAll('[data-detail-period]').forEach(button => button.addEventListener('click', () => {
+      const session = detailSession;
+      if (!session || session.period === button.dataset.detailPeriod) return;
+      session.period = button.dataset.detailPeriod;
+      session.data.compare = null;
+      loadDetailSource(session, 'compare');
+    }));
+    section.querySelectorAll('[data-detail-retry-source]').forEach(button => button.addEventListener('click', () => loadDetailSource(detailSession, button.dataset.detailRetrySource)));
+
   }
 
   function bindBack(section) {
@@ -321,28 +366,52 @@
     renderLoading(section, symbol, name);
     section.scrollIntoView({ block: 'start', behavior: options.instant ? 'auto' : 'smooth' });
 
-    const request = (url) => fetch(url, { cache: 'no-store', signal: controller.signal }).then((r) => r.ok ? r.json() : null);
-    const results = await Promise.allSettled([
-      request(`/api/compare?tickers=${encodeURIComponent(symbol)}&period=1mo`),
-      request(`/api/valuation?tickers=${encodeURIComponent(symbol)}`),
-      request(`/api/consensus?ticker=${encodeURIComponent(symbol)}`),
-    ]);
-    if (!S().isCurrentDetail(symbol, state.seq)) return;
-    const compare = results[0].status === 'fulfilled' ? results[0].value : null;
-    const valuation = results[1].status === 'fulfilled' ? results[1].value : null;
-    const consensus = results[2].status === 'fulfilled' ? results[2].value : null;
-    if (!compare && !valuation && !consensus) {
-      section.innerHTML = `<div class="detail-v40-error" role="alert"><strong>종목 상세를 불러오지 못했습니다.</strong><button type="button" data-detail-retry>다시 시도</button><button type="button" data-detail-back>돌아가기</button></div>`;
-      section.querySelector('[data-detail-retry]')?.addEventListener('click', () => openDetail(symbol, name, { history: false }));
-      bindBack(section);
-      return;
+    detailSession = { symbol, name, seq: state.seq, section, controller, period: '1mo',
+      status: {compare:'loading', valuation:'loading', consensus:'loading'}, data: {}, requests: {} };
+    const session = detailSession;
+    paintDetailSession(session);
+    ['compare','valuation','consensus'].forEach(key => loadDetailSource(session, key));
+  }
+
+  function paintDetailSession(session) {
+    if (detailSession !== session || !S().isCurrentDetail(session.symbol, session.seq)) return;
+    renderDetail(session.section, session.symbol, session.name, session.data.compare, session.data.valuation, session.data.consensus);
+  }
+
+  async function loadDetailSource(session, key) {
+    if (!session || detailSession !== session) return;
+    session.requests[key]?.abort();
+    const requestController = new AbortController();
+    session.requests[key] = requestController;
+    const abort = () => requestController.abort();
+    session.controller.signal.addEventListener('abort', abort, {once:true});
+    const timeout = setTimeout(abort, 15000);
+    session.status[key] = 'loading';
+    paintDetailSession(session);
+    const symbol = encodeURIComponent(session.symbol);
+    const url = key === 'compare' ? `/api/compare?tickers=${symbol}&period=${session.period}` : key === 'valuation' ? `/api/valuation?tickers=${symbol}` : `/api/consensus?ticker=${symbol}`;
+    try {
+      const response = await fetch(url, {cache:'no-store',signal:requestController.signal});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (data?.error || ((key === 'compare' || key === 'valuation') && !data?.stocks?.length && !data?.quotes?.[session.symbol])) throw new Error('Provider error');
+      if (session.requests[key] !== requestController || detailSession !== session || session.controller.signal.aborted) return;
+      session.data[key] = data;
+      session.status[key] = 'ready';
+    } catch (error) {
+      if (session.requests[key] !== requestController || detailSession !== session || session.controller.signal.aborted) return;
+      session.status[key] = 'error';
+    } finally {
+      clearTimeout(timeout);
+      session.controller.signal.removeEventListener('abort', abort);
+      if (session.requests[key] === requestController) paintDetailSession(session);
     }
-    renderDetail(section, symbol, name, compare, valuation, consensus);
   }
 
   function hideDetail() {
     if (controller) controller.abort();
     controller = null;
+    detailSession = null;
     S()?.closeDetail?.();
     const section = document.getElementById(DETAIL_ID);
     if (section) { section.hidden = true; section.replaceChildren(); }

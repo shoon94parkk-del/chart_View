@@ -56,8 +56,8 @@ def test_v40_home_price_and_mobile_readability_contract():
 
 def test_v40_trade_basis_and_forward_period_copy_are_explicit():
     detail = (ROOT / "static/js/single_detail_v40.js").read_text(encoding="utf-8")
-    assert "거래 기준" in detail
-    assert "브라우저 조회" in detail
+    assert "quoteTime(tradeDate)" in detail
+    assert "quote.source" in detail
     assert "예상 기간 미확인" in detail
-    assert "1달 수익률 차트" in detail
+    assert "${periodLabel} 수익률 차트" in detail
     assert "기간 시작 대비 수익률 흐름" in detail

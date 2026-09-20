@@ -59,7 +59,7 @@
           <div>
             <span class="ai-ledger-eyebrow">CHARTVIEW AI PICK</span>
             <h2>누적 추천 원장</h2>
-            <p>하루 3개씩 쌓이는 추천 종목을 한 화면에서 비교하고, 필요한 행만 펼쳐 추천 사유를 확인합니다.</p>
+            <p>거래일별로 선정된 추천 종목을 한 화면에서 비교하고, 필요한 행만 펼쳐 추천 사유를 확인합니다.</p>
           </div>
           <span class="ai-ledger-data-date" data-ledger-date>데이터 불러오는 중</span>
         </div>

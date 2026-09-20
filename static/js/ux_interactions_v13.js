@@ -16,6 +16,7 @@
   }
 
   function currentRsi35Count() {
+    if (window.__getScreenerStats) return window.__getScreenerStats().rsi35 || 0;
     const presetCount = numberFrom(qs('[data-screen-preset="oversold"] [data-screen-preset-count]')?.textContent);
     if (Number.isFinite(presetCount)) return presetCount;
     return qsa('#screener-results tbody tr')

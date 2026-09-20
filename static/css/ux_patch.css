@@ -106,3 +106,13 @@ body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중
 #home-tab .news-v40-group-label{grid-column:1/-1;margin:4px 2px 2px;padding:7px 9px;border-radius:10px;font-size:12px;font-weight:850;line-height:1.2}
 #home-tab .news-v40-group-label.is-direct{background:#eef6ff;color:#1769d2}
 #home-tab .news-v40-group-label.is-related{margin-top:10px;background:#f7f8fa;color:#6b7684}
+
+/* Detail owns the workspace; compare controls return when detail closes. */
+body.app-detail-v40-open #global-filter,body.app-detail-v40-open .header {display:none!important}
+.screener-more {display:block;margin:18px auto;padding:12px 24px;border:1px solid #dce5f0;background:#fff;border-radius:12px;color:#1b64da;font:inherit;cursor:pointer}
+.screener-more[hidden]{display:none}
+.detail-periods {display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.detail-periods button {padding:10px 14px;border:1px solid #dde4ee;border-radius:10px;background:#fff;color:#333;font:inherit;cursor:pointer}
+.detail-periods button[aria-pressed=true]{background:#eaf3ff;color:#1b64da;border-color:#3182f6}
+.detail-source-status {font-size:13px;color:#64748b;padding:8px 0}
+.detail-source-status button {margin-left:8px;padding:6px 10px;cursor:pointer}

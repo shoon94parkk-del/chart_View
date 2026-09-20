@@ -49,7 +49,7 @@ def test_home_pick_focuses_on_today_names_with_compact_history_summary():
     js = read("static/js/ai_daily_widget.js")
     assert "/api/home-bootstrap" in js
     assert "data-fallback-route" in js
-    assert "<h2>오늘 PICK</h2>" in js
+    assert "<h2>오늘 PICK · ${today.length}종목</h2>" in js
     assert "선정 종목" in js
     assert "누적 평균" in js
     assert "수익구간" in js

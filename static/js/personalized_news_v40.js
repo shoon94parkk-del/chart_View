@@ -123,7 +123,7 @@
   }
 
   function pickDiverse(items, limit = TOP_COUNT) {
-    const rows = (Array.isArray(items) ? items : []).map((item, index) => ({ item, index }));
+    const rows = (Array.isArray(items) ? items : []).filter(item => item.relationType === 'direct' || (item.relationType === 'related' && !String(item.relationBasis || '').includes('제공처 종목 태그'))).map((item, index) => ({ item, index }));
     rows.sort((a, b) => {
       const directA = a.item?.relationType === 'direct' ? 1 : 0;
       const directB = b.item?.relationType === 'direct' ? 1 : 0;
