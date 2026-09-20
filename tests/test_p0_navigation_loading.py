@@ -100,6 +100,7 @@ def test_discover_bottom_nav_is_deterministic_and_top_first():
     block = nav.split("bottom.querySelectorAll('[data-app-mode]')", 1)[1].split("document.body.classList.add('app-shell-ready')", 1)[0]
     assert "mode === 'discover' ? 'screener'" in block
     assert "scroller.scrollTop = 0" in block
+    assert "document.scrollingElement || document.documentElement" in block
     assert "window.__openScreenerDiscoveryView?.()" in block
     assert "[40, 100, 220].forEach((delay) => setTimeout(jumpDiscoverTop, delay))" in block
     assert "mode === 'discover' ? 'screener'" in block
