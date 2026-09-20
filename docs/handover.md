@@ -90,3 +90,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Implemented: direct date-range validation and accessible labels, loading/empty state separation for detail charts, explicit 0% return baseline, clearer watchlist/comparison wording, and current-production CI verification.
 - Release rule: keep source assets and generated `chartview_release_bundle.js` synchronized; `python scripts/build_frontend_bundle.py --check` must stay green.
 - Regression focus: reversed/future dates must preserve the previous valid chart; detail must not show “차트 자료 없음” while compare data is loading; production checks must target the pkv8 Render service.\n- News summary quality gate: translated Korean summaries are no longer rejected just because the raw English headline has no token overlap; cache version is v50-quality-language.
+
+### 2026-09-21 audit phase 3
+
+- PICK 홈 성과는 추천 건별 단순 평균이며 평가 가능한 건만 분모에 포함한다. 홈에는 평가/전체 건수와 미평가 제외를 표시한다.
+- `오늘 선정 PICK`은 서울 날짜와 실제 선정일이 같은 경우에만 사용하고, 그 외에는 `최근 선정 PICK`으로 표시한다.
+- 상세 `예상 PER`은 `fieldMeta.forwardPE.period`가 있으면 그 기간을 표시하고, 없으면 `기간 미확인`을 유지한다.
+- `분석 요약`은 매수·매도 점수를 만들지 않고 `관찰된 사실 / 비교할 기준 / 확인이 필요한 점`을 분리한다.
+- 관심목록 시각은 `Asia/Seoul`로 명시 변환한다. 백업 복원은 기존 목록을 덮어쓰지 않고 미리보기 후 중복 제거·병합하며 최대 20개 제한을 유지한다.
