@@ -20,7 +20,7 @@
     const toolbar = document.querySelector('.watchlist-v33-toolbar');
     if (!toolbar || toolbar.querySelector('[data-p2-backup]')) return;
     const group = document.createElement('div'); group.className='p2-backup-actions';
-    group.innerHTML='<button type="button" data-p2-backup>백업</button><button type="button" data-p2-restore>복원</button><input type="file" accept="application/json,.json" data-p2-restore-file hidden>';
+    group.innerHTML='<button type="button" data-p2-backup aria-label="관심종목 백업 내보내기">백업</button><button type="button" data-p2-restore aria-label="관심종목 백업 복원">복원</button><input type="file" accept="application/json,.json" data-p2-restore-file hidden>';
     toolbar.appendChild(group);
     group.querySelector('[data-p2-backup]').addEventListener('click', () => {
       const payload={schema:'chartview-watchlist',version:1,exportedAt:new Date().toISOString(),watchlist:read(WATCHLIST_KEY,[]),names:read(NAMES_KEY,{})};
@@ -32,11 +32,30 @@
       const file=input.files?.[0]; if(!file)return;
       try {
         const data=JSON.parse(await file.text());
-        if(data?.schema!=='chartview-watchlist'||!Array.isArray(data.watchlist)) throw new Error('invalid');
-        const clean=data.watchlist.map(x=>({symbol:String(x?.symbol||x?.ticker||'').trim().toUpperCase(),name:String(x?.name||x?.symbol||'').trim()})).filter(x=>x.symbol).slice(0,20);
-        write(WATCHLIST_KEY,clean); if(data.names&&typeof data.names==='object')write(NAMES_KEY,data.names);
-        toast(`${clean.length}개 관심종목을 복원했어요.`); setTimeout(()=>location.reload(),500);
-      } catch(_){ toast('Chart View 관심종목 백업 파일이 아니에요.'); }
+        if(data?.schema!=='chartview-watchlist'||Number(data?.version)!==1||!Array.isArray(data.watchlist)) throw new Error('invalid');
+        const normalizeRows=(rows)=>{
+          const seen=new Set();
+          return (Array.isArray(rows)?rows:[]).map(x=>({symbol:String(x?.symbol||x?.ticker||'').trim().toUpperCase(),name:String(x?.name||x?.symbol||x?.ticker||'').trim()})).filter(x=>x.symbol&&!seen.has(x.symbol)&&seen.add(x.symbol));
+        };
+        const existing=normalizeRows(read(WATCHLIST_KEY,[])).slice(0,20);
+        const imported=normalizeRows(data.watchlist);
+        const merged=[...existing];
+        const seen=new Set(existing.map(x=>x.symbol));
+        let added=0, duplicate=0, overflow=0;
+        imported.forEach(row=>{
+          if(seen.has(row.symbol)){duplicate+=1;return;}
+          if(merged.length>=20){overflow+=1;return;}
+          seen.add(row.symbol); merged.push(row); added+=1;
+        });
+        const preview=`백업 파일 ${imported.length}개를 확인했습니다.\n기존 ${existing.length}개는 유지하고 신규 ${added}개를 병합합니다.${duplicate?`\n중복 ${duplicate}개는 한 번만 유지합니다.`:''}${overflow?`\n최대 20개 제한으로 ${overflow}개는 추가하지 않습니다.`:''}\n\n복원할까요?`;
+        if(!window.confirm(preview)){toast('복원을 취소했어요. 기존 관심종목은 그대로입니다.');input.value='';return;}
+        if(!write(WATCHLIST_KEY,merged)) throw new Error('storage');
+        const currentNames=read(NAMES_KEY,{});
+        const importedNames=data.names&&typeof data.names==='object'?data.names:{};
+        write(NAMES_KEY,{...importedNames,...currentNames});
+        toast(`관심종목 ${merged.length}개 · 신규 ${added}개를 복원했어요.`);
+        setTimeout(()=>location.reload(),500);
+      } catch(_){ toast('유효한 Chart View 관심종목 백업 파일이 아니어서 기존 목록을 유지했어요.'); }
       input.value='';
     });
   }
