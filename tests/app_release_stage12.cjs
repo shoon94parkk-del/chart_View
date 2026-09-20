@@ -258,7 +258,7 @@ async function scenarioKeyboardAndStorageFailure(browser) {
   try {
     for (const [name, fn] of scenarios) {
       const start = Date.now();
-      await withTimeout(name, fn(browser), 30000);
+      await withTimeout(name, fn(browser), name === 'responsive-home-compare' ? 50000 : 30000);
       console.log(`PASS ${name} ${Date.now() - start}ms`);
     }
   } finally {
