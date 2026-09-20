@@ -227,7 +227,7 @@
     host.innerHTML = `
       <div class="ai-ledger-kpi"><span>누적 추천일</span><b>${dayCount.toLocaleString('ko-KR')}</b></div>
       <div class="ai-ledger-kpi"><span>누적 추천 건수</span><b>${rows.length.toLocaleString('ko-KR')}</b></div>
-      <div class="ai-ledger-kpi"><span>수익 구간 비율</span><b>${evaluated.length ? Math.round(wins / evaluated.length * 100) : '-'}%</b><small>평가 ${evaluated.length}/${rows.length}건</small></div>
+      <div class="ai-ledger-kpi"><span>수익 구간 비율</span><b>${evaluated.length ? `${Math.round(wins / evaluated.length * 100)}%` : '-'}</b><small>평가 ${evaluated.length}/${rows.length}건</small></div>
       <div class="ai-ledger-kpi"><span>추천 건별 단순 평균 수익률</span><b class="${cls(avg)}">${pct(avg)}</b><small>전체 기록 기준 · 미평가 제외</small></div>`;
 
     const latest = rows.reduce((max, row) => String(row.lastUpdatedTradeDate || '') > max ? String(row.lastUpdatedTradeDate || '') : max, '');
