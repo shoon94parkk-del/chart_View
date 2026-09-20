@@ -1,0 +1,2 @@
+const fs=require('fs'),assert=require('assert');const js=fs.readFileSync('static/js/p2_revisit_v1.js','utf8'),html=fs.readFileSync('templates/index.html','utf8');
+assert(js.includes("schema:'chartview-watchlist'"));assert(js.includes('조건 저장'));assert(js.includes('유사 뉴스'));assert(js.includes('상세 설명'));assert(html.includes('p2_revisit_v1.js'));assert(html.includes('p2_revisit_v1.css'));console.log('P2 revisit contracts passed');
