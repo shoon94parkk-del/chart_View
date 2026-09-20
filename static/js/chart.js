@@ -188,8 +188,9 @@ async function ensureChartReady() {
 }
 
 async function ensureChartVisible() {
+    const chartTab = document.getElementById('chart-tab');
     const container = document.getElementById('chart-container');
-    if (!container) return false;
+    if (!container || !chartTab?.classList.contains('active') || document.body.classList.contains('app-booting')) return false;
     if (!chart && !(await ensureChartReady())) return false;
     const width = container.clientWidth;
     if (width <= 0) return false;
@@ -414,9 +415,11 @@ function updateTags() {
 
 // 데이터 로드
 async function loadData() {
+    const chartTab = document.getElementById('chart-tab');
+    if (!chartTab?.classList.contains('active') || document.body.classList.contains('app-booting')) return false;
     const seq = ++chartLoadSeq;
     chartPrefetchGeneration += 1;
-    if (!chart && !(await ensureChartReady())) return;
+    if (!chart && !(await ensureChartReady())) return false;
 
     if (!selectedTickers.length) {
         clearChartData();
