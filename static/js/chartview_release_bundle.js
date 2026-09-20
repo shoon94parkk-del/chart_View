@@ -1688,12 +1688,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           <div id="watchlist-v30-search-results" class="watchlist-v30-search-results"></div>
         </section>
         <section class="watchlist-v30-section watchlist-v33-main-section">
-          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목분석</small></div>
+          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
-              <button type="button" data-watch-sort="return-desc">1달 수익률↑</button>
-              <button type="button" data-watch-sort="return-asc">1달 수익률↓</button>
+              <button type="button" data-watch-sort="return-desc">수익률 높은순</button>
+              <button type="button" data-watch-sort="return-asc">수익률 낮은순</button>
               <button type="button" data-watch-sort="name">이름순</button>
             </div>
             <button type="button" class="watchlist-v33-refresh" data-watch-refresh aria-label="관심종목 시세 새로고침">↻ 새로고침</button>
@@ -2136,7 +2136,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     } else {
       try { localStorage.setItem('chartview-selected-tickers-v1', JSON.stringify([...current, key])); } catch (_) { }
     }
-    flash(`${name || key} · 종목분석에 추가했어요.`);
+    flash(`${name || key} · 비교에 추가했어요.`);
     schedule();
   }
 
@@ -2170,8 +2170,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       button.classList.toggle('active', active);
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
-      const aria = active ? `${name} 종목분석에 포함됨` : `${name} 종목분석에 추가`;
-      const label = active ? '✓ 분석에 포함됨' : (full ? '최대 6개' : '+ 종목분석에 추가');
+      const aria = active ? `${name} 비교에 포함됨` : `${name} 비교에 추가`;
+      const label = active ? '✓ 비교에 포함됨' : (full ? '최대 6개' : '+ 비교에 추가');
       if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
       if (button.textContent !== label) button.textContent = label;
     });
