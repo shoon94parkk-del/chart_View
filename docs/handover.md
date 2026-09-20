@@ -4,7 +4,7 @@
 
 ## 운영 경로
 
-- 운영 URL: https://chart-view-bsg6.onrender.com
+- 운영 URL: https://chart-view-pkv8.onrender.com
 - 저장소: https://github.com/shoon94parkk-del/chart_View
 - 기본 브랜치: `main`
 - Render 진입점: 루트 `main.py`
