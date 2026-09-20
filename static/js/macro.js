@@ -10,7 +10,7 @@ let macroCharts = [];
 let macroObservers = [];
 let macroLoadSeq = 0;
 
-const MACRO_RATE_SYMBOLS = new Set(['T10Y2Y', 'T10Y3M', 'BAMLH0A0HYM2', 'DFII10', 'T10YIE', 'FEDFUNDS', 'UNRATE']);
+const MACRO_RATE_SYMBOLS = new Set(['T10Y2Y', 'T10Y3M', 'BAMLH0A0HYM2', 'DFII10', 'T10YIE', 'PCEPI', 'PCETRIM12M159SFRBDAL', 'FEDFUNDS', 'UNRATE']);
 
 function cleanupMacroCharts() {
     macroObservers.forEach(observer => {
@@ -124,7 +124,7 @@ function renderMacroFreshness(data) {
     box.id = 'macro-freshness';
     box.className = `macro-freshness ${stale ? 'has-stale' : ''}`;
     box.innerHTML = `
-        <span class="macro-fresh-main">${stale ? '일부 지표 직전값 유지' : '13개 지표 정상 갱신'}</span>
+        <span class="macro-fresh-main">${stale ? '일부 지표 직전값 유지' : `${fresh}개 지표 정상 갱신`}</span>
         <span>캐시 ${formatGeneratedAt(data.generatedAt)}</span>
         <span>fresh ${fresh} · stale ${stale}</span>
     `;
