@@ -12,6 +12,8 @@ on:
       - 'consensus_service.py'
       - 'valuation_band_service.py'
       - 'news_service_v37.py'
+      - 'news_summary_service.py'
+      - 'render.yaml'
       - 'requirements.txt'
       - 'tests/**'
       - 'scripts/**'
@@ -132,6 +134,10 @@ jobs:
           PY
 
   mobile:
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [mobile_smoke, app_release_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -151,20 +157,22 @@ jobs:
         run: |
           uvicorn main:app --host 127.0.0.1 --port 8080 --lifespan off > /tmp/chart-view.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break || sleep 1; done
-          node tests/mobile_smoke.cjs
-          node tests/app_release_stage12.cjs
-          node tests/v41_my_hub.cjs
-          node tests/news_summary_expand_v48.cjs
-          node tests/prelaunch_v42.cjs
+          node tests/${{ matrix.suite }}.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mobile-review
-          path: test-results/
+          name: mobile-review-${{ matrix.suite }}
+          path: |
+            test-results/
+            /tmp/chart-view.log
 
   production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [check, mobile]
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [production_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -172,32 +180,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Wait for exact Render revision
+      - name: Verify exact Render revision and release assets
         env:
           APP_URL: https://chart-view-bsg6.onrender.com
           EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          node - <<'NODE'
-          const expected = process.env.EXPECTED_SHA;
-          const base = process.env.APP_URL;
-          const sleep = ms => new Promise(r => setTimeout(r, ms));
-          (async () => {
-            let last = null;
-            for (let i = 0; i < 72; i++) {
-              try {
-                const r = await fetch(`${base}/health?revision_check=${Date.now()}`, { cache: 'no-store' });
-                const j = await r.json();
-                last = j.revision;
-                console.log(`revision attempt ${i + 1}:`, last);
-                if (last === expected) return;
-              } catch (e) {
-                console.log(`revision attempt ${i + 1} failed:`, e.message);
-              }
-              await sleep(5000);
-            }
-            throw new Error(`Render revision mismatch. expected=${expected} last=${last}`);
-          })().catch(e => { console.error(e); process.exit(1); });
-          NODE
+        run: python scripts/verify_deployed_release.py
       - name: Install production browser
         run: |
           npm install --no-save --package-lock=false playwright@1.55.0
@@ -205,13 +192,14 @@ jobs:
       - name: Verify production UI and navigation
         env:
           APP_URL: https://chart-view-bsg6.onrender.com
-        run: |
-          node tests/production_stage12.cjs
-          node tests/v41_my_hub.cjs
-          node tests/news_summary_expand_v48.cjs
-          node tests/prelaunch_v42.cjs
+        run: node tests/${{ matrix.suite }}.cjs
+      - name: Confirm revision and assets stayed unchanged
+        env:
+          APP_URL: https://chart-view-bsg6.onrender.com
+          EXPECTED_SHA: ${{ github.sha }}
+        run: python scripts/verify_deployed_release.py --attempts 1 --output test-results/release-after.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: production-review
-          path: test-results/production-stage12/
+          name: production-review-${{ matrix.suite }}
+          path: test-results/

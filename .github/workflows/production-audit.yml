@@ -26,29 +26,19 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.55.0
           npx playwright install --with-deps chromium >/dev/null
-      - name: Wait for deployed revision
+      - name: Verify deployed revision and release assets
         env:
-          EXPECTED: ${{ github.event.workflow_run.head_sha || github.sha }}
-        run: |
-          python - <<'PY'
-          import json, os, time, urllib.request
-          for attempt in range(24):
-              try:
-                  with urllib.request.urlopen('https://chart-view-bsg6.onrender.com/health', timeout=15) as r:
-                      if json.load(r).get('revision') == os.environ['EXPECTED']:
-                          print('Verified deployed revision:', os.environ['EXPECTED'])
-                          break
-              except Exception as exc:
-                  print(type(exc).__name__)
-              time.sleep(10)
-          else:
-              raise SystemExit('Expected commit has not deployed')
-          PY
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: python scripts/verify_deployed_release.py
       - name: Verify production mobile flows
         env:
           APP_URL: https://chart-view-bsg6.onrender.com
           LIVE: '1'
         run: node tests/mobile_smoke.cjs
+      - name: Confirm revision and assets stayed unchanged
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: python scripts/verify_deployed_release.py --attempts 1 --output test-results/release-after.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

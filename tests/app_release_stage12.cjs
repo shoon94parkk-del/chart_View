@@ -105,7 +105,10 @@ async function scenarioDetailNoHangAndCompareState(browser) {
     await page.waitForSelector('#stock-detail-v40:not([hidden]) .detail-v40-id', { timeout: 3000 });
     assert.match(await page.locator('.detail-v40-id').innerText(), /엔비디아.*NVDA/s);
     assert.equal((await page.locator('[data-detail-compare]').innerText()).trim(), '비교 중');
+    await page.waitForFunction(() => document.querySelector('.detail-source-status')?.textContent.trim() === '', null, { timeout: 5000 });
+    await page.screenshot({ path: path.join(OUT, 'detail-mobile.png'), fullPage: true });
     const top = await page.locator('.detail-v40-chart').evaluate((el) => el.getBoundingClientRect().top);
+    fs.writeFileSync(path.join(OUT, 'detail-geometry.json'), JSON.stringify({top, width:390, pageErrors}, null, 2));
     assert.ok(top <= 420, `mobile single detail chart top ${top} > 420`);
     assert.equal(pageErrors.filter((x) => /RangeError|recursion|Maximum call stack/i.test(x)).length, 0, pageErrors.join('\n'));
     await page.screenshot({ path: path.join(OUT, 'detail-mobile.png'), fullPage: true });
@@ -255,12 +258,20 @@ async function scenarioKeyboardAndStorageFailure(browser) {
     ['responsive-home-compare', scenarioResponsiveHomeAndCompare],
     ['keyboard-storage-failure', scenarioKeyboardAndStorageFailure],
   ];
+  const failures = [];
   try {
     for (const [name, fn] of scenarios) {
       const start = Date.now();
-      await withTimeout(name, fn(browser), name === 'responsive-home-compare' ? 50000 : 30000);
-      console.log(`PASS ${name} ${Date.now() - start}ms`);
+      try {
+        await withTimeout(name, fn(browser), name === 'responsive-home-compare' ? 50000 : 30000);
+        console.log(`PASS ${name} ${Date.now() - start}ms`);
+      } catch (error) {
+        failures.push({name, error:String(error)});
+        console.error(`FAIL ${name}`, error);
+      }
     }
+    fs.writeFileSync(path.join(OUT, 'failures.json'), JSON.stringify(failures, null, 2));
+    assert.equal(failures.length, 0, JSON.stringify(failures));
   } finally {
     await browser.close();
   }
