@@ -31,9 +31,14 @@ def test_chart_cache_has_ttl_and_bounded_idle_prefetch():
 def test_hidden_chart_is_not_loaded_by_state_or_watchlist_boot():
     state = read("static/js/app_state_v40.js")
     watch = read("static/js/watchlist_v30.js")
+    chart = read("static/js/chart.js")
+    nav = read("static/js/ux_v3.js")
     condition = "document.getElementById('chart-tab')?.classList.contains('active')"
     assert condition in state
     assert condition in watch
+    assert "chartTab?.classList.contains('active')" in chart
+    assert "document.body.classList.contains('app-booting')" in chart
+    assert "typeof window.__ensureChartVisible === 'function'" in nav
 
 
 def test_home_watchlist_basis_uses_existing_quote_cache():
