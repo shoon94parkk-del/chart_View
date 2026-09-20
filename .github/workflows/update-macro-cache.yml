@@ -66,5 +66,6 @@ jobs:
             echo "No macro cache changes"
           else
             git commit -m "data: refresh precomputed macro indicators"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
