@@ -291,12 +291,12 @@
           <div id="watchlist-v30-search-results" class="watchlist-v30-search-results"></div>
         </section>
         <section class="watchlist-v30-section watchlist-v33-main-section">
-          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목분석</small></div>
+          <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>내 관심종목</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
-              <button type="button" data-watch-sort="return-desc">1달 수익률↑</button>
-              <button type="button" data-watch-sort="return-asc">1달 수익률↓</button>
+              <button type="button" data-watch-sort="return-desc">수익률 높은순</button>
+              <button type="button" data-watch-sort="return-asc">수익률 낮은순</button>
               <button type="button" data-watch-sort="name">이름순</button>
             </div>
             <button type="button" class="watchlist-v33-refresh" data-watch-refresh aria-label="관심종목 시세 새로고침">↻ 새로고침</button>
