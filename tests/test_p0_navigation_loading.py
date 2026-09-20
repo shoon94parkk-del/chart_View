@@ -95,6 +95,14 @@ def test_clean_root_does_not_restore_previous_history_tab():
     assert "event.state?.chartView" in nav.split("window.addEventListener('popstate'", 1)[1]
 
 
+def test_discover_bottom_nav_is_deterministic_and_top_first():
+    nav = read("static/js/ux_v3.js")
+    block = nav.split("bottom.querySelectorAll('[data-app-mode]')", 1)[1].split("document.body.classList.add('app-shell-ready')", 1)[0]
+    assert "mode === 'discover' ? 'screener'" in block
+    assert "window.scrollTo({ top: 0, behavior: 'auto' })" in block
+    assert "window.__openScreenerDiscoveryView?.()" in block
+
+
 def test_screener_opens_top_first_and_has_one_tap_top_control():
     nav = read("static/js/ux_v3.js")
     js = read("static/js/screener.js")
