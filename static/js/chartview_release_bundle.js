@@ -489,6 +489,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
+
 /* --- static/js/valuation_meta.js --- */
 // Field-level valuation provenance for transparency without sacrificing mobile comparison density.
 (() => {
@@ -2062,6 +2063,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
+
 /* --- static/js/watchlist_quick_add_v48.js --- */
 (() => {
   'use strict';
@@ -2270,6 +2272,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else boot();
 })();
 ;
+
 /* --- static/js/ux_v3.js --- */
 (() => {
   'use strict';
@@ -6368,6 +6371,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   attachNewsObserver();
 })();
 ;
+
 /* --- static/js/resilience_v41_3.js --- */
 (() => {
   'use strict';
