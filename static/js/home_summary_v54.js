@@ -11,16 +11,17 @@
     const cards = [...section.querySelectorAll('[data-home-watch-open]')];
     cards.forEach((card, index) => {
       const hidden = index >= HOME_WATCHLIST_VISIBLE;
-      card.hidden = hidden;
-      card.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-      if (hidden) card.style.display = 'none';
-      else card.style.removeProperty('display');
+      if (card.hidden !== hidden) card.hidden = hidden;
+      const ariaHidden = hidden ? 'true' : 'false';
+      if (card.getAttribute('aria-hidden') !== ariaHidden) card.setAttribute('aria-hidden', ariaHidden);
+      if (hidden && card.style.display !== 'none') card.style.display = 'none';
+      else if (!hidden && card.style.display) card.style.removeProperty('display');
     });
 
     const more = section.querySelector('[data-home-watch-all]');
     if (more) {
-      more.textContent = '더보기 →';
-      more.setAttribute('aria-label', '관심종목 전체보기');
+      if (more.textContent !== '더보기 →') more.textContent = '더보기 →';
+      if (more.getAttribute('aria-label') !== '관심종목 전체보기') more.setAttribute('aria-label', '관심종목 전체보기');
     }
     return true;
   }
@@ -66,7 +67,9 @@
     sync();
     const home = document.getElementById('home-tab');
     if (home && typeof MutationObserver !== 'undefined') {
-      new MutationObserver(schedule).observe(home, { childList: true, subtree: true });
+      new MutationObserver((mutations) => {
+        if (mutations.some((mutation) => mutation.addedNodes.length || mutation.removedNodes.length)) schedule();
+      }).observe(home, { childList: true, subtree: true });
     }
     document.addEventListener('chartview:watchlist-change', schedule);
     document.addEventListener('click', (event) => {
