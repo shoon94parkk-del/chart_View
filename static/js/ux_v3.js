@@ -219,6 +219,7 @@
       syncNavigation('screener');
       if (pushHistory) {
         commitHistory('screener');
+        window.__openScreenerDiscoveryView?.();
         requestAnimationFrame(() => window.__resetScreenerScroll?.({ smooth: false }));
       }
       return;
