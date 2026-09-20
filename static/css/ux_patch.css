@@ -70,3 +70,33 @@ body.app-booting:not(.cv-home-ready)::before{content:'차트뷰 불러오는 중
 
   .app-footer{padding:24px 16px!important;margin-top:24px!important}.disclaimer{font-size:10px!important;line-height:1.55!important}
 }
+
+
+/* P0 stability: reserve Home module geometry so late data cannot move the reader. */
+#home-tab .home16-market-home{min-height:220px}
+#home-tab #home-v8-body{min-height:300px}
+#home-tab #home-watchlist-v30{min-height:132px}
+#home-tab #ai-daily-section{min-height:150px}
+#home-tab #home-personal-news-v37{min-height:220px}
+#home-tab #home-watchlist-v30,
+#home-tab #ai-daily-section,
+#home-tab #home-personal-news-v37{overflow-anchor:none}
+
+/* Home modules must never leak into analysis/discovery/market panels even if a late script misplaces a node. */
+#chart-tab .home-v8,#chart-tab #home-market-v9,#chart-tab #home-watchlist-v30,#chart-tab #ai-daily-section,#chart-tab #home-personal-news-v37,
+#fwdper-tab .home-v8,#fwdper-tab #home-market-v9,#fwdper-tab #home-watchlist-v30,#fwdper-tab #ai-daily-section,#fwdper-tab #home-personal-news-v37,
+#screener-tab .home-v8,#screener-tab #home-market-v9,#screener-tab #home-watchlist-v30,#screener-tab #ai-daily-section,#screener-tab #home-personal-news-v37,
+#macro-tab .home-v8,#macro-tab #home-market-v9,#macro-tab #home-watchlist-v30,#macro-tab #ai-daily-section,#macro-tab #home-personal-news-v37{display:none!important}
+
+.chart-freshness{display:block;grid-column:1/-1;margin-top:2px;color:#8b95a1;font-size:12px;line-height:1.4;font-weight:600}
+.chart-freshness[data-stale="true"]{color:#a86600}
+
+@media(max-width:720px){
+  #home-tab .home-v8 small,
+  #home-tab .home-watch-v40-basis,
+  #home-tab .news-v40-meta,
+  #home-tab .news-v40-status,
+  #home-tab .home-market-v9-foot{font-size:12px!important;line-height:1.45!important}
+  .ux-data-status{font-size:12px!important;line-height:1.45!important}
+  .per-source,.mc-symbol,.mc-chart-dates{font-size:12px!important;line-height:1.4!important}
+}
