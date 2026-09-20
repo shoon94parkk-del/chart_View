@@ -29,7 +29,7 @@ SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
 SUMMARY_DISK_TTL = 60 * 60 * 24 * 7
 SUMMARY_DISK_PATH = __import__("pathlib").Path(__file__).resolve().parent / "static" / "data" / "news_summary_cache.json"
-SUMMARY_CACHE_VERSION = "v48-fact-first"
+SUMMARY_CACHE_VERSION = "v49-quality-gate"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
 SUMMARY_CONCURRENCY = 3
@@ -490,6 +490,58 @@ def _finance_korean_fallback(text: str, title: str = "") -> str:
         excerpt = excerpt[:317].rstrip() + "…"
     return f"번역 연결이 불안정해 제공처 핵심문장을 표시합니다: {excerpt}"
 
+_PROMO_PATTERNS = (
+    "sponsored", "advertorial", "press release", "partner content", "promoted", "promotion",
+    "buy now", "shop now", "limited time", "subscribe now", "sign up", "coupon", "deal of the day",
+    "제공:", "협찬", "광고", "프로모션", "구매하기", "특가", "쿠폰", "구독하기", "회원가입",
+)
+_META_PATTERNS = (
+    "click here", "read more", "learn more", "watch now", "follow us", "share this",
+    "자세히 보기", "더 알아보기", "클릭", "공유하기", "팔로우",
+)
+
+
+def _strip_promotional_text(text: str) -> str:
+    sentences = _split_sentences(_clean_text(text))
+    kept = []
+    for sentence in sentences:
+        low = sentence.lower()
+        if any(pattern in low for pattern in _PROMO_PATTERNS + _META_PATTERNS):
+            continue
+        kept.append(sentence)
+    return _clean_text(" ".join(kept)) or _clean_text(text)
+
+
+def _summary_quality(text: str, title: str = "") -> tuple[bool, str]:
+    value = _clean_text(text)
+    if len(value) < 28:
+        return False, "too_short"
+    low = value.lower()
+    if any(pattern in low for pattern in _PROMO_PATTERNS):
+        return False, "promotional"
+    if len(_tokens(value)) < 5:
+        return False, "low_information"
+    title_tokens = _tokens(title)
+    body_tokens = _tokens(value)
+    if title_tokens and body_tokens and not (title_tokens & body_tokens) and not re.search(r"\\d|[$€£₩%]", value):
+        return False, "weak_title_relation"
+    return True, "ok"
+
+
+def _finalize_summary(text: str, title: str, source_text: str) -> tuple[str, str]:
+    candidate = _strip_promotional_text(text)
+    ok, quality = _summary_quality(candidate, title)
+    if ok:
+        return candidate, quality
+    fallback_source = _strip_promotional_text(source_text)
+    fallback = _finance_korean_fallback(fallback_source, title)
+    fallback = _strip_promotional_text(fallback)
+    fallback_ok, fallback_quality = _summary_quality(fallback, title)
+    if fallback_ok:
+        return fallback, f"fallback_{quality}"
+    return "기사 핵심 내용을 신뢰성 있게 요약하지 못했습니다. 원문 보기에서 확인해 주세요.", f"blocked_{fallback_quality}"
+
+
 def _trim_summary(text: str, limit: int = 360) -> str:
     value = _clean_text(text)
     if len(value) <= limit:
@@ -599,6 +651,8 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
             summary_ko = _finance_korean_fallback(source_text, clean_title)
             translation_error = "summary_translation_topic_fallback"
 
+        summary_ko, quality_status = _finalize_summary(summary_ko, clean_title, source_text)
+
         labels = {
             "article_body": "본문 기반",
             "page_description": "본문 설명 기반",
@@ -614,6 +668,7 @@ def _build_summary(url: str, title: str, snippet: str) -> dict:
             "translated": translated,
             "fetchError": fetch_error,
             "translationError": translation_error,
+            "qualityStatus": quality_status,
             "generatedAt": time.time(),
             "notice": "기사 본문은 저장·재게시하지 않고 요약 결과만 임시 캐시합니다.",
         }
