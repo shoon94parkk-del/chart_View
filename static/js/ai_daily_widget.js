@@ -3,6 +3,11 @@
   const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const pct = (n) => Number.isFinite(+n) ? `${+n > 0 ? '+' : ''}${(+n).toFixed(2)}%` : '-';
   const tone = (n) => Number(n) > 0 ? 'up' : Number(n) < 0 ? 'down' : 'flat';
+  function kstDateKey(date = new Date()){
+    const fmt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'});
+    const parts=Object.fromEntries(fmt.formatToParts(date).map(part=>[part.type,part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
   let cachedHomeData = null;
   let fetching = null;
   const HOME_PICK_CACHE_KEY = 'chartview-home-pick-v1';
@@ -40,10 +45,12 @@
     const tracked=rows.filter(row=>row.returnPct !== null && row.returnPct !== undefined && row.returnPct !== '' && Number.isFinite(Number(row.returnPct)));
     const avgReturn=tracked.length?tracked.reduce((sum,row)=>sum+Number(row.returnPct),0)/tracked.length:null;
     const wins=tracked.filter(row=>Number(row.returnPct)>0).length;
-    const winRate=tracked.length?Math.round(wins/tracked.length*100):0;
+    const winRate=tracked.length?Math.round(wins/tracked.length*100):null;
     const latestClose=tracked.reduce((max,row)=>String(row.lastUpdatedTradeDate||'')>max?String(row.lastUpdatedTradeDate||''):max,'')||day?.tradeDate||'';
+    const selectedDate=day?.tradeDate||latestClose||'';
+    const heading=selectedDate===kstDateKey()?'오늘 선정 PICK':'최근 선정 PICK';
     const chips=today.map(row=>`<span class="ai-daily-today-chip">${esc(row.name||row.symbol||'-')}</span>`).join('');
-    return `<div class="ai-daily-head"><div><h2>오늘 PICK · ${today.length}종목</h2><p>${esc(day?.tradeDate||latestClose)} 선정 · AI 스크리닝 · 최종 선정</p></div><button type="button" class="ai-daily-more" data-ai-pick-ledger data-fallback-route="/?tab=screener&view=ai-picks">전체 기록 →</button></div><div class="ai-daily-today"><span class="ai-daily-today-label">선정 종목</span><div class="ai-daily-today-chips">${chips||'<span class="ai-daily-today-chip">선정 대기</span>'}</div></div><div class="ai-daily-performance"><div class="ai-daily-performance-main"><span class="ai-daily-performance-label">누적 평균</span><strong class="ai-daily-performance-value ${tone(avgReturn)}">${pct(avgReturn)}</strong><small>${esc(latestClose)} 종가 기준</small></div><div class="ai-daily-kpis"><div class="ai-daily-kpi"><span>누적</span><b>${rows.length.toLocaleString('ko-KR')}건</b></div><div class="ai-daily-kpi"><span>수익구간</span><b>${winRate}%</b></div></div></div>`;
+    return `<div class="ai-daily-head"><div><h2>${heading} · ${today.length}종목</h2><p>${esc(selectedDate||'선정일 확인 중')} 선정 · AI 스크리닝 · 최종 선정</p></div><button type="button" class="ai-daily-more" data-ai-pick-ledger data-fallback-route="/?tab=screener&view=ai-picks">전체 기록 →</button></div><div class="ai-daily-today"><span class="ai-daily-today-label">선정 종목</span><div class="ai-daily-today-chips">${chips||'<span class="ai-daily-today-chip">선정 대기</span>'}</div></div><div class="ai-daily-performance"><div class="ai-daily-performance-main"><span class="ai-daily-performance-label">추천 건별 평균 수익률</span><strong class="ai-daily-performance-value ${tone(avgReturn)}">${pct(avgReturn)}</strong><small>${esc(latestClose||selectedDate||'기준일 미확인')} 종가 기준 · 평가 ${tracked.length}/${rows.length}건 · 미평가 제외</small></div><div class="ai-daily-kpis"><div class="ai-daily-kpi"><span>전체 추천</span><b>${rows.length.toLocaleString('ko-KR')}건</b></div><div class="ai-daily-kpi"><span>플러스 수익 비율</span><b>${winRate==null?'-':`${winRate}%`}</b></div></div></div>`;
   }
 
   function getHost(){
