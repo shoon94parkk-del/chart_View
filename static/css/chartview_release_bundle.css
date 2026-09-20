@@ -4041,7 +4041,7 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
     grid-column: 1 / -1;
   }
   .stock-detail-v40 .detail-source-status { padding: 3px 0; }
-  .stock-detail-v40 .detail-periods { gap: 4px; margin: 6px 0; }
+  .stock-detail-v40 .detail-periods { gap: 4px; margin: 3px 0; }
   .stock-detail-v40 .detail-periods button { min-height: 44px; padding: 6px 9px; }
 
   .stock-detail-v40 .detail-v40-tabs { gap: 4px; }
