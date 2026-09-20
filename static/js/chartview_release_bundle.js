@@ -312,9 +312,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function settleScreenerAtTop() {
-    resetScreenerScroll({ smooth: false });
-    requestAnimationFrame(() => resetScreenerScroll({ smooth: false }));
-    setTimeout(() => resetScreenerScroll({ smooth: false }), 120);
+    const pin = () => resetScreenerScroll({ smooth: false });
+    pin();
+    requestAnimationFrame(pin);
+    [40, 100, 220].forEach((delay) => setTimeout(pin, delay));
   }
 
   function bind() {
@@ -2501,9 +2502,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         navigateUserTab(targetTab);
         if (mode === 'discover') {
           window.__openScreenerDiscoveryView?.();
-          window.scrollTo({ top: 0, behavior: 'auto' });
-          requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
-          setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 160);
+          const pinDiscoverTop = () => window.scrollTo({ top: 0, behavior: 'auto' });
+          pinDiscoverTop();
+          requestAnimationFrame(pinDiscoverTop);
+          [40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay));
         }
 
         // The legacy switch function is installed by a DOMContentLoaded handler.
