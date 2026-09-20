@@ -235,18 +235,24 @@ function chartTradeDate(data) {
 }
 
 function updateChartFreshness(data, stale = false) {
-    const header = document.querySelector('#chart-tab .chart-header');
-    if (!header) return;
-    let node = header.querySelector('.chart-freshness');
-    if (!node) {
-        node = document.createElement('small');
-        node.className = 'chart-freshness';
-        header.appendChild(node);
-    }
+    const unit = document.querySelector('#chart-tab .chart-unit');
+    if (!unit) return;
     const tradeDate = chartTradeDate(data);
-    const fetchedAt = data?.timestamp ? String(data.timestamp).slice(0, 16) : '';
-    node.textContent = [stale ? '이전 캐시' : '', tradeDate ? `거래일 ${tradeDate}` : '', fetchedAt ? `조회 ${fetchedAt}` : ''].filter(Boolean).join(' · ');
-    node.dataset.stale = stale ? 'true' : 'false';
+    const fetchedAt = data?.timestamp ? String(data.timestamp) : '';
+    const shortTrade = tradeDate ? String(tradeDate).slice(5).replace('-', '.') : '';
+    const shortFetch = fetchedAt.length >= 16 ? fetchedAt.slice(11, 16) : '';
+    const parts = [
+        stale ? '이전 캐시' : '',
+        shortTrade ? `${shortTrade} 거래` : '',
+        shortFetch ? `${shortFetch} 조회` : '',
+    ].filter(Boolean);
+    unit.textContent = parts.length ? parts.join(' · ') : '기간 시작=0%';
+    unit.dataset.stale = stale ? 'true' : 'false';
+    unit.title = [
+        '수익률은 기간 시작=0% 기준',
+        tradeDate ? `실제 거래일 ${tradeDate}` : '',
+        fetchedAt ? `서버 조회 ${fetchedAt}` : '',
+    ].filter(Boolean).join(' · ');
 }
 
 function chartStatus(message = '') {
