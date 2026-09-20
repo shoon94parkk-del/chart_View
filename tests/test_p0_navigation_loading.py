@@ -73,4 +73,4 @@ def test_home_news_prefers_direct_relations():
 
 def test_chart_asset_key_tracks_hidden_loading_guard():
     html = read("templates/index.html")
-    assert "/static/js/chart.js?v=20260920p05" in html
+    assert "/static/js/chart.js?v=20260920p06" in html
