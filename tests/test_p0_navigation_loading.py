@@ -101,7 +101,7 @@ def test_discover_bottom_nav_is_deterministic_and_top_first():
     assert "mode === 'discover' ? 'screener'" in block
     assert "window.scrollTo({ top: 0, behavior: 'auto' })" in block
     assert "window.__openScreenerDiscoveryView?.()" in block
-    assert "setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 160)" in block
+    assert "[40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay))" in block
 
 
 def test_screener_opens_top_first_and_has_one_tap_top_control():
@@ -115,7 +115,7 @@ def test_screener_opens_top_first_and_has_one_tap_top_control():
     assert "window.__resetScreenerScroll = resetScreenerScroll" in js
     assert "window.__openScreenerAtTop = function" in js
     assert "function settleScreenerAtTop()" in js
-    assert "setTimeout(() => resetScreenerScroll({ smooth: false }), 120)" in js
+    assert "[40, 100, 220].forEach((delay) => setTimeout(pin, delay))" in js
     assert "window.scrollTo({ top: 0" in js
     assert "data-screener-top" in js
     assert "기술점수 높은순" in js
