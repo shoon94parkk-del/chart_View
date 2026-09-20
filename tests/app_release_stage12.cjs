@@ -144,8 +144,8 @@ async function scenarioMissingNumbers(browser) {
     await page.waitForSelector('[data-detail-tab="value"]');
     await page.locator('[data-detail-tab="value"]').click();
     const text = await page.locator('[data-detail-panel="value"]').innerText();
-    assert.match(text, /FWD PER\s*—/);
-    assert.match(text, /PER\s*—/);
+    assert.match(text, /FWD PER\s*미제공/);
+    assert.match(text, /PER\s*미제공/);
     assert.match(text, /ROE\s*\+?0(?:\.0+)?%/);
     assert.match(text, /배당수익률\s*\+?0(?:\.0+)?%/);
     assert.doesNotMatch(text, /NaN|Infinity/);
@@ -184,6 +184,8 @@ async function scenarioNewsTwentyAndNonBlocking(browser) {
       const items = [0,1,2].map((i) => ({ symbol: watchlist[i].symbol, name: watchlist[i].name, title: `핵심 기사 ${i + 1}`, source: '테스트뉴스', publishedAt: new Date().toISOString(), url: `https://example.com/${i}`, score: 150 - i * 10 }));
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items, groups, errors: [{ symbol: watchlist[19].symbol, code: 'provider_error:Timeout' }] }) });
     });
+    await page.evaluate(() => window.__openAppTab('home'));
+    await page.locator('#home-personal-news-v37').scrollIntoViewIfNeeded();
     const started = Date.now();
     await page.evaluate(() => window.__reloadPersonalizedNewsV40(true));
     await page.waitForSelector('.news-v40-card h4', { timeout: 2500 });
