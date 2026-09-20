@@ -27,5 +27,5 @@ def test_v39_has_distinct_home_hierarchy_and_mobile_rules():
 
 def test_v39_keeps_home_order_while_news_owner_moves_to_v40():
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
-    assert "market-body-ai-top3-watchlist-news-status" in boot
+    assert "market-body-watchlist-ai-top3-news-status" in boot
     assert "/static/js/personalized_news_v40.js" in boot
