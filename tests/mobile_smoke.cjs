@@ -60,6 +60,8 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.ok(await page.locator('#home-tab').evaluate(el => el.classList.contains('active')), `${width}: Home body must be active after fresh load`);
       assert.ok(await page.locator('.app-bottom-btn[data-app-mode="home"]').evaluate(el => el.classList.contains('active')), `${width}: Home bottom navigation must be active after fresh load`);
       assert.equal(await page.evaluate(() => window.__homeNavMismatchObserved), false, `${width}: Home body and bottom navigation diverged during fresh load`);
+      assert.ok(await page.evaluate(() => window.scrollY <= 4), `${width}: fresh Home must start at the top`);
+      assert.equal(await page.locator('script[data-lightweight-charts]').count(), 0, `${width}: chart library must not load on Home`);
       await page.screenshot({path:`test-results/${width}-home.png`,fullPage:true});
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: home overflow`);
       await page.locator('#ai-daily-section .ai-daily-performance-value').waitFor({timeout:30000});
@@ -79,6 +81,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('.app-bottom-btn[data-app-mode="analysis"]').click();
       await page.locator('#chart-tab.active').waitFor();
       await page.locator('#legend .legend-item').first().waitFor({timeout:60000});
+      assert.equal(await page.locator('script[data-lightweight-charts]').count(), 1, `${width}: chart library should load exactly once after analysis entry`);
       const metrics = await page.evaluate(() => {
         const inspect = selector => {
           const el = document.querySelector(selector);
@@ -146,9 +149,11 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       await page.locator('#chart-tab.active').waitFor();
       if (width === 384) {
         await page.route('**/api/compare?*', r => r.fulfill({status:503,...json({error:'test unavailable'})}));
+        const legendBeforeFailure = await page.locator('#legend .legend-item').count();
         await page.locator('.period-chip[data-period="max"]').click();
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();
-        assert.equal(await page.locator('#legend .legend-item').count(),0);
+        assert.match(await page.locator('#chart-status').textContent(), /기존 차트를 유지/);
+        assert.equal(await page.locator('#legend .legend-item').count(), legendBeforeFailure, 'failed refresh must preserve the previous chart');
         await page.screenshot({path:'test-results/384-chart-retry.png',fullPage:true});
       }
       assert.equal(errors.length,0,errors.join('\n'));
