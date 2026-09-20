@@ -207,6 +207,26 @@
     if (down) down.textContent = values.length ? String(values.filter((x) => x < 0).length) : '-';
   }
 
+  function tradeDateLabel(value) {
+    if (value === null || value === undefined || value === '') return '기준일 미확인';
+    let date;
+    if (typeof value === 'number' || /^\\d{10,13}$/.test(String(value))) {
+      const n = Number(value);
+      date = new Date(n < 1e12 ? n * 1000 : n);
+    } else {
+      const raw = String(value);
+      date = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
+    }
+    if (Number.isNaN(date.getTime())) return '기준일 미확인';
+    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')} 종가`;
+  }
+
+  function quoteMetaText(quote, fresh = false) {
+    if (!quote) return '1달 수익률 · 시세 불러오는 중';
+    const received = timeLabel(quote.updatedAt);
+    return ['1달 수익률', tradeDateLabel(quote.tradeDate), received ? `${received} 조회` : '', fresh ? '방금 갱신' : '저장된 시세'].filter(Boolean).join(' · ');
+  }
+
   function quoteMarkup(row) {
     const quote = quoteFor(row.symbol);
     const price = formatPrice(row.symbol, quote?.price);
@@ -287,7 +307,7 @@
           <div class="watchlist-v30-section-head"><h3>최근 본 종목</h3><small>최대 8개</small></div>
           <div id="watchlist-v30-recents" class="watchlist-v30-recents"></div>
         </section>
-        <p class="watchlist-v30-footer-note">관심종목은 이 기기에 저장됩니다. 가격은 Yahoo Finance 공개 데이터를 기준으로 표시됩니다.</p>
+        <p class="watchlist-v30-footer-note">관심종목은 이 기기에 저장됩니다. 카드의 거래 기준일과 조회 시각을 함께 확인하세요. 실제 출처를 확인할 수 없는 시세는 출처 미확인으로 취급합니다.</p>
       </main>`;
     bindSearch(tab);
     tab.querySelectorAll('[data-watch-sort]').forEach((button) => button.addEventListener('click', () => {
@@ -379,7 +399,7 @@
             <i class="watchlist-v33-market">${marketLabel(row.symbol)}</i>
           </span>
           <span class="watchlist-v30-quote"><strong data-watch-price>${q.price}</strong><b class="watchlist-v30-return ${q.cls}" data-watch-return>${q.ret}</b></span>
-          <small class="watchlist-v30-meta">1달 수익률 · ${quoteFor(row.symbol) ? '저장된 시세' : '시세 불러오는 중'}</small>
+          <small class="watchlist-v30-meta">${esc(quoteMetaText(quoteFor(row.symbol), false))}</small>
           <span class="watchlist-v33-analysis-link">종목분석 <b>›</b></span>
         </button>
         <button type="button" class="watchlist-v30-star" data-watch-remove="${esc(row.symbol)}" aria-label="${esc(row.name)} 관심종목 해제">★</button>
@@ -412,7 +432,7 @@
         ret.textContent = returnText(quote?.return);
         ret.className = `watchlist-v30-return ${returnClass(quote?.return)}`;
       }
-      if (meta) meta.textContent = `1달 수익률 · ${fresh ? '방금 갱신' : '저장된 시세'}`;
+      if (meta) meta.textContent = quoteMetaText(quote, fresh);
     }
     const home = document.querySelector(`[data-home-watch-open="${CSS.escape(symbol)}"]`);
     if (home) {
@@ -486,7 +506,11 @@
         const quote = {
           price: stock.price == null ? null : Number(stock.price),
           return: stock.return == null ? null : Number(stock.return),
-          tradeDate: String(tradeDate || ''),
+          tradeDate: tradeDate || '',
+          quoteAsOf: stock.quoteAsOf || stock.asOf || tradeDate || '',
+          receivedAt: data.timestamp || '',
+          source: stock.source || data.source || '출처 미확인',
+          priceBasis: stock.priceBasis || 'provider',
           updatedAt: Date.now(),
         };
         received += 1;
