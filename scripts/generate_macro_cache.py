@@ -34,6 +34,8 @@ INDICATORS: dict[str, dict[str, str]] = {
     "RRPONTSYD": {"name": "역래포 잔액 (Liquidity)", "desc": "연준 역레포 시설 잔액입니다.", "link": "https://fred.stlouisfed.org/series/RRPONTSYD", "feed": "equibles:rrpontsyd"},
     "DFII10": {"name": "10년 실질금리 (TIPS)", "desc": "미국 10년 물가연동국채 실질금리입니다.", "link": "https://fred.stlouisfed.org/series/DFII10", "feed": "dbnomics:FED/H15/RIFLGFCY10_XII_N.B"},
     "T10YIE": {"name": "기대인플레이션 (BEI)", "desc": "미국 10년 기대인플레이션입니다.", "link": "https://fred.stlouisfed.org/series/T10YIE", "feed": "equibles:t10yie"},
+    "PCEPI": {"name": "PCE 물가 (YoY)", "desc": "미국 개인소비지출(PCE) 물가지수의 전년동월비입니다. 연준이 중시하는 광범위한 소비물가 흐름을 보여줍니다.", "link": "https://fred.stlouisfed.org/series/PCEPI", "feed": "fredcsv:PCEPI", "transform": "yoy"},
+    "PCETRIM12M159SFRBDAL": {"name": "절사평균 PCE (YoY)", "desc": "Dallas Fed가 극단적인 가격변동 항목을 양쪽에서 절사한 뒤 계산한 PCE 기반 핵심물가의 12개월 변화율입니다.", "link": "https://fred.stlouisfed.org/series/PCETRIM12M159SFRBDAL", "feed": "fredcsv:PCETRIM12M159SFRBDAL"},
     "UNRATE": {"name": "실업률 (Unemployment)", "desc": "미국 실업률입니다.", "link": "https://fred.stlouisfed.org/series/UNRATE", "feed": "equibles:unrate"},
     "RSAFS": {"name": "소매판매 (Retail Sales)", "desc": "미국 소매·음식서비스 판매액입니다.", "link": "https://fred.stlouisfed.org/series/RSAFS", "feed": "equibles:rsafs"},
     "WALCL": {"name": "연준 총자산 (Fed Balance)", "desc": "연준 대차대조표 총자산입니다.", "link": "https://fred.stlouisfed.org/series/WALCL", "feed": "equibles:walcl"},
@@ -87,6 +89,38 @@ def fetch_equibles(slug: str) -> list[dict[str, Any]]:
     return rows[-100:]
 
 
+def fetch_fred_csv(series_id: str) -> list[dict[str, Any]]:
+    text = _get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}")
+    reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")))
+    rows: list[dict[str, Any]] = []
+    for item in reader:
+        date = str(item.get("DATE") or item.get("observation_date") or "").strip()[:10]
+        value = _finite_number(item.get(series_id) if series_id in item else item.get("VALUE"))
+        if not date or value is None:
+            continue
+        rows.append({"time": date, "value": round(value, 6)})
+    rows.sort(key=lambda x: x["time"])
+    if not rows:
+        raise RuntimeError(f"FRED CSV returned no observations for {series_id}")
+    return rows[-120:]
+
+
+def transform_yoy(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if len(rows) < 13:
+        raise RuntimeError("not enough monthly observations for YoY transform")
+    output: list[dict[str, Any]] = []
+    for index in range(12, len(rows)):
+        current = _finite_number(rows[index].get("value"))
+        previous = _finite_number(rows[index - 12].get("value"))
+        if current is None or previous in (None, 0):
+            continue
+        yoy = ((current / previous) - 1.0) * 100.0
+        output.append({"time": rows[index]["time"], "value": round(yoy, 6)})
+    if not output:
+        raise RuntimeError("YoY transform produced no observations")
+    return output[-100:]
+
+
 def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
     payload = _get(
         f"https://api.db.nomics.world/v22/series/{path}?observations=1",
@@ -138,11 +172,16 @@ def fetch_one(symbol: str) -> dict[str, Any]:
     if kind == "equibles":
         rows = fetch_equibles(target)
         source = "FRED mirror · Equibles CSV"
+    elif kind == "fredcsv":
+        rows = fetch_fred_csv(target)
+        source = "FRED CSV"
     elif kind == "dbnomics":
         rows = fetch_dbnomics(target)
         source = "Federal Reserve mirror · DBnomics"
     else:
         raise RuntimeError(f"unknown feed type: {kind}")
+    if meta.get("transform") == "yoy":
+        rows = transform_yoy(rows)
     return make_row(symbol, meta, rows, source)
 
 
@@ -194,7 +233,7 @@ def main() -> None:
         print("STALE", symbol, kept.get("asOf"))
 
     ordered = [results[symbol] for symbol in INDICATORS if symbol in results]
-    required = len(INDICATORS) if not previous else 11
+    required = len(INDICATORS) if not previous else 13
     if len(ordered) < required:
         raise RuntimeError(
             f"macro cache incomplete: {len(ordered)}/{len(INDICATORS)}; errors={errors}"
@@ -208,7 +247,7 @@ def main() -> None:
         "staleSymbols": stale_symbols,
         "results": ordered,
         "errors": errors,
-        "source": "FRED/Federal Reserve data precomputed by GitHub Actions via Equibles + DBnomics mirrors",
+        "source": "FRED/Federal Reserve data precomputed by GitHub Actions via FRED CSV + Equibles + DBnomics",
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

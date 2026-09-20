@@ -5488,6 +5488,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function macroCategory(symbol) {
+    if (/PCEPI|PCETRIM/.test(symbol)) return '물가';
     if (/T10Y|FEDFUNDS|DFII10|T10YIE/.test(symbol)) return '금리';
     if (/VIX|BAML/.test(symbol)) return '위험';
     if (/WALCL|TGA|RRP|M2SL|WTREGEN/.test(symbol)) return '유동성';
