@@ -101,6 +101,7 @@ def test_discover_bottom_nav_is_deterministic_and_top_first():
     assert "mode === 'discover' ? 'screener'" in block
     assert "window.scrollTo({ top: 0, behavior: 'auto' })" in block
     assert "window.__openScreenerDiscoveryView?.()" in block
+    assert "setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 160)" in block
 
 
 def test_screener_opens_top_first_and_has_one_tap_top_control():
