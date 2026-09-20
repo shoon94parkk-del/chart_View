@@ -134,3 +134,18 @@ def test_p1_home_pick_and_news_hierarchy():
     assert "직접 관련 뉴스" in news
     assert "업종·간접 관련" in news
     assert "MY STOCKS · 가격 / 1달 수익률" in watch
+
+
+
+def test_screener_price_is_labeled_as_trade_date_close_not_realtime():
+    js = read("static/js/screener.js")
+    css = read("static/css/screener.css")
+    assert "<th>기준 종가</th>" in js
+    assert 'data-label="기준 종가"' in js
+    assert "종가 기준" in js
+    assert "shortTradeDate(row.date || payload.tradeDate)" in js
+    assert "전일 대비" in js
+    assert "가격은 실시간 현재가가 아니라 스크리너 기준 거래일의 종가입니다." in js
+    assert "<th>현재가</th>" not in js
+    assert 'data-label="현재가"' not in js
+    assert ".screen-price-basis" in css
