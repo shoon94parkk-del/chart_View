@@ -103,4 +103,15 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(screener, /RSI 최소는 최대보다 클 수 없습니다/);
   assert.match(screener, /if \(errors\.length\) return false/);
   assert.match(p2, /<summary>목록 관리<\/summary>/);
+  const marketService = fs.readFileSync('market_service.py', 'utf8');
+  const homeCards = fs.readFileSync('static/js/home_cards_v14.js', 'utf8');
+  assert.match(marketService, /"price": round\(close, 4\)/);
+  assert.match(detail, /aria-live="polite"/);
+  assert.match(detail, /point\.price/);
+  assert.match(detail, /가격 \$\{priceText\}/);
+  assert.match(detail, /midPoint/);
+  assert.match(homeBrief, /marketSummaryHtml\(snapshot\?\.macro\) \+ majorStocksHtml/);
+  assert.match(homeBrief, /<span>시장 상태<\/span><h3>한줄 요약<\/h3>/);
+  assert.match(homeCards, /timeZone:\s*'Asia\/Seoul'/);
+  assert.match(homeCards, /summaryCard\.insertAdjacentElement\('afterend', wrap\)/);
 });
