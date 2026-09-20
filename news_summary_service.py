@@ -29,7 +29,7 @@ SUMMARY_CACHE: dict[str, dict] = {}
 SUMMARY_CACHE_TTL = 60 * 60 * 6
 SUMMARY_DISK_TTL = 60 * 60 * 24 * 7
 SUMMARY_DISK_PATH = __import__("pathlib").Path(__file__).resolve().parent / "static" / "data" / "news_summary_cache.json"
-SUMMARY_CACHE_VERSION = "v49-quality-gate"
+SUMMARY_CACHE_VERSION = "v50-quality-language"
 SUMMARY_FETCH_LIMIT = 1_200_000
 SUMMARY_TEXT_LIMIT = 14_000
 SUMMARY_CONCURRENCY = 3
@@ -514,16 +514,21 @@ def _strip_promotional_text(text: str) -> str:
 
 def _summary_quality(text: str, title: str = "") -> tuple[bool, str]:
     value = _clean_text(text)
-    if len(value) < 28:
+    body_tokens = _tokens(value)
+    has_concrete_fact = bool(re.search(r"\d|[$€£₩%]", value)) or any(word in value.lower() for word in _SIGNAL_WORDS)
+    if len(value) < 20 or (len(value) < 28 and not has_concrete_fact):
         return False, "too_short"
     low = value.lower()
     if any(pattern in low for pattern in _PROMO_PATTERNS):
         return False, "promotional"
-    if len(_tokens(value)) < 5:
+    if len(body_tokens) < 4:
         return False, "low_information"
     title_tokens = _tokens(title)
-    body_tokens = _tokens(value)
-    if title_tokens and body_tokens and not (title_tokens & body_tokens) and not re.search(r"\\d|[$€£₩%]", value):
+    # A Korean translation cannot be validated by raw token overlap against an
+    # English headline. Keep the overlap guard only when both sides use the same
+    # visible language; translation quality is already checked by _looks_korean.
+    same_language = _looks_korean(value) == _looks_korean(title)
+    if same_language and title_tokens and body_tokens and not (title_tokens & body_tokens) and not has_concrete_fact:
         return False, "weak_title_relation"
     return True, "ok"
 
