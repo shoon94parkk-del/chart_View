@@ -1777,7 +1777,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       (data.stocks || []).forEach((stock) => {
         const symbol = String(stock.ticker || '').toUpperCase();
         if (!symbol) return;
-        const quote = { price: stock.price == null ? null : Number(stock.price), return: stock.return == null ? null : Number(stock.return), updatedAt: Date.now() };
+        const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
+        const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
+        const quote = {
+          price: stock.price == null ? null : Number(stock.price),
+          return: stock.return == null ? null : Number(stock.return),
+          tradeDate: String(tradeDate || ''),
+          updatedAt: Date.now(),
+        };
         received += 1;
         quoteCache.quotes[symbol] = quote;
         applyQuote(symbol, quote, true);
@@ -1909,7 +1916,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     wrapAnalysisState();
     try {
       if (typeof window.updateTags === 'function') window.updateTags();
-      if (typeof window.loadData === 'function') window.loadData();
+      if (typeof window.loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) window.loadData();
     } catch (_) { }
     renderHomeShortcut();
     render();
@@ -2141,6 +2148,56 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let openingAppTab = 0;
   let userNavigationStarted = false;
 
+  const ROUTE_TABS = new Set(['home', 'watchlist', 'chart', 'fwdper', 'ideas', 'screener', 'revision', 'macro', 'tools']);
+
+  function resolveInitialRoute() {
+    let params = null;
+    try { params = new URLSearchParams(window.location.search); } catch (_) { }
+    const requestedTab = params?.get('tab');
+    const symbol = String(params?.get('symbol') || '').trim().toUpperCase();
+    const name = String(params?.get('name') || '').trim();
+    if (requestedTab && ROUTE_TABS.has(requestedTab)) {
+      return { tab: requestedTab, explicit: true, view: params?.get('view') || '', symbol, name, scrollY: 0 };
+    }
+    if (symbol) return { tab: 'chart', explicit: true, view: 'detail', symbol, name, scrollY: 0 };
+    const state = history.state;
+    if (state?.chartView && ROUTE_TABS.has(state.tab)) {
+      return { tab: state.tab, explicit: false, view: state.view || '', symbol: state.symbol || '', name: state.name || '', scrollY: Number(state.scrollY) || 0 };
+    }
+    return { tab: 'home', explicit: false, view: '', symbol: '', name: '', scrollY: 0 };
+  }
+
+  function cleanRouteUrl() {
+    try {
+      const url = new URL(location.href);
+      ['tab', 'view', 'symbol', 'name'].forEach((key) => url.searchParams.delete(key));
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch (_) {
+      return location.pathname || '/';
+    }
+  }
+
+  function rememberCurrentScroll() {
+    if (!history.state?.chartView) return;
+    try {
+      history.replaceState({ ...history.state, scrollY: Math.max(0, Math.round(window.scrollY || 0)) }, '', location.href);
+    } catch (_) { }
+  }
+
+  function restoreScroll(scrollY) {
+    const top = Math.max(0, Number(scrollY) || 0);
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top, behavior: 'auto' })));
+  }
+
+  function openInitialDetail(route, attempt = 0) {
+    if (!route?.symbol) return;
+    if (typeof window.__openStockDetail === 'function') {
+      window.__openStockDetail(route.symbol, route.name || route.symbol, { history: false, instant: true });
+      return;
+    }
+    if (attempt < 60) setTimeout(() => openInitialDetail(route, attempt + 1), 50);
+  }
+
   function ensureHomeAssets() {
     if (!document.querySelector('link[data-home-v8]')) {
       const link = document.createElement('link');
@@ -2155,9 +2212,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       script.async = false;
       script.dataset.homeV8 = '1';
       script.addEventListener('load', () => {
-        if (document.querySelector('.app-bottom-nav') && !userNavigationStarted) {
-          openTab('home', { history: false });
-        }
+        // Initial route ownership lives in installAppNavigation().
+        // Loading Home assets must never redirect the current screen.
       }, { once: true });
       document.head.appendChild(script);
     }
@@ -2204,11 +2260,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   function commitHistory(tabId, replace = false) {
     if (handlingPopState || !window.history?.pushState) return;
     const state = history.state || {};
-    if (state.chartView && state.tab === tabId) return;
-    const payload = { chartView: true, tab: tabId };
+    if (!replace && state.chartView && state.tab === tabId && !state.view) return;
+    if (!replace) rememberCurrentScroll();
+    const payload = { chartView: true, tab: tabId, scrollY: 0 };
+    const url = cleanRouteUrl();
     try {
-      if (replace) history.replaceState(payload, '', location.href);
-      else history.pushState(payload, '', location.href);
+      if (replace) history.replaceState(payload, '', url);
+      else history.pushState(payload, '', url);
     } catch (_) { }
   }
 
@@ -2396,9 +2454,26 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     });
 
     document.body.classList.add('app-shell-ready');
-    try { history.replaceState({ chartView: true, tab: 'home' }, '', location.href); } catch (_) { }
-    if (document.getElementById('home-tab')) openTab('home', { history: false });
-    else syncNavigation('chart');
+    const route = resolveInitialRoute();
+    const payload = {
+      ...(history.state || {}),
+      chartView: true,
+      tab: route.tab,
+      scrollY: route.scrollY,
+    };
+    if (route.view) payload.view = route.view;
+    if (route.symbol) payload.symbol = route.symbol;
+    if (route.name) payload.name = route.name;
+    try { history.replaceState(payload, '', route.explicit ? location.href : cleanRouteUrl()); } catch (_) { }
+
+    if (document.getElementById(`${route.tab}-tab`)) {
+      openTab(route.tab, { history: false });
+      if (route.symbol) openInitialDetail(route);
+      else restoreScroll(route.scrollY);
+    } else {
+      syncNavigation('home');
+      restoreScroll(0);
+    }
   }
 
   function revealAllValuationMetrics() {
@@ -2466,12 +2541,24 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     document.addEventListener('click', (event) => {
       if (event.target.closest('.app-context-btn')) requestAnimationFrame(keepActiveContextVisible);
     });
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.addEventListener('popstate', (event) => {
-      const tab = event.state?.chartView ? event.state.tab : 'home';
+      const state = event.state?.chartView ? event.state : { tab: 'home', scrollY: 0 };
+      const tab = ROUTE_TABS.has(state.tab) ? state.tab : 'home';
       userNavigationStarted = true;
       handlingPopState = true;
-      try { openTab(tab || 'home', { history: false }); }
-      finally { handlingPopState = false; }
+      try {
+        if (state.view === 'detail' && state.symbol) {
+          openTab('chart', { history: false });
+          openInitialDetail({ tab: 'chart', symbol: state.symbol, name: state.name || state.symbol });
+        } else {
+          if (typeof window.__closeStockDetail === 'function' && window.ChartViewState?.detail?.open) {
+            window.__closeStockDetail({ force: true, restore: false });
+          }
+          openTab(tab, { history: false });
+          restoreScroll(state.scrollY);
+        }
+      } finally { handlingPopState = false; }
     });
   }
 
@@ -3933,7 +4020,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (typeof tickerNameMap !== 'undefined') Object.assign(tickerNameMap, names);
       if (typeof perTickerNameMap !== 'undefined') Object.assign(perTickerNameMap, names);
       if (changed && typeof updateTags === 'function') updateTags();
-      if (changed && typeof loadData === 'function') loadData();
+      if (changed && typeof loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) loadData();
       if (changed && typeof loadPerData === 'function' && document.getElementById('fwdper-tab')?.classList.contains('active')) loadPerData();
     } catch (_) { }
   }
@@ -4555,18 +4642,28 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function pickDiverse(items, limit = TOP_COUNT) {
-    const rows = Array.isArray(items) ? items : [];
+    const rows = (Array.isArray(items) ? items : []).map((item, index) => ({ item, index }));
+    rows.sort((a, b) => {
+      const directA = a.item?.relationType === 'direct' ? 1 : 0;
+      const directB = b.item?.relationType === 'direct' ? 1 : 0;
+      if (directA !== directB) return directB - directA;
+      const scoreA = Number(a.item?.score || 0);
+      const scoreB = Number(b.item?.score || 0);
+      if (scoreA !== scoreB) return scoreB - scoreA;
+      return a.index - b.index;
+    });
+
     const chosen = [];
     const seenSymbols = new Set();
     const used = new Set();
-    rows.forEach((item, index) => {
+    rows.forEach(({ item, index }) => {
       const symbol = String(item?.symbol || '').toUpperCase();
       if (!symbol || seenSymbols.has(symbol) || chosen.length >= limit) return;
       seenSymbols.add(symbol);
       used.add(index);
       chosen.push(item);
     });
-    rows.forEach((item, index) => {
+    rows.forEach(({ item, index }) => {
       if (chosen.length >= limit || used.has(index)) return;
       chosen.push(item);
     });
@@ -4793,8 +4890,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   if (window.__chartViewReleaseUiV40) return;
   window.__chartViewReleaseUiV40 = true;
 
-  const basisCache = new Map();
-  const basisInflight = new Map();
   let homeObserver = null;
   let valuationObserver = null;
   let screenerObserver = null;
@@ -4851,33 +4946,20 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return m ? `${m[2]}.${m[3]}` : '';
   };
 
-  async function fetchBasis(symbols) {
-    const missing = symbols.filter((symbol) => symbol && !basisCache.has(symbol));
-    for (let i = 0; i < missing.length; i += 6) {
-      const chunk = missing.slice(i, i + 6);
-      const key = chunk.join(',');
-      if (basisInflight.has(key)) { await basisInflight.get(key); continue; }
-      const job = fetch(`/api/compare?tickers=${encodeURIComponent(key)}&period=1mo`, { cache: 'no-store' })
-        .then((r) => r.ok ? r.json() : null)
-        .then((payload) => {
-          (payload?.stocks || []).forEach((stock) => {
-            const symbol = String(stock.ticker || '').toUpperCase();
-            const end = stock.actualEnd || stock.endDate || stock?.meta?.actualEnd || stock?.meta?.end || stock.asOf || '';
-            if (symbol) basisCache.set(symbol, end);
-          });
-        }).catch(() => {}).finally(() => basisInflight.delete(key));
-      basisInflight.set(key, job);
-      await job;
+  function readWatchlistQuoteCache() {
+    try {
+      const payload = JSON.parse(localStorage.getItem('chartview-watchlist-quotes-v33') || '{}');
+      return payload?.quotes && typeof payload.quotes === 'object' ? payload.quotes : {};
+    } catch (_) {
+      return {};
     }
   }
 
   async function decorateHomeWatchlist() {
     const section = document.getElementById('home-watchlist-v30');
     if (!section) return;
-    const buttons = [...section.querySelectorAll('[data-home-watch-open]')];
-    const symbols = buttons.map((button) => String(button.dataset.homeWatchOpen || '').toUpperCase()).filter(Boolean);
-    await fetchBasis(symbols);
-    buttons.forEach((button) => {
+    const quotes = readWatchlistQuoteCache();
+    section.querySelectorAll('[data-home-watch-open]').forEach((button) => {
       const symbol = String(button.dataset.homeWatchOpen || '').toUpperCase();
       let basis = button.querySelector('.home-watch-v40-basis');
       if (!basis) {
@@ -4885,7 +4967,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         basis.className = 'home-watch-v40-basis';
         button.appendChild(basis);
       }
-      const text = `${shortDate(basisCache.get(symbol)) || '기준 확인'} 거래 · 1달`;
+      const quote = quotes[symbol] || {};
+      const tradeDate = shortDate(quote.tradeDate);
+      const refreshed = quote.updatedAt ? new Date(Number(quote.updatedAt)).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+      const text = tradeDate ? `${tradeDate} 거래 · 1달` : (refreshed ? `${refreshed} 저장 시세 · 1달` : '기준일 확인 중 · 1달');
       if (basis.textContent !== text) basis.textContent = text;
     });
   }
