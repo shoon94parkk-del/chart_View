@@ -151,8 +151,12 @@
         applyKoreanTitle(title, payload, originalTitle);
         box.classList.remove('is-loading', 'is-error');
         box.dataset.summaryBasis = payload?.basis || '';
-        label.textContent = cleanTitle(payload?.basisLabel) || '본문 기반';
+        const quality = cleanTitle(payload?.qualityStatus);
+        const blocked = quality.startsWith('blocked_');
+        label.textContent = blocked ? '요약 품질 확인 필요' : (cleanTitle(payload?.basisLabel) || '본문 기반');
         text.textContent = cleanTitle(payload?.summary) || '본문 요약을 만들지 못했습니다. 원문 보기에서 확인해 주세요.';
+        box.classList.toggle('is-error', blocked);
+        if (quality) box.dataset.summaryQuality = quality;
         if (box.getAttribute('aria-expanded') === 'true') syncSummaryExpansion(box, true);
       })
       .catch(() => {
