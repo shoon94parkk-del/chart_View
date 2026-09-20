@@ -102,6 +102,7 @@ def test_discover_bottom_nav_is_deterministic_and_top_first():
     assert "window.scrollTo({ top: 0, behavior: 'auto' })" in block
     assert "window.__openScreenerDiscoveryView?.()" in block
     assert "[40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay))" in block
+    assert "mode === 'discover' ? 'screener'" in block
 
 
 def test_screener_opens_top_first_and_has_one_tap_top_control():
