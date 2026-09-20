@@ -99,7 +99,9 @@ def test_screener_opens_top_first_and_has_one_tap_top_control():
     nav = read("static/js/ux_v3.js")
     js = read("static/js/screener.js")
     css = read("static/css/screener.css")
+    ledger = read("static/js/ai_pick_ledger_v52.js")
     assert "window.__openScreenerDiscoveryView?.()" in nav
+    assert "window.__openScreenerDiscoveryView = () => openView('screener')" in ledger
     assert "window.__resetScreenerScroll?.({ smooth: false })" in nav
     assert "window.__resetScreenerScroll = resetScreenerScroll" in js
     assert "data-screener-top" in js
