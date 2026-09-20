@@ -308,9 +308,10 @@
   }
 
   function settleScreenerAtTop() {
-    resetScreenerScroll({ smooth: false });
-    requestAnimationFrame(() => resetScreenerScroll({ smooth: false }));
-    setTimeout(() => resetScreenerScroll({ smooth: false }), 120);
+    const pin = () => resetScreenerScroll({ smooth: false });
+    pin();
+    requestAnimationFrame(pin);
+    [40, 100, 220].forEach((delay) => setTimeout(pin, delay));
   }
 
   function bind() {
