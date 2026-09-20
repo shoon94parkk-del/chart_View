@@ -23,6 +23,7 @@
     .replaceAll("'", '&#39;');
 
   const number = (value) => {
+    if (value === null || value === undefined || String(value).trim() === '') return null;
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
   };
@@ -220,13 +221,14 @@
     if (!host) return;
     const rows = state.rows;
     const dayCount = new Set(state.days.map((day) => day.tradeDate).filter(Boolean)).size || new Set(rows.map((row) => row.recommendedDate).filter(Boolean)).size;
-    const wins = rows.filter((row) => (number(row.returnPct) || 0) > 0).length;
-    const avg = rows.length ? rows.reduce((sum, row) => sum + (number(row.returnPct) || 0), 0) / rows.length : 0;
+    const evaluated = rows.filter((row) => number(row.returnPct) != null);
+    const wins = evaluated.filter((row) => number(row.returnPct) > 0).length;
+    const avg = evaluated.length ? evaluated.reduce((sum, row) => sum + number(row.returnPct), 0) / evaluated.length : null;
     host.innerHTML = `
       <div class="ai-ledger-kpi"><span>누적 추천일</span><b>${dayCount.toLocaleString('ko-KR')}</b></div>
       <div class="ai-ledger-kpi"><span>누적 추천 건수</span><b>${rows.length.toLocaleString('ko-KR')}</b></div>
-      <div class="ai-ledger-kpi"><span>수익 구간 비율</span><b>${rows.length ? Math.round(wins / rows.length * 100) : 0}%</b></div>
-      <div class="ai-ledger-kpi"><span>평균 수익률</span><b class="${cls(avg)}">${pct(avg)}</b></div>`;
+      <div class="ai-ledger-kpi"><span>수익 구간 비율</span><b>${evaluated.length ? Math.round(wins / evaluated.length * 100) : '-'}%</b><small>평가 ${evaluated.length}/${rows.length}건</small></div>
+      <div class="ai-ledger-kpi"><span>추천 건별 단순 평균 수익률</span><b class="${cls(avg)}">${pct(avg)}</b><small>전체 기록 기준 · 미평가 제외</small></div>`;
 
     const latest = rows.reduce((max, row) => String(row.lastUpdatedTradeDate || '') > max ? String(row.lastUpdatedTradeDate || '') : max, '');
     const date = document.querySelector('[data-ledger-date]');
@@ -243,8 +245,8 @@
 
     if (state.period !== 'all' && rows.length) {
       const days = Number(state.period);
-      const latest = Math.max(...state.rows.map((row) => dateValue(row.recommendedDate)));
-      const cutoff = latest - Math.max(0, days - 1) * 86400000;
+      const today = Date.now();
+      const cutoff = today - Math.max(0, days - 1) * 86400000;
       rows = rows.filter((row) => dateValue(row.recommendedDate) >= cutoff);
     }
 
