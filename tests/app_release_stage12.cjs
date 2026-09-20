@@ -105,7 +105,10 @@ async function scenarioDetailNoHangAndCompareState(browser) {
     await page.waitForSelector('#stock-detail-v40:not([hidden]) .detail-v40-id', { timeout: 3000 });
     assert.match(await page.locator('.detail-v40-id').innerText(), /엔비디아.*NVDA/s);
     assert.equal((await page.locator('[data-detail-compare]').innerText()).trim(), '비교 중');
+    await page.waitForFunction(() => document.querySelector('.detail-source-status')?.textContent.trim() === '', null, { timeout: 5000 });
+    await page.screenshot({ path: path.join(OUT, 'detail-mobile.png'), fullPage: true });
     const top = await page.locator('.detail-v40-chart').evaluate((el) => el.getBoundingClientRect().top);
+    fs.writeFileSync(path.join(OUT, 'detail-geometry.json'), JSON.stringify({top, width:390, pageErrors}, null, 2));
     assert.ok(top <= 420, `mobile single detail chart top ${top} > 420`);
     assert.equal(pageErrors.filter((x) => /RangeError|recursion|Maximum call stack/i.test(x)).length, 0, pageErrors.join('\n'));
     await page.screenshot({ path: path.join(OUT, 'detail-mobile.png'), fullPage: true });
@@ -141,8 +144,8 @@ async function scenarioMissingNumbers(browser) {
     await page.waitForSelector('[data-detail-tab="value"]');
     await page.locator('[data-detail-tab="value"]').click();
     const text = await page.locator('[data-detail-panel="value"]').innerText();
-    assert.match(text, /FWD PER\s*—/);
-    assert.match(text, /PER\s*—/);
+    assert.match(text, /FWD PER\s*미제공/);
+    assert.match(text, /PER\s*미제공/);
     assert.match(text, /ROE\s*\+?0(?:\.0+)?%/);
     assert.match(text, /배당수익률\s*\+?0(?:\.0+)?%/);
     assert.doesNotMatch(text, /NaN|Infinity/);
@@ -178,9 +181,11 @@ async function scenarioNewsTwentyAndNonBlocking(browser) {
       const url = new URL(route.request().url());
       requestedCount = (url.searchParams.get('tickers') || '').split(',').filter(Boolean).length;
       const groups = watchlist.map((row, i) => ({ symbol: row.symbol, name: row.name, items: i < 3 ? [{}] : [], status: i === 19 ? 'error' : i < 3 ? 'success' : 'no_news' }));
-      const items = [0,1,2].map((i) => ({ symbol: watchlist[i].symbol, name: watchlist[i].name, title: `핵심 기사 ${i + 1}`, source: '테스트뉴스', publishedAt: new Date().toISOString(), url: `https://example.com/${i}`, score: 150 - i * 10 }));
+      const items = [0,1,2].map((i) => ({ symbol: watchlist[i].symbol, name: watchlist[i].name, title: `핵심 기사 ${i + 1}`, source: '테스트뉴스', publishedAt: new Date().toISOString(), url: `https://example.com/${i}`, score: 150 - i * 10, relationType: 'direct', relationBasis: '제목에 기업명 확인' }));
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items, groups, errors: [{ symbol: watchlist[19].symbol, code: 'provider_error:Timeout' }] }) });
     });
+    await page.evaluate(() => window.__openAppTab('home'));
+    await page.locator('#home-personal-news-v37').scrollIntoViewIfNeeded();
     const started = Date.now();
     await page.evaluate(() => window.__reloadPersonalizedNewsV40(true));
     await page.waitForSelector('.news-v40-card h4', { timeout: 2500 });
@@ -190,6 +195,10 @@ async function scenarioNewsTwentyAndNonBlocking(browser) {
     assert.match(await page.locator('.news-v40-status').innerText(), /부분 실패/);
     assert.match(await page.locator('.news-v40-groups').innerText(), /조회 실패/);
     assert.match(await page.locator('.news-v40-card').first().innerText(), /이벤트 참고 설명/);
+  } catch (error) {
+    fs.writeFileSync(path.join(OUT, 'news-failure.html'), await page.content());
+    await page.screenshot({path: path.join(OUT, 'news-failure.png'), fullPage:true});
+    throw error;
   } finally { await context.close(); }
 }
 
@@ -255,12 +264,20 @@ async function scenarioKeyboardAndStorageFailure(browser) {
     ['responsive-home-compare', scenarioResponsiveHomeAndCompare],
     ['keyboard-storage-failure', scenarioKeyboardAndStorageFailure],
   ];
+  const failures = [];
   try {
     for (const [name, fn] of scenarios) {
       const start = Date.now();
-      await withTimeout(name, fn(browser), name === 'responsive-home-compare' ? 50000 : 30000);
-      console.log(`PASS ${name} ${Date.now() - start}ms`);
+      try {
+        await withTimeout(name, fn(browser), name === 'responsive-home-compare' ? 50000 : 30000);
+        console.log(`PASS ${name} ${Date.now() - start}ms`);
+      } catch (error) {
+        failures.push({name, error:String(error)});
+        console.error(`FAIL ${name}`, error);
+      }
     }
+    fs.writeFileSync(path.join(OUT, 'failures.json'), JSON.stringify(failures, null, 2));
+    assert.equal(failures.length, 0, JSON.stringify(failures));
   } finally {
     await browser.close();
   }

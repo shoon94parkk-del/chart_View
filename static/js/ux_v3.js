@@ -57,6 +57,7 @@
   }
 
   function applyInitialRoute(route, attempt = 0) {
+    if (userNavigationStarted) return false;
     const target = document.getElementById(`${route.tab}-tab`);
     if (!target) {
       if (attempt < 160) setTimeout(() => applyInitialRoute(route, attempt + 1), 50);

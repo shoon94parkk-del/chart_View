@@ -6,6 +6,9 @@ on:
     paths:
       - 'main.py'
       - 'market_service.py'
+      - 'realtime_korea.py'
+      - 'scripts/validate_market_snapshot.py'
+      - 'scripts/verify_deployed_release.py'
       - 'static/js/ux_patch.js'
       - 'static/js/ux_v3.js'
       - 'static/js/home_brief_v8.js'
@@ -29,9 +32,13 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Verify exact deployed release
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: python scripts/verify_deployed_release.py
       - name: Verify source invariants
         run: |
           python - <<'PY'
@@ -61,8 +68,7 @@ jobs:
             if [ "$code" = '200' ] && [ "$api_code" = '200' ] \
               && grep -q '/api/market-now' /tmp/home_market.js \
               && grep -q 'KOSPI' /tmp/home_market.js \
-              && grep -q 'KOSDAQ' /tmp/home_market.js \
-              && grep -q 'Yahoo Chart 5m' /tmp/market_now.json; then
+              && grep -q 'KOSDAQ' /tmp/home_market.js; then
               ready=1
               echo "Korea market home build detected on attempt=$i"
               break
@@ -110,18 +116,9 @@ jobs:
           assert health.get('status') == 'ok', health
 
           market=json.load(open('/tmp/market_now.json'))
-          assert market.get('basis') == 'previous_close', market
-          assert market.get('date') == datetime.now(ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%d'), market.get('date')
-          market_rows={x.get('ticker'):x for x in market.get('results', [])}
-          required=('^KS11','^KQ11','^GSPC','^IXIC','^TNX','^VIX','CL=F','KRW=X')
-          missing=[x for x in required if x not in market_rows or market_rows[x].get('price') is None]
-          assert not missing, ('market snapshot missing', missing, market.get('errors'))
-          for ticker in required:
-              assert market_rows[ticker].get('change') is not None, (ticker, market_rows[ticker])
-              assert market_rows[ticker].get('source') == 'Yahoo Chart 5m', (ticker, market_rows[ticker])
-
-          for ticker in ('^KS11','^KQ11','^GSPC','^IXIC','KRW=X'):
-              assert abs(float(market_rows[ticker]['change'])) < 15, (ticker, market_rows[ticker])
+          from scripts.validate_market_snapshot import validate_market_snapshot, REQUIRED
+          market_rows = validate_market_snapshot(market)
+          required = REQUIRED
 
           screener=json.load(open('/tmp/screener.json'))
           stocks=screener.get('stocks', [])
@@ -149,3 +146,8 @@ jobs:
 
           print('Korea + global home market smoke OK:', {k:(market_rows[k]['price'], market_rows[k]['change']) for k in required})
           PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-release-verification
+          path: test-results/

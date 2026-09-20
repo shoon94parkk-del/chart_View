@@ -2259,6 +2259,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function applyInitialRoute(route, attempt = 0) {
+    if (userNavigationStarted) return false;
     const target = document.getElementById(`${route.tab}-tab`);
     if (!target) {
       if (attempt < 160) setTimeout(() => applyInitialRoute(route, attempt + 1), 50);
@@ -4378,7 +4379,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         </header>
         <section class="detail-v40-price" aria-label="현재 가격">
           <div><span>최근 시세</span><strong>${esc(price)}</strong></div>
-          <small>${esc(quoteTime(tradeDate))} · ${esc(quote.source || '출처 미확인')} · 스크리너 종가와 시점·출처가 다를 수 있음</small>
+          <div class="detail-quote-basis">
+            <small>${esc(quoteTime(tradeDate))}</small>
+            <details><summary>시세 기준</summary><p>${esc(quote.source || '출처 미확인')} · 스크리너 종가와 시점·출처가 다를 수 있음</p></details>
+          </div>
         </section>
         <div class="detail-source-status" role="status">${[['compare','차트'],['valuation','재무'],['consensus','컨센서스']].map(([key,label]) => detailSession?.status[key] === 'error' ? `${label} 조회 실패 <button type="button" data-detail-retry-source="${key}">다시 시도</button>` : detailSession?.status[key] === 'loading' ? `${label} 불러오는 중…` : '').filter(Boolean).join(' · ')}</div>
         <div class="detail-v40-metrics">

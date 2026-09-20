@@ -24,6 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact deployed release
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: python scripts/verify_deployed_release.py
       - name: Verify current public build and endpoints
         shell: bash
         run: |

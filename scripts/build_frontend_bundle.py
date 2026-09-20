@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 from pathlib import Path
 
@@ -60,6 +61,18 @@ def main() -> int:
         ROOT / "static/css/chartview_release_bundle.css": render(styles, "CSS"),
         ROOT / "static/js/chartview_release_bundle.js": render(scripts, "JavaScript"),
     }
+    # Content-addressed URLs keep source, generated files and browser caches in
+    # one reviewed commit. CI must never create an untested follow-up commit.
+    template = ROOT / "templates/index.html"
+    html = template.read_text(encoding="utf-8")
+    versioned = {**outputs, ROOT / "static/js/ai_daily_widget.js": (ROOT / "static/js/ai_daily_widget.js").read_text(encoding="utf-8")}
+    for path, body in versioned.items():
+        token = hashlib.sha256(body.encode("utf-8")).hexdigest()[:12]
+        asset = path.relative_to(ROOT).as_posix()
+        html, count = re.subn(rf'/{re.escape(asset)}\?v=[^"\s]+', f'/{asset}?v={token}', html)
+        if count != 1:
+            raise SystemExit(f"Expected exactly one template reference: {asset}, got {count}")
+    outputs[template] = html
     if args.check:
         stale = [str(path.relative_to(ROOT)) for path, body in outputs.items() if not path.exists() or path.read_text(encoding="utf-8") != body]
         if stale:
