@@ -99,9 +99,9 @@ def test_discover_bottom_nav_is_deterministic_and_top_first():
     nav = read("static/js/ux_v3.js")
     block = nav.split("bottom.querySelectorAll('[data-app-mode]')", 1)[1].split("document.body.classList.add('app-shell-ready')", 1)[0]
     assert "mode === 'discover' ? 'screener'" in block
-    assert "window.scrollTo({ top: 0, behavior: 'auto' })" in block
+    assert "scroller.scrollTop = 0" in block
     assert "window.__openScreenerDiscoveryView?.()" in block
-    assert "[40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay))" in block
+    assert "[40, 100, 220].forEach((delay) => setTimeout(jumpDiscoverTop, delay))" in block
     assert "mode === 'discover' ? 'screener'" in block
 
 
@@ -117,7 +117,7 @@ def test_screener_opens_top_first_and_has_one_tap_top_control():
     assert "window.__openScreenerAtTop = function" in js
     assert "function settleScreenerAtTop()" in js
     assert "[40, 100, 220].forEach((delay) => setTimeout(pin, delay))" in js
-    assert "window.scrollTo({ top: 0" in js
+    assert "scroller.scrollTop = 0" in js
     assert "data-screener-top" in js
     assert "기술점수 높은순" in js
     assert 'class="screen-rank"' in js
