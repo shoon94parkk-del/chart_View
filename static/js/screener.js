@@ -108,7 +108,7 @@
         <div id="screener-summary" class="screener-summary">탭을 열면 최신 스크리너 데이터를 불러옵니다.</div>
         <div id="screener-results"><div class="screener-empty">종목 발굴 탭을 열어주세요.</div></div>
         <button type="button" class="screener-to-top" data-screener-top aria-label="스크리너 맨 위로">↑ 맨 위로</button>
-        <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
+        <div class="screener-note">가격은 실시간 현재가가 아니라 스크리너 기준 거래일의 종가입니다. 기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
   }
 
@@ -172,6 +172,11 @@
     return desc('score');
   }
 
+  function shortTradeDate(value) {
+    const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[2]}.${match[3]}` : (value ? String(value) : '-');
+  }
+
   function trendBadge(row) {
     if (row.aligned) return '<span class="screen-badge good">정배열</span>';
     if (row.cross20) return '<span class="screen-badge cross">20일선 돌파</span>';
@@ -194,7 +199,7 @@
 
     const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
     const sortLabel = ({ score: '기술점수 높은순', volumeRatio: '거래량 급증순', rsi: 'RSI 낮은순', ret20: '20일 수익률순', avgValue20: '평균 거래대금순' })[sortKey] || '기술점수 높은순';
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
+    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 종가 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -202,11 +207,11 @@
     }
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
-      <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
+      <thead><tr><th>종목</th><th>기준 종가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
       <tbody>${rows.map((row, index) => `
         <tr>
           <td data-label="종목"><div class="screen-name"><span class="screen-rank">#${index + 1}</span> ${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
-          <td data-label="현재가"><div>${num(row.price, 0)}원</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.change1d)}</div></td>
+          <td data-label="기준 종가"><div class="screen-close-price">${num(row.price, 0)}원</div><div class="screen-price-basis">${shortTradeDate(row.date || payload.tradeDate)} 종가</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'} screen-close-change">전일 대비 ${pct(row.change1d)}</div></td>
           <td data-label="RSI"><strong>${num(row.rsi14, 1)}</strong></td>
           <td data-label="거래량"><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
           <td data-label="추세">${trendBadge(row)}</td>
