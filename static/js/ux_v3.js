@@ -20,10 +20,8 @@
       return { tab: requestedTab, explicit: true, view: params?.get('view') || '', symbol, name, scrollY: 0 };
     }
     if (symbol) return { tab: 'chart', explicit: true, view: 'detail', symbol, name, scrollY: 0 };
-    const state = history.state;
-    if (state?.chartView && ROUTE_TABS.has(state.tab)) {
-      return { tab: state.tab, explicit: false, view: state.view || '', symbol: state.symbol || '', name: state.name || '', scrollY: Number(state.scrollY) || 0 };
-    }
+    // A new/reloaded visit to the clean root URL always starts at Home.
+    // history.state is restored only by the popstate handler for in-app Back/Forward.
     return { tab: 'home', explicit: false, view: '', symbol: '', name: '', scrollY: 0 };
   }
 
@@ -219,7 +217,10 @@
       else callLegacySwitch('screener');
       activateTabBody('screener');
       syncNavigation('screener');
-      if (pushHistory) commitHistory('screener');
+      if (pushHistory) {
+        commitHistory('screener');
+        requestAnimationFrame(() => window.__resetScreenerScroll?.({ smooth: false }));
+      }
       return;
     }
     callLegacySwitch(resolved);
