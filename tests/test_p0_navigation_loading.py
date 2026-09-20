@@ -105,6 +105,8 @@ def test_screener_opens_top_first_and_has_one_tap_top_control():
     assert "window.__openScreenerAtTop?.()" in nav
     assert "window.__resetScreenerScroll = resetScreenerScroll" in js
     assert "window.__openScreenerAtTop = function" in js
+    assert "function settleScreenerAtTop()" in js
+    assert "setTimeout(() => resetScreenerScroll({ smooth: false }), 120)" in js
     assert "window.scrollTo({ top: 0" in js
     assert "data-screener-top" in js
     assert "기술점수 높은순" in js
