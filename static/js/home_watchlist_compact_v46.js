@@ -85,7 +85,7 @@
     section.dataset.compactVersion = 'v46';
     section.innerHTML = `
       <div class="home-block-head home-watchlist-v30-head">
-        <div><span>MY STOCKS · 1달 수익률</span><h3>내 관심종목</h3></div>
+        <div><span>MY STOCKS · 가격 / 1달 수익률</span><h3>내 관심종목</h3></div>
         <button type="button" data-home-watch-all>전체보기 →</button>
       </div>
       ${rows.length ? `<div class="home-watchlist-v30-chips">${rows.map((row) => {
@@ -96,7 +96,7 @@
         return `<button type="button" class="home-watch-compact-v46" data-home-watch-open="${esc(symbol)}" data-home-watch-name="${esc(name)}" aria-label="${esc(name)} 상세 보기">
           <span class="home-watch-v33-top"><strong>${esc(name)}</strong><i>${marketLabel(symbol)}</i></span>
           <small>${esc(symbol)}</small>
-          <span class="home-watch-v33-quote"><b data-home-watch-price>${formatPrice(symbol, quote.price)}</b><em class="${cls}" data-home-watch-return>${returnText(quote.return)}</em></span>
+          <span class="home-watch-v33-quote"><b data-home-watch-price>${formatPrice(symbol, quote.price)}</b><em class="${cls}" data-home-watch-return><span>1달</span> ${returnText(quote.return)}</em></span>
         </button>`;
       }).join('')}</div>` : '<div class="home-watchlist-v30-empty"><strong>관심종목을 추가해 보세요</strong><span>가격과 1달 수익률을 홈에서 바로 확인할 수 있습니다.</span></div>'}`;
 
