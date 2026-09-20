@@ -303,14 +303,18 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function resetScreenerScroll({ smooth = false } = {}) {
-    const section = document.querySelector('#screener-tab .screener-section');
-    const top = section ? Math.max(0, Math.round(section.getBoundingClientRect().top + window.scrollY - 8)) : 0;
-    window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
     const wrap = document.querySelector('#screener-tab .screener-table-wrap');
     if (wrap) {
       wrap.scrollTop = 0;
       wrap.scrollLeft = 0;
     }
+  }
+
+  function settleScreenerAtTop() {
+    resetScreenerScroll({ smooth: false });
+    requestAnimationFrame(() => resetScreenerScroll({ smooth: false }));
+    setTimeout(() => resetScreenerScroll({ smooth: false }), 120);
   }
 
   function bind() {
@@ -384,6 +388,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   window.__getScreenerQuickFilter = function () { return quickFilter; };
   window.__resetScreenerScroll = resetScreenerScroll;
+  window.__openScreenerAtTop = function () {
+    settleScreenerAtTop();
+    return loadData().catch(() => null).finally(settleScreenerAtTop);
+  };
 
   function refreshIfVisible() {
     const tab = document.getElementById('screener-tab');
@@ -2377,7 +2385,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (pushHistory) {
         commitHistory('screener');
         window.__openScreenerDiscoveryView?.();
-        requestAnimationFrame(() => window.__resetScreenerScroll?.({ smooth: false }));
+        window.__openScreenerAtTop?.();
       }
       return;
     }
