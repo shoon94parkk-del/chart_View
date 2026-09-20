@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "static" / "data" / "macro_cache.json"
@@ -34,8 +35,8 @@ INDICATORS: dict[str, dict[str, str]] = {
     "RRPONTSYD": {"name": "역래포 잔액 (Liquidity)", "desc": "연준 역레포 시설 잔액입니다.", "link": "https://fred.stlouisfed.org/series/RRPONTSYD", "feed": "equibles:rrpontsyd"},
     "DFII10": {"name": "10년 실질금리 (TIPS)", "desc": "미국 10년 물가연동국채 실질금리입니다.", "link": "https://fred.stlouisfed.org/series/DFII10", "feed": "dbnomics:FED/H15/RIFLGFCY10_XII_N.B"},
     "T10YIE": {"name": "기대인플레이션 (BEI)", "desc": "미국 10년 기대인플레이션입니다.", "link": "https://fred.stlouisfed.org/series/T10YIE", "feed": "equibles:t10yie"},
-    "PCEPI": {"name": "PCE 물가 (YoY)", "desc": "미국 개인소비지출(PCE) 물가지수의 전년동월비입니다. 연준이 중시하는 광범위한 소비물가 흐름을 보여줍니다.", "link": "https://fred.stlouisfed.org/series/PCEPI", "feed": "dbnomics:FRED/PCEPI", "transform": "yoy"},
-    "PCETRIM12M159SFRBDAL": {"name": "절사평균 PCE (YoY)", "desc": "Dallas Fed가 극단적인 가격변동 항목을 양쪽에서 절사한 뒤 계산한 PCE 기반 핵심물가의 12개월 변화율입니다.", "link": "https://fred.stlouisfed.org/series/PCETRIM12M159SFRBDAL", "feed": "dbnomics:FRED/PCETRIM12M159SFRBDAL"},
+    "PCEPI": {"name": "PCE 물가 (YoY)", "desc": "미국 개인소비지출(PCE) 물가지수의 전년동월비입니다. 연준이 중시하는 광범위한 소비물가 흐름을 보여줍니다.", "link": "https://fred.stlouisfed.org/series/PCEPI", "feed": "dallaspce:pce"},
+    "PCETRIM12M159SFRBDAL": {"name": "절사평균 PCE (YoY)", "desc": "Dallas Fed가 극단적인 가격변동 항목을 양쪽에서 절사한 뒤 계산한 PCE 기반 핵심물가의 12개월 변화율입니다.", "link": "https://fred.stlouisfed.org/series/PCETRIM12M159SFRBDAL", "feed": "dallaspce:trimmed"},
     "UNRATE": {"name": "실업률 (Unemployment)", "desc": "미국 실업률입니다.", "link": "https://fred.stlouisfed.org/series/UNRATE", "feed": "equibles:unrate"},
     "RSAFS": {"name": "소매판매 (Retail Sales)", "desc": "미국 소매·음식서비스 판매액입니다.", "link": "https://fred.stlouisfed.org/series/RSAFS", "feed": "equibles:rsafs"},
     "WALCL": {"name": "연준 총자산 (Fed Balance)", "desc": "연준 대차대조표 총자산입니다.", "link": "https://fred.stlouisfed.org/series/WALCL", "feed": "equibles:walcl"},
@@ -121,6 +122,52 @@ def transform_yoy(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return output[-100:]
 
 
+def fetch_dallas_pce(kind: str) -> list[dict[str, Any]]:
+    html = _get("https://www.dallasfed.org/research/pce", attempts=3, timeout=30)
+    soup = BeautifulSoup(html, "html.parser")
+    heading = None
+    for tag in soup.find_all(["h3", "h4"]):
+        if "12-month PCE inflation" in tag.get_text(" ", strip=True):
+            heading = tag
+            break
+    table = heading.find_next("table") if heading else None
+    if table is None:
+        raise RuntimeError("Dallas Fed 12-month PCE table not found")
+    rows = table.find_all("tr")
+    if len(rows) < 2:
+        raise RuntimeError("Dallas Fed PCE table has no data rows")
+    header = [cell.get_text(" ", strip=True) for cell in rows[0].find_all(["th", "td"])]
+    dates = header[1:]
+    target = None
+    for row in rows[1:]:
+        cells = [cell.get_text(" ", strip=True) for cell in row.find_all(["th", "td"])]
+        if not cells:
+            continue
+        label = cells[0].strip().lower()
+        if kind == "pce" and label == "pce":
+            target = cells[1:]
+            break
+        if kind == "trimmed" and label.startswith("trimmed mean"):
+            target = cells[1:]
+            break
+    if target is None:
+        raise RuntimeError(f"Dallas Fed PCE row not found: {kind}")
+    output: list[dict[str, Any]] = []
+    for raw_date, raw_value in zip(dates, target):
+        value = _finite_number(raw_value)
+        if value is None:
+            continue
+        try:
+            date = datetime.strptime(raw_date.strip(), "%y-%b").strftime("%Y-%m-01")
+        except ValueError:
+            continue
+        output.append({"time": date, "value": round(value, 6)})
+    if not output:
+        raise RuntimeError(f"Dallas Fed PCE row empty: {kind}")
+    output.sort(key=lambda x: x["time"])
+    return output
+
+
 def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
     payload = _get(
         f"https://api.db.nomics.world/v22/series/{path}?observations=1",
@@ -175,6 +222,9 @@ def fetch_one(symbol: str) -> dict[str, Any]:
     elif kind == "fredcsv":
         rows = fetch_fred_csv(target)
         source = "FRED CSV"
+    elif kind == "dallaspce":
+        rows = fetch_dallas_pce(target)
+        source = "Federal Reserve Bank of Dallas · PCE"
     elif kind == "dbnomics":
         rows = fetch_dbnomics(target)
         source = "Federal Reserve mirror · DBnomics"
