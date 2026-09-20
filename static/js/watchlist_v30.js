@@ -481,7 +481,14 @@
       (data.stocks || []).forEach((stock) => {
         const symbol = String(stock.ticker || '').toUpperCase();
         if (!symbol) return;
-        const quote = { price: stock.price == null ? null : Number(stock.price), return: stock.return == null ? null : Number(stock.return), updatedAt: Date.now() };
+        const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
+        const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
+        const quote = {
+          price: stock.price == null ? null : Number(stock.price),
+          return: stock.return == null ? null : Number(stock.return),
+          tradeDate: String(tradeDate || ''),
+          updatedAt: Date.now(),
+        };
         received += 1;
         quoteCache.quotes[symbol] = quote;
         applyQuote(symbol, quote, true);
@@ -613,7 +620,7 @@
     wrapAnalysisState();
     try {
       if (typeof window.updateTags === 'function') window.updateTags();
-      if (typeof window.loadData === 'function') window.loadData();
+      if (typeof window.loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) window.loadData();
     } catch (_) { }
     renderHomeShortcut();
     render();
