@@ -1,76 +1,34 @@
 (() => {
   'use strict';
 
-  let initialHomeSettled = false;
-  let initialHomePending = false;
-  let userChangedView = false;
-
-  const markUserNavigation = (event) => {
-    if (event.isTrusted && event.target.closest('.app-bottom-btn,.app-context-btn,.tab-btn,.ai-daily-more')) userChangedView = true;
-  };
-  document.addEventListener('pointerdown', markUserNavigation, true);
-  document.addEventListener('click', markUserNavigation, true);
+  let appShellRevealed = false;
 
   const bootGuard = document.createElement('style');
   bootGuard.id = 'chartview-home-boot-guard';
   bootGuard.textContent = 'body.app-booting:not(.cv-home-ready) #app,body.app-booting:not(.cv-home-ready) .app-bottom-nav{visibility:hidden!important}';
   document.head.appendChild(bootGuard);
 
-  function wantsAiPickLedger() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('tab') === 'screener' && params.get('view') === 'ai-picks';
-    } catch (_) {
-      return false;
-    }
-  }
-
   function revealAppShell() {
+    if (appShellRevealed) return true;
+    const navReady = Boolean(document.querySelector('.app-bottom-nav'));
+    const activeReady = Boolean(document.querySelector('.tab-content.active'));
+    if (!navReady || !activeReady) return false;
+    appShellRevealed = true;
     document.body.classList.add('cv-home-ready', 'app-shell-ready');
     document.body.classList.remove('app-booting');
     bootGuard.remove();
+    return true;
   }
 
-  function settleInitialHome(attempt = 0) {
-    if (initialHomeSettled) return true;
-    if (attempt === 0) {
-      if (initialHomePending) return false;
-      initialHomePending = true;
+  function settleAppShell(attempt = 0) {
+    if (revealAppShell()) return true;
+    if (attempt < 160) setTimeout(() => settleAppShell(attempt + 1), 50);
+    else {
+      // Fail open: never keep the entire app hidden because a late optional module failed.
+      document.body.classList.add('cv-home-ready', 'app-shell-ready');
+      document.body.classList.remove('app-booting');
+      bootGuard.remove();
     }
-
-    // A direct PICK-ledger URL is an explicit route. Never overwrite it with
-    // the default Home route while the application is booting.
-    if (wantsAiPickLedger()) {
-      initialHomeSettled = true;
-      initialHomePending = false;
-      revealAppShell();
-      return true;
-    }
-
-    const home = document.getElementById('home-tab');
-    if (home && typeof window.__openAppTab === 'function') {
-      try { window.__openAppTab('home', { history: false }); } catch (_) { }
-      initialHomeSettled = true;
-      initialHomePending = false;
-      revealAppShell();
-      // Some legacy DOMContentLoaded handlers restore the chart after Home opens.
-      // Re-assert the intended first route once, but never override a real click
-      // or an explicit PICK-ledger deep link.
-      setTimeout(() => {
-        if (!userChangedView && document.getElementById('home-tab')) {
-          if (wantsAiPickLedger()) return;
-          try { window.__openAppTab('home', { history: false }); } catch (_) { }
-        }
-      }, 250);
-      return true;
-    }
-    if (attempt < 160) {
-      setTimeout(() => settleInitialHome(attempt + 1), 50);
-      return false;
-    }
-    initialHomeSettled = true;
-    initialHomePending = false;
-    revealAppShell();
     return false;
   }
 
@@ -144,9 +102,9 @@
 
     if (market && home.firstElementChild !== market) home.insertBefore(market, home.firstElementChild);
     let anchor = market || null;
-    // Put the detailed market brief directly below MARKET NOW; AI and personal
-    // sections follow the primary market context instead of interrupting it.
-    for (const node of [body, aiTop3, watchlist, news, status]) {
+    // Home priority: market context -> personal watchlist -> today's PICK -> news.
+    // Keep the heavy news block last so late content cannot push the user's primary cards around.
+    for (const node of [body, watchlist, aiTop3, news, status]) {
       if (!node) continue;
       if (anchor) {
         if (anchor.nextElementSibling !== node) anchor.insertAdjacentElement('afterend', node);
@@ -155,7 +113,7 @@
       }
       anchor = node;
     }
-    home.dataset.homeOrder = 'market-body-ai-top3-watchlist-news-status';
+    home.dataset.homeOrder = 'market-body-watchlist-ai-top3-news-status';
     return Boolean(market && body);
   }
 
@@ -178,7 +136,7 @@
 
   function ensureHome(attempt = 0) {
     ensureAllAssets();
-    settleInitialHome();
+    settleAppShell();
     const existing = document.getElementById('home-watchlist-v30');
     if (!existing && typeof window.__renderHomeWatchlist === 'function') {
       try { window.__renderHomeWatchlist(); } catch (_) { }
@@ -193,14 +151,14 @@
 
   function restartSoon() {
     ensureAllAssets();
-    settleInitialHome();
+    settleAppShell();
     installHomeOrderObserver();
     setTimeout(() => ensureHome(0), 50);
     setTimeout(enforceHomeOrder, 500);
     setTimeout(enforceHomeOrder, 1500);
   }
 
-  settleInitialHome();
+  settleAppShell();
   document.addEventListener('chartview:v37-news-rendered', () => setTimeout(enforceHomeOrder, 0));
   document.addEventListener('click', event => {
     if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) restartSoon();
