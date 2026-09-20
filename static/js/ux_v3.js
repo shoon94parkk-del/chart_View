@@ -336,9 +336,10 @@
         navigateUserTab(targetTab);
         if (mode === 'discover') {
           window.__openScreenerDiscoveryView?.();
-          window.scrollTo({ top: 0, behavior: 'auto' });
-          requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
-          setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 160);
+          const pinDiscoverTop = () => window.scrollTo({ top: 0, behavior: 'auto' });
+          pinDiscoverTop();
+          requestAnimationFrame(pinDiscoverTop);
+          [40, 100, 220].forEach((delay) => setTimeout(pinDiscoverTop, delay));
         }
 
         // The legacy switch function is installed by a DOMContentLoaded handler.
