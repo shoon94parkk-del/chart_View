@@ -45,14 +45,15 @@ def test_pick_ledger_activates_bottom_discover_navigation_before_legacy_tab():
     assert block.index("bottom.click()") < block.index("button.click()")
 
 
-def test_home_pick_focuses_on_cumulative_performance_and_compact_today_names():
+def test_home_pick_focuses_on_today_names_with_compact_history_summary():
     js = read("static/js/ai_daily_widget.js")
     assert "/api/home-bootstrap" in js
     assert "data-fallback-route" in js
-    assert "누적 PICK 평균 수익률" in js
-    assert "수익 구간" in js
-    assert "누적 추천" in js
-    assert "오늘 PICK" in js
+    assert "<h2>오늘 PICK</h2>" in js
+    assert "선정 종목" in js
+    assert "누적 평균" in js
+    assert "수익구간" in js
+    assert "전체 기록 →" in js
     assert "ai-daily-today-chip" in js
     assert "ai-daily-card" not in js
 
