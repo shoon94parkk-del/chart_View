@@ -20,19 +20,21 @@ def test_home_ai_pick_link_opens_discovery_ledger():
     assert '전체 기록 →' in js
 
 
-def test_ai_pick_deep_link_is_not_overridden_by_initial_home_boot():
-    js = read("static/js/home_watchlist_boot_v32c.js")
-    assert "wantsAiPickLedger" in js
-    assert "params.get('tab') === 'screener'" in js
-    assert "params.get('view') === 'ai-picks'" in js
-    assert "if (wantsAiPickLedger())" in js
+def test_ai_pick_deep_link_is_owned_by_single_initial_router():
+    nav = read("static/js/ux_v3.js")
+    boot = read("static/js/home_watchlist_boot_v32c.js")
+    assert "function resolveInitialRoute()" in nav
+    assert "params?.get('tab')" in nav
+    assert "route.explicit ? location.href : cleanRouteUrl()" in nav
+    assert "__openAppTab('home'" not in boot
 
 
-def test_home_pick_history_click_counts_as_user_navigation():
-    # The initial Home boot reasserts Home after 250 ms unless this trusted click is marked as navigation.
+def test_home_boot_only_reveals_shell_without_route_reassertion():
     js = read("static/js/home_watchlist_boot_v32c.js")
-    mark = js.split("const markUserNavigation", 1)[1].split("document.addEventListener", 1)[0]
-    assert ".ai-daily-more" in mark
+    assert "function settleAppShell" in js
+    assert "function revealAppShell" in js
+    assert "settleInitialHome" not in js
+    assert "markUserNavigation" not in js
 
 
 def test_pick_ledger_activates_bottom_discover_navigation_before_legacy_tab():
