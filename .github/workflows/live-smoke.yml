@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE='https://chart-view-bsg6.onrender.com'
+          BASE='https://chart-view-pkv8.onrender.com'
 
           ready=0
           for i in $(seq 1 45); do
