@@ -111,6 +111,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
         <div id="screener-summary" class="screener-summary">탭을 열면 최신 스크리너 데이터를 불러옵니다.</div>
         <div id="screener-results"><div class="screener-empty">종목 발굴 탭을 열어주세요.</div></div>
+        <button type="button" class="screener-to-top" data-screener-top aria-label="스크리너 맨 위로">↑ 맨 위로</button>
         <div class="screener-note">기술점수는 RSI·이평선·거래량을 조합한 30점 만점 탐색용 지표이며 투자판단 점수가 아닙니다. 종합 후보는 기술점수 ${CANDIDATE_SCORE_MIN}점 이상에 거래량·과열 조건을 함께 적용합니다. 종목별 실적·밸류에이션은 투자 아이디어 탭에서 별도로 확인하세요.</div>
       </section>`;
   }
@@ -196,7 +197,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     rows = rows.slice(0, 200);
 
     const quickLabel = ({ up: '상승 종목만', rsi35: 'RSI 35↓', volume2x: '거래량 2x+' })[quickFilter];
-    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
+    const sortLabel = ({ score: '기술점수 높은순', volumeRatio: '거래량 급증순', rsi: 'RSI 낮은순', ret20: '20일 수익률순', avgValue20: '평균 거래대금순' })[sortKey] || '기술점수 높은순';
+    summary.textContent = `${total.toLocaleString('ko-KR')}개 조건 일치 · ${payload.tradeDate || '-'} 기준 · ${sortLabel} · ${shown.toLocaleString('ko-KR')}개 표시${total > 200 ? ' (상위 200)' : ''}${quickLabel ? ` · ${quickLabel}` : ''}`;
 
     if (!rows.length) {
       results.innerHTML = '<div class="screener-empty">조건에 맞는 종목이 없습니다. 필터를 완화해 보세요.</div>';
@@ -205,9 +207,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
     results.innerHTML = `<div class="screener-table-wrap"><table class="screener-table">
       <thead><tr><th>종목</th><th>현재가</th><th>RSI</th><th>거래량</th><th>추세</th><th>20일</th><th>평균 거래대금</th><th>점수 /${SCORE_MAX}</th><th>액션</th></tr></thead>
-      <tbody>${rows.map((row) => `
+      <tbody>${rows.map((row, index) => `
         <tr>
-          <td data-label="종목"><div class="screen-name">${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
+          <td data-label="종목"><div class="screen-name"><span class="screen-rank">#${index + 1}</span> ${esc(row.name)}</div><div class="screen-code">${esc(row.code)} · ${esc(row.market)}</div></td>
           <td data-label="현재가"><div>${num(row.price, 0)}원</div><div class="${(row.change1d || 0) >= 0 ? 'screen-up' : 'screen-down'}">${pct(row.change1d)}</div></td>
           <td data-label="RSI"><strong>${num(row.rsi14, 1)}</strong></td>
           <td data-label="거래량"><strong>${row.volumeRatio ? `${Number(row.volumeRatio).toFixed(1)}x` : '-'}</strong></td>
@@ -300,8 +302,22 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return loadingPromise;
   }
 
+  function resetScreenerScroll({ smooth = false } = {}) {
+    const section = document.querySelector('#screener-tab .screener-section');
+    const top = section ? Math.max(0, Math.round(section.getBoundingClientRect().top + window.scrollY - 8)) : 0;
+    window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    const wrap = document.querySelector('#screener-tab .screener-table-wrap');
+    if (wrap) {
+      wrap.scrollTop = 0;
+      wrap.scrollLeft = 0;
+    }
+  }
+
   function bind() {
-    document.querySelector('[data-tab="screener"]')?.addEventListener('click', () => loadData().catch(() => {}));
+    document.querySelector('[data-tab="screener"]')?.addEventListener('click', () => {
+      loadData().then(() => resetScreenerScroll({ smooth: false })).catch(() => {});
+    });
+    document.querySelector('[data-screener-top]')?.addEventListener('click', () => resetScreenerScroll({ smooth: true }));
 
     document.querySelectorAll('[data-screen-preset]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -367,6 +383,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   };
 
   window.__getScreenerQuickFilter = function () { return quickFilter; };
+  window.__resetScreenerScroll = resetScreenerScroll;
 
   function refreshIfVisible() {
     const tab = document.getElementById('screener-tab');
@@ -2160,10 +2177,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       return { tab: requestedTab, explicit: true, view: params?.get('view') || '', symbol, name, scrollY: 0 };
     }
     if (symbol) return { tab: 'chart', explicit: true, view: 'detail', symbol, name, scrollY: 0 };
-    const state = history.state;
-    if (state?.chartView && ROUTE_TABS.has(state.tab)) {
-      return { tab: state.tab, explicit: false, view: state.view || '', symbol: state.symbol || '', name: state.name || '', scrollY: Number(state.scrollY) || 0 };
-    }
+    // A new/reloaded visit to the clean root URL always starts at Home.
+    // history.state is restored only by the popstate handler for in-app Back/Forward.
     return { tab: 'home', explicit: false, view: '', symbol: '', name: '', scrollY: 0 };
   }
 
@@ -2359,7 +2374,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       else callLegacySwitch('screener');
       activateTabBody('screener');
       syncNavigation('screener');
-      if (pushHistory) commitHistory('screener');
+      if (pushHistory) {
+        commitHistory('screener');
+        requestAnimationFrame(() => window.__resetScreenerScroll?.({ smooth: false }));
+      }
       return;
     }
     callLegacySwitch(resolved);
