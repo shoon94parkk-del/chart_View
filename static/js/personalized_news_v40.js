@@ -123,18 +123,28 @@
   }
 
   function pickDiverse(items, limit = TOP_COUNT) {
-    const rows = Array.isArray(items) ? items : [];
+    const rows = (Array.isArray(items) ? items : []).map((item, index) => ({ item, index }));
+    rows.sort((a, b) => {
+      const directA = a.item?.relationType === 'direct' ? 1 : 0;
+      const directB = b.item?.relationType === 'direct' ? 1 : 0;
+      if (directA !== directB) return directB - directA;
+      const scoreA = Number(a.item?.score || 0);
+      const scoreB = Number(b.item?.score || 0);
+      if (scoreA !== scoreB) return scoreB - scoreA;
+      return a.index - b.index;
+    });
+
     const chosen = [];
     const seenSymbols = new Set();
     const used = new Set();
-    rows.forEach((item, index) => {
+    rows.forEach(({ item, index }) => {
       const symbol = String(item?.symbol || '').toUpperCase();
       if (!symbol || seenSymbols.has(symbol) || chosen.length >= limit) return;
       seenSymbols.add(symbol);
       used.add(index);
       chosen.push(item);
     });
-    rows.forEach((item, index) => {
+    rows.forEach(({ item, index }) => {
       if (chosen.length >= limit || used.has(index)) return;
       chosen.push(item);
     });
