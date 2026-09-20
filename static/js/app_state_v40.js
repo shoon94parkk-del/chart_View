@@ -183,7 +183,7 @@
       if (typeof tickerNameMap !== 'undefined') Object.assign(tickerNameMap, names);
       if (typeof perTickerNameMap !== 'undefined') Object.assign(perTickerNameMap, names);
       if (changed && typeof updateTags === 'function') updateTags();
-      if (changed && typeof loadData === 'function') loadData();
+      if (changed && typeof loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) loadData();
       if (changed && typeof loadPerData === 'function' && document.getElementById('fwdper-tab')?.classList.contains('active')) loadPerData();
     } catch (_) { }
   }
