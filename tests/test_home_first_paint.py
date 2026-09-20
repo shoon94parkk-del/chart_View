@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_first_paint_gate_waits_for_real_home_ready():
     css = (ROOT / "static/css/ux_patch.css").read_text(encoding="utf-8")
     boot = (ROOT / "static/js/home_watchlist_boot_v32c.js").read_text(encoding="utf-8")
+    nav = (ROOT / "static/js/ux_v3.js").read_text(encoding="utf-8")
     template = (ROOT / "templates/index.html").read_text(encoding="utf-8")
 
     # The legacy server markup is analysis-first, so first paint must be gated
@@ -20,6 +21,7 @@ def test_first_paint_gate_waits_for_real_home_ready():
     assert "attempt < 40" not in boot
     assert "document.body.classList.add('cv-home-ready');" not in boot
     assert "body.app-booting:not(.cv-home-ready) #app" in boot
-    assert "if (!userChangedView && document.getElementById('home-tab'))" in boot
-    assert "document.addEventListener('click', markUserNavigation, true)" in boot
-    assert "event.isTrusted" in boot
+    assert "function settleAppShell" in boot
+    assert "__openAppTab('home'" not in boot
+    assert "function resolveInitialRoute()" in nav
+    assert "route.explicit ? location.href : cleanRouteUrl()" in nav
