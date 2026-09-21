@@ -21,6 +21,10 @@ on:
       - 'static/css/**'
       - 'templates/**'
       - '.github/workflows/**'
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'docs/**'
   pull_request:
   workflow_dispatch:
 
