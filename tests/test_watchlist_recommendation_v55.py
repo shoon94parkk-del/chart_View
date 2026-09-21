@@ -15,7 +15,7 @@ def test_watchlist_keeps_one_month_return_contract():
     watchlist = (ROOT / 'static/js/watchlist_v30.js').read_text(encoding='utf-8')
     overlay = (ROOT / 'static/js/recommendation_watchlist_v55.js').read_text(encoding='utf-8')
 
-    assert 'MY STOCKS · 1달 수익률' in watchlist
+    assert '관심종목 · 1달 수익률' in watchlist
     assert '현재가와 1달 수익률' in watchlist
     assert '수익률 높은순' in watchlist
     assert '수익률 낮은순' in watchlist
