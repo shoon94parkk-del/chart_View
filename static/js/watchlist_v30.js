@@ -139,7 +139,8 @@
     const row = normalize({ symbol, name: name || knownName(symbol) });
     if (!row) return false;
     const index = watchlist.findIndex((x) => x.symbol === row.symbol);
-    if (index >= 0) watchlist.splice(index, 1);
+    const added = index < 0;
+    if (!added) watchlist.splice(index, 1);
     else {
       if (watchlist.length >= MAX_WATCHLIST) {
         alert(`관심종목은 최대 ${MAX_WATCHLIST}개까지 저장할 수 있어요.`);
@@ -149,10 +150,15 @@
     }
     saveWatchlist();
     document.dispatchEvent(new CustomEvent('chartview:watchlist-change'));
-    render();
+    // Persist and paint immediately. Adding/removing one stock must not block on
+    // refreshing every existing watchlist quote and 1-month return.
+    render({ refreshQuotes: false });
     renderHomeShortcut();
     enhanceTickerStars();
-    return index < 0;
+    if (added) {
+      setTimeout(() => loadQuoteRows([row], false), 0);
+    }
+    return added;
   }
 
   function formatPrice(symbol, value) {
@@ -461,7 +467,7 @@
     updateSummary();
   }
 
-  function render() {
+  function render({ refreshQuotes = true } = {}) {
     const tab = installTab();
     if (!tab) return;
     const count = tab.querySelector('[data-watch-count]');
@@ -469,7 +475,7 @@
     renderGrid();
     renderRecents();
     updateUpdatedLabel(false);
-    loadQuotes(false);
+    if (refreshQuotes) loadQuotes(false);
   }
 
   function applyQuote(symbol, quote, fresh = false) {
@@ -691,15 +697,15 @@
     }
   }
 
-  async function loadQuotes(force = false) {
-    const rows = [...watchlist];
-    rows.forEach((row) => {
+  async function loadQuoteRows(rows, force = false) {
+    const targets = dedupe((rows || []).filter((row) => row && isWatchlisted(row.symbol)));
+    targets.forEach((row) => {
       const cached = quoteFor(row.symbol);
       if (cached) applyQuote(row.symbol, cached, false);
     });
     updateSummary();
     updateUpdatedLabel(false);
-    queueRows(rows, force);
+    queueRows(targets, force);
 
     if (!quoteQueue.size && !returnQueue.size) {
       updateWatchStatus();
@@ -713,8 +719,15 @@
       return await job;
     } finally {
       if (quoteLoadPromise === job) quoteLoadPromise = null;
-      if (quoteQueue.size || returnQueue.size) loadQuotes(false);
+      if (quoteQueue.size || returnQueue.size) {
+        const pending = watchlist.filter((row) => quoteQueue.has(row.symbol) || returnQueue.has(row.symbol));
+        if (pending.length) loadQuoteRows(pending, false);
+      }
     }
+  }
+
+  async function loadQuotes(force = false) {
+    return loadQuoteRows([...watchlist], force);
   }
 
   function retryFailedQuotes() {
