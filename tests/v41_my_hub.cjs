@@ -28,6 +28,20 @@ async function seed(context) {
   }, WATCHLIST);
 }
 
+async function gotoApp(page) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: attempt === 0 ? 12000 : 20000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await page.waitForTimeout(1200);
+    }
+  }
+  throw lastError;
+}
+
 async function mockData(page) {
   await page.route('**/api/personalized-news?**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
@@ -49,7 +63,7 @@ async function mockData(page) {
 
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoApp(page);
   await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
   await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
   await page.waitForSelector('#watchlist-tab[data-my-hub-version]');
@@ -139,7 +153,7 @@ async function mockData(page) {
     await new Promise(resolve => setTimeout(resolve, 1200));
     await route.continue();
   });
-  await racePage.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoApp(racePage);
   await racePage.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
   await racePage.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
   await racePage.waitForSelector('#watchlist-tab');
