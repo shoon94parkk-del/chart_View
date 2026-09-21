@@ -114,3 +114,17 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(watch, /summaryCard\.insertAdjacentElement\('afterend', section\)/);
   assert.match(homeBrief, /watchlistShortcut/);
 });
+
+
+test('passwordless watchlist sync keeps local-first behavior and explicit risk copy', () => {
+  const html = fs.readFileSync('templates/index.html', 'utf8');
+  const sync = fs.readFileSync('static/js/profile_sync_v1.js', 'utf8');
+  const service = fs.readFileSync('profile_sync_service.py', 'utf8');
+  assert.match(html, /profile_sync_v1\.js/);
+  assert.match(sync, /chartview-watchlist-v1/);
+  assert.match(sync, /\/api\/profile-sync\//);
+  assert.match(sync, /ID를 아는 사람은 해당 관심종목 목록을 불러오거나 변경할 수 있으므로/);
+  assert.match(service, /hashlib\.sha256/);
+  assert.match(service, /MAX_WATCHLIST = 20/);
+  assert.match(service, /PROFILE_SYNC_DATABASE_URL/);
+});
