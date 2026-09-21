@@ -1641,12 +1641,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       section = document.createElement('section');
       section.id = 'home-watchlist-v30';
       section.className = 'home-v8-block home-watchlist-v30';
-      body.insertAdjacentElement('beforebegin', section);
+      const summaryCard = body.querySelector('.home16-summary-card');
+      if (summaryCard) summaryCard.insertAdjacentElement('afterend', section);
+      else body.prepend(section);
     }
     const visible = watchlist.slice(0, 4);
     section.innerHTML = `
       <div class="home-block-head home-watchlist-v30-head">
-        <div><span>MY STOCKS · 1달 수익률</span><h3>내 관심종목</h3></div>
+        <div><span>관심종목 · 1달 수익률</span><h3>내 관심종목</h3></div>
         <button type="button" data-home-watch-all>전체보기 →</button>
       </div>
       ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => {
@@ -4318,8 +4320,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return rows.map((row, index) => {
       if (typeof row === 'number') return { time: null, value: row, index };
       if (!row || typeof row !== 'object') return null;
-      const state = D()?.numberState?.(row.value ?? row.return ?? row.close ?? row.price);
-      return state?.kind === 'number' ? { time: row.time ?? row.date ?? null, value: state.value, index } : null;
+      const state = D()?.numberState?.(row.value ?? row.return ?? row.close);
+      const priceState = D()?.numberState?.(row.price ?? row.close);
+      return state?.kind === 'number' ? {
+        time: row.time ?? row.date ?? null,
+        value: state.value,
+        price: priceState?.kind === 'number' ? priceState.value : null,
+        index,
+      } : null;
     }).filter(Boolean);
   }
 
@@ -4349,15 +4357,16 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     });
     const poly = xy.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const zeroY = low <= 0 && high >= 0 ? height - bottom - ((0 - low) / span) * (height - top - bottom) : null;
-    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
-      <div class="detail-v42-chart-readout" data-detail-chart-readout>터치하거나 좌우키로 날짜별 수익률 확인</div>
+    const midPoint = points[Math.floor((points.length - 1) / 2)];
+    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 가격과 수익률을 확인할 수 있습니다.">
+      <div class="detail-v42-chart-readout" data-detail-chart-readout role="status" aria-live="polite">터치하거나 좌우키로 날짜별 가격과 수익률 확인</div>
       <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 흐름">
         ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/><text class="detail-v42-zero-label" x="4" y="${Math.max(top + 10, Math.min(height - bottom - 4, zeroY - 4)).toFixed(1)}">0%</text>`}
         <text class="detail-v42-y-label" x="4" y="${top + 4}">${high.toFixed(1)}%</text>
         <text class="detail-v42-y-label" x="4" y="${height-bottom}">${low.toFixed(1)}%</text>
         <polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="4" vector-effect="non-scaling-stroke"/>
       </svg>
-      <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
+      <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(midPoint) || '')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
     </div>`;
   }
 
@@ -4371,7 +4380,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const select = (next) => {
       index = Math.max(0, Math.min(points.length - 1, next));
       const point = points[index];
-      readout.textContent = `${pointDate(point) || `${index + 1}번째 관측`} · ${D()?.formatPercent?.(point.value, 2) || `${point.value.toFixed(2)}%`}`;
+      const dateText = pointDate(point) || `${index + 1}번째 관측`;
+      const priceText = Number.isFinite(Number(point.price))
+        ? (D()?.formatPrice?.(detailSession?.symbol || '', point.price) || String(point.price))
+        : '';
+      const returnText = D()?.formatPercent?.(point.value, 2) || `${point.value.toFixed(2)}%`;
+      readout.textContent = [dateText, priceText ? `가격 ${priceText}` : '', `수익률 ${returnText}`].filter(Boolean).join(' · ');
+      root.setAttribute('aria-label', `${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 현재 선택 ${readout.textContent}. 좌우 화살표 또는 터치로 이동할 수 있습니다.`);
     };
     const fromPointer = (event) => {
       const rect = svg.getBoundingClientRect();
@@ -4455,8 +4470,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           <button type="button" class="detail-v40-back" data-detail-back aria-label="이전 화면으로 돌아가기">←</button>
           <div class="detail-v40-id"><strong>${esc(name)}</strong><span>${esc(symbol)} · ${marketLabel(symbol)}</span></div>
           <div class="detail-v40-actions">
-            <button type="button" data-detail-watch>${watched ? '★ 관심' : '☆ 관심'}</button>
-            <button type="button" data-detail-compare data-state="${compare.key}" ${compare.disabled ? 'disabled' : ''}>${compare.label}</button>
+            <button type="button" data-detail-watch aria-label="${esc(name)} 관심종목 ${watched ? '해제' : '추가'}">${watched ? '★ 관심' : '☆ 관심'}</button>
+            <button type="button" data-detail-compare aria-label="${esc(name)} ${esc(compare.label)}" data-state="${compare.key}" ${compare.disabled ? 'disabled' : ''}>${compare.label}</button>
           </div>
         </header>
         <section class="detail-v40-price" aria-label="현재 가격">
@@ -6849,7 +6864,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return `
       <section class="home-v8-block home16-major-card">
         <div class="home-block-head home16-head">
-          <div><span>MARKET</span><h3>주요 종목 오늘 시황</h3></div>
+          <div><span>주요 종목</span><h3>오늘 시황</h3></div>
           <div class="home16-head-actions"><small>${esc(homeCheckedAt(generatedAt))} 조회</small><span class="home16-strip-nav" aria-label="주요 종목 목록 이동"><button type="button" data-home-strip-prev aria-label="이전 주요 종목">‹</button><button type="button" data-home-strip-next aria-label="다음 주요 종목">›</button></span></div>
         </div>
         <div class="home16-stock-strip" data-home-stock-strip tabindex="0" aria-label="주요 종목 가로 목록. 좌우 방향키로 이동할 수 있습니다.">${rows.map((row) => `
@@ -6893,7 +6908,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const basis = macroBasis(macro);
     return `
       <section class="home-v8-block home16-summary-card home18-summary-${level}">
-        <div class="home-block-head home16-head"><div><span>SUMMARY</span><h3>시장 한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
+        <div class="home-block-head home16-head"><div><span>시장 상태</span><h3>한줄 요약</h3></div><button type="button" data-home-market>시장 자세히 →</button></div>
         <div class="home18-state-card">
           <div class="home18-traffic" aria-label="현재 시장 신호 ${esc(state.label)}">
             <i class="red ${level === 'red' ? 'active' : ''}"></i>
@@ -6975,8 +6990,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function paintHome(root, snapshot) {
+    const watchlistShortcut = document.getElementById('home-watchlist-v30');
     const rows = majorRows(snapshot?.heatmap || { results: [] });
-    root.innerHTML = majorStocksHtml(rows, snapshot?.generatedAt) + marketSummaryHtml(snapshot?.macro);
+    root.innerHTML = marketSummaryHtml(snapshot?.macro) + majorStocksHtml(rows, snapshot?.generatedAt);
+    if (watchlistShortcut) {
+      const summaryCard = root.querySelector('.home16-summary-card');
+      if (summaryCard) summaryCard.insertAdjacentElement('afterend', watchlistShortcut);
+      else root.prepend(watchlistShortcut);
+    }
     bindHomeActions(root);
   }
 
