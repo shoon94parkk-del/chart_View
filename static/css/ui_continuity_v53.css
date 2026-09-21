@@ -336,7 +336,7 @@
   #home-tab #home-v8-body{display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(320px,.7fr);align-items:start;gap:14px!important}
   #home-tab #home-v8-body>.home-v8-block{min-width:0;height:100%}
   #home-tab #home-v8-body>.home16-summary-card{grid-column:1/-1;height:auto!important}
-  #home-tab #home-v8-body>.home14-stack{grid-column:1;min-width:0;margin-bottom:0}
+  #home-tab #home-v8-body>#home-watchlist-v30{grid-column:1;min-width:0;margin:0!important}
   #home-tab #home-v8-body>.home16-major-card{grid-column:2;align-self:start;height:auto!important}
   #watchlist-tab,#chart-tab,#fwdper-tab,#screener-tab,#macro-tab{width:min(1120px,100%);margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
   #chart-tab .chart-section,#fwdper-tab .per-section,#screener-tab .screener-section,#macro-tab .macro-section{max-width:none!important}
@@ -352,16 +352,14 @@
 #home-tab .home16-stock>small,
 #home-tab .home16-caption,
 #home-tab .home16-summary-foot,
-#home-tab .home14-watch-item>small,
-#home-tab .home14-issue-copy small,
-#home-tab .home14-signal-copy small,
-#home-tab .home14-signal-row time{
+#home-tab #home-watchlist-v30 .home-block-head span,
+#home-tab #home-watchlist-v30 .home-watchlist-v30-chips>button>small,
+#home-tab #home-watchlist-v30 .home-watch-v40-basis{
   font-size:11px!important;
   line-height:1.4;
 }
-#home-tab .home14-watch-item,
-#home-tab .home14-issue-row,
-#home-tab .home14-signal-row,
+#home-tab #home-watchlist-v30 [data-home-watch-open],
+#home-tab #home-watchlist-v30 [data-home-watch-all],
 #home-tab .home16-stock{
   min-height:44px;
 }
