@@ -46,6 +46,17 @@
 - Render
 - GitHub Actions + Playwright 회귀 테스트
 
+## 개발 전 필수 문서
+
+이 프로젝트는 반복 개선형으로 운영합니다. 이전에 고친 동작을 다시 되돌리지 않도록 코드 변경 전 아래 문서를 먼저 확인합니다.
+
+- `AGENTS.md` — 작업 절차와 배포/검증 규칙
+- `docs/project-memory.md` — 현재 구조와 확정된 동작
+- `docs/regression-guardrails.md` — 다시 깨면 안 되는 불변조건
+- `docs/decision-log.md` — 왜 그렇게 바꿨는지 누적 기록
+
+버그 수정은 코드만 바꾸고 끝내지 않고 회귀 테스트와 관련 메모리/결정 기록을 함께 갱신합니다.
+
 ## 로컬 실행
 
 ```bash
