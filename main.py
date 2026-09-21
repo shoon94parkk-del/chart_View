@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 import pandas as pd
 import io
@@ -298,6 +298,40 @@ def validated_tickers(raw: str) -> list[str]:
     return symbols
 
 
+@app.get("/api/quotes")
+async def quote_snapshots(tickers: str):
+    symbols = list(dict.fromkeys(t.strip().upper() for t in tickers.split(",") if t.strip()))
+    if not symbols or len(symbols) > 20:
+        raise HTTPException(400, "종목은 1개 이상 20개 이하로 입력해주세요.")
+    if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
+        raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in symbols],
+        return_exceptions=True,
+    )
+    results, errors = [], []
+    for ticker, item in zip(symbols, fetched):
+        if isinstance(item, Exception):
+            errors.append({"ticker": ticker, "message": str(item)})
+        elif item:
+            results.append(item)
+        else:
+            errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
+    return {
+        "results": results,
+        "errors": errors,
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
+        "source": "Yahoo Chart 5m with daily fallback",
+        "dataContract": {
+            "price": "latest available provider quote or latest close fallback",
+            "change": "percent change versus previous trading close",
+            "asOf": "provider market timestamp when available",
+            "currency": "provider currency",
+            "missingValue": "null/omitted; zero is not used as a missing-value substitute",
+        },
+    }
+
+
 @app.get("/api/compare")
 async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, end: str = None):
     ticker_list = validated_tickers(tickers)
@@ -318,8 +352,23 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
         if isinstance(item, Exception): errors.append({"ticker": ticker, "message": str(item)})
         elif item: by_ticker[ticker] = item
         else: errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
-    return {"stocks": [by_ticker[t] for t in ticker_list if t in by_ticker], "errors": errors,
-  "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "source": "Yahoo Finance Chart"}
+    stocks = [by_ticker[t] for t in ticker_list if t in by_ticker]
+    return {
+        "stocks": stocks,
+        "errors": errors,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
+        "source": "Yahoo Finance Chart",
+        "comparisonBasis": {
+            "returnFormula": "(last_adjusted_or_close - first_adjusted_or_close) / first * 100",
+            "priceBasis": "provider adjusted close when available; otherwise close",
+            "currencyMode": "local currency per symbol; no FX conversion",
+            "calendarMode": "per-symbol available trading observations",
+            "startPolicy": "each symbol uses its first available observation in the requested period",
+            "missingObservationPolicy": "missing observations are omitted; no interpolation",
+            "totalReturnVerified": False,
+        },
+    }
 
 
 def _load_home_insight_sources():
@@ -690,6 +739,48 @@ def compute_net_liquidity(ordered_results):
     }
 
 
+MACRO_DISPLAY_META = {
+    "T10Y2Y": {"unit": "%p", "changeUnit": "bp", "changeBasis": "previous observation", "category": "rates"},
+    "T10Y3M": {"unit": "%p", "changeUnit": "bp", "changeBasis": "previous observation", "category": "rates"},
+    "BAMLH0A0HYM2": {"unit": "%p", "changeUnit": "bp", "changeBasis": "previous observation", "category": "risk"},
+    "DFII10": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous observation", "category": "rates"},
+    "T10YIE": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous observation", "category": "prices"},
+    "PCEPI": {"unit": "% YoY", "changeUnit": "bp", "changeBasis": "previous monthly observation", "category": "prices"},
+    "PCETRIM12M159SFRBDAL": {"unit": "% YoY", "changeUnit": "bp", "changeBasis": "previous monthly observation", "category": "prices"},
+    "UNRATE": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous observation", "category": "labor"},
+    "RSAFS": {"unit": "USD million", "changeUnit": "%", "changeBasis": "previous observation", "category": "activity"},
+    "RRPONTSYD": {"unit": "USD billion", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
+    "WALCL": {"unit": "USD million", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
+    "WTREGEN": {"unit": "USD million", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
+    "M2SL": {"unit": "USD billion", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
+    "FEDFUNDS": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous observation", "category": "rates"},
+    "^VIX": {"unit": "index point", "changeUnit": "pt", "changeBasis": "previous observation", "category": "risk"},
+}
+
+
+def _macro_display_row(row):
+    symbol = row.get("original_symbol") or row.get("symbol")
+    meta = MACRO_DISPLAY_META.get(symbol, {})
+    delta = row.get("delta")
+    display_change = None
+    try:
+        if meta.get("changeUnit") == "bp" and delta is not None:
+            display_change = round(float(delta) * 100, 2)
+        elif meta.get("changeUnit") == "pt" and delta is not None:
+            display_change = round(float(delta), 4)
+        elif row.get("change") is not None:
+            display_change = round(float(row.get("change")), 2)
+    except (TypeError, ValueError):
+        display_change = None
+    return {
+        **row,
+        **meta,
+        "observedAt": row.get("asOf"),
+        "displayChange": display_change,
+        "status": "stale" if row.get("stale") else "current",
+    }
+
+
 def generate_macro_summary(ordered_results, net_liquidity):
     """모든 경제 지표를 종합 분석하여 한줄 요약 + 신호등 생성"""
     
@@ -824,19 +915,22 @@ def generate_macro_summary(ordered_results, net_liquidity):
     else:
         level = "green"
     
-    # 종합 판단문 생성
-    detail_str = " | ".join(details[:6])  # 최대 6개 지표 표시
-    
+    # 투자 행동을 지시하지 않고, 계산된 신호 구성을 설명한다.
+    detail_str = " | ".join(details[:6])
     if level == "red":
-        judgment = "→ 리스크 관리가 필요한 시점입니다. 방어적 포지션을 고려하세요."
+        judgment = "→ 현재 집계에서는 긴축·위험 신호가 상대적으로 많습니다."
     elif level == "yellow":
-        judgment = "→ 혼조세입니다. 선별적 접근과 모니터링이 필요합니다."
+        judgment = "→ 현재 집계에서는 긍정·부정 신호가 함께 나타납니다."
     else:
-        judgment = "→ 전반적으로 자산시장에 우호적인 환경입니다."
-    
+        judgment = "→ 현재 집계에서는 완화·안정 신호가 상대적으로 많습니다."
+
     text = f"{detail_str} {judgment}"
-    
-    return {"text": text, "level": level}
+    return {
+        "text": text,
+        "level": level,
+        "method": "rule-based descriptive signal aggregation",
+        "notice": "시장 환경을 설명하기 위한 요약이며 투자 행동을 권유하지 않습니다.",
+    }
 
 
 @app.get("/api/macro")
@@ -870,7 +964,8 @@ async def macro_data():
         )
 
     ordered = [
-        row for row in (payload.get("results") or [])
+        _macro_display_row(row)
+        for row in (payload.get("results") or [])
         if isinstance(row, dict) and row.get("chart_data")
     ]
     if len(ordered) < 8:
@@ -895,7 +990,14 @@ async def macro_data():
         "staleSymbols": payload.get("staleSymbols", []),
         "errors": payload.get("errors", {}),
         "source": payload.get("source", "FRED + Yahoo Chart, precomputed by GitHub Actions"),
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
         "cacheMode": "precomputed",
+        "dataContract": {
+            "observedAt": "source observation date for each indicator",
+            "generatedAt": "cache collection/build time",
+            "displayChange": "change versus the previous available observation using each row's changeUnit",
+            "missingValue": "null/omitted; zero is not used as a missing-value substitute",
+        },
         "basis": {
             "latest": basis_dates[-1] if basis_dates else None,
             "oldest": basis_dates[0] if basis_dates else None,
