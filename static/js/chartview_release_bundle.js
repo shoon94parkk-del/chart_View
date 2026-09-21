@@ -2049,6 +2049,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           }
           updateSummary();
           updateWatchStatus();
+          if (quoteQueue.size) continue;
         }
 
         if (returnQueue.size) {
