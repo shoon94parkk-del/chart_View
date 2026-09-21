@@ -121,3 +121,45 @@ def test_name_symbol_identity_mismatch_blocks_return_calculation():
     with pytest.raises(ValueError, match="identity mismatch") as exc:
         module.refresh_records([day], bad_screener, [])
     assert "204620.KQ" in str(exc.value)
+
+
+def test_same_symbol_allows_localized_display_name_alias():
+    day = three_pick_day("2026-09-16")
+    day["top3"][0] = {
+        "rank": 1,
+        "symbol": "010120.KS",
+        "code": "010120",
+        "name": "LS ELECTRIC",
+        "close": 100,
+        "totalScore": 90,
+        "grade": "A",
+        "reason": "근거",
+    }
+    alias_screener = screener("2026-09-16")
+    alias_screener["stocks"][0] = {
+        "symbol": "010120.KS",
+        "code": "010120",
+        "name": "엘에스일렉트릭",
+        "price": 105,
+    }
+
+    rows = module.refresh_records([day], alias_screener, [])
+    assert rows[0]["symbol"] == "010120.KS"
+    assert rows[0]["name"] == "LS ELECTRIC"
+    assert rows[0]["returnPct"] == 0.0
+
+
+def test_name_that_resolves_to_different_symbol_still_blocks():
+    day = three_pick_day("2026-09-16")
+    day["top3"][0]["name"] = "글로벌텍스프리"
+    bad_screener = screener("2026-09-16")
+    bad_screener["stocks"][0]["name"] = "제이앤티씨"
+    bad_screener["stocks"].append({
+        "symbol": "204620.KQ",
+        "code": "204620",
+        "name": "글로벌텍스프리",
+        "price": 5880,
+    })
+
+    with pytest.raises(ValueError, match="belongs to 204620.KQ"):
+        module.refresh_records([day], bad_screener, [])
