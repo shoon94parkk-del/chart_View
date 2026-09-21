@@ -473,14 +473,15 @@ async def home_bootstrap():
         recommendations = json.loads((data_dir / "ai_recommendations.json").read_text(encoding="utf-8"))
         days = rankings.get("days") or []
         day = max(days, key=lambda item: str(item.get("tradeDate") or ""), default=None)
+        versions = [str(rankings.get("updated") or ""), str(recommendations.get("updated") or "")]
         payload = {
             "day": day,
             "recommendations": recommendations.get("recommendations") or [],
-            "version": recommendations.get("updated") or rankings.get("updated") or "",
+            "version": max(versions),
         }
         return JSONResponse(
             content=payload,
-            headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=3600"},
+            headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"home bootstrap unavailable: {exc}")
