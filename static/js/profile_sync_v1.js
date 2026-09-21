@@ -212,6 +212,17 @@
     }
   }
 
+  async function syncConfigured() {
+    try {
+      const response = await fetch('/api/profile-sync/status', { cache: 'no-store', headers: { Accept: 'application/json' } });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      return Boolean(payload?.configured);
+    } catch (_) {
+      return false;
+    }
+  }
+
   function queueAutoSave() {
     const id = activeId();
     if (!id) return;
@@ -226,13 +237,14 @@
     }, 700);
   }
 
-  function init() {
+  async function init() {
+    if (!await syncConfigured()) return;
     mount();
     window.setTimeout(mount, 400);
     window.setTimeout(mount, 1200);
     document.addEventListener('chartview:watchlist-change', queueAutoSave);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { init(); }, { once: true });
   else init();
 })();
