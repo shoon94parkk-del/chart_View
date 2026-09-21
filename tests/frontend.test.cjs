@@ -110,7 +110,7 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(detail, /가격 \$\{priceText\}/);
   assert.match(detail, /midPoint/);
   assert.match(homeBrief, /marketSummaryHtml\(snapshot\?\.macro\) \+ majorStocksHtml/);
-  assert.match(homeBrief, /<span>시장 상태<\/span><h3>한줄 요약<\/h3>/);
+  assert.match(homeBrief, /<span>시장 상태<\/span><h3>시장 한줄 요약<\/h3>/);
   assert.match(watch, /summaryCard\.insertAdjacentElement\('afterend', section\)/);
   assert.match(homeBrief, /watchlistShortcut/);
 });
