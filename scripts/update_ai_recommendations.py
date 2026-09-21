@@ -110,6 +110,14 @@ def _market_indexes(screener: dict) -> tuple[dict[str, dict], dict[str, list[str
 
 
 def _validate_pick_identity(pick: dict, by_symbol: dict[str, dict], by_name: dict[str, list[str]]) -> dict:
+    """Validate identity without treating display-name aliases as a different stock.
+
+    Symbol + numeric code are the canonical identity. A display-name mismatch is
+    accepted when the pick name does not resolve to another known symbol. This
+    covers legitimate aliases/localizations such as "LS ELECTRIC" vs
+    "엘에스일렉트릭", while still blocking a name that belongs to a different
+    listed company.
+    """
     symbol = str(pick.get("symbol") or "").upper()
     code = str(pick.get("code") or "")
     name = str(pick.get("name") or "")
@@ -119,14 +127,25 @@ def _validate_pick_identity(pick: dict, by_symbol: dict[str, dict], by_name: dic
     if row is None:
         hint = f"; expected symbol for {name!r}: {', '.join(expected_symbols)}" if expected_symbols else ""
         raise ValueError(f"TOP3 symbol not found in screener: {symbol}{hint}")
-    if normalize_name(row.get("name")) != normalize_name(name):
-        hint = f"; expected symbol for {name!r}: {', '.join(expected_symbols)}" if expected_symbols else ""
-        raise ValueError(
-            f"TOP3 identity mismatch: {symbol} is {row.get('name')!r}, not {name!r}{hint}"
-        )
+
     symbol_code = symbol.split(".", 1)[0]
     if code and code != symbol_code:
         raise ValueError(f"TOP3 code/symbol mismatch: code={code}, symbol={symbol}")
+
+    row_name = str(row.get("name") or "")
+    if normalize_name(row_name) != normalize_name(name):
+        # If the supplied name is itself known in today's universe and points to
+        # another symbol, this is a real identity conflict and must remain fatal.
+        conflicting_symbols = [item for item in expected_symbols if item != symbol]
+        if conflicting_symbols:
+            raise ValueError(
+                f"TOP3 identity mismatch: {symbol} is {row_name!r}, not {name!r}; "
+                f"{name!r} belongs to {', '.join(conflicting_symbols)}"
+            )
+        print(
+            f"[PICK identity] accepted display-name alias for {symbol}: "
+            f"{name!r} -> {row_name!r}"
+        )
     return row
 
 
