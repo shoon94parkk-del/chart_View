@@ -36,6 +36,26 @@ function comparePayload(symbol, delay = 0, overrides = {}) {
 
 async function installApiMocks(page, opts = {}) {
   const detailDelays = opts.detailDelays || {};
+  await page.route('**/api/quotes?**', async (route) => {
+    const url = new URL(route.request().url());
+    const tickers = decodeURIComponent(url.searchParams.get('tickers') || '').split(',').filter(Boolean);
+    if (!tickers.length) return route.continue();
+    const results = tickers.map((symbol, idx) => ({
+      ticker: symbol,
+      name: symbol === '005930.KS' ? '삼성전자' : symbol,
+      price: symbol === '005930.KS' ? 1812000 : symbol === 'NVDA' ? 189.45 : 100 + idx,
+      change: idx - 1,
+      asOf: '2026-09-21T00:00:00+00:00',
+      currency: /\.(KS|KQ)$/.test(symbol) ? 'KRW' : 'USD',
+      source: 'test quote fixture',
+    }));
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ results, errors: [], fetchedAt: '2026-09-21T00:00:01+00:00', source: 'test quote fixture' }),
+    });
+  });
+
   await page.route('**/api/compare?**', async (route) => {
     const url = new URL(route.request().url());
     const tickers = decodeURIComponent(url.searchParams.get('tickers') || '').split(',').filter(Boolean);

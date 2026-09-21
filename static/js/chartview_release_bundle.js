@@ -1439,9 +1439,24 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let quoteSeq = 0;
   let quoteLoadPromise = null;
   let searchTimer = null;
+  const quoteQueue = new Set();
+  const returnQueue = new Set();
+  const quoteStatus = new Map();
   let quoteCache = safeParse(QUOTE_CACHE_KEY, { updatedAt: 0, quotes: {} });
   if (!quoteCache || typeof quoteCache !== 'object') quoteCache = { updatedAt: 0, quotes: {} };
   if (!quoteCache.quotes || typeof quoteCache.quotes !== 'object') quoteCache.quotes = {};
+  Object.values(quoteCache.quotes).forEach((quote) => {
+    if (!quote || typeof quote !== 'object') return;
+    if (quote.return !== null && quote.return !== undefined && !quote.returnUpdatedAt) {
+      quote.returnUpdatedAt = Number(quote.updatedAt || quoteCache.updatedAt || 0);
+    }
+    if (typeof quote.receivedAt === 'string'
+      && quote.receivedAt
+      && !/(?:Z|[+-]\d{2}:\d{2})$/.test(quote.receivedAt)
+      && !/^\d{10,13}$/.test(quote.receivedAt.trim())) {
+      quote.receivedAt = '';
+    }
+  });
 
   function dedupe(rows) {
     const seen = new Set();
@@ -1579,11 +1594,25 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return copy;
   }
 
-  function timeLabel(timestamp) {
-    const ts = Number(timestamp);
-    if (!Number.isFinite(ts) || ts <= 0) return '';
+  function normalizeDateValue(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const raw = String(value).trim();
+    let date;
+    if (typeof value === 'number' || /^\d{10,13}$/.test(raw)) {
+      const numeric = Number(raw);
+      if (!Number.isFinite(numeric)) return null;
+      date = new Date(numeric < 1e12 ? numeric * 1000 : numeric);
+    } else {
+      date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
+    }
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function timeLabel(value) {
+    const date = normalizeDateValue(value);
+    if (!date) return '';
     try {
-      return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(ts));
+      return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
     } catch (_) { return ''; }
   }
 
@@ -1606,23 +1635,27 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function tradeDateLabel(value) {
-    if (value === null || value === undefined || value === '') return '기준일 미확인';
-    let date;
-    if (typeof value === 'number' || /^\\d{10,13}$/.test(String(value))) {
-      const n = Number(value);
-      date = new Date(n < 1e12 ? n * 1000 : n);
-    } else {
-      const raw = String(value);
-      date = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
-    }
-    if (Number.isNaN(date.getTime())) return '기준일 미확인';
+    const date = normalizeDateValue(value);
+    if (!date) return '기준일 미확인';
     return `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')} 종가`;
   }
 
-  function quoteMetaText(quote, fresh = false) {
-    if (!quote) return '1달 수익률 · 시세 불러오는 중';
-    const received = timeLabel(quote.updatedAt);
-    return ['1달 수익률', tradeDateLabel(quote.tradeDate), received ? `${received} KST 조회` : ''].filter(Boolean).join(' · ');
+  function quoteMetaText(quote, fresh = false, symbol = '') {
+    const state = symbol ? quoteStatus.get(symbol) : '';
+    if (!quote) {
+      if (state === 'error') return '조회 실패 · 다시 시도';
+      if (state === 'partial') return '가격 조회됨 · 1달 수익률 조회 실패';
+      return '시세 불러오는 중';
+    }
+    const received = timeLabel(quote.receivedAt || quote.quoteAsOf || quote.updatedAt);
+    const parts = [
+      quote.return == null ? '1달 수익률 확인 중' : '1달 수익률',
+      quote.tradeDate ? tradeDateLabel(quote.tradeDate) : '',
+      received ? `${received} KST 조회` : '',
+    ].filter(Boolean);
+    if (state === 'error') parts.push('이전값');
+    else if (state === 'partial') parts.push(quote.return == null ? '수익률 조회 실패' : '이전 수익률');
+    return parts.join(' · ');
   }
 
   function quoteMarkup(row) {
@@ -1686,6 +1719,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
           <div class="up"><span>1달 상승</span><strong data-watch-summary-up>-</strong></div>
           <div class="down"><span>1달 하락</span><strong data-watch-summary-down>-</strong></div>
         </section>
+        <div class="watchlist-v34-status" data-watch-status role="status" aria-live="polite" hidden>
+          <span data-watch-status-text></span>
+          <button type="button" data-watch-retry hidden>실패 종목 재시도</button>
+        </div>
         <section class="watchlist-v30-searchbox watchlist-v33-searchbox">
           <div class="watchlist-v30-searchrow"><input id="watchlist-v30-search" type="search" placeholder="종목명 · 6자리 코드 · 해외 티커 추가" autocomplete="off" aria-label="관심종목 추가 검색"></div>
           <div id="watchlist-v30-search-results" class="watchlist-v30-search-results"></div>
@@ -1725,6 +1762,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       renderGrid();
     });
     tab.querySelector('[data-watch-refresh]')?.addEventListener('click', () => loadQuotes(true));
+    tab.querySelector('[data-watch-retry]')?.addEventListener('click', retryFailedQuotes);
     return tab;
   }
 
@@ -1810,7 +1848,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
             <i class="watchlist-v33-market">${marketLabel(row.symbol)}</i>
           </span>
           <span class="watchlist-v30-quote"><strong data-watch-price>${q.price}</strong><b class="watchlist-v30-return ${q.cls}" data-watch-return>${q.ret}</b></span>
-          <small class="watchlist-v30-meta">${esc(quoteMetaText(quoteFor(row.symbol), false))}</small>
+          <small class="watchlist-v30-meta">${esc(quoteMetaText(quoteFor(row.symbol), false, row.symbol))}</small>
           <span class="watchlist-v33-analysis-link">상세 보기 <b>›</b></span>
         </button>
         <button type="button" class="watchlist-v30-star" data-watch-remove="${esc(row.symbol)}" aria-label="${esc(row.name)} 관심종목 해제">★</button>
@@ -1843,7 +1881,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         ret.textContent = returnText(quote?.return);
         ret.className = `watchlist-v30-return ${returnClass(quote?.return)}`;
       }
-      if (meta) meta.textContent = quoteMetaText(quote, fresh);
+      if (meta) meta.textContent = quoteMetaText(quote, fresh, symbol);
     }
     const home = document.querySelector(`[data-home-watch-open="${CSS.escape(symbol)}"]`);
     if (home) {
@@ -1857,95 +1895,231 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
   }
 
-  function hasFreshQuotes(rows) {
-    return rows.length > 0
-      && Date.now() - Number(quoteCache.updatedAt || 0) < QUOTE_FRESH_MS
-      && rows.every((row) => Boolean(quoteFor(row.symbol)));
+  function quoteIsFresh(symbol) {
+    const quote = quoteFor(symbol);
+    return Boolean(quote) && Date.now() - Number(quote.updatedAt || 0) < QUOTE_FRESH_MS;
   }
 
-  async function loadQuotes(force = false) {
-    const rows = [...watchlist];
-    if (!force && hasFreshQuotes(rows)) {
-      rows.forEach((row) => applyQuote(row.symbol, quoteFor(row.symbol), false));
-      updateSummary();
-      updateUpdatedLabel(false);
-      return quoteCache;
+  function returnIsFresh(symbol) {
+    const quote = quoteFor(symbol);
+    return Boolean(quote)
+      && quote.return !== null && quote.return !== undefined
+      && Date.now() - Number(quote.returnUpdatedAt || 0) < QUOTE_FRESH_MS;
+  }
+
+  function setRowState(symbol, state) {
+    if (!symbol) return;
+    quoteStatus.set(symbol, state);
+    const quote = quoteFor(symbol);
+    applyQuote(symbol, quote, state === 'fresh');
+  }
+
+  function updateWatchStatus() {
+    const root = document.querySelector('[data-watch-status]');
+    const text = document.querySelector('[data-watch-status-text]');
+    const retry = document.querySelector('[data-watch-retry]');
+    if (!root || !text || !retry) return;
+    const symbols = watchlist.map((row) => row.symbol);
+    const loading = symbols.filter((symbol) => quoteStatus.get(symbol) === 'loading');
+    const failed = symbols.filter((symbol) => ['error', 'partial'].includes(quoteStatus.get(symbol)));
+    if (loading.length) {
+      root.hidden = false;
+      root.dataset.state = 'loading';
+      text.textContent = `시세 갱신 중 · ${loading.length}개`;
+      retry.hidden = true;
+      return;
     }
-    if (!force && quoteLoadPromise) return quoteLoadPromise;
-
-    const job = loadQuotesNow(force);
-    if (!force) quoteLoadPromise = job;
-    try { return await job; }
-    finally { if (quoteLoadPromise === job) quoteLoadPromise = null; }
+    if (failed.length) {
+      root.hidden = false;
+      root.dataset.state = 'error';
+      text.textContent = failed.length === symbols.length
+        ? '시세를 불러오지 못했어요. 저장된 이전값이 있으면 유지합니다.'
+        : `일부 시세 갱신 실패 · ${failed.length}개`;
+      retry.hidden = false;
+      return;
+    }
+    root.hidden = true;
+    root.dataset.state = 'ready';
+    text.textContent = '';
+    retry.hidden = true;
   }
 
-  async function loadQuotesNow(force = false) {
-    const seq = ++quoteSeq;
-    const rows = [...watchlist];
+  function queueRows(rows, force = false) {
+    rows.forEach((row) => {
+      const symbol = row.symbol;
+      const needsQuote = force || !quoteIsFresh(symbol);
+      const needsReturn = force || !returnIsFresh(symbol);
+      if (needsQuote) quoteQueue.add(symbol);
+      if (needsReturn) returnQueue.add(symbol);
+      if (needsQuote || needsReturn) quoteStatus.set(symbol, 'loading');
+    });
+    updateWatchStatus();
+  }
+
+  async function fetchQuoteBatch(symbols) {
+    if (!symbols.length) return;
+    const response = await fetch(`/api/quotes?tickers=${encodeURIComponent(symbols.join(','))}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`quotes ${response.status}`);
+    const data = await response.json();
+    const received = new Set();
+    (data.results || []).forEach((item) => {
+      const symbol = String(item.ticker || '').toUpperCase();
+      if (!symbol || !isWatchlisted(symbol)) return;
+      received.add(symbol);
+      const previous = quoteFor(symbol) || {};
+      const quote = {
+        ...previous,
+        price: item.price == null ? previous.price ?? null : Number(item.price),
+        currency: item.currency || previous.currency || '',
+        quoteAsOf: item.asOf || previous.quoteAsOf || '',
+        receivedAt: data.fetchedAt || previous.receivedAt || '',
+        source: item.source || data.source || previous.source || '출처 미확인',
+        priceBasis: 'latest_provider_quote',
+        updatedAt: Date.now(),
+      };
+      quoteCache.quotes[symbol] = quote;
+      if (!returnQueue.has(symbol)) quoteStatus.set(symbol, 'fresh');
+      applyQuote(symbol, quote, true);
+    });
+    symbols.forEach((symbol) => {
+      if (!isWatchlisted(symbol) || received.has(symbol)) return;
+      quoteStatus.set(symbol, quoteFor(symbol) ? 'error' : 'error');
+      applyQuote(symbol, quoteFor(symbol), false);
+    });
+  }
+
+  async function fetchReturnBatch(symbols) {
+    if (!symbols.length) return;
+    const response = await fetch(`/api/compare?tickers=${encodeURIComponent(symbols.join(','))}&period=1mo&refresh=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`returns ${response.status}`);
+    const data = await response.json();
+    const received = new Set();
+    (data.stocks || []).forEach((stock) => {
+      const symbol = String(stock.ticker || '').toUpperCase();
+      if (!symbol || !isWatchlisted(symbol)) return;
+      received.add(symbol);
+      const previous = quoteFor(symbol) || {};
+      const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
+      const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
+      const quote = {
+        ...previous,
+        price: previous.price == null && stock.price != null ? Number(stock.price) : previous.price ?? null,
+        return: stock.return == null ? previous.return ?? null : Number(stock.return),
+        tradeDate: tradeDate || previous.tradeDate || '',
+        quoteAsOf: previous.quoteAsOf || stock.quoteAsOf || stock.asOf || tradeDate || '',
+        receivedAt: data.fetchedAt || previous.receivedAt || '',
+        source: previous.source || stock.source || data.source || '출처 미확인',
+        returnSource: stock.source || data.source || '출처 미확인',
+        returnBasis: stock.priceBasis || 'provider',
+        returnUpdatedAt: Date.now(),
+        updatedAt: Number(previous.updatedAt || Date.now()),
+      };
+      quoteCache.quotes[symbol] = quote;
+      if (quoteStatus.get(symbol) !== 'error') quoteStatus.set(symbol, 'fresh');
+      applyQuote(symbol, quote, true);
+    });
+    symbols.forEach((symbol) => {
+      if (!isWatchlisted(symbol) || received.has(symbol)) return;
+      quoteStatus.set(symbol, quoteFor(symbol) ? 'partial' : 'error');
+      applyQuote(symbol, quoteFor(symbol), false);
+    });
+  }
+
+  async function runQuoteQueues() {
     const refresh = document.querySelector('[data-watch-refresh]');
     if (refresh) {
       refresh.classList.add('loading');
       refresh.disabled = true;
       refresh.textContent = '↻ 갱신 중';
     }
+    ++quoteSeq;
+    try {
+      while (quoteQueue.size || returnQueue.size) {
+        if (quoteQueue.size) {
+          const symbols = [...quoteQueue].slice(0, 20);
+          symbols.forEach((symbol) => quoteQueue.delete(symbol));
+          try {
+            await fetchQuoteBatch(symbols);
+          } catch (_) {
+            symbols.forEach((symbol) => {
+              if (!isWatchlisted(symbol)) return;
+              quoteStatus.set(symbol, quoteFor(symbol) ? 'error' : 'error');
+              applyQuote(symbol, quoteFor(symbol), false);
+            });
+          }
+          updateSummary();
+          updateWatchStatus();
+          if (quoteQueue.size) continue;
+        }
 
+        if (returnQueue.size) {
+          const symbols = [...returnQueue].slice(0, 6);
+          symbols.forEach((symbol) => returnQueue.delete(symbol));
+          try {
+            await fetchReturnBatch(symbols);
+          } catch (_) {
+            symbols.forEach((symbol) => {
+              if (!isWatchlisted(symbol)) return;
+              quoteStatus.set(symbol, quoteFor(symbol) ? 'partial' : 'error');
+              applyQuote(symbol, quoteFor(symbol), false);
+            });
+          }
+          updateSummary();
+          updateWatchStatus();
+        }
+      }
+
+      const liveRows = [...watchlist];
+      if (liveRows.length && liveRows.every((row) => quoteIsFresh(row.symbol))) {
+        quoteCache.updatedAt = Date.now();
+      }
+      saveQuoteCache();
+      updateSummary();
+      updateUpdatedLabel(liveRows.length > 0 && liveRows.every((row) => quoteIsFresh(row.symbol)));
+      updateWatchStatus();
+      if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
+      renderHomeShortcut();
+      return quoteCache;
+    } finally {
+      if (refresh) {
+        refresh.classList.remove('loading');
+        refresh.disabled = false;
+        refresh.textContent = '↻ 새로고침';
+      }
+    }
+  }
+
+  async function loadQuotes(force = false) {
+    const rows = [...watchlist];
     rows.forEach((row) => {
       const cached = quoteFor(row.symbol);
       if (cached) applyQuote(row.symbol, cached, false);
     });
     updateSummary();
     updateUpdatedLabel(false);
+    queueRows(rows, force);
 
-    if (!rows.length) {
-      if (refresh) { refresh.classList.remove('loading'); refresh.disabled = false; refresh.textContent = '↻ 새로고침'; }
-      return;
+    if (!quoteQueue.size && !returnQueue.size) {
+      updateWatchStatus();
+      return quoteCache;
     }
+    if (quoteLoadPromise) return quoteLoadPromise;
 
-    const chunks = [];
-    let received = 0;
-    for (let i = 0; i < rows.length; i += 6) chunks.push(rows.slice(i, i + 6));
-    await Promise.allSettled(chunks.map(async (chunk) => {
-      const response = await fetch(`/api/compare?tickers=${encodeURIComponent(chunk.map((x) => x.symbol).join(','))}&period=1mo${force ? `&refresh=${Date.now()}` : ''}`, { cache: 'no-store' });
-      if (!response.ok) return;
-      const data = await response.json();
-      if (seq !== quoteSeq) return;
-      (data.stocks || []).forEach((stock) => {
-        const symbol = String(stock.ticker || '').toUpperCase();
-        if (!symbol) return;
-        const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
-        const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
-        const quote = {
-          price: stock.price == null ? null : Number(stock.price),
-          return: stock.return == null ? null : Number(stock.return),
-          tradeDate: tradeDate || '',
-          quoteAsOf: stock.quoteAsOf || stock.asOf || tradeDate || '',
-          receivedAt: data.timestamp || '',
-          source: stock.source || data.source || '출처 미확인',
-          priceBasis: stock.priceBasis || 'provider',
-          updatedAt: Date.now(),
-        };
-        received += 1;
-        quoteCache.quotes[symbol] = quote;
-        applyQuote(symbol, quote, true);
-      });
-    }));
+    const job = runQuoteQueues();
+    quoteLoadPromise = job;
+    try {
+      return await job;
+    } finally {
+      if (quoteLoadPromise === job) quoteLoadPromise = null;
+      if (quoteQueue.size || returnQueue.size) loadQuotes(false);
+    }
+  }
 
-    if (seq !== quoteSeq) return;
-    if (received === rows.length) quoteCache.updatedAt = Date.now();
-    saveQuoteCache();
-    updateSummary();
-    updateUpdatedLabel(received === rows.length);
-    if (received < rows.length) {
-      const label = document.querySelector('[data-watch-updated]');
-      if (label) label.textContent = received ? '일부 시세 갱신 지연 · 이전값 유지' : '갱신 실패 · 이전값 유지';
-    }
-    if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
-    renderHomeShortcut();
-    if (refresh) {
-      refresh.classList.remove('loading');
-      refresh.disabled = false;
-      refresh.textContent = '↻ 새로고침';
-    }
+  function retryFailedQuotes() {
+    const rows = watchlist.filter((row) => ['error', 'partial'].includes(quoteStatus.get(row.symbol)));
+    if (!rows.length) return;
+    queueRows(rows, true);
+    if (!quoteLoadPromise) loadQuotes(false);
   }
 
   function openAnalysis(symbol, name) {

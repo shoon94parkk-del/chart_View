@@ -398,6 +398,23 @@
 body.compare-dialog-open{overflow:hidden}
 .mobile-compare-dialog :focus-visible,.mobile-compare-open:focus-visible,.mobile-compare-summary:focus-visible,.watchlist-mobile-sort:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 
+
+.watchlist-v34-status{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:0 0 10px;padding:9px 11px;border:1px solid var(--border,#e5e7eb);
+  border-radius:12px;background:var(--card-bg,#fff);font-size:.8125rem;line-height:1.25rem;
+}
+.watchlist-v34-status[hidden]{display:none!important}
+.watchlist-v34-status[data-state="loading"]{opacity:.82}
+.watchlist-v34-status[data-state="error"]{border-color:#f0b8b8;background:#fff8f8}
+.watchlist-v34-status [data-watch-status-text]{min-width:0;overflow-wrap:anywhere}
+.watchlist-v34-status [data-watch-retry]{
+  flex:0 0 auto;min-height:36px;padding:6px 10px;border:1px solid currentColor;border-radius:10px;
+  background:transparent;font:inherit;font-weight:700;cursor:pointer;
+}
+.watchlist-v34-status [data-watch-retry][hidden]{display:none!important}
+.watchlist-v34-status [data-watch-retry]:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+
 @media(max-width:599px){
   :root{--cv-page-gutter:16px;--cv-card-radius:14px}
   body.app-shell-ready{padding-bottom:calc(72px + env(safe-area-inset-bottom))!important}
@@ -408,6 +425,8 @@ body.compare-dialog-open{overflow:hidden}
   #watchlist-tab[data-my-hub-version="v41"] .watchlist-v33-head-meta{gap:0}
   #watchlist-tab[data-my-hub-version="v41"] .watchlist-v30-count{font-size:.75rem;padding:4px 6px}
   #watchlist-tab[data-my-hub-version="v41"] .watchlist-v33-head-meta [data-watch-updated]{display:none}
+  #watchlist-tab[data-my-hub-version="v41"] .watchlist-v34-status{margin:0 0 8px;padding:8px 10px;border-radius:10px;font-size:.8125rem}
+  #watchlist-tab[data-my-hub-version="v41"] .watchlist-v34-status [data-watch-retry]{min-height:44px}
   #watchlist-tab .my-hub-v41-switch{gap:4px;padding:3px;margin:0 0 8px;border-radius:12px}
   #watchlist-tab .my-hub-v41-switch button{min-height:44px;font-size:.875rem;line-height:1.25rem;font-weight:600}
   #watchlist-tab[data-my-hub-version="v41"] .watchlist-v33-summary{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 8px;min-height:28px}

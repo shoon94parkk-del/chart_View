@@ -251,14 +251,14 @@ function clearChartData() {
 
 function normalizeChartDate(value) {
     if (value === null || value === undefined || value === '') return null;
+    const raw = String(value).trim();
     let date;
-    if (typeof value === 'number' || /^\\d{10,13}$/.test(String(value))) {
-        const numeric = Number(value);
+    if (typeof value === 'number' || /^\d{10,13}$/.test(raw)) {
+        const numeric = Number(raw);
         if (!Number.isFinite(numeric)) return null;
         date = new Date(numeric < 1e12 ? numeric * 1000 : numeric);
     } else {
-        const raw = String(value).trim();
-        date = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
+        date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : new Date(raw);
     }
     if (Number.isNaN(date.getTime())) return null;
     return date;
@@ -287,7 +287,7 @@ function updateChartFreshness(data, stale = false) {
     const uniqueDays = [...new Set(tradeDates.map((item) => item.day))];
     const latestDay = uniqueDays.slice().sort().at(-1) || '';
     const shortTrade = latestDay ? latestDay.slice(5).replace('-', '.') : '';
-    const fetchedAt = data?.timestamp || '';
+    const fetchedAt = data?.fetchedAt || data?.timestamp || '';
     const shortFetch = formatKstTime(fetchedAt);
     const mixedDates = uniqueDays.length > 1;
     const parts = [
