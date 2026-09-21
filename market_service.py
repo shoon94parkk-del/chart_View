@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+from request_coalescing import singleflight
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -172,6 +173,7 @@ def _chart_result(symbol: str, *, period: str = "5d", interval: str = "1d", star
     return result
 
 
+@singleflight
 def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = None, end: str | None = None) -> dict[str, Any] | None:
     symbol = symbol.strip().upper()
     if not symbol:
@@ -361,6 +363,7 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
 
 
 
+@singleflight
 def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
     """Current quote using today's intraday chart and the prior trading close."""
     symbol = symbol.strip().upper()
@@ -436,6 +439,7 @@ def fetch_history_series(symbol: str, period: str = "6mo") -> list[dict[str, Any
         rows.append({"time": date, "value": round(value, 4)})
     return rows
 
+@singleflight
 def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     symbol = symbol.strip().upper()
     now = time.time()
