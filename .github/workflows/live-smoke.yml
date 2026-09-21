@@ -183,7 +183,7 @@ jobs:
           d=json.load(open('/tmp/macro.json'))
           rows=d.get('results',[])
           assert d.get('cacheMode') == 'precomputed', d.get('cacheMode')
-          assert len(rows) == 13, len(rows)
+          assert len(rows) == 15, len(rows)
           assert d.get('freshCount') == 15 and d.get('staleCount') == 0, (d.get('freshCount'),d.get('staleCount'))
           assert all('delta' in x and x.get('chart_data') for x in rows)
           symbols={x.get('original_symbol') or x.get('symbol') for x in rows}
