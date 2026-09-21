@@ -13,6 +13,7 @@ def test_durable_project_memory_files_exist_and_are_linked():
         "docs/project-memory.md",
         "docs/regression-guardrails.md",
         "docs/decision-log.md",
+        "docs/project-registry.md",
     ):
         assert (ROOT / path).exists(), path
 
@@ -60,6 +61,9 @@ def test_project_memory_locks_current_production_and_high_risk_decisions():
 
     assert "Watchlist add is incremental" in decisions
     assert "Repository memory is part of the engineering system" in decisions
+    registry = read("docs/project-registry.md")
+    for repo_name in ("chart_View", "chart-view-toss", "mileway-award-monitor", "LOCAL_LLM", "ZYGO-IPD", "peligood-bid-radar", "Footprint"):
+        assert repo_name in registry, repo_name
 
 
 def test_agent_rules_require_regression_test_memory_update_and_exact_deploy():
