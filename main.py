@@ -62,6 +62,8 @@ app.include_router(profile_sync_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://chartview.web.tossmini.com",         # SDK 3.x production
+        "https://chartview.private-web.tossmini.com", # SDK 3.x QR preview
         "https://chartview.apps.tossmini.com",        # 실제 서비스 환경
         "https://chartview.private-apps.tossmini.com", # 콘솔 QR 테스트 환경
         "https://chart-view-toss.onrender.com",       # Render Toss preview
