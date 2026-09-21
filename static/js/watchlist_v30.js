@@ -651,6 +651,7 @@
           }
           updateSummary();
           updateWatchStatus();
+          if (quoteQueue.size) continue;
         }
 
         if (returnQueue.size) {
