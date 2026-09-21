@@ -100,6 +100,9 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(homeCss, /scroll-snap-type:x mandatory/);
   assert.match(homeCss, /home16-logo-fallback/);
   assert.match(continuityCss, /max-width:1120px/);
+  assert.match(continuityCss, /home16-major-card\{grid-column:1\/-1;order:2/);
+  assert.match(continuityCss, /grid-template-columns:repeat\(8,minmax\(0,1fr\)\)/);
+  assert.match(continuityCss, /home16-strip-nav\{display:none\}/);
   assert.match(screener, /RSI 최소는 최대보다 클 수 없습니다/);
   assert.match(screener, /if \(errors\.length\) return false/);
   assert.match(p2, /<summary aria-label="관심종목 관리">관리<\/summary>/);
