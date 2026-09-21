@@ -4,6 +4,16 @@ const BASE = process.env.APP_URL || 'http://127.0.0.1:8080';
 const watch = [{symbol:'NVDA',name:'엔비디아'},{symbol:'AAPL',name:'애플'}];
 const shared = {symbol:'NVDA',name:'엔비디아',title:'NVIDIA and Apple expand AI supply agreement',source:'Test',publishedAt:new Date().toISOString(),publishedTs:Date.now(),url:'https://example.com/shared',score:180,relationType:'direct',relationBasis:'제목에 기업명·티커 확인'};
 const payload = {items:[shared],errors:[],groups:[{symbol:'NVDA',name:'엔비디아',status:'success',items:[shared]},{symbol:'AAPL',name:'애플',status:'success',items:[{...shared,symbol:'AAPL',name:'애플',relationType:'direct'}]}]};
+async function gotoApp(page, url) {
+  try {
+    await page.goto(url, {waitUntil:'domcontentloaded', timeout:15000});
+  } catch (error) {
+    if (error?.name !== 'TimeoutError') throw error;
+    await page.waitForTimeout(1200);
+    await page.goto(url, {waitUntil:'domcontentloaded', timeout:22000});
+  }
+}
+
 const valuationStocks = [
  {ticker:'AAPL',name:'Apple',price:250.15,forwardPE:28.4,trailingPE:31.2,pbr:45.1,psr:10.4,evEbitda:22.1,roe:158.2,operatingMargin:31.5,dividendYield:0.4},
  {ticker:'NVDA',name:'NVIDIA',price:190.8,forwardPE:34.1,trailingPE:41.7,pbr:39.2,psr:20.3,evEbitda:31.8,roe:112.3,operatingMargin:62.1,dividendYield:0.1},
@@ -21,7 +31,7 @@ const valuationStocks = [
  await page.route('**/api/consensus?**',route=>route.fulfill({status:200,contentType:'application/json',body:'{}'}));
  const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
  const launchUrl = new URL('/?utm_source=test&utm_medium=ci&utm_campaign=launch_v1', BASE).toString();
- await page.goto(launchUrl,{waitUntil:'domcontentloaded'});
+ await gotoApp(page, launchUrl);
  await page.waitForSelector('.app-bottom-btn[data-app-mode="watchlist"]');
 
  // Public beta launch surface: static SEO metadata + campaign landing explanation + sharing affordance.
