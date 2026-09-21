@@ -1,5 +1,13 @@
 # 변경 이력
 
+## 2026-09-21 · ID-based watchlist sync
+- Added passwordless sync ID flow for moving watchlists between devices.
+- Existing local-only behavior remains the default until a sync ID is connected.
+- Added a small profile-sync API backed by PostgreSQL; only a hashed sync key and watchlist JSON are stored.
+- Added validation, deduplication, 20-symbol limit, and regression coverage.
+- Security note: this is intentionally not authentication; anyone who knows a sync ID can access that watchlist.
+
+
 ## 2026-09-21 · Audit final completion pass
 
 - 홈 정보 순서를 시장 상태 → 내 관심종목 → 주요 종목 흐름으로 정리하고, 홈 보조 메타데이터의 지나치게 작은 글자를 보강했습니다.
