@@ -47,6 +47,18 @@
   let quoteCache = safeParse(QUOTE_CACHE_KEY, { updatedAt: 0, quotes: {} });
   if (!quoteCache || typeof quoteCache !== 'object') quoteCache = { updatedAt: 0, quotes: {} };
   if (!quoteCache.quotes || typeof quoteCache.quotes !== 'object') quoteCache.quotes = {};
+  Object.values(quoteCache.quotes).forEach((quote) => {
+    if (!quote || typeof quote !== 'object') return;
+    if (quote.return !== null && quote.return !== undefined && !quote.returnUpdatedAt) {
+      quote.returnUpdatedAt = Number(quote.updatedAt || quoteCache.updatedAt || 0);
+    }
+    if (typeof quote.receivedAt === 'string'
+      && quote.receivedAt
+      && !/(?:Z|[+-]\d{2}:\d{2})$/.test(quote.receivedAt)
+      && !/^\d{10,13}$/.test(quote.receivedAt.trim())) {
+      quote.receivedAt = '';
+    }
+  });
 
   function dedupe(rows) {
     const seen = new Set();
