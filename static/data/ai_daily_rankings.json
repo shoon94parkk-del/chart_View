@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-19T11:49:00+09:00",
+  "updated": "2026-09-21T18:34:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -197,6 +197,56 @@
           "totalScore": 92,
           "grade": "사용자 확정",
           "reason": "AI 데이터센터·북미 전력망 투자 확대와 초고압 변압기 수주잔고 증가가 실적 성장으로 연결되는 전력 인프라 성장주."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-21",
+      "status": "사용자 확정 TOP3 — 2026-09-21 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-09-21",
+        "analyzedAt": "2026-09-21T18:34:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "005930",
+          "symbol": "005930.KS",
+          "name": "삼성전자",
+          "close": 274500,
+          "previousClose": 261000,
+          "changePct": 5.17,
+          "totalScore": 91,
+          "grade": "사용자 확정",
+          "reason": "HBM4·HBM4E와 메모리 업황 개선이 실적 성장으로 연결되는 AI 메모리 핵심 업체."
+        },
+        {
+          "rank": 2,
+          "code": "298040",
+          "symbol": "298040.KS",
+          "name": "효성중공업",
+          "close": 2916000,
+          "previousClose": 2915000,
+          "changePct": 0.03,
+          "totalScore": 90,
+          "grade": "사용자 확정",
+          "reason": "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체."
+        },
+        {
+          "rank": 3,
+          "code": "064290",
+          "symbol": "064290.KQ",
+          "name": "인텍플러스",
+          "close": 50200,
+          "previousClose": 46750,
+          "changePct": 7.38,
+          "totalScore": 86,
+          "grade": "사용자 확정",
+          "reason": "첨단 패키징·반도체 3D 검사장비 수주잔고 확대가 향후 실적 턴어라운드로 연결될 가능성이 높은 검사장비 업체."
         }
       ]
     }
