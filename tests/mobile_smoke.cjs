@@ -12,7 +12,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   fs.mkdirSync('test-results', { recursive: true });
   const browser = await chromium.launch();
   try {
-    for (const width of [360, 384, 430]) {
+    for (const width of [320, 360, 384, 390, 430]) {
       const context = await browser.newContext({
         viewport: { width, height: 824 }, isMobile: true, hasTouch: true,
         timezoneId: 'Asia/Seoul', locale: 'ko-KR',
@@ -126,6 +126,8 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       const compareBefore = await page.evaluate(() => window.ChartViewState.getCompare().items);
       const watchBefore = await page.evaluate(() => window.ChartViewState.getWatchlist().items);
       await page.locator('[data-mobile-compare-open]').click();
+      await page.screenshot({path:`test-results/${width}-comparison-manager.png`});
+      assert(await page.locator('.mobile-compare-dialog').evaluate(el => el.scrollWidth <= el.clientWidth), 'comparison manager must not overflow');
       await page.locator('[data-compare-draft] button').first().click();
       assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore);
       await page.locator('[data-compare-cancel]').click();
@@ -138,6 +140,13 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore.slice(1));
       assert.deepEqual(await page.evaluate(() => window.ChartViewState.getWatchlist().items), watchBefore);
       await page.evaluate(items => window.ChartViewState.setCompare(items), compareBefore);
+      await page.locator('[data-mobile-compare-open]').click();
+      await page.locator('[data-compare-draft] button').first().click();
+      await page.goBack();
+      assert.equal(await page.locator('.mobile-compare-dialog').isVisible(), false);
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore);
+      assert.equal(await page.locator('#chart-tab').isVisible(), true);
+
 
       const beforeYtd = await page.evaluate(() => ({
         releaseFlow:Boolean(window.__chartViewReleaseFlowV40),
