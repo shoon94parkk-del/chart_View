@@ -216,8 +216,14 @@
   }
 
   function paintHome(root, snapshot) {
+    const watchlistShortcut = document.getElementById('home-watchlist-v30');
     const rows = majorRows(snapshot?.heatmap || { results: [] });
     root.innerHTML = marketSummaryHtml(snapshot?.macro) + majorStocksHtml(rows, snapshot?.generatedAt);
+    if (watchlistShortcut) {
+      const summaryCard = root.querySelector('.home16-summary-card');
+      if (summaryCard) summaryCard.insertAdjacentElement('afterend', watchlistShortcut);
+      else root.prepend(watchlistShortcut);
+    }
     bindHomeActions(root);
   }
 
