@@ -106,7 +106,7 @@
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
       const aria = active ? `${name} 비교에 포함됨` : `${name} 비교에 추가`;
-      const label = active ? '✓ 비교에 포함됨' : (full ? '최대 6개' : '+ 비교에 추가');
+      const label = active ? '✓ 비교 중' : (full ? '최대 6개' : '+ 비교에 추가');
       if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
       if (button.textContent !== label) button.textContent = label;
     });
@@ -137,7 +137,10 @@
       .watchlist-quick-add-v48.limit{border-color:#edf0f3;background:#fafbfc;color:#b0b8c1}
       .watchlist-quick-add-toast-v48{position:fixed;left:50%;bottom:86px;z-index:9999;transform:translate(-50%,12px);max-width:calc(100vw - 32px);padding:10px 14px;border-radius:12px;background:rgba(25,31,40,.94);color:#fff;font-size:11px;font-weight:750;box-shadow:0 10px 30px rgba(15,23,42,.2);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;white-space:nowrap}
       .watchlist-quick-add-toast-v48.show{opacity:1;transform:translate(-50%,0)}
-      @media(max-width:720px){.watchlist-v33-card.has-quick-add-v48 .watchlist-v33-open,.watchlist-v30-card.has-quick-add-v48 .watchlist-v30-open{padding-bottom:50px}.watchlist-quick-add-v48{left:12px;right:52px;bottom:10px;min-height:29px;font-size:10px}}
+      @media(max-width:599px){
+        #watchlist-tab .watchlist-quick-add-v48{position:static;grid-column:1;justify-self:start;min-height:44px;max-width:100%;margin:0 12px 8px;white-space:normal;font-size:.75rem;line-height:1.125rem}
+        #watchlist-tab .watchlist-quick-add-v48.active{min-height:20px;border:0;background:transparent;margin:0 12px 8px;padding:0;color:#52677c}
+      }
     `;
     document.head.appendChild(style);
   }

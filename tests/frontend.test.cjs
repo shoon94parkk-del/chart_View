@@ -102,7 +102,7 @@ test('2026-09-21 audit contracts keep date, detail and production states explici
   assert.match(continuityCss, /max-width:1120px/);
   assert.match(screener, /RSI 최소는 최대보다 클 수 없습니다/);
   assert.match(screener, /if \(errors\.length\) return false/);
-  assert.match(p2, /<summary>목록 관리<\/summary>/);
+  assert.match(p2, /<summary aria-label="관심종목 관리">관리<\/summary>/);
   const marketService = fs.readFileSync('market_service.py', 'utf8');
   assert.match(marketService, /"price": round\(close, 4\)/);
   assert.match(detail, /aria-live="polite"/);

@@ -18,10 +18,11 @@
 
   function installWatchlistBackup() {
     const toolbar = document.querySelector('.watchlist-v33-toolbar');
-    if (!toolbar || toolbar.querySelector('[data-p2-backup]')) return;
+    if (!toolbar || document.querySelector('[data-p2-backup]')) return;
     const group = document.createElement('details'); group.className='p2-backup-actions';
-    group.innerHTML='<summary>목록 관리</summary><div><button type="button" data-p2-backup aria-label="관심종목 백업 내보내기">백업 내보내기</button><button type="button" data-p2-restore aria-label="관심종목 백업 복원">백업 복원</button><input type="file" accept="application/json,.json" data-p2-restore-file hidden></div>';
-    toolbar.appendChild(group);
+    group.innerHTML='<summary aria-label="관심종목 관리">관리</summary><div><button type="button" data-p2-backup aria-label="관심종목 백업 내보내기">백업 내보내기</button><button type="button" data-p2-restore aria-label="관심종목 백업 복원">백업 복원</button><input type="file" accept="application/json,.json" data-p2-restore-file hidden></div>';
+    const heading = document.querySelector('.watchlist-v33-head');
+    (heading || toolbar).appendChild(group);
     group.querySelector('[data-p2-backup]').addEventListener('click', () => {
       const payload={schema:'chartview-watchlist',version:1,exportedAt:new Date().toISOString(),watchlist:read(WATCHLIST_KEY,[]),names:read(NAMES_KEY,{})};
       const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='chartview-watchlist.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); toast('관심종목 백업 파일을 만들었어요.');
