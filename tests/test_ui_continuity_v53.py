@@ -64,4 +64,5 @@ def test_desktop_major_stocks_use_full_width_grid():
     assert "@media(min-width:1024px)" in css
     assert ".home16-major-card{grid-column:1/-1;order:2" in css
     assert "grid-template-columns:repeat(8,minmax(0,1fr))" in css
-    assert ".home16-major-card.home16-strip-nav{display:none}" not in css
+    raw_css = read("static/css/ui_continuity_v53.css")
+    assert "#home-tab .home16-major-card .home16-strip-nav{display:none}" in raw_css
