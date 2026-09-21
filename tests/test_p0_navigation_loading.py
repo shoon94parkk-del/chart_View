@@ -152,3 +152,9 @@ def test_screener_price_is_labeled_as_trade_date_close_not_realtime():
     assert 'data-label="현재가"' not in js
     assert ".screen-price-basis" in css
     assert ".screen-close-price" in css
+
+
+def test_screener_freshness_targets_new_render_backend():
+    workflow = read(".github/workflows/screener-production-freshness.yml")
+    assert "https://chart-view-pkv8.onrender.com" in workflow
+    assert "https://chart-view-bsg6.onrender.com" not in workflow
