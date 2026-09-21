@@ -243,12 +243,14 @@
       section = document.createElement('section');
       section.id = 'home-watchlist-v30';
       section.className = 'home-v8-block home-watchlist-v30';
-      body.insertAdjacentElement('beforebegin', section);
+      const summaryCard = body.querySelector('.home16-summary-card');
+      if (summaryCard) summaryCard.insertAdjacentElement('afterend', section);
+      else body.prepend(section);
     }
     const visible = watchlist.slice(0, 4);
     section.innerHTML = `
       <div class="home-block-head home-watchlist-v30-head">
-        <div><span>MY STOCKS · 1달 수익률</span><h3>내 관심종목</h3></div>
+        <div><span>관심종목 · 1달 수익률</span><h3>내 관심종목</h3></div>
         <button type="button" data-home-watch-all>전체보기 →</button>
       </div>
       ${visible.length ? `<div class="home-watchlist-v30-chips">${visible.map((row) => {

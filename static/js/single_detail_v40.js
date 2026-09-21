@@ -93,8 +93,14 @@
     return rows.map((row, index) => {
       if (typeof row === 'number') return { time: null, value: row, index };
       if (!row || typeof row !== 'object') return null;
-      const state = D()?.numberState?.(row.value ?? row.return ?? row.close ?? row.price);
-      return state?.kind === 'number' ? { time: row.time ?? row.date ?? null, value: state.value, index } : null;
+      const state = D()?.numberState?.(row.value ?? row.return ?? row.close);
+      const priceState = D()?.numberState?.(row.price ?? row.close);
+      return state?.kind === 'number' ? {
+        time: row.time ?? row.date ?? null,
+        value: state.value,
+        price: priceState?.kind === 'number' ? priceState.value : null,
+        index,
+      } : null;
     }).filter(Boolean);
   }
 
@@ -124,15 +130,16 @@
     });
     const poly = xy.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const zeroY = low <= 0 && high >= 0 ? height - bottom - ((0 - low) / span) * (height - top - bottom) : null;
-    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 값을 확인할 수 있습니다.">
-      <div class="detail-v42-chart-readout" data-detail-chart-readout>터치하거나 좌우키로 날짜별 수익률 확인</div>
+    const midPoint = points[Math.floor((points.length - 1) / 2)];
+    return `<div class="detail-v42-chart-wrap" data-detail-chart tabindex="0" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 좌우 화살표 또는 터치로 날짜별 가격과 수익률을 확인할 수 있습니다.">
+      <div class="detail-v42-chart-readout" data-detail-chart-readout role="status" aria-live="polite">터치하거나 좌우키로 날짜별 가격과 수익률 확인</div>
       <svg class="detail-v40-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${PERIODS[detailSession?.period || '1mo']} 수익률 흐름">
         ${zeroY === null ? '' : `<line class="detail-v42-zero" x1="${left}" x2="${width-right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/><text class="detail-v42-zero-label" x="4" y="${Math.max(top + 10, Math.min(height - bottom - 4, zeroY - 4)).toFixed(1)}">0%</text>`}
         <text class="detail-v42-y-label" x="4" y="${top + 4}">${high.toFixed(1)}%</text>
         <text class="detail-v42-y-label" x="4" y="${height-bottom}">${low.toFixed(1)}%</text>
         <polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="4" vector-effect="non-scaling-stroke"/>
       </svg>
-      <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
+      <div class="detail-v42-chart-axis"><span>${esc(pointDate(points[0]) || '시작')}</span><span>${esc(pointDate(midPoint) || '')}</span><span>${esc(pointDate(points.at(-1)) || '현재')}</span></div>
     </div>`;
   }
 
@@ -146,7 +153,13 @@
     const select = (next) => {
       index = Math.max(0, Math.min(points.length - 1, next));
       const point = points[index];
-      readout.textContent = `${pointDate(point) || `${index + 1}번째 관측`} · ${D()?.formatPercent?.(point.value, 2) || `${point.value.toFixed(2)}%`}`;
+      const dateText = pointDate(point) || `${index + 1}번째 관측`;
+      const priceText = Number.isFinite(Number(point.price))
+        ? (D()?.formatPrice?.(detailSession?.symbol || '', point.price) || String(point.price))
+        : '';
+      const returnText = D()?.formatPercent?.(point.value, 2) || `${point.value.toFixed(2)}%`;
+      readout.textContent = [dateText, priceText ? `가격 ${priceText}` : '', `수익률 ${returnText}`].filter(Boolean).join(' · ');
+      root.setAttribute('aria-label', `${PERIODS[detailSession?.period || '1mo']} 수익률 차트. 현재 선택 ${readout.textContent}. 좌우 화살표 또는 터치로 이동할 수 있습니다.`);
     };
     const fromPointer = (event) => {
       const rect = svg.getBoundingClientRect();
@@ -230,8 +243,8 @@
           <button type="button" class="detail-v40-back" data-detail-back aria-label="이전 화면으로 돌아가기">←</button>
           <div class="detail-v40-id"><strong>${esc(name)}</strong><span>${esc(symbol)} · ${marketLabel(symbol)}</span></div>
           <div class="detail-v40-actions">
-            <button type="button" data-detail-watch>${watched ? '★ 관심' : '☆ 관심'}</button>
-            <button type="button" data-detail-compare data-state="${compare.key}" ${compare.disabled ? 'disabled' : ''}>${compare.label}</button>
+            <button type="button" data-detail-watch aria-label="${esc(name)} 관심종목 ${watched ? '해제' : '추가'}">${watched ? '★ 관심' : '☆ 관심'}</button>
+            <button type="button" data-detail-compare aria-label="${esc(name)} ${esc(compare.label)}" data-state="${compare.key}" ${compare.disabled ? 'disabled' : ''}>${compare.label}</button>
           </div>
         </header>
         <section class="detail-v40-price" aria-label="현재 가격">
