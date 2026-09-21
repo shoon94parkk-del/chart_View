@@ -46,8 +46,11 @@ def test_watchlist_add_is_immediate_and_refreshes_only_new_symbol():
     loader = js.split('async function loadQuoteRows(rows, force = false)', 1)[1].split('function retryFailedQuotes', 1)[0]
 
     assert 'render({ refreshQuotes: false })' in toggle
-    assert 'setTimeout(() => loadQuoteRows([row], false), 0)' in toggle
+    assert 'setTimeout(() => hydrateAddedWatchlistRow(row), 0)' in toggle
     assert 'loadQuotes(false)' not in toggle
     assert 'if (refreshQuotes) loadQuotes(false)' in render
+    assert 'async function hydrateAddedWatchlistRow(row)' in js
+    assert '/api/quotes?tickers=' in js
+    assert '/api/compare?tickers=' in js
     assert 'const targets = dedupe((rows || []).filter' in loader
     assert 'return loadQuoteRows([...watchlist], force)' in loader
