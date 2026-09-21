@@ -106,3 +106,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - 홈·관심목록의 조회 시각은 `Asia/Seoul`로 명시 변환한다.
 - 관심목록 백업·복원은 `목록 관리` 아래에 두고, 복원은 미리보기·중복 제거·기존 목록 보존 규칙을 유지한다.
 - CV-14 검증 중 스크리너 RSI 최소>최대는 이미 입력 오류로 차단되고, 오류가 있으면 마지막 유효 customFilters를 유지하는 현재 구현을 회귀 계약으로 고정한다.
+
+## 2026-09-21 audit final completion
+
+- Audit source: `ChartView_UI_UX_Audit_Plan_2026-09-21.md`.
+- Final gap pass: Home market summary is kept ahead of the personal watchlist, with the major-stock strip following; the watchlist survives Home snapshot repaint.
+- Detail compare points now retain raw point price alongside the existing return percentage. The detail chart exposes start/middle/end dates and announces selected date + price + return for keyboard/touch navigation.
+- Accessibility: detail watch/compare actions have explicit names and the interactive chart readout uses a polite live status.
+- Remaining validation caveat: automated responsive/browser suites can verify 360/390/430-class behavior, but physical iOS/Samsung Internet device testing is still a release QA task rather than a code gap.
+
