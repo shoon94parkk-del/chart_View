@@ -158,3 +158,20 @@ def test_screener_freshness_targets_new_render_backend():
     workflow = read(".github/workflows/screener-production-freshness.yml")
     assert "https://chart-view-pkv8.onrender.com" in workflow
     assert "https://chart-view-bsg6.onrender.com" not in workflow
+
+
+def test_home_pick_bootstrap_prefers_latest_version_and_disables_stale_cache():
+    main = read("main.py")
+    assert 'versions = [str(rankings.get("updated") or ""), str(recommendations.get("updated") or "")]' in main
+    assert '"version": max(versions)' in main
+    assert '"Cache-Control": "no-cache, max-age=0, must-revalidate"' in main
+
+
+def test_2026_09_21_pick_is_published_to_rankings_and_ledger():
+    import json
+    rankings = json.loads(read("static/data/ai_daily_rankings.json"))
+    ledger = json.loads(read("static/data/ai_recommendations.json"))
+    day = next(row for row in rankings.get("days", []) if row.get("tradeDate") == "2026-09-21")
+    assert [row.get("name") for row in day.get("top3", [])] == ["삼성전자", "효성중공업", "인텍플러스"]
+    published = [row for row in ledger.get("recommendations", []) if row.get("recommendedDate") == "2026-09-21"]
+    assert [row.get("name") for row in sorted(published, key=lambda row: row.get("rank", 0))] == ["삼성전자", "효성중공업", "인텍플러스"]
