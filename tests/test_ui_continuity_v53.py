@@ -10,7 +10,7 @@ def read(path: str) -> str:
 
 def test_app_loads_shared_ui_continuity_layer():
     html = read("templates/index.html")
-    assert "/static/css/ui_continuity_v53.css?v=20260921mobile1" in html
+    assert "/static/css/ui_continuity_v53.css?v=20260921desktop2" in html
     import hashlib
     version = hashlib.sha256((ROOT / "static/js/ui_continuity_v53.js").read_bytes()).hexdigest()[:12]
     assert f"/static/js/ui_continuity_v53.js?v={version}" in html
@@ -57,3 +57,12 @@ def test_mobile_continuity_reduces_box_density_and_preserves_safe_area():
     assert ".ai-ledger-kpis" in css
     assert ".ai-ledger-tools" in css
     assert ".revision-gap-card" in css
+
+
+def test_desktop_major_stocks_use_full_width_grid():
+    css = read("static/css/ui_continuity_v53.css").replace(" ", "")
+    assert "@media(min-width:1024px)" in css
+    assert ".home16-major-card{grid-column:1/-1;order:2" in css
+    assert "grid-template-columns:repeat(8,minmax(0,1fr))" in css
+    raw_css = read("static/css/ui_continuity_v53.css")
+    assert "#home-tab .home16-major-card .home16-strip-nav{display:none}" in raw_css
