@@ -120,6 +120,8 @@
       <p class="profile-sync-v1-note">비밀번호 없는 간편 동기화입니다. ID를 아는 사람은 해당 관심종목 목록을 불러오거나 변경할 수 있으므로 개인정보에는 사용하지 마세요.</p>
     `;
     summary.insertAdjacentElement('afterend', section);
+    const footer = summary.closest('main')?.querySelector(':scope > p.watchlist-v30-footer-note');
+    if (footer) footer.textContent = '관심종목은 기본적으로 이 기기에 저장됩니다. 동기화 ID를 연결하면 다른 기기에서도 같은 목록을 불러올 수 있습니다. 카드의 거래 기준일과 조회 시각도 함께 확인하세요.';
 
     const input = section.querySelector('[data-sync-id]');
     const connect = section.querySelector('[data-sync-connect]');
