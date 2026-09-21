@@ -39,7 +39,7 @@ jobs:
 
       - name: Verify production screener freshness
         env:
-          APP_URL: https://chart-view-bsg6.onrender.com
+          APP_URL: https://chart-view-pkv8.onrender.com
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           python - <<'PY'
