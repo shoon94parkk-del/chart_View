@@ -86,6 +86,8 @@
       if (quick) periods.appendChild(quick);
       if (custom) periods.appendChild(custom);
       if (fields) periods.appendChild(fields);
+      const error = dateSection.querySelector('#custom-date-error');
+      if (error) periods.appendChild(error);
       chartHeader.appendChild(periods);
       dateSection.remove();
     }
@@ -94,8 +96,26 @@
     if (chartTitle) chartTitle.textContent = '종목별 수익률 비교';
     const chartUnit = chartHeader.querySelector('.chart-unit');
     if (chartUnit) chartUnit.textContent = '기간 시작=0%';
+    installMobilePeriods(chartHeader);
     compareLayoutInstalled = true;
     return true;
+  }
+
+  function installMobilePeriods(header) {
+    const quick = header.querySelector('.quick-periods');
+    if (!quick || quick.querySelector('.mobile-period-more')) return;
+    const select = document.createElement('select');
+    select.className = 'mobile-period-more';
+    select.setAttribute('aria-label', '추가 차트 기간');
+    select.innerHTML = '<option value="">더보기</option><option value="6mo">6개월</option><option value="ytd">YTD</option><option value="max">전체</option><option value="custom">직접 기간</option>';
+    quick.appendChild(select);
+    select.addEventListener('change', () => {
+      if (select.value === 'custom') {
+        const toggle = document.getElementById('custom-date-toggle');
+        if (toggle?.getAttribute('aria-expanded') !== 'true') toggle?.click();
+        document.getElementById('start-date')?.focus();
+      } else quick.querySelector(`[data-period="${select.value}"]`)?.click();
+    });
   }
 
   // V40 moves the original period controls into the chart header after chart.js
@@ -113,6 +133,8 @@
 
       const period = button.dataset.period;
       if (!period) return;
+      const more = tab.querySelector('.mobile-period-more');
+      if (more) more.value = ['6mo','ytd','max'].includes(period) ? period : '';
       tab.querySelectorAll('.period-chip[data-period]').forEach((node) => node.classList.toggle('active', node === button));
 
       const fields = document.getElementById('custom-date-fields');

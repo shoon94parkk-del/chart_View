@@ -89,7 +89,7 @@
     const saved = safeParse(SELECTED_KEY, null);
     const names = safeParse(NAME_KEY, {});
     try {
-      if (Array.isArray(saved) && saved.length) {
+      if (Array.isArray(saved)) {
         selectedTickers = saved.map((x) => String(x).trim().toUpperCase()).filter(Boolean).slice(0, 6);
         if (typeof perTickers !== 'undefined') perTickers = [...selectedTickers];
       }
@@ -295,6 +295,10 @@
         <section class="watchlist-v30-section watchlist-v33-main-section">
           <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>종목 목록</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
+            <select class="watchlist-mobile-sort" aria-label="관심종목 정렬 선택">
+              <option value="default">등록순</option><option value="return-desc">수익률 높은순</option>
+              <option value="return-asc">수익률 낮은순</option><option value="name">이름순</option>
+            </select>
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
               <button type="button" data-watch-sort="return-desc">수익률 높은순</button>
@@ -317,6 +321,11 @@
       saveSortMode();
       renderGrid();
     }));
+    tab.querySelector('.watchlist-mobile-sort').addEventListener('change', (event) => {
+      sortMode = event.target.value;
+      saveSortMode();
+      renderGrid();
+    });
     tab.querySelector('[data-watch-refresh]')?.addEventListener('click', () => loadQuotes(true));
     return tab;
   }
@@ -380,6 +389,8 @@
     const grid = document.getElementById('watchlist-v30-grid');
     if (!grid) return;
     document.querySelectorAll('[data-watch-sort]').forEach((button) => button.classList.toggle('active', button.dataset.watchSort === sortMode));
+    const mobileSort = document.querySelector('.watchlist-mobile-sort');
+    if (mobileSort) mobileSort.value = sortMode;
     if (!watchlist.length) {
       grid.innerHTML = '<div class="watchlist-v30-empty watchlist-v33-empty"><span>☆</span><strong>관심종목이 비어 있습니다.</strong><p>종목을 저장하면 가격과 1달 수익률을 한 화면에서 비교할 수 있어요.</p><button type="button" data-watch-empty-focus>종목 추가하기</button></div>';
       grid.querySelector('[data-watch-empty-focus]')?.addEventListener('click', () => {

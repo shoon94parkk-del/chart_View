@@ -12,7 +12,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   fs.mkdirSync('test-results', { recursive: true });
   const browser = await chromium.launch();
   try {
-    for (const width of [360, 384, 430]) {
+    for (const width of [320, 360, 384, 390, 430]) {
       const context = await browser.newContext({
         viewport: { width, height: 824 }, isMobile: true, hasTouch: true,
         timezoneId: 'Asia/Seoul', locale: 'ko-KR',
@@ -122,6 +122,32 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.equal(metrics.legacyBriefVisible,false);
       assert.equal(metrics.dates,'none'); assert(metrics.chartTop <= 420, `${width}: chart top ${metrics.chartTop}`);
 
+      // Draft changes must not affect the chart until Apply; Cancel preserves state.
+      const compareBefore = await page.evaluate(() => window.ChartViewState.getCompare().items);
+      const watchBefore = await page.evaluate(() => window.ChartViewState.getWatchlist().items);
+      await page.locator('[data-mobile-compare-open]').click();
+      await page.screenshot({path:`test-results/${width}-comparison-manager.png`});
+      assert(await page.locator('.mobile-compare-dialog').evaluate(el => el.scrollWidth <= el.clientWidth), 'comparison manager must not overflow');
+      await page.locator('[data-compare-draft] button').first().click();
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore);
+      await page.locator('[data-compare-cancel]').click();
+      await page.waitForFunction(() => !history.state?.cvCompareDialog);
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore);
+      await page.locator('[data-mobile-compare-open]').click();
+      await page.locator('[data-compare-draft] button').first().click();
+      await page.locator('[data-compare-apply]').click();
+      await page.waitForFunction(() => !history.state?.cvCompareDialog);
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore.slice(1));
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getWatchlist().items), watchBefore);
+      await page.evaluate(items => window.ChartViewState.setCompare(items), compareBefore);
+      await page.locator('[data-mobile-compare-open]').click();
+      await page.locator('[data-compare-draft] button').first().click();
+      await page.goBack();
+      assert.equal(await page.locator('.mobile-compare-dialog').isVisible(), false);
+      assert.deepEqual(await page.evaluate(() => window.ChartViewState.getCompare().items), compareBefore);
+      assert.equal(await page.locator('#chart-tab').isVisible(), true);
+
+
       const beforeYtd = await page.evaluate(() => ({
         releaseFlow:Boolean(window.__chartViewReleaseFlowV40),
         delegated:document.getElementById('chart-tab')?.dataset.v40PeriodDelegation || '',
@@ -131,7 +157,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       }));
       console.log('YTD_BEFORE', width, JSON.stringify(beforeYtd));
       const requestStart = compareRequests.length;
-      await page.locator('.period-chip[data-period="ytd"]').click();
+      await page.locator('.mobile-period-more').selectOption('ytd');
       await delay(800);
       const afterYtd = await page.evaluate(() => ({
         selected:typeof selectedTickers !== 'undefined' ? [...selectedTickers] : null,
@@ -164,7 +190,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       if (width === 384) {
         await page.route('**/api/compare?*', r => r.fulfill({status:503,...json({error:'test unavailable'})}));
         const legendBeforeFailure = await page.locator('#legend .legend-item').count();
-        await page.locator('.period-chip[data-period="max"]').click();
+        await page.locator('.mobile-period-more').selectOption('max');
         await page.locator('#chart-status').getByText('다시 시도',{exact:true}).waitFor();
         assert.match(await page.locator('#chart-status').textContent(), /표시 중인 차트는 유지/);
         assert.equal(await page.locator('#legend .legend-item').count(), legendBeforeFailure, 'failed refresh must preserve the previous chart');

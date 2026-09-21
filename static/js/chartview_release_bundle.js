@@ -1487,7 +1487,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const saved = safeParse(SELECTED_KEY, null);
     const names = safeParse(NAME_KEY, {});
     try {
-      if (Array.isArray(saved) && saved.length) {
+      if (Array.isArray(saved)) {
         selectedTickers = saved.map((x) => String(x).trim().toUpperCase()).filter(Boolean).slice(0, 6);
         if (typeof perTickers !== 'undefined') perTickers = [...selectedTickers];
       }
@@ -1693,6 +1693,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         <section class="watchlist-v30-section watchlist-v33-main-section">
           <div class="watchlist-v30-section-head watchlist-v33-section-head"><h3>종목 목록</h3><small>카드를 누르면 종목 상세</small></div>
           <div class="watchlist-v33-toolbar">
+            <select class="watchlist-mobile-sort" aria-label="관심종목 정렬 선택">
+              <option value="default">등록순</option><option value="return-desc">수익률 높은순</option>
+              <option value="return-asc">수익률 낮은순</option><option value="name">이름순</option>
+            </select>
             <div class="watchlist-v33-sort" role="group" aria-label="관심종목 정렬">
               <button type="button" data-watch-sort="default">등록순</button>
               <button type="button" data-watch-sort="return-desc">수익률 높은순</button>
@@ -1715,6 +1719,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       saveSortMode();
       renderGrid();
     }));
+    tab.querySelector('.watchlist-mobile-sort').addEventListener('change', (event) => {
+      sortMode = event.target.value;
+      saveSortMode();
+      renderGrid();
+    });
     tab.querySelector('[data-watch-refresh]')?.addEventListener('click', () => loadQuotes(true));
     return tab;
   }
@@ -1778,6 +1787,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const grid = document.getElementById('watchlist-v30-grid');
     if (!grid) return;
     document.querySelectorAll('[data-watch-sort]').forEach((button) => button.classList.toggle('active', button.dataset.watchSort === sortMode));
+    const mobileSort = document.querySelector('.watchlist-mobile-sort');
+    if (mobileSort) mobileSort.value = sortMode;
     if (!watchlist.length) {
       grid.innerHTML = '<div class="watchlist-v30-empty watchlist-v33-empty"><span>☆</span><strong>관심종목이 비어 있습니다.</strong><p>종목을 저장하면 가격과 1달 수익률을 한 화면에서 비교할 수 있어요.</p><button type="button" data-watch-empty-focus>종목 추가하기</button></div>';
       grid.querySelector('[data-watch-empty-focus]')?.addEventListener('click', () => {
@@ -2175,7 +2186,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       button.classList.toggle('limit', !active && full);
       button.disabled = active;
       const aria = active ? `${name} 비교에 포함됨` : `${name} 비교에 추가`;
-      const label = active ? '✓ 비교에 포함됨' : (full ? '최대 6개' : '+ 비교에 추가');
+      const label = active ? '✓ 비교 중' : (full ? '최대 6개' : '+ 비교에 추가');
       if (button.getAttribute('aria-label') !== aria) button.setAttribute('aria-label', aria);
       if (button.textContent !== label) button.textContent = label;
     });
@@ -2206,7 +2217,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       .watchlist-quick-add-v48.limit{border-color:#edf0f3;background:#fafbfc;color:#b0b8c1}
       .watchlist-quick-add-toast-v48{position:fixed;left:50%;bottom:86px;z-index:9999;transform:translate(-50%,12px);max-width:calc(100vw - 32px);padding:10px 14px;border-radius:12px;background:rgba(25,31,40,.94);color:#fff;font-size:11px;font-weight:750;box-shadow:0 10px 30px rgba(15,23,42,.2);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;white-space:nowrap}
       .watchlist-quick-add-toast-v48.show{opacity:1;transform:translate(-50%,0)}
-      @media(max-width:720px){.watchlist-v33-card.has-quick-add-v48 .watchlist-v33-open,.watchlist-v30-card.has-quick-add-v48 .watchlist-v30-open{padding-bottom:50px}.watchlist-quick-add-v48{left:12px;right:52px;bottom:10px;min-height:29px;font-size:10px}}
+      @media(max-width:599px){
+        #watchlist-tab .watchlist-quick-add-v48{position:static;grid-column:1;justify-self:start;min-height:44px;max-width:100%;margin:0 12px 8px;white-space:normal;font-size:.75rem;line-height:1.125rem}
+        #watchlist-tab .watchlist-quick-add-v48.active{min-height:20px;border:0;background:transparent;margin:0 12px 8px;padding:0;color:#52677c}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -3014,6 +3028,17 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const status = document.getElementById('app-selection-status');
     if (!status) return;
     status.textContent = `선택 ${selectedCount()}/6`;
+    const manage = document.querySelector('[data-mobile-compare-open]');
+    if (manage) manage.textContent = `비교 ${selectedCount()}/6 · 관리`;
+    const summary = document.querySelector('.mobile-compare-summary');
+    const tags = [...document.querySelectorAll('#ticker-tags .ticker-tag')];
+    if (summary) {
+      const labels = tags.map(tag => (tag.querySelector('.tag-name')?.textContent || tag.childNodes[0]?.textContent || '').trim()).filter(Boolean);
+      // Use persisted names when tag markup has no separate name node.
+      const items = window.ChartViewState?.getCompare().items || [];
+      const names = window.ChartViewState?.getNames() || {};
+      summary.textContent = items.length ? items.slice(0,3).map(x => names[x] || x).join(' · ') + (items.length > 3 ? ` 외 ${items.length - 3}개` : '') : labels.join(' · ') || '종목을 추가해 비교해 보세요';
+    }
   }
 
   function enhanceUtilityHeader() {
@@ -3029,11 +3054,17 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     top.className = 'app-utility-top';
     top.innerHTML = `
       <div class="app-utility-copy">
-        <strong>종목 검색</strong>
+        <strong><span class="header-desktop-title">종목 검색</span><span class="header-mobile-title">종목분석</span></strong>
         <span>검색한 종목을 차트 · 밸류 · 투자판단에서 함께 봅니다</span>
       </div>
-      <span id="app-selection-status" class="app-selection-status">선택 0/6</span>`;
+      <span id="app-selection-status" class="app-selection-status">선택 0/6</span>
+      <button type="button" class="mobile-compare-open" data-mobile-compare-open aria-haspopup="dialog">비교 0/6 · 관리</button>`;
     header.appendChild(top);
+    const summary = document.createElement('button');
+    summary.type = 'button';
+    summary.className = 'mobile-compare-summary';
+    summary.setAttribute('aria-label', '선택한 비교종목 관리');
+    header.appendChild(summary);
     header.appendChild(search);
     search.classList.add('app-header-search');
 
@@ -3051,8 +3082,121 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const observer = new MutationObserver(updateSelectionStatus);
       observer.observe(tags, { childList: true, subtree: true });
     }
+    installComparisonManager(header);
     updateSelectionStatus();
     return true;
+  }
+
+  function installComparisonManager(header) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'mobile-compare-dialog';
+    dialog.setAttribute('aria-labelledby', 'mobile-compare-title');
+    dialog.innerHTML = `<div class="mobile-compare-dialog-head"><h2 id="mobile-compare-title">비교종목 관리</h2><button type="button" data-compare-close aria-label="비교종목 관리 닫기">✕</button></div>
+      <div class="mobile-compare-dialog-body">
+        <p>차트에 표시할 종목을 최대 6개 선택하세요. 관심종목 목록은 바뀌지 않습니다.</p>
+        <label for="mobile-compare-search">종목 검색</label>
+        <input type="search" id="mobile-compare-search" placeholder="종목명 · 코드 · 티커" autocomplete="off">
+        <p data-compare-message role="status" aria-live="polite"></p>
+        <div data-compare-results></div>
+        <h3>선택 종목 <span data-compare-count></span></h3><div data-compare-draft></div>
+        <details><summary>추천 종목</summary><div data-compare-recommendations></div></details>
+      </div><div class="mobile-compare-dialog-foot"><button type="button" data-compare-cancel>취소</button><button type="button" data-compare-apply>적용</button></div>`;
+    document.body.appendChild(dialog);
+    let draft = [], names = {}, timer, controller, request = 0, returnFocus, closingHistory = false;
+    const input = dialog.querySelector('input');
+    const message = dialog.querySelector('[data-compare-message]');
+    const results = dialog.querySelector('[data-compare-results]');
+    const list = dialog.querySelector('[data-compare-draft]');
+    const say = text => { message.textContent = text; };
+    const row = (symbol, name, remove = false) => {
+      const item = document.createElement('div'); item.className = 'mobile-compare-row';
+      const text = document.createElement('span');
+      const title = document.createElement('strong'); title.textContent = name || symbol;
+      const code = document.createElement('small'); code.textContent = symbol;
+      text.append(title, code);
+      const button = document.createElement('button'); button.type = 'button';
+      const selected = draft.includes(symbol);
+      button.textContent = remove ? '제거' : selected ? '선택됨' : '추가';
+      button.disabled = !remove && selected;
+      button.setAttribute('aria-label', `${name || symbol} ${remove ? '비교에서 제거' : '비교에 추가'}`);
+      button.addEventListener('click', () => {
+        if (remove) draft = draft.filter(x => x !== symbol);
+        else {
+          if (draft.length >= 6) { say('최대 6개까지 비교할 수 있어요. 한 종목을 제외해 주세요.'); return; }
+          draft.push(symbol); names[symbol] = name || symbol;
+        }
+        say(remove ? `${name || symbol} 제외. 적용을 누르면 반영됩니다.` : `${name || symbol} 선택. 적용을 누르면 반영됩니다.`);
+        const lostFocus = list.contains(button) || button.closest('[data-compare-recommendations]');
+        renderDraft();
+        if (lostFocus) (list.querySelector('button') || input).focus({ preventScroll: true });
+        results.querySelectorAll('button').forEach(b => { b.disabled = draft.includes(b.dataset.symbol); b.textContent = b.disabled ? '선택됨' : '추가'; });
+      });
+      button.dataset.symbol = symbol;
+      item.append(text, button); return item;
+    };
+    const renderDraft = () => {
+      dialog.querySelector('[data-compare-count]').textContent = `${draft.length}/6`;
+      list.replaceChildren(...draft.map(symbol => row(symbol, names[symbol], true)));
+      if (!draft.length) list.textContent = '선택한 종목이 없습니다. 검색하거나 추천 종목에서 추가하세요.';
+      const picks = [['005930.KS','삼성전자'],['000660.KS','SK하이닉스'],['AAPL','애플'],['NVDA','엔비디아']];
+      dialog.querySelector('[data-compare-recommendations]').replaceChildren(...picks.map(([symbol,name]) => row(symbol,name)));
+    };
+    const cleanup = () => {
+      clearTimeout(timer); controller?.abort(); request += 1;
+      document.body.classList.remove('compare-dialog-open');
+      returnFocus?.focus({ preventScroll: true });
+    };
+    const close = () => {
+      if (!dialog.open) return;
+      dialog.close(); cleanup();
+      if (history.state?.cvCompareDialog) { closingHistory = true; history.back(); }
+    };
+    const open = event => {
+      if (!window.ChartViewState || dialog.open || closingHistory) return;
+      returnFocus = event.currentTarget;
+      draft = [...window.ChartViewState.getCompare().items];
+      names = { ...window.ChartViewState.getNames() };
+      input.value = ''; results.replaceChildren(); say(''); renderDraft();
+      document.body.classList.add('compare-dialog-open');
+      dialog.showModal();
+      history.pushState({ ...history.state, cvCompareDialog: true }, '', location.href);
+      dialog.querySelector('[data-compare-close]').focus();
+    };
+    header.querySelector('[data-mobile-compare-open]').addEventListener('click', open);
+    header.querySelector('.mobile-compare-summary').addEventListener('click', open);
+    dialog.querySelectorAll('[data-compare-close],[data-compare-cancel]').forEach(button => button.addEventListener('click', close));
+    dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
+    window.addEventListener('popstate', event => {
+      if (closingHistory) { closingHistory = false; event.stopImmediatePropagation(); return; }
+      if (dialog.open && !event.state?.cvCompareDialog) {
+        event.stopImmediatePropagation(); dialog.close(); cleanup();
+      }
+    }, true);
+    dialog.querySelector('[data-compare-apply]').addEventListener('click', () => {
+      const state = window.ChartViewState;
+      if (!state.safeWrite(state.KEYS.names, names).ok || !state.setCompare(draft).ok) {
+        say('저장하지 못했습니다. 기존 목록을 확인하고 다시 시도해 주세요.'); return;
+      }
+      updateSelectionStatus(); close();
+    });
+    input.addEventListener('input', () => {
+      clearTimeout(timer); controller?.abort(); const seq = ++request;
+      const query = input.value.trim(); results.replaceChildren();
+      if (!query) { say(''); return; }
+      say('종목을 찾고 있습니다.');
+      timer = setTimeout(async () => {
+        controller = new AbortController();
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+          if (!response.ok) throw new Error('search');
+          const data = await response.json();
+          if (seq !== request || !dialog.open) return;
+          const rows = (Array.isArray(data.results) ? data.results : []).filter(x => x && String(x.symbol || '').trim()).slice(0,8);
+          results.replaceChildren(...rows.map(x => row(String(x.symbol || '').toUpperCase(), x.name)));
+          say(rows.length ? `${rows.length}개 검색 결과` : '검색 결과가 없습니다. 종목명이나 정확한 티커를 확인해 주세요.');
+        } catch (error) { if (seq === request && error.name !== 'AbortError') say('검색하지 못했습니다. 검색어를 다시 입력해 주세요.'); }
+      }, 180);
+    });
   }
 
   function init() {
@@ -5672,6 +5816,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (quick) periods.appendChild(quick);
       if (custom) periods.appendChild(custom);
       if (fields) periods.appendChild(fields);
+      const error = dateSection.querySelector('#custom-date-error');
+      if (error) periods.appendChild(error);
       chartHeader.appendChild(periods);
       dateSection.remove();
     }
@@ -5680,8 +5826,26 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (chartTitle) chartTitle.textContent = '종목별 수익률 비교';
     const chartUnit = chartHeader.querySelector('.chart-unit');
     if (chartUnit) chartUnit.textContent = '기간 시작=0%';
+    installMobilePeriods(chartHeader);
     compareLayoutInstalled = true;
     return true;
+  }
+
+  function installMobilePeriods(header) {
+    const quick = header.querySelector('.quick-periods');
+    if (!quick || quick.querySelector('.mobile-period-more')) return;
+    const select = document.createElement('select');
+    select.className = 'mobile-period-more';
+    select.setAttribute('aria-label', '추가 차트 기간');
+    select.innerHTML = '<option value="">더보기</option><option value="6mo">6개월</option><option value="ytd">YTD</option><option value="max">전체</option><option value="custom">직접 기간</option>';
+    quick.appendChild(select);
+    select.addEventListener('change', () => {
+      if (select.value === 'custom') {
+        const toggle = document.getElementById('custom-date-toggle');
+        if (toggle?.getAttribute('aria-expanded') !== 'true') toggle?.click();
+        document.getElementById('start-date')?.focus();
+      } else quick.querySelector(`[data-period="${select.value}"]`)?.click();
+    });
   }
 
   // V40 moves the original period controls into the chart header after chart.js
@@ -5699,6 +5863,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
       const period = button.dataset.period;
       if (!period) return;
+      const more = tab.querySelector('.mobile-period-more');
+      if (more) more.value = ['6mo','ytd','max'].includes(period) ? period : '';
       tab.querySelectorAll('.period-chip[data-period]').forEach((node) => node.classList.toggle('active', node === button));
 
       const fields = document.getElementById('custom-date-fields');
