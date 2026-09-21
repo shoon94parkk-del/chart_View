@@ -1487,7 +1487,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const saved = safeParse(SELECTED_KEY, null);
     const names = safeParse(NAME_KEY, {});
     try {
-      if (Array.isArray(saved) && saved.length) {
+      if (Array.isArray(saved)) {
         selectedTickers = saved.map((x) => String(x).trim().toUpperCase()).filter(Boolean).slice(0, 6);
         if (typeof perTickers !== 'undefined') perTickers = [...selectedTickers];
       }
@@ -3102,7 +3102,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
         <details><summary>추천 종목</summary><div data-compare-recommendations></div></details>
       </div><div class="mobile-compare-dialog-foot"><button type="button" data-compare-cancel>취소</button><button type="button" data-compare-apply>적용</button></div>`;
     document.body.appendChild(dialog);
-    let draft = [], names = {}, timer, controller, request = 0, returnFocus;
+    let draft = [], names = {}, timer, controller, request = 0, returnFocus, closingHistory = false;
     const input = dialog.querySelector('input');
     const message = dialog.querySelector('[data-compare-message]');
     const results = dialog.querySelector('[data-compare-results]');
@@ -3149,10 +3149,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const close = () => {
       if (!dialog.open) return;
       dialog.close(); cleanup();
-      if (history.state?.cvCompareDialog) history.back();
+      if (history.state?.cvCompareDialog) { closingHistory = true; history.back(); }
     };
     const open = event => {
-      if (!window.ChartViewState || dialog.open) return;
+      if (!window.ChartViewState || dialog.open || closingHistory) return;
       returnFocus = event.currentTarget;
       draft = [...window.ChartViewState.getCompare().items];
       names = { ...window.ChartViewState.getNames() };
@@ -3167,6 +3167,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     dialog.querySelectorAll('[data-compare-close],[data-compare-cancel]').forEach(button => button.addEventListener('click', close));
     dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
     window.addEventListener('popstate', event => {
+      if (closingHistory) { closingHistory = false; event.stopImmediatePropagation(); return; }
       if (dialog.open && !event.state?.cvCompareDialog) {
         event.stopImmediatePropagation(); dialog.close(); cleanup();
       }

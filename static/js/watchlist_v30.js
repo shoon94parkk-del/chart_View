@@ -89,7 +89,7 @@
     const saved = safeParse(SELECTED_KEY, null);
     const names = safeParse(NAME_KEY, {});
     try {
-      if (Array.isArray(saved) && saved.length) {
+      if (Array.isArray(saved)) {
         selectedTickers = saved.map((x) => String(x).trim().toUpperCase()).filter(Boolean).slice(0, 6);
         if (typeof perTickers !== 'undefined') perTickers = [...selectedTickers];
       }
