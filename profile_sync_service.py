@@ -44,7 +44,9 @@ def _sync_key(sync_id: str) -> str:
 def _normalize_watchlist(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
     normalized: list[dict[str, str]] = []
     seen: set[str] = set()
-    for row in rows[:MAX_WATCHLIST]:
+    for row in rows:
+        if len(normalized) >= MAX_WATCHLIST:
+            break
         symbol = str((row or {}).get("symbol") or (row or {}).get("ticker") or "").strip().upper()
         if not SYMBOL_RE.fullmatch(symbol) or symbol in seen:
             continue
