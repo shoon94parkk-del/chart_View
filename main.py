@@ -298,6 +298,40 @@ def validated_tickers(raw: str) -> list[str]:
     return symbols
 
 
+@app.get("/api/quotes")
+async def quote_snapshots(tickers: str):
+    symbols = list(dict.fromkeys(t.strip().upper() for t in tickers.split(",") if t.strip()))
+    if not symbols or len(symbols) > 20:
+        raise HTTPException(400, "종목은 1개 이상 20개 이하로 입력해주세요.")
+    if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
+        raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in symbols],
+        return_exceptions=True,
+    )
+    results, errors = [], []
+    for ticker, item in zip(symbols, fetched):
+        if isinstance(item, Exception):
+            errors.append({"ticker": ticker, "message": str(item)})
+        elif item:
+            results.append(item)
+        else:
+            errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
+    return {
+        "results": results,
+        "errors": errors,
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
+        "source": "Yahoo Chart 5m with daily fallback",
+        "dataContract": {
+            "price": "latest available provider quote or latest close fallback",
+            "change": "percent change versus previous trading close",
+            "asOf": "provider market timestamp when available",
+            "currency": "provider currency",
+            "missingValue": "null/omitted; zero is not used as a missing-value substitute",
+        },
+    }
+
+
 @app.get("/api/compare")
 async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, end: str = None):
     ticker_list = validated_tickers(tickers)
