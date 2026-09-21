@@ -1522,7 +1522,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const row = normalize({ symbol, name: name || knownName(symbol) });
     if (!row) return false;
     const index = watchlist.findIndex((x) => x.symbol === row.symbol);
-    if (index >= 0) watchlist.splice(index, 1);
+    const added = index < 0;
+    if (!added) watchlist.splice(index, 1);
     else {
       if (watchlist.length >= MAX_WATCHLIST) {
         alert(`관심종목은 최대 ${MAX_WATCHLIST}개까지 저장할 수 있어요.`);
@@ -1532,10 +1533,13 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
     saveWatchlist();
     document.dispatchEvent(new CustomEvent('chartview:watchlist-change'));
-    render();
+    // Persist and paint immediately. Quote/history work must never block the
+    // perceived add/remove interaction or refetch every existing watch item.
+    render({ skipQuoteLoad: true });
     renderHomeShortcut();
     enhanceTickerStars();
-    return index < 0;
+    if (added) window.setTimeout(() => hydrateAddedWatchlistRow(row), 0);
+    return added;
   }
 
   function formatPrice(symbol, value) {
@@ -1821,7 +1825,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     updateSummary();
   }
 
-  function render() {
+  function render(options = {}) {
     const tab = installTab();
     if (!tab) return;
     const count = tab.querySelector('[data-watch-count]');
@@ -1829,7 +1833,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     renderGrid();
     renderRecents();
     updateUpdatedLabel(false);
-    loadQuotes(false);
+    if (!options.skipQuoteLoad) loadQuotes(false);
   }
 
   function applyQuote(symbol, quote, fresh = false) {
@@ -1879,11 +1883,74 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     finally { if (quoteLoadPromise === job) quoteLoadPromise = null; }
   }
 
+  async function hydrateAddedWatchlistRow(row) {
+    if (!row || !row.symbol || !isWatchlisted(row.symbol)) return;
+
+    // First paint a lightweight current-price snapshot. This endpoint does not
+    // build a 1-month chart and normally returns much sooner than /api/compare.
+    try {
+      const quickResponse = await fetch(`/api/quotes?tickers=${encodeURIComponent(row.symbol)}`, { cache: 'no-store' });
+      if (quickResponse.ok && isWatchlisted(row.symbol)) {
+        const quickData = await quickResponse.json();
+        const quick = (quickData.results || []).find((item) => String(item.ticker || item.symbol || '').toUpperCase() === row.symbol);
+        if (quick) {
+          const previous = quoteFor(row.symbol) || {};
+          const quote = {
+            ...previous,
+            price: quick.price == null ? (previous.price ?? null) : Number(quick.price),
+            tradeDate: quick.asOf || previous.tradeDate || '',
+            quoteAsOf: quick.asOf || previous.quoteAsOf || '',
+            receivedAt: quickData.fetchedAt || previous.receivedAt || '',
+            source: quick.source || quickData.source || previous.source || '출처 미확인',
+            priceBasis: quick.priceBasis || previous.priceBasis || 'provider',
+            updatedAt: Date.now(),
+          };
+          quoteCache.quotes[row.symbol] = quote;
+          saveQuoteCache();
+          applyQuote(row.symbol, quote, true);
+          updateSummary();
+        }
+      }
+    } catch (_) { }
+
+    if (!isWatchlisted(row.symbol)) return;
+
+    // Then fetch only the newly added symbol's 1-month history/return. The
+    // previous implementation refetched the entire watchlist after every add.
+    try {
+      const response = await fetch(`/api/compare?tickers=${encodeURIComponent(row.symbol)}&period=1mo`, { cache: 'no-store' });
+      if (!response.ok || !isWatchlisted(row.symbol)) return;
+      const data = await response.json();
+      const stock = (data.stocks || []).find((item) => String(item.ticker || '').toUpperCase() === row.symbol);
+      if (!stock) return;
+      const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
+      const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
+      const previous = quoteFor(row.symbol) || {};
+      const quote = {
+        ...previous,
+        price: stock.price == null ? (previous.price ?? null) : Number(stock.price),
+        return: stock.return == null ? (previous.return ?? null) : Number(stock.return),
+        tradeDate: tradeDate || previous.tradeDate || '',
+        quoteAsOf: stock.quoteAsOf || stock.asOf || tradeDate || previous.quoteAsOf || '',
+        receivedAt: data.timestamp || previous.receivedAt || '',
+        source: stock.source || data.source || previous.source || '출처 미확인',
+        priceBasis: stock.priceBasis || previous.priceBasis || 'provider',
+        updatedAt: Date.now(),
+      };
+      quoteCache.quotes[row.symbol] = quote;
+      saveQuoteCache();
+      applyQuote(row.symbol, quote, true);
+      updateSummary();
+      renderHomeShortcut();
+      if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
+    } catch (_) { }
+  }
+
   async function loadQuotesNow(force = false) {
     const seq = ++quoteSeq;
     const rows = [...watchlist];
     const refresh = document.querySelector('[data-watch-refresh]');
-    if (refresh) {
+    if (refresh && force) {
       refresh.classList.add('loading');
       refresh.disabled = true;
       refresh.textContent = '↻ 갱신 중';
@@ -1897,7 +1964,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     updateUpdatedLabel(false);
 
     if (!rows.length) {
-      if (refresh) { refresh.classList.remove('loading'); refresh.disabled = false; refresh.textContent = '↻ 새로고침'; }
+      if (refresh && force) { refresh.classList.remove('loading'); refresh.disabled = false; refresh.textContent = '↻ 새로고침'; }
       return;
     }
 
@@ -1941,7 +2008,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
     if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
     renderHomeShortcut();
-    if (refresh) {
+    if (refresh && force) {
       refresh.classList.remove('loading');
       refresh.disabled = false;
       refresh.textContent = '↻ 새로고침';
@@ -2076,7 +2143,6 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   else init();
 })();
 ;
-
 /* --- static/js/watchlist_quick_add_v48.js --- */
 (() => {
   'use strict';
