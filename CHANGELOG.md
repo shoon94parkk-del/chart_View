@@ -1,5 +1,15 @@
 # 변경 이력
 
+## 2026-09-22 · Durable project memory and regression assets
+
+- Added `AGENTS.md` as the mandatory pre-change workflow for future coding agents.
+- Added `docs/project-memory.md` for current architecture and production ownership.
+- Added `docs/regression-guardrails.md` for behaviors that must not silently regress.
+- Added append-only `docs/decision-log.md` to capture problem → decision → protection history.
+- Recorded recent navigation, chart-loading, screener, daily PICK, production migration, and incremental watchlist-add decisions.
+- Future behavioral fixes are expected to update regression coverage and the relevant memory/decision documents together.
+
+
 ## 2026-09-21 · ID-based watchlist sync
 - Added passwordless sync ID flow for moving watchlists between devices.
 - Existing local-only behavior remains the default until a sync ID is connected.
