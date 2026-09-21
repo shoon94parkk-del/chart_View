@@ -37,3 +37,17 @@ def test_chartview_pick_uses_recommendation_close_to_current_price():
     assert '.ai-daily-price' in js
     assert '추천' in js and '현재' in js
     assert '.ai-daily-rank' in js
+
+
+def test_watchlist_add_is_immediate_and_refreshes_only_new_symbol():
+    js = (ROOT / 'static/js/watchlist_v30.js').read_text(encoding='utf-8')
+    toggle = js.split('function toggleWatchlist(symbol, name)', 1)[1].split('function formatPrice', 1)[0]
+    render = js.split('function render({ refreshQuotes = true } = {})', 1)[1].split('function applyQuote', 1)[0]
+    loader = js.split('async function loadQuoteRows(rows, force = false)', 1)[1].split('function retryFailedQuotes', 1)[0]
+
+    assert 'render({ refreshQuotes: false })' in toggle
+    assert 'setTimeout(() => loadQuoteRows([row], false), 0)' in toggle
+    assert 'loadQuotes(false)' not in toggle
+    assert 'if (refreshQuotes) loadQuotes(false)' in render
+    assert 'const targets = dedupe((rows || []).filter' in loader
+    assert 'return loadQuoteRows([...watchlist], force)' in loader
