@@ -156,7 +156,7 @@
     renderHomeShortcut();
     enhanceTickerStars();
     if (added) {
-      setTimeout(() => loadQuoteRows([row], false), 0);
+      setTimeout(() => hydrateAddedWatchlistRow(row), 0);
     }
     return added;
   }
@@ -694,6 +694,79 @@
         refresh.disabled = false;
         refresh.textContent = '↻ 새로고침';
       }
+    }
+  }
+
+  async function hydrateAddedWatchlistRow(row) {
+    if (!row || !row.symbol || !isWatchlisted(row.symbol)) return;
+    const symbol = row.symbol;
+    quoteStatus.set(symbol, 'loading');
+    updateWatchStatus();
+
+    // Fast path: paint current price first without waiting for 1-month history.
+    try {
+      const response = await fetch(`/api/quotes?tickers=${encodeURIComponent(symbol)}`, { cache: 'no-store' });
+      if (response.ok && isWatchlisted(symbol)) {
+        const data = await response.json();
+        const item = (data.results || []).find((quote) => String(quote.ticker || quote.symbol || '').toUpperCase() === symbol);
+        if (item) {
+          const previous = quoteFor(symbol) || {};
+          const quote = {
+            ...previous,
+            price: item.price == null ? previous.price ?? null : Number(item.price),
+            currency: item.currency || previous.currency || '',
+            quoteAsOf: item.asOf || previous.quoteAsOf || '',
+            receivedAt: data.fetchedAt || previous.receivedAt || '',
+            source: item.source || data.source || previous.source || '출처 미확인',
+            priceBasis: item.priceBasis || previous.priceBasis || 'latest_provider_quote',
+            updatedAt: Date.now(),
+          };
+          quoteCache.quotes[symbol] = quote;
+          saveQuoteCache();
+          applyQuote(symbol, quote, true);
+          updateSummary();
+        }
+      }
+    } catch (_) { }
+
+    if (!isWatchlisted(symbol)) return;
+
+    // Slow path: fetch only this one stock's 1-month return in the background.
+    try {
+      const response = await fetch(`/api/compare?tickers=${encodeURIComponent(symbol)}&period=1mo`, { cache: 'no-store' });
+      if (!response.ok || !isWatchlisted(symbol)) throw new Error(`returns ${response.status}`);
+      const data = await response.json();
+      const stock = (data.stocks || []).find((item) => String(item.ticker || '').toUpperCase() === symbol);
+      if (!stock) throw new Error('missing return row');
+      const lastPoint = Array.isArray(stock.data) && stock.data.length ? stock.data[stock.data.length - 1] : null;
+      const tradeDate = stock.actualEnd || stock.endDate || lastPoint?.time || '';
+      const previous = quoteFor(symbol) || {};
+      const quote = {
+        ...previous,
+        price: previous.price == null && stock.price != null ? Number(stock.price) : previous.price ?? null,
+        return: stock.return == null ? previous.return ?? null : Number(stock.return),
+        tradeDate: tradeDate || previous.tradeDate || '',
+        quoteAsOf: previous.quoteAsOf || stock.quoteAsOf || stock.asOf || tradeDate || '',
+        receivedAt: data.fetchedAt || previous.receivedAt || '',
+        source: previous.source || stock.source || data.source || '출처 미확인',
+        returnSource: stock.source || data.source || '출처 미확인',
+        returnBasis: stock.priceBasis || 'provider',
+        returnUpdatedAt: Date.now(),
+        updatedAt: Number(previous.updatedAt || Date.now()),
+      };
+      quoteCache.quotes[symbol] = quote;
+      quoteStatus.set(symbol, 'fresh');
+      saveQuoteCache();
+      applyQuote(symbol, quote, true);
+      updateSummary();
+      updateWatchStatus();
+      renderHomeShortcut();
+      if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
+    } catch (_) {
+      if (!isWatchlisted(symbol)) return;
+      quoteStatus.set(symbol, quoteFor(symbol) ? 'partial' : 'error');
+      applyQuote(symbol, quoteFor(symbol), false);
+      updateWatchStatus();
     }
   }
 
