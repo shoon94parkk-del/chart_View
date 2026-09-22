@@ -185,3 +185,10 @@ A user-visible change is complete only when:
 - Private usage view: `/admin/usage`, backed by token-protected `/api/admin/usage`. It shows today's unique anonymous browsers, active visitors, active Home viewers, and Home live-worker state.
 - Usage counts are in the current Render process memory and therefore reset on deploy/restart. This limitation is shown in the admin dashboard.
 - Render secrets `CHARTVIEW_ADMIN_TOKEN` and `CHARTVIEW_ANALYTICS_SALT` are environment variables only; never commit them.
+
+
+## Home one-day change correctness V67
+- home_snapshot.json change means exactly one trading-session percent change.
+- Korean snapshot rows use Naver Finance fluctuationsRatio; U.S. rows compute current/latest price versus the immediately preceding daily close.
+- Never use Yahoo 5-day meta.previousClose/chartPreviousClose as a today baseline. It previously leaked 5D returns into Home (for example NVDA +7.78%).
+- main.py now installs realtime_korea.install_patch before binding market-service functions, restoring the canonical Naver path for Korean current quotes.
