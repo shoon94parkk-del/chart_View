@@ -138,3 +138,5 @@ A user-visible change is complete only when:
 - 2026-09-22 V59 heatmap semantics: tile area now uses raw market capitalization within each market group. The temporary V57/V58 `marketCap^0.58` visibility compression was removed because it made large-cap leaders look too similar to smaller companies and weakened the Finviz-style meaning of area. Prices render only when tile geometry is sufficiently tall/wide to prevent clipping.
 
 - 2026-09-22 V60 heatmap weighting: U.S. remains raw market-cap area. Korea intentionally uses `marketCap^0.82` only, because Samsung Electronics/SK hynix dominate the small representative set enough to make the remaining Korean large caps unreadable on mobile. The UI explicitly labels Korea as visually adjusted and the U.S. as actual market-cap share.
+
+- 2026-09-22 V61 Korea heatmap: V60's `marketCap^0.82` was visually too close to raw market-cap sizing. Korea now restores the stronger `marketCap^0.58` geometry that matched the initially preferred balanced layout. U.S. remains raw market-cap area. This changes only Korean tile geometry, not market-cap data or quote data.
