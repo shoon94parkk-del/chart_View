@@ -2,11 +2,12 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v65';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v66';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 300_000;
   const LIVE_QUOTE_POLL_MS = 5_000;
+  const LIVE_ENDPOINT = '/api/home-live';
   const FAST_RETRY_MS = 5_000;
   const MIN_FULL_ROWS = 14;
   const LOGO_AREA_THRESHOLD = 0.12;
@@ -322,57 +323,30 @@
     try { localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(safe)); } catch (_) {}
   }
 
-  function marketClock(timeZone) {
-    try {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
-      }).formatToParts(new Date());
-      const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-      return {
-        weekday: map.weekday || '',
-        minutes: Number(map.hour || 0) * 60 + Number(map.minute || 0),
-      };
-    } catch (_) {
-      return { weekday: '', minutes: -1 };
-    }
-  }
-
-  function openMarketSymbols() {
-    const symbols = Object.keys(STOCKS);
-    const weekdays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
-    const kr = marketClock('Asia/Seoul');
-    const us = marketClock('America/New_York');
-    const krOpen = weekdays.has(kr.weekday) && kr.minutes >= 9 * 60 && kr.minutes < 15 * 60 + 30;
-    const usOpen = weekdays.has(us.weekday) && us.minutes >= 9 * 60 + 30 && us.minutes < 16 * 60;
-    if (krOpen && usOpen) return symbols;
-    if (krOpen) return symbols.filter((symbol) => STOCKS[symbol].market === 'KR');
-    if (usOpen) return symbols.filter((symbol) => STOCKS[symbol].market === 'US');
-    return [];
-  }
-
-  async function refreshLiveQuotes(forceAll = false) {
+  async function refreshServerLive(force = false) {
     if (!isHomeActive() || document.visibilityState !== 'visible' || navigator.onLine === false || quoteInFlight) return;
     const now = Date.now();
-    if (!forceAll && now - lastQuotePollAt < LIVE_QUOTE_POLL_MS) return;
-
-    const symbols = forceAll ? Object.keys(STOCKS) : openMarketSymbols();
-    if (!symbols.length) return;
+    if (!force && now - lastQuotePollAt < LIVE_QUOTE_POLL_MS) return;
     lastQuotePollAt = now;
 
     const controller = new AbortController();
     quoteInFlight = controller;
     try {
-      const response = await fetch(`/api/quotes?tickers=${encodeURIComponent(symbols.join(','))}`, {
+      const response = await fetch(LIVE_ENDPOINT, {
         cache: 'no-store',
         signal: controller.signal,
-        headers: { 'X-ChartView-Quote-Mode': 'home-major-live-v65' },
+        headers: { 'X-ChartView-Quote-Mode': 'home-server-cache-v66' },
       });
-      if (!response.ok) throw new Error('home live quotes HTTP ' + response.status);
+      if (!response.ok) throw new Error('home live cache HTTP ' + response.status);
       const data = await response.json();
-      quoteCacheMerge(data);
+      quoteCacheMerge({
+        results: data.results || [],
+        fetchedAt: data.updatedAt || '',
+        source: data.source || 'Render shared memory',
+      });
       render(cachedPayload());
     } catch (error) {
-      if (error?.name !== 'AbortError') console.warn('home live quote refresh failed', error);
+      if (error?.name !== 'AbortError') console.warn('home server live refresh failed', error);
     } finally {
       if (quoteInFlight === controller) quoteInFlight = null;
     }
@@ -528,7 +502,7 @@
   function start() {
     ensureShell();
     render(cachedPayload());
-    refreshLiveQuotes(true);
+    refreshServerLive(true);
     scheduleRefresh();
 
     const observer = new MutationObserver((mutations) => {
@@ -539,7 +513,7 @@
             requestAnimationFrame(() => {
               ensureShell();
               render(cachedPayload());
-              refreshLiveQuotes(true);
+              refreshServerLive(true);
             });
             return;
           }
@@ -553,7 +527,7 @@
     }, REFRESH_MS);
 
     setInterval(() => {
-      if (isHomeActive() && document.visibilityState === 'visible') refreshLiveQuotes(false);
+      if (isHomeActive() && document.visibilityState === 'visible') refreshServerLive(false);
     }, 1000);
 
     document.addEventListener('chartview:live-quotes', () => render(cachedPayload()));
@@ -567,18 +541,19 @@
       }
       if (isHomeActive()) {
         render(cachedPayload());
-        refreshLiveQuotes(true);
+        refreshServerLive(true);
         scheduleRefresh();
       }
     });
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v65',
+    version: 'v66',
     refresh,
-    refreshLiveQuotes,
+    refreshServerLive,
     refreshMs: REFRESH_MS,
-    liveQuotePollMs: LIVE_QUOTE_POLL_MS
+    liveQuotePollMs: LIVE_QUOTE_POLL_MS,
+    liveEndpoint: LIVE_ENDPOINT
   });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
