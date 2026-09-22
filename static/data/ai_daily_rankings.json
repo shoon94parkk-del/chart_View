@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-21T18:34:00+09:00",
+  "updated": "2026-09-22T18:45:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -223,6 +223,84 @@
           "totalScore": 90,
           "grade": "사용자 확정",
           "reason": "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-22",
+      "status": "사용자 확정 TOP3 — 2026-09-22 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-09-22",
+        "analyzedAt": "2026-09-22T18:45:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2-new-pick-exclusion",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "089030",
+          "symbol": "089030.KQ",
+          "name": "테크윙",
+          "close": 47600,
+          "changePct": -0.83,
+          "totalScore": 90,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 7,
+            "catalystRisk": 5,
+            "technical": 29
+          },
+          "reason": "HBM Cube Prober 고객 확대와 메모리 테스트 장비 성장성이 실적에 연결되는 가운데 기술적 과열 부담이 낮은 반도체 검사장비 업체."
+        },
+        {
+          "rank": 2,
+          "code": "086390",
+          "symbol": "086390.KQ",
+          "name": "유니테스트",
+          "close": 12290,
+          "changePct": -4.43,
+          "totalScore": 89,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 8,
+            "catalystRisk": 5,
+            "technical": 27
+          },
+          "reason": "HBM4 wafer tester 수주와 메모리 테스트 장비 실적 회복이 확인되는 가운데 밸류에이션 부담이 상대적으로 낮은 테스트 장비 업체."
+        },
+        {
+          "rank": 3,
+          "code": "417840",
+          "symbol": "417840.KQ",
+          "name": "저스템",
+          "close": 16140,
+          "changePct": 7.96,
+          "totalScore": 88,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 5,
+            "catalystRisk": 5,
+            "technical": 28
+          },
+          "reason": "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체."
         }
       ]
     }
