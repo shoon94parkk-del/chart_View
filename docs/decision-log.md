@@ -72,3 +72,10 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** add an independent V57 heatmap layer with a Card/Heatmap toggle. It reuses the existing Home stale-while-revalidate snapshot via a cheap `/api/heatmap` projection. The browser requests it only after idle and then at 60-second visible-Home intervals. Korea and U.S. are rendered as separate treemap groups because their raw market caps are denominated in different currencies. Actual market cap comes from the valuation cache; the previous snapshot generator bug that wrote trading volume into `marketCap` is removed. Logos render only on sufficiently large tiles.
 
 **Protection:** `tests/home_heatmap_v57_contract.cjs`, existing Home/mobile suites, exact-revision production verification. Rollback baseline: `backup/pre-home-heatmap-20260922` at `7be471906681700b0509e6186a734d385b636c9c`.
+
+### Heatmap mobile rendering is content-first, not decorative
+**Observed issue:** The first V57 mobile render exposed two defects: Korean live refreshes omitted market cap and replaced valid cached cap with zero, producing an empty Korea board; large absolute-positioned logo chips overlapped text and card-only arrow controls remained visible.
+
+**Decision:** preserve the last valid market cap through Home SWR, invalidate the first heatmap browser cache with V58, place logos inline beside company names only on genuinely large tiles, suppress prices in constrained tiles, hide card-strip arrows in Heatmap mode, and render an explicit loading state when a market temporarily has no cap rows. The underlying Card view and data provider contracts remain unchanged.
+
+**Rollback:** `backup/pre-heatmap-mobile-fix-20260922` at `555d7134eb52b2ae535bdb4ecb22115d5518962d`.
