@@ -21,7 +21,8 @@ test('heatmap is additive and does not block Home with historical calls', () => 
 
 test('heatmap uses market cap sizing and only promotes logos on genuinely large tiles', () => {
   assert.match(js, /relativeWeight/);
-  assert.match(js, /Math\.pow\(cap, 0\.58\)/);
+  assert.doesNotMatch(js, /Math\.pow\(cap,/);
+  assert.match(js, /return Math\.max\(1, number\(row\.marketCap\) \|\| 1\)/);
   assert.match(js, /area >= LOGO_AREA_THRESHOLD/);
   assert.match(js, /rect\.width >= LOGO_MIN_WIDTH/);
   assert.match(js, /rect\.height >= LOGO_MIN_HEIGHT/);
@@ -51,10 +52,12 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
 });
 
 test('template loads corrected rollback-safe heatmap assets', () => {
-  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v58a/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v58a/);
+  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v59a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v59a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v58'/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v59'/);
+  assert.match(js, /박스 면적 = 같은 시장 내 실제 시가총액 비중/);
+  assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
 });

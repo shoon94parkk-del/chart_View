@@ -75,3 +75,6 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Heatmap logos must participate in tile layout (inline with the name), not float with absolute positioning over text.
 - Card-only previous/next strip controls stay hidden while Heatmap view is active.
 - A market with temporarily missing cap data shows a clear refresh state; never render a large unexplained blank rectangle.
+
+- Heatmap tile AREA must be proportional to raw `marketCap` within the same market group. Do not apply exponent/root/log compression unless the UI explicitly labels a non-linear scale.
+- Small/short heatmap tiles must not render the price line if it would clip; name + daily change take priority.
