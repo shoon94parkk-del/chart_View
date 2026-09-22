@@ -195,7 +195,7 @@ def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
 
 def fetch_policy_target() -> dict[str, Any]:
     """Build one visible policy-rate row from the official daily target bounds."""
-    lower_rows = fetch_equibles("dfed tarl".replace(" ", ""))
+    lower_rows = fetch_equibles("dfedtarl")
     upper_rows = fetch_equibles("dfedtaru")
     lower_map = {row["time"]: row["value"] for row in lower_rows}
     upper_map = {row["time"]: row["value"] for row in upper_rows}
