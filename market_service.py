@@ -32,6 +32,7 @@ _cache_lock = threading.Lock()
 _compare_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 _valuation_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 _quote_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
+QUOTE_CACHE_TTL_SECONDS = 5.0
 _auth_lock = threading.Lock()
 _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 
@@ -372,7 +373,7 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
     now = time.time()
     with _cache_lock:
         cached = _quote_cache.get(symbol)
-        if cached and now - cached[0] < 60:
+        if cached and now - cached[0] < QUOTE_CACHE_TTL_SECONDS:
             return cached[1]
 
     value = None

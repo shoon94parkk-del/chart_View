@@ -48,10 +48,11 @@ const freshSnapshot = {
       });
       const page = await context.newPage();
       const bootstrapRequests = [];
+      const homeLiveRequests = [];
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
-        localStorage.setItem('chartview-home-heatmap-v64', JSON.stringify(staleHeat));
+        localStorage.setItem('chartview-home-heatmap-v65', JSON.stringify(staleHeat));
         localStorage.removeItem('chartview-home-snapshot-v17');
         const now = Date.now();
         const quotes = {};
@@ -77,6 +78,7 @@ const freshSnapshot = {
         const symbols = (url.searchParams.get('tickers') || '').split(',').filter(Boolean);
         const mode = req.headers()['x-chartview-quote-mode'] || '';
         if (mode === 'watchlist-bootstrap-v64') bootstrapRequests.push(symbols);
+        if (mode === 'home-major-live-v65') homeLiveRequests.push(symbols);
         return route.fulfill(json({
           fetchedAt:'2026-09-22T06:31:00Z',
           results:symbols.map((ticker,index) => ({
@@ -105,10 +107,19 @@ const freshSnapshot = {
       assert.equal(response.status(), 200, profile.name);
       await page.locator('#home-tab.active').waitFor({timeout:30000});
 
-      // Heatmap must synchronize from the fresh Home snapshot without waiting for delayed /api/heatmap.
+      // The slow geometry endpoint is deliberately delayed. Live quote parity must not wait for it.
       const samsungChange = page.locator('[data-cvhm-symbol="005930.KS"] .cvhm-change');
       await samsungChange.waitFor({timeout:1500});
-      assert.equal((await samsungChange.textContent()).trim(), '+1.11%', `${profile.name}: heatmap used stale private cache`);
+
+      // A single fast quote batch must drive both Card and Heatmap to the exact same live value.
+      await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v65', null, {timeout:5000});
+      await page.waitForFunction(() => {
+        const card = document.querySelector('.home16-stock[data-home-symbol="005930.KS"] b');
+        const heat = document.querySelector('[data-cvhm-symbol="005930.KS"] .cvhm-change');
+        return card?.textContent?.trim() === '+1.23%' && heat?.textContent?.trim() === '+1.23%';
+      }, null, {timeout:5000});
+      assert.ok(homeLiveRequests.length >= 1, `${profile.name}: missing Home all-symbol live quote request`);
+      assert.equal(new Set(homeLiveRequests[0]).size, 18, `${profile.name}: initial Home live request did not cover all heatmap symbols`);
 
       // Enter Watchlist and verify one all-symbol lightweight bootstrap irrespective of viewport size.
       await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
@@ -118,6 +129,9 @@ const freshSnapshot = {
       await page.waitForFunction(() => [...document.querySelectorAll('[data-live-day-change]')].every(el => el.textContent.includes('+1.23%')), null, {timeout:10000});
       await page.waitForFunction(() => window.ChartViewLiveQuotes?.version === 'v64', null, {timeout:5000});
 
+      // Home V65 may have already populated these quotes, so wait for the Watchlist mode tick
+      // before asserting its one-shot bootstrap request.
+      await delay(1500);
       assert.ok(bootstrapRequests.length >= 1, `${profile.name}: missing watchlist all-symbol bootstrap`);
       assert.equal(new Set(bootstrapRequests[0]).size, 12, `${profile.name}: bootstrap did not include all watchlist symbols`);
       assert.equal(await page.locator('[data-watch-live-line]').count(), 12, `${profile.name}: today rows missing`);
@@ -127,7 +141,7 @@ const freshSnapshot = {
   } finally {
     await browser.close();
   }
-  console.log('cross-device V64 sync OK');
+  console.log('cross-device V65 quote parity OK');
 })().catch(err => {
   console.error(err);
   process.exit(1);

@@ -168,3 +168,10 @@ A user-visible change is complete only when:
 ## PICK ledger correction — Intekplus
 - 2026-09-22 user correction: `064290.KQ 인텍플러스` remains valid only for 2026-09-14. Its later manual selections on 2026-09-17 and 2026-09-21 were removed from both source PICK history and recommendation performance history.
 - Corrected user-final dates retain only their actually confirmed remaining names; no replacement stock is fabricated.
+
+
+## Home live quote parity V65
+- Home Card and Heatmap now share the exact same merged live-quote rows. Heatmap no longer gets a fresher day-change overlay without updating Card.
+- The slow `/api/heatmap` path is geometry/market-cap support only and refreshes every 5 minutes. Intraday price/day-change freshness comes from one batch `/api/quotes` request for the 18 displayed Home symbols.
+- Initial Home activation fetches all 18 once; during regular market hours only the currently open market group is polled every 5 seconds. Hidden/inactive Home stops polling.
+- `market_service.fetch_quote_snapshot` cache TTL is 5 seconds instead of 60, so the app itself does not impose a one-minute lag on U.S. Home quotes.

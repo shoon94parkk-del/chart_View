@@ -2,10 +2,11 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v64';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v65';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
-  const REFRESH_MS = 60_000;
+  const REFRESH_MS = 300_000;
+  const LIVE_QUOTE_POLL_MS = 5_000;
   const FAST_RETRY_MS = 5_000;
   const MIN_FULL_ROWS = 14;
   const LOGO_AREA_THRESHOLD = 0.12;
@@ -37,6 +38,8 @@
   let refreshKickTimer = null;
   let retryTimer = null;
   let inFlight = null;
+  let quoteInFlight = null;
+  let lastQuotePollAt = 0;
   let lastSignature = '';
 
   function readJson(key, fallback) {
@@ -266,6 +269,115 @@
     return tile;
   }
 
+  function cssEscape(value) {
+    if (window.CSS?.escape) return window.CSS.escape(String(value));
+    return String(value).replace(/["\\]/g, '\\$&');
+  }
+
+  function cardTone(value) {
+    const n = number(value) || 0;
+    return n > 0 ? 'up' : n < 0 ? 'down' : 'flat';
+  }
+
+  function syncMajorCards(rows) {
+    rows.forEach((row) => {
+      const card = document.querySelector(
+        `#home-tab .home16-stock[data-home-symbol="${cssEscape(row.symbol)}"]`
+      );
+      if (!card) return;
+      const price = card.querySelector('small');
+      const change = card.querySelector('b');
+      if (price) price.textContent = formatPrice(row.symbol, row.price);
+      if (change) {
+        change.textContent = signedPercent(row.change);
+        change.className = cardTone(row.change);
+      }
+    });
+  }
+
+  function quoteCacheMerge(data) {
+    const cache = readJson(QUOTE_CACHE_KEY, { updatedAt: 0, quotes: {} });
+    const safe = cache && typeof cache === 'object' ? cache : { updatedAt: 0, quotes: {} };
+    if (!safe.quotes || typeof safe.quotes !== 'object') safe.quotes = {};
+
+    (data?.results || []).forEach((item) => {
+      const symbol = String(item?.ticker || '').toUpperCase();
+      if (!symbol) return;
+      const previous = safe.quotes[symbol] && typeof safe.quotes[symbol] === 'object'
+        ? safe.quotes[symbol] : {};
+      safe.quotes[symbol] = {
+        ...previous,
+        price: item.price == null ? previous.price ?? null : Number(item.price),
+        dayChange: item.change == null ? previous.dayChange ?? null : Number(item.change),
+        currency: item.currency || previous.currency || '',
+        quoteAsOf: item.asOf || previous.quoteAsOf || '',
+        source: item.source || previous.source || data.source || '출처 미확인',
+        marketStatus: item.marketStatus ?? previous.marketStatus ?? null,
+        delayTime: item.delayTime ?? previous.delayTime ?? null,
+        priceBasis: 'latest_provider_quote',
+        updatedAt: Date.now(),
+      };
+    });
+    safe.updatedAt = Date.now();
+    try { localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(safe)); } catch (_) {}
+  }
+
+  function marketClock(timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+      }).formatToParts(new Date());
+      const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+      return {
+        weekday: map.weekday || '',
+        minutes: Number(map.hour || 0) * 60 + Number(map.minute || 0),
+      };
+    } catch (_) {
+      return { weekday: '', minutes: -1 };
+    }
+  }
+
+  function openMarketSymbols() {
+    const symbols = Object.keys(STOCKS);
+    const weekdays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+    const kr = marketClock('Asia/Seoul');
+    const us = marketClock('America/New_York');
+    const krOpen = weekdays.has(kr.weekday) && kr.minutes >= 9 * 60 && kr.minutes < 15 * 60 + 30;
+    const usOpen = weekdays.has(us.weekday) && us.minutes >= 9 * 60 + 30 && us.minutes < 16 * 60;
+    if (krOpen && usOpen) return symbols;
+    if (krOpen) return symbols.filter((symbol) => STOCKS[symbol].market === 'KR');
+    if (usOpen) return symbols.filter((symbol) => STOCKS[symbol].market === 'US');
+    return [];
+  }
+
+  async function refreshLiveQuotes(forceAll = false) {
+    if (!isHomeActive() || document.visibilityState !== 'visible' || navigator.onLine === false || quoteInFlight) return;
+    const now = Date.now();
+    if (!forceAll && now - lastQuotePollAt < LIVE_QUOTE_POLL_MS) return;
+
+    const symbols = forceAll ? Object.keys(STOCKS) : openMarketSymbols();
+    if (!symbols.length) return;
+    lastQuotePollAt = now;
+
+    const controller = new AbortController();
+    quoteInFlight = controller;
+    try {
+      const response = await fetch(`/api/quotes?tickers=${encodeURIComponent(symbols.join(','))}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+        headers: { 'X-ChartView-Quote-Mode': 'home-major-live-v65' },
+      });
+      if (!response.ok) throw new Error('home live quotes HTTP ' + response.status);
+      const data = await response.json();
+      quoteCacheMerge(data);
+      render(cachedPayload());
+    } catch (error) {
+      if (error?.name !== 'AbortError') console.warn('home live quote refresh failed', error);
+    } finally {
+      if (quoteInFlight === controller) quoteInFlight = null;
+    }
+  }
+
   function renderMarket(container, market, rows) {
     const marketRows = rows
       .filter((row) => row.market === market)
@@ -366,6 +478,7 @@
 
     const rows = mergedRows(payload);
     if (!rows.length) return;
+    syncMajorCards(rows);
 
     const signature = rows.map((row) => [row.symbol, row.price, row.change, row.marketCap].join(':')).join('|');
     if (signature === lastSignature && shell.panel.dataset.cvhmReady === '1') return;
@@ -415,6 +528,7 @@
   function start() {
     ensureShell();
     render(cachedPayload());
+    refreshLiveQuotes(true);
     scheduleRefresh();
 
     const observer = new MutationObserver((mutations) => {
@@ -425,6 +539,7 @@
             requestAnimationFrame(() => {
               ensureShell();
               render(cachedPayload());
+              refreshLiveQuotes(true);
             });
             return;
           }
@@ -437,24 +552,33 @@
       if (isHomeActive() && document.visibilityState === 'visible') refresh();
     }, REFRESH_MS);
 
+    setInterval(() => {
+      if (isHomeActive() && document.visibilityState === 'visible') refreshLiveQuotes(false);
+    }, 1000);
+
     document.addEventListener('chartview:live-quotes', () => render(cachedPayload()));
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') {
         if (inFlight) inFlight.abort();
+        if (quoteInFlight) quoteInFlight.abort();
         inFlight = null;
+        quoteInFlight = null;
         return;
       }
       if (isHomeActive()) {
         render(cachedPayload());
+        refreshLiveQuotes(true);
         scheduleRefresh();
       }
     });
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v64',
+    version: 'v65',
     refresh,
-    refreshMs: REFRESH_MS
+    refreshLiveQuotes,
+    refreshMs: REFRESH_MS,
+    liveQuotePollMs: LIVE_QUOTE_POLL_MS
   });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
