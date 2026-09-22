@@ -86,3 +86,10 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V59 uses raw market capitalization as the treemap weight inside each market group. Therefore a tile's area directly represents that stock's share of the displayed companies' total market cap. Korea and U.S. remain separate currency groups. Text readability is handled by hiding secondary price text in constrained tiles, not by distorting market-cap area.
 
 **Rollback:** `backup/pre-true-cap-heatmap-20260922` at `261b106334a5b1e7bb6d17cb283a337b33cb5d64`.
+
+### Korea heatmap gets a labeled mild cap compression; U.S. stays true-cap
+**Observed issue:** After V59 switched both markets to raw market-cap area, the small Korea representative set became dominated by Samsung Electronics and SK hynix, leaving the remaining Korean large-cap tiles too small to read on mobile. The U.S. V59 layout was accepted and should not change.
+
+**Decision:** V60 keeps U.S. treemap weight as raw `marketCap`, while Korea alone uses `marketCap^0.82`. This is deliberately mild—less distortion than the original V57/V58 `^0.58`—and the UI explicitly says the Korean map is visually adjusted while the U.S. map uses actual market-cap share. Data values themselves remain real market-cap values; only Korean tile geometry is compressed.
+
+**Rollback:** `backup/pre-kr-heatmap-compression-v60-20260922` at `b50eee65a09691d77a225420977654dd5bfc0c29`.
