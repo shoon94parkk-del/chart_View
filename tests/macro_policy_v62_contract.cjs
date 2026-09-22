@@ -10,9 +10,10 @@ const workflow = fs.readFileSync('.github/workflows/update-macro-cache.yml', 'ut
 
 test('policy rate uses target range plus daily EFFR, not monthly FEDFUNDS', () => {
   assert.match(generator, /"FEDTARGET"/);
-  assert.match(generator, /DFEDTARL/);
-  assert.match(generator, /DFEDTARU/);
+  assert.match(generator, /dfedtarl/);
+  assert.match(generator, /dfedtaru/);
   assert.match(generator, /"DFF"/);
+  assert.match(generator, /"feed": "equibles:dff"/);
   assert.doesNotMatch(generator, /"FEDFUNDS":/);
   assert.match(workflow, /'FEDTARGET','DFF'/);
   assert.match(workflow, /len\(rows\) == 16/);
