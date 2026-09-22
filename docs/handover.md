@@ -142,3 +142,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Constrained tiles shorten labels/hide price to avoid clipping; missing market-cap rows show a refresh message instead of an empty board.
 - Browser heatmap cache key moved to V58 to discard the bad zero-cap cache.
 - Rollback branch: `backup/pre-heatmap-mobile-fix-20260922`.
+
+## 2026-09-22 Heatmap true-cap V59
+- Treemap weight is raw marketCap; no exponent/root/log visibility compression.
+- The legend now states that tile area equals actual market-cap share within the displayed market group.
+- Price text is stricter on small/short tiles to avoid the partial clipping seen on mobile.
+- Browser heatmap cache key moved to V59.
+- Rollback branch: `backup/pre-true-cap-heatmap-20260922`.
