@@ -107,7 +107,7 @@ jobs:
               assert (h.get('history',{}).get(ticker,{}).get('0y') or []), (ticker,'history')
           m=json.load(open('/tmp/mcache.json'))
           rows=m.get('results',[])
-          assert len(rows) == 15, len(rows)
+          assert len(rows) == 16, len(rows)
           assert m.get('staleCount') == 0, m.get('staleCount')
           assert all(x.get('chart_data') and x.get('asOf') and 'delta' in x for x in rows)
           print('static caches OK:', len(s['stocks']), 'stocks /', c.get('count'), 'consensus /', len(rows), 'macro')
@@ -183,11 +183,11 @@ jobs:
           d=json.load(open('/tmp/macro.json'))
           rows=d.get('results',[])
           assert d.get('cacheMode') == 'precomputed', d.get('cacheMode')
-          assert len(rows) == 15, len(rows)
-          assert d.get('freshCount') == 15 and d.get('staleCount') == 0, (d.get('freshCount'),d.get('staleCount'))
+          assert len(rows) == 16, len(rows)
+          assert d.get('freshCount') == 16 and d.get('staleCount') == 0, (d.get('freshCount'),d.get('staleCount'))
           assert all('delta' in x and x.get('chart_data') for x in rows)
           symbols={x.get('original_symbol') or x.get('symbol') for x in rows}
-          assert {'PCEPI','PCETRIM12M159SFRBDAL'} <= symbols, symbols
+          assert {'PCEPI','PCETRIM12M159SFRBDAL','FEDTARGET','DFF'} <= symbols, symbols
           assert d.get('summary',{}).get('text')
           assert not d.get('net_liquidity',{}).get('error'), d.get('net_liquidity')
           print('macro OK', d.get('generatedAt'), d.get('summary',{}).get('level'))
