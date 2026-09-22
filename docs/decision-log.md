@@ -153,3 +153,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 ### Usage counting is private, anonymous, and process-local
 **Decision:** add a random browser heartbeat and store only salted daily hashes in Render memory. The private `/admin/usage` page uses a server environment token and is not linked from the public UI. Counts are intentionally labeled as current-instance values because free durable analytics storage is not part of V66.
+
+
+### Home today change is one-session change, not Yahoo chart-range return
+**Observed issue:** the persistent Home snapshot requested Yahoo range=5d and calculated change from meta.previousClose/chartPreviousClose. On 2026-09-22 this produced values such as NVDA +7.78%, exactly Yahoo's 5D return, while the UI labeled the figure as today's change.
+
+**Decision:** V67 computes U.S. snapshot change from the last two valid daily closes, uses Naver fluctuationsRatio for Korean snapshot rows, and wires the existing Naver realtime patch into the actual functions imported by main.py. Geometry/market-cap caching is unchanged.
+
+**Rollback:** backup/pre-daily-change-fix-v67-20260922.
