@@ -55,6 +55,14 @@ test('all watchlist cards keep a today-change slot even before a fresh quote arr
   assert.match(live, /오늘 —/);
   assert.match(live, /lastMode = ''/);
   assert.match(live, /setTimeout\(\(\) => tick\(false\), 0\)/);
-  assert.match(live, /version: 'v64'/);
-  assert.match(html, /\/static\/js\/live_quotes_v56\.js\?v=20260922v64a/);
+  assert.match(live, /version: 'v66'/);
+  assert.match(html, /\/static\/js\/live_quotes_v56\.js\?v=20260922v66a/);
+});
+
+test('watchlist layer does not poll Home quotes after V66', () => {
+  const start = live.indexOf('function activeMode()');
+  const end = live.indexOf('function visibleWatchSymbols', start);
+  const block = live.slice(start, end);
+  assert.match(block, /server-driven by \/api\/home-live V66/);
+  assert.doesNotMatch(block, /return 'home'/);
 });
