@@ -234,14 +234,16 @@
     }
   }
 
-  async function refreshActiveQuotes({ force = false } = {}) {
+  async function refreshActiveQuotes({ force = false, fullWatchlist = false } = {}) {
     if (document.visibilityState !== 'visible' || navigator.onLine === false) return;
     const mode = activeMode();
     if (!mode) return;
     const rows = watchlist();
     if (!rows.length) return;
 
-    const base = mode === 'watchlist' ? visibleWatchSymbols(rows) : homeSymbols(rows);
+    const base = mode === 'watchlist'
+      ? (fullWatchlist ? rows.map((row) => row.symbol) : visibleWatchSymbols(rows))
+      : homeSymbols(rows);
     const symbols = force ? base : dueSymbols(base, mode, Date.now());
     if (!symbols.length || inFlight) return;
 
@@ -252,7 +254,7 @@
       const response = await fetch(`/api/quotes?tickers=${encodeURIComponent(symbols.join(','))}`, {
         cache: 'no-store',
         signal: controller.signal,
-        headers: { 'X-ChartView-Quote-Mode': 'live-visible-v56' },
+        headers: { 'X-ChartView-Quote-Mode': fullWatchlist ? 'watchlist-bootstrap-v64' : 'live-visible-v64' },
       });
       if (!response.ok) throw new Error(`quotes ${response.status}`);
       const data = await response.json();
@@ -282,8 +284,10 @@
     const cache = readJson(QUOTE_CACHE_KEY, { quotes: {} });
     const quotes = cache?.quotes && typeof cache.quotes === 'object' ? cache.quotes : {};
     watchlist().forEach((row) => {
+      const card = document.querySelector(`[data-watch-card="${cssEscape(row.symbol)}"]`);
+      if (card) ensureLiveLine(card);
       const quote = quotes[row.symbol];
-      if (!quote || (quote.dayChange == null && quote.marketStatus == null)) return;
+      if (!quote) return;
       paintQuote({
         ticker: row.symbol,
         price: quote.price,
@@ -314,14 +318,17 @@
     }
 
     if (!mode) return;
-    await refreshActiveQuotes({ force: force || (modeChanged && mode === 'watchlist') });
+    const bootstrapAll = modeChanged && mode === 'watchlist';
+    await refreshActiveQuotes({
+      force: force || bootstrapAll,
+      fullWatchlist: bootstrapAll,
+    });
   }
 
   function start() {
     enhanceCachedRows();
-    lastMode = activeMode();
-    if (lastMode === 'home') lastHomePollAt = Date.now();
-
+    lastMode = '';
+    setTimeout(() => tick(false), 0);
     setInterval(() => tick(false), 1000);
 
     document.addEventListener('visibilitychange', () => {
@@ -364,7 +371,7 @@
   }
 
   window.ChartViewLiveQuotes = Object.freeze({
-    version: 'v56',
+    version: 'v64',
     refresh: () => refreshActiveQuotes({ force: true }),
     watchlistPollMs: WATCHLIST_POLL_MS,
   });
