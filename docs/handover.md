@@ -223,7 +223,7 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Watchlist live polling remains separate and Watchlist-only.
 - Global anonymous heartbeat runs every 20s. Daily visitor identity is a salted hash of a random browser ID.
 - Owner dashboard: `/admin/usage`; API requires `X-ChartView-Admin`. Secrets live only in Render environment.
-- Analytics are process-local and reset on deploy/restart. Do not claim durable historical user counts.
+- Daily unique-browser totals are stored in Render Key Value and survive normal app deploys/restarts; active-now/Home-active remain process-local. The metric is an anonymous-browser estimate rather than an exact person count.
 - Rollback: `backup/pre-server-live-cache-v66-20260922`.
 
 - Automation/Playwright visits are excluded from usage counts via `navigator.webdriver`.
