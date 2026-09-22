@@ -42,7 +42,7 @@ def test_chartview_pick_uses_recommendation_close_to_current_price():
 def test_watchlist_add_is_immediate_and_refreshes_only_new_symbol():
     js = (ROOT / 'static/js/watchlist_v30.js').read_text(encoding='utf-8')
     toggle = js.split('function toggleWatchlist(symbol, name)', 1)[1].split('function formatPrice', 1)[0]
-    render = js.split('function render({ refreshQuotes = true } = {})', 1)[1].split('function applyQuote', 1)[0]
+    render = js.split('function render({ refreshQuotes = false } = {})', 1)[1].split('function applyQuote', 1)[0]
     loader = js.split('async function loadQuoteRows(rows, force = false)', 1)[1].split('function retryFailedQuotes', 1)[0]
 
     assert 'render({ refreshQuotes: false })' in toggle
@@ -54,3 +54,20 @@ def test_watchlist_add_is_immediate_and_refreshes_only_new_symbol():
     assert '/api/compare?tickers=' in js
     assert 'const targets = dedupe((rows || []).filter' in loader
     assert 'return loadQuoteRows([...watchlist], force)' in loader
+
+
+def test_watchlist_entry_is_cache_first_and_does_not_start_full_refresh():
+    js = (ROOT / 'static/js/watchlist_v30.js').read_text(encoding='utf-8')
+    quick = (ROOT / 'static/js/watchlist_quick_add_v48.js').read_text(encoding='utf-8')
+
+    assert 'const RETURN_FRESH_MS = 12 * 60 * 60 * 1000' in js
+    assert 'const ENTRY_REFRESH_THROTTLE_MS = 60 * 1000' in js
+    assert 'function render({ refreshQuotes = false } = {})' in js
+    assert 'render({ refreshQuotes: false })' in js
+    assert 'async function refreshCurrentQuotesQuietly()' in js
+    assert 'async function refreshReturnsQuietly()' in js
+    assert 'function refreshWatchlistOnEntry()' in js
+    assert 'window.__refreshWatchlistOnEntry = refreshWatchlistOnEntry' in js
+    assert 'requestIdleCallback(runReturns' in js
+    assert 'setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0)' in quick
+    assert "tab.querySelector('[data-watch-refresh]')?.addEventListener('click', () => loadQuotes(true))" in js
