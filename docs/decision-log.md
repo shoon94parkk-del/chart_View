@@ -4,6 +4,14 @@ Append-only record of high-risk behavioral decisions. New work should add entrie
 
 ## 2026-09-22
 
+### Watchlist entry is stale-while-revalidate, not full refresh
+**Problem:** even after incremental add was fixed, app boot/watchlist entry could still start a full quote + 1-month-return refresh for every saved stock, so simply opening the screen felt slow.
+
+**Decision:** Watchlist entry paints local cached values immediately. App boot does no watchlist network refresh. Entry may quietly revalidate stale current quotes, while 1-month returns use a separate 12-hour freshness window and are deferred until idle. Only the explicit refresh button may force a foreground full-list quote + return refresh.
+
+**Protection:** `tests/test_watchlist_recommendation_v55.py`, generated-bundle freshness check, mobile regression suites.
+
+
 ### Watchlist add is incremental
 **Problem:** adding one stock could feel extremely slow because render/refresh paths reloaded quote and 1-month-return work for the whole watchlist.
 
