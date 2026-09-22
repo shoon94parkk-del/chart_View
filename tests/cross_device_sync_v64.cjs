@@ -129,6 +129,9 @@ const freshSnapshot = {
       await page.waitForFunction(() => [...document.querySelectorAll('[data-live-day-change]')].every(el => el.textContent.includes('+1.23%')), null, {timeout:10000});
       await page.waitForFunction(() => window.ChartViewLiveQuotes?.version === 'v64', null, {timeout:5000});
 
+      // Home V65 may have already populated these quotes, so wait for the Watchlist mode tick
+      // before asserting its one-shot bootstrap request.
+      await delay(1500);
       assert.ok(bootstrapRequests.length >= 1, `${profile.name}: missing watchlist all-symbol bootstrap`);
       assert.equal(new Set(bootstrapRequests[0]).size, 12, `${profile.name}: bootstrap did not include all watchlist symbols`);
       assert.equal(await page.locator('[data-watch-live-line]').count(), 12, `${profile.name}: today rows missing`);
