@@ -235,6 +235,7 @@ async def _analytics_redis_client():
         client = redis_async.from_url(url, decode_responses=True, socket_timeout=1.5)
         await client.ping()
         ANALYTICS_REDIS_CLIENT = client
+        print('[ANALYTICS] Render Key Value connected')
         return client
     except Exception as exc:
         print(f"[ANALYTICS] Redis unavailable, memory fallback: {exc}")
@@ -383,6 +384,7 @@ async def startup_event():
     _seed_home_live_from_snapshot(snapshot)
     HOME_LIVE_WAKE_EVENT = asyncio.Event()
     asyncio.create_task(_home_live_worker())
+    asyncio.create_task(_analytics_redis_client())
     asyncio.create_task(_refresh_home_snapshot(force=True))
     asyncio.create_task(_refresh_market_now(force=True))
 
