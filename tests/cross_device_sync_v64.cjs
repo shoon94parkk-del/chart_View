@@ -48,6 +48,7 @@ const freshSnapshot = {
       });
       const page = await context.newPage();
       const bootstrapRequests = [];
+      const homeLiveRequests = [];
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
@@ -77,6 +78,7 @@ const freshSnapshot = {
         const symbols = (url.searchParams.get('tickers') || '').split(',').filter(Boolean);
         const mode = req.headers()['x-chartview-quote-mode'] || '';
         if (mode === 'watchlist-bootstrap-v64') bootstrapRequests.push(symbols);
+        if (mode === 'home-major-live-v65') homeLiveRequests.push(symbols);
         return route.fulfill(json({
           fetchedAt:'2026-09-22T06:31:00Z',
           results:symbols.map((ticker,index) => ({
@@ -110,6 +112,16 @@ const freshSnapshot = {
       await samsungChange.waitFor({timeout:1500});
       assert.equal((await samsungChange.textContent()).trim(), '+1.11%', `${profile.name}: heatmap used stale private cache`);
 
+      // A single fast quote batch must drive both Card and Heatmap to the exact same live value.
+      await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v65', null, {timeout:5000});
+      await page.waitForFunction(() => {
+        const card = document.querySelector('.home16-stock[data-home-symbol="005930.KS"] b');
+        const heat = document.querySelector('[data-cvhm-symbol="005930.KS"] .cvhm-change');
+        return card?.textContent?.trim() === '+1.23%' && heat?.textContent?.trim() === '+1.23%';
+      }, null, {timeout:5000});
+      assert.ok(homeLiveRequests.length >= 1, `${profile.name}: missing Home all-symbol live quote request`);
+      assert.equal(new Set(homeLiveRequests[0]).size, 18, `${profile.name}: initial Home live request did not cover all heatmap symbols`);
+
       // Enter Watchlist and verify one all-symbol lightweight bootstrap irrespective of viewport size.
       await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
       await page.locator('#watchlist-tab.active').waitFor({timeout:10000});
@@ -127,7 +139,7 @@ const freshSnapshot = {
   } finally {
     await browser.close();
   }
-  console.log('cross-device V64 sync OK');
+  console.log('cross-device V65 quote parity OK');
 })().catch(err => {
   console.error(err);
   process.exit(1);
