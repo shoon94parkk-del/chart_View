@@ -147,3 +147,5 @@ A user-visible change is complete only when:
 - Monthly `FEDFUNDS` is no longer the displayed policy-rate source. The cache now contains `FEDTARGET` built from daily FRED `DFEDTARL` + `DFEDTARU`, plus daily `DFF` for EFFR.
 - Macro mini charts are dependency-free inline SVG sparklines rendered from cached `chart_data`; they do not load Lightweight Charts and therefore do not violate the Home chart-library guardrail.
 - The traffic light is a descriptive regime summary across inflation (PCE/trimmed PCE/BEI), Fed stance/recent target move, labor/activity, credit/VIX, and liquidity. It is not a forecast of the next FOMC decision or a buy/sell signal.
+
+- 2026-09-22 V62b provider hardening: GitHub-hosted runners intermittently time out on direct `fred.stlouisfed.org/graph/fredgraph.csv`. `FEDTARGET` bounds and daily `DFF` now use the already-stable Equibles FRED mirror path, while links/semantics remain FRED/Federal Reserve series. This affects only scheduled cache generation, not runtime latency.
