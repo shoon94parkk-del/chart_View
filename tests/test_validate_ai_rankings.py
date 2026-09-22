@@ -57,3 +57,36 @@ def test_user_final_selection_allows_two_corrected_picks():
         for key in module.REQUIRED_SCORES:
             pick.pop(key, None)
     assert module.validate(day, by_symbol, by_name) == []
+
+
+def test_legacy_published_day_is_allowed_without_analysis_metadata():
+    by_symbol, by_name = identity_index()
+    day = valid_day()
+    day.pop("analysis")
+    day.pop("scorePolicy")
+    for pick in day["top3"]:
+        for key in module.REQUIRED_SCORES:
+            pick.pop(key, None)
+    assert module.validate(day, by_symbol, by_name) == []
+
+
+def test_same_symbol_display_name_alias_is_allowed():
+    by_symbol, by_name = module.build_identity_index({
+        "stocks": [
+            {"symbol": "010120.KS", "name": "엘에스일렉트릭"},
+            {"symbol": "000001.KS", "name": "테스트1"},
+            {"symbol": "000002.KS", "name": "테스트2"},
+        ]
+    })
+    day = valid_day(symbol="010120.KS", code="010120", name="LS ELECTRIC")
+    day["analysis"] = {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": day["tradeDate"],
+    }
+    day["top3"] = day["top3"][:1]
+    for pick in day["top3"]:
+        for key in module.REQUIRED_SCORES:
+            pick.pop(key, None)
+    assert module.validate(day, by_symbol, by_name) == []
