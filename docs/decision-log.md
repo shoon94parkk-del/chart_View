@@ -166,3 +166,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Context:** V66 initially counted anonymous daily browsers in process memory, which reset on deploy/restart and made “today” totals unreliable during active development.
 
 **Decision:** persist only the salted daily browser hash set in Render Key Value with a 10-day TTL. Keep live presence (activeNow, activeHome) in process memory because it intentionally expires within the heartbeat window. The admin API reports which backend is active and falls back to memory if Key Value is unavailable.
+
+
+### Share links preserve the current Chart View context
+**Observed issue:** the public share action still hard-coded the retired `chart-view-bsg6` Render URL and always generated a root link, so recipients landed on Home even when the sender was viewing PICK history or a stock detail.
+
+**Decision:** V68 derives the public base from the existing canonical link and serializes only stable routing state into the share URL. AI PICK uses `?tab=screener&view=ai-picks`; stock detail uses the existing detail deep-link contract; other screens preserve their active tab. The receiver remains the existing V3 route/deep-link implementation.
+
+**Rollback:** `backup/pre-context-share-v68-20260923`.

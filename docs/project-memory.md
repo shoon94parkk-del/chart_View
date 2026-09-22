@@ -192,3 +192,9 @@ A user-visible change is complete only when:
 - Korean snapshot rows use Naver Finance fluctuationsRatio; U.S. rows compute current/latest price versus the immediately preceding daily close.
 - Never use Yahoo 5-day meta.previousClose/chartPreviousClose as a today baseline. It previously leaked 5D returns into Home (for example NVDA +7.78%).
 - main.py now installs realtime_korea.install_patch before binding market-service functions, restoring the canonical Naver path for Korean current quotes.
+
+
+## Context-aware sharing V68
+- Public share links no longer use the retired `chart-view-bsg6` host. `promo_v1.js` reads the document canonical URL, whose production source of truth is `chart-view-pkv8.onrender.com`.
+- Share URLs preserve the current app screen: main tab, AI PICK ledger (`tab=screener&view=ai-picks`), and stock detail (`tab=chart&view=detail&symbol=...&name=...`).
+- The existing router remains authoritative for receiving deep links; sharing does not create a second routing system.

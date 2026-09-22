@@ -1,7 +1,16 @@
 (() => {
   'use strict';
 
-  const CANONICAL = 'https://chart-view-bsg6.onrender.com/';
+  const FALLBACK_CANONICAL = 'https://chart-view-pkv8.onrender.com/';
+  const CANONICAL = (() => {
+    try {
+      const href = document.querySelector('link[rel="canonical"]')?.href || FALLBACK_CANONICAL;
+      const url = new URL(href, window.location.href);
+      return new URL('/', url.origin).toString();
+    } catch (_) {
+      return FALLBACK_CANONICAL;
+    }
+  })();
   const TITLE = 'Chart View | 한국·미국 주식 차트·밸류에이션 비교';
   const DESCRIPTION = '한국·미국 주식 최대 6종목의 수익률 차트, 밸류에이션, 투자판단 근거와 시장 지표를 로그인 없이 한 화면에서 비교합니다.';
   const SHARE_TEXT = '한국·미국 주식을 차트와 밸류에이션으로 한 번에 비교할 수 있는 무료 웹앱 Chart View';
@@ -60,12 +69,66 @@
     document.head.appendChild(script);
   }
 
+  function activeTabId() {
+    const tabs = [...document.querySelectorAll('.tab-content')];
+    const active = tabs.find((tab) => {
+      if (!tab.classList.contains('active') || tab.hidden || tab.getAttribute('aria-hidden') === 'true') return false;
+      const style = window.getComputedStyle ? getComputedStyle(tab) : null;
+      return !style || (style.display !== 'none' && style.visibility !== 'hidden');
+    }) || document.querySelector('.tab-content.active');
+    return active?.id?.replace(/-tab$/, '') || history.state?.tab || 'home';
+  }
+
+  function currentShareRoute() {
+    const detail = window.ChartViewState?.detail;
+    if (detail?.open && detail.symbol) {
+      return {
+        tab: 'chart',
+        view: 'detail',
+        symbol: String(detail.symbol || '').trim().toUpperCase(),
+        name: String(detail.name || '').trim(),
+      };
+    }
+
+    const tab = activeTabId();
+    const route = { tab, view: '', symbol: '', name: '' };
+    if (tab === 'screener') {
+      const aiButton = document.querySelector('#screener-tab [data-discovery-view="ai-picks"].active');
+      const aiPanel = document.querySelector('#screener-tab [data-discovery-panel="ai-picks"]');
+      if (aiButton || (aiPanel && !aiPanel.hidden)) route.view = 'ai-picks';
+    }
+    return route;
+  }
+
   function trackedShareUrl() {
     const url = new URL(CANONICAL);
+    const route = currentShareRoute();
+
+    if (route.tab && route.tab !== 'home') url.searchParams.set('tab', route.tab);
+    if (route.view) url.searchParams.set('view', route.view);
+    if (route.symbol) url.searchParams.set('symbol', route.symbol);
+    if (route.name) url.searchParams.set('name', route.name);
+
     url.searchParams.set('utm_source', 'share');
     url.searchParams.set('utm_medium', 'web');
-    url.searchParams.set('utm_campaign', 'chartview_v1');
+    url.searchParams.set('utm_campaign', 'chartview_v68');
     return url.toString();
+  }
+
+  function shareCopy(route = currentShareRoute()) {
+    if (route.view === 'ai-picks') {
+      return {
+        title: 'Chart View PICK | 추천 기록',
+        text: 'Chart View PICK 선정 기록과 성과를 바로 확인해보세요.',
+      };
+    }
+    if (route.view === 'detail' && route.symbol) {
+      return {
+        title: `${route.name || route.symbol} | Chart View`,
+        text: `${route.name || route.symbol} 종목 분석 화면을 공유합니다.`,
+      };
+    }
+    return { title: 'Chart View', text: SHARE_TEXT };
   }
 
   function toast(message) {
@@ -79,13 +142,14 @@
 
   async function shareChartView() {
     const url = trackedShareUrl();
+    const copy = shareCopy();
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Chart View', text: SHARE_TEXT, url });
+        await navigator.share({ title: copy.title, text: copy.text, url });
         return;
       }
       await navigator.clipboard.writeText(url);
-      toast('Chart View 링크를 복사했습니다.');
+      toast('현재 화면 링크를 복사했습니다.');
     } catch (error) {
       if (error?.name === 'AbortError') return;
       try {
@@ -98,7 +162,7 @@
         input.select();
         document.execCommand('copy');
         input.remove();
-        toast('Chart View 링크를 복사했습니다.');
+        toast('현재 화면 링크를 복사했습니다.');
       } catch (_) {
         toast('주소창의 링크를 복사해 공유해주세요.');
       }
@@ -171,6 +235,13 @@
     footer.parentNode.insertBefore(wrap, footer);
     wrap.querySelector('button')?.addEventListener('click', shareChartView);
   }
+
+  window.ChartViewShare = Object.freeze({
+    version: 'v68',
+    buildUrl: trackedShareUrl,
+    currentRoute: currentShareRoute,
+    share: shareChartView,
+  });
 
   function init() {
     hydrateHead();

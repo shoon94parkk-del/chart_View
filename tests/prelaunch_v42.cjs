@@ -36,7 +36,7 @@ const valuationStocks = [
 
  // Public beta launch surface: static SEO metadata + campaign landing explanation + sharing affordance.
  assert.match(await page.title(),/Chart View/);
- assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),'https://chart-view-bsg6.onrender.com/');
+ assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),'https://chart-view-pkv8.onrender.com/');
  assert.match(await page.locator('meta[property="og:title"]').getAttribute('content'),/Chart View/);
  assert.match(await page.locator('meta[name="description"]').getAttribute('content'),/최대 6종목/);
  await page.waitForSelector('.promo-v1-intro');

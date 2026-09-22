@@ -243,3 +243,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Verified generated examples: Samsung Electronics +1.28%, SK hynix -1.45%, NVDA +2.299%, AAPL +0.8479%, MSFT +1.5857%.
 - NVDA's prior erroneous +7.78% was Yahoo's 5D range return; it is no longer used as a Home today-change value.
 - This documentation-only commit exists to pin final production CI and Render revision after the bot-generated snapshot commit.
+
+
+## 2026-09-23 Context-aware sharing V68
+- Fixed the share button's retired bsg6 URL.
+- Public base comes from the page canonical (currently pkv8).
+- Current-screen share is supported for all main tabs; AI PICK shares `tab=screener&view=ai-picks`; open stock detail shares symbol/name.
+- `window.ChartViewShare` exposes the V68 URL builder/share action for regression testing.
+- Rollback: `backup/pre-context-share-v68-20260923`.
