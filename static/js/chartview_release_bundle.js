@@ -1443,6 +1443,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let searchTimer = null;
   let lastEntryRefreshAt = 0;
   let entryReturnTimer = null;
+  let quietQuotePromise = null;
   const quoteQueue = new Set();
   const returnQueue = new Set();
   const quoteStatus = new Map();
@@ -2202,20 +2203,29 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   async function refreshCurrentQuotesQuietly() {
+    if (quietQuotePromise) return quietQuotePromise;
     const symbols = watchlist
       .map((row) => row.symbol)
       .filter((symbol) => !quoteIsFresh(symbol));
     if (!symbols.length) return;
 
+    const job = (async () => {
+      try {
+        await fetchQuoteBatch(symbols.slice(0, 20));
+        quoteCache.updatedAt = Date.now();
+        saveQuoteCache();
+        updateSummary();
+        updateUpdatedLabel(false);
+        renderHomeShortcut();
+      } catch (_) {
+        // Cache-first UX stays usable even when the provider is slow/down.
+      }
+    })();
+    quietQuotePromise = job;
     try {
-      await fetchQuoteBatch(symbols.slice(0, 20));
-      quoteCache.updatedAt = Date.now();
-      saveQuoteCache();
-      updateSummary();
-      updateUpdatedLabel(false);
-      renderHomeShortcut();
-    } catch (_) {
-      // Screen entry must remain instant even when the provider is slow/down.
+      return await job;
+    } finally {
+      if (quietQuotePromise === job) quietQuotePromise = null;
     }
   }
 
@@ -2381,9 +2391,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (typeof window.loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) window.loadData();
     } catch (_) { }
     renderHomeShortcut();
-    // App boot only paints locally cached watchlist data. Do not start a hidden
-    // full watchlist quote/history refresh before the user even opens the tab.
+    // App boot paints cached rows immediately. Revalidate only lightweight
+    // current quotes in the background; never start the expensive 1-month
+    // history refresh before the user opens Watchlist.
     render({ refreshQuotes: false });
+    setTimeout(refreshCurrentQuotesQuietly, 0);
     setTimeout(renderHomeShortcut, 500);
     setTimeout(renderHomeShortcut, 1800);
     document.addEventListener('chartview:watchlist-change', renderHomeShortcut);
