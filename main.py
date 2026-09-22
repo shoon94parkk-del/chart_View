@@ -518,14 +518,12 @@ async def visitor_activity(request: Request):
     surface = str(body.get("surface") or "other").strip().lower()
     if not visitor_id or len(visitor_id) > 128 or not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", visitor_id):
         raise HTTPException(400, "유효한 방문자 식별자가 필요합니다.")
-    active, active_home = _record_visitor(visitor_id, surface)
+    _record_visitor(visitor_id, surface)
     if HOME_LIVE_WAKE_EVENT is not None and surface == "home":
         HOME_LIVE_WAKE_EVENT.set()
     return {
         "ok": True,
         "heartbeatSec": VISITOR_HEARTBEAT_SEC,
-        "activeVisitors": active,
-        "activeHomeVisitors": active_home,
     }
 
 
