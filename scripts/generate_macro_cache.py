@@ -42,7 +42,8 @@ INDICATORS: dict[str, dict[str, str]] = {
     "WALCL": {"name": "연준 총자산 (Fed Balance)", "desc": "연준 대차대조표 총자산입니다.", "link": "https://fred.stlouisfed.org/series/WALCL", "feed": "equibles:walcl"},
     "WTREGEN": {"name": "재무부 일반계정 (TGA)", "desc": "미 재무부 일반계정 잔액입니다.", "link": "https://fred.stlouisfed.org/series/WTREGEN", "feed": "dbnomics:FED/H41/RESPPLLDT_N.WW"},
     "M2SL": {"name": "M2 통화량 (Money Supply)", "desc": "미국 M2 통화량입니다.", "link": "https://fred.stlouisfed.org/series/M2SL", "feed": "equibles:m2sl"},
-    "FEDFUNDS": {"name": "연방기금금리 (Fed Rate)", "desc": "미국 연방기금금리입니다.", "link": "https://fred.stlouisfed.org/series/FEDFUNDS", "feed": "equibles:fedfunds"},
+    "FEDTARGET": {"name": "연준 목표금리 범위", "desc": "FOMC가 정한 연방기금금리 목표 범위입니다. 정책 결정이 반영되면 일 단위로 갱신됩니다.", "link": "https://fred.stlouisfed.org/series/DFEDTARU", "feed": "policy:fedtarget"},
+    "DFF": {"name": "실효 연방기금금리 (EFFR)", "desc": "미국 은행간 실제 익일 연방기금 거래를 바탕으로 한 실효금리입니다.", "link": "https://fred.stlouisfed.org/series/DFF", "feed": "fredcsv:DFF"},
     "^VIX": {"name": "공포 지수 (VIX)", "desc": "CBOE VIX 종가 시계열입니다.", "link": "https://fred.stlouisfed.org/series/VIXCLS", "feed": "equibles:vixcls"},
 }
 
@@ -192,6 +193,56 @@ def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
     return rows[-100:]
 
 
+def fetch_policy_target() -> dict[str, Any]:
+    """Build one visible policy-rate row from the official daily target bounds."""
+    lower_rows = fetch_fred_csv("DFEDTARL")
+    upper_rows = fetch_fred_csv("DFEDTARU")
+    lower_map = {row["time"]: row["value"] for row in lower_rows}
+    upper_map = {row["time"]: row["value"] for row in upper_rows}
+    common_dates = sorted(set(lower_map) & set(upper_map))
+    if not common_dates:
+        raise RuntimeError("target-rate bounds have no overlapping observations")
+
+    chart_rows: list[dict[str, Any]] = []
+    for date in common_dates:
+        lower = float(lower_map[date])
+        upper = float(upper_map[date])
+        chart_rows.append({
+            "time": date,
+            "value": round((lower + upper) / 2.0, 6),
+            "lower": round(lower, 6),
+            "upper": round(upper, 6),
+        })
+
+    latest = chart_rows[-1]
+    previous_distinct = latest
+    for row in reversed(chart_rows[:-1]):
+        if row["lower"] != latest["lower"] or row["upper"] != latest["upper"]:
+            previous_distinct = row
+            break
+
+    move_bp = round((latest["value"] - previous_distinct["value"]) * 100.0, 2)
+    return {
+        "original_symbol": "FEDTARGET",
+        "symbol": "FEDTARGET",
+        "name": INDICATORS["FEDTARGET"]["name"],
+        "desc": INDICATORS["FEDTARGET"]["desc"],
+        "link": INDICATORS["FEDTARGET"]["link"],
+        "value": round(latest["value"], 4),
+        "delta": round(latest["value"] - previous_distinct["value"], 4),
+        "change": 0.0,
+        "moveBp": move_bp,
+        "targetLower": latest["lower"],
+        "targetUpper": latest["upper"],
+        "previousTargetLower": previous_distinct["lower"],
+        "previousTargetUpper": previous_distinct["upper"],
+        "chart_data": chart_rows[-120:],
+        "source": "Federal Reserve · FRED daily target range",
+        "asOf": latest["time"],
+        "stale": False,
+    }
+
+
 def make_row(symbol: str, meta: dict[str, str], rows: list[dict[str, Any]], source: str) -> dict[str, Any]:
     current = rows[-1]["value"]
     previous = rows[-2]["value"] if len(rows) > 1 else current
@@ -222,6 +273,8 @@ def fetch_one(symbol: str) -> dict[str, Any]:
     elif kind == "fredcsv":
         rows = fetch_fred_csv(target)
         source = "FRED CSV"
+    elif kind == "policy":
+        return fetch_policy_target()
     elif kind == "dallaspce":
         rows = fetch_dallas_pce(target)
         source = "Federal Reserve Bank of Dallas · PCE"
