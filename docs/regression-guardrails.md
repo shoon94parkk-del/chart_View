@@ -70,3 +70,8 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Korean and U.S. market caps are sized within separate groups; never compare raw KRW market cap directly with raw USD market cap.
 - Snapshot `marketCap` must be actual market capitalization from valuation data, never trading volume.
 - Existing major-stock card view remains available through the Card/Heatmap toggle and is the rollback fallback.
+
+- Home SWR quote refresh must never overwrite a previously valid heatmap marketCap with 0/null when a live quote provider omits market capitalization.
+- Heatmap logos must participate in tile layout (inline with the name), not float with absolute positioning over text.
+- Card-only previous/next strip controls stay hidden while Heatmap view is active.
+- A market with temporarily missing cap data shows a clear refresh state; never render a large unexplained blank rectangle.
