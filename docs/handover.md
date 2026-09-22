@@ -149,3 +149,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Price text is stricter on small/short tiles to avoid the partial clipping seen on mobile.
 - Browser heatmap cache key moved to V59.
 - Rollback branch: `backup/pre-true-cap-heatmap-20260922`.
+
+## 2026-09-22 Heatmap KR readability V60
+- U.S. layout remains V59 raw-market-cap weighting.
+- Korea alone uses `marketCap^0.82` to reduce Samsung Electronics/SK hynix dominance and keep other Korean representative names readable on mobile.
+- Labels explicitly distinguish Korean visual adjustment from U.S. actual market-cap share.
+- Browser heatmap cache key moved to V60; data source/cache/API behavior is unchanged.
+- Rollback branch: `backup/pre-kr-heatmap-compression-v60-20260922`.
