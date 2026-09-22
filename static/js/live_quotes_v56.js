@@ -283,7 +283,7 @@
     const quotes = cache?.quotes && typeof cache.quotes === 'object' ? cache.quotes : {};
     watchlist().forEach((row) => {
       const quote = quotes[row.symbol];
-      if (!quote) return;
+      if (!quote || (quote.dayChange == null && quote.marketStatus == null)) return;
       paintQuote({
         ticker: row.symbol,
         price: quote.price,
@@ -296,10 +296,33 @@
     });
   }
 
+  let lastMode = '';
+
+  async function tick(force = false) {
+    const mode = activeMode();
+    const modeChanged = mode !== lastMode;
+
+    if (modeChanged) {
+      lastMode = mode;
+      if (!mode) {
+        abortIfInactive();
+        return;
+      }
+      enhanceCachedRows();
+      // Home already has its own cache-first boot refresh. Avoid duplicating it.
+      if (mode === 'home') lastHomePollAt = Date.now();
+    }
+
+    if (!mode) return;
+    await refreshActiveQuotes({ force: force || (modeChanged && mode === 'watchlist') });
+  }
+
   function start() {
     enhanceCachedRows();
-    setTimeout(() => refreshActiveQuotes({ force: true }), 350);
-    setInterval(() => refreshActiveQuotes(), 1000);
+    lastMode = activeMode();
+    if (lastMode === 'home') lastHomePollAt = Date.now();
+
+    setInterval(() => tick(false), 1000);
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') {
@@ -308,24 +331,35 @@
         return;
       }
       enhanceCachedRows();
-      setTimeout(() => refreshActiveQuotes({ force: true }), 150);
+      setTimeout(() => tick(activeMode() === 'watchlist'), 150);
     });
 
-    window.addEventListener('online', () => setTimeout(() => refreshActiveQuotes({ force: true }), 100));
-    document.addEventListener('chartview:watchlist-change', () => {
-      enhanceCachedRows();
-      setTimeout(() => refreshActiveQuotes({ force: true }), 100);
-    });
+    window.addEventListener('online', () => setTimeout(() => tick(activeMode() === 'watchlist'), 100));
+    document.addEventListener('chartview:watchlist-change', enhanceCachedRows);
 
-    document.addEventListener('click', () => {
-      setTimeout(() => {
-        abortIfInactive();
+    let enhanceQueued = false;
+    const scheduleEnhance = () => {
+      if (enhanceQueued) return;
+      enhanceQueued = true;
+      requestAnimationFrame(() => {
+        enhanceQueued = false;
         enhanceCachedRows();
-        refreshActiveQuotes({ force: true });
-      }, 120);
-    }, true);
-
-    const observer = new MutationObserver(() => enhanceCachedRows());
+      });
+    };
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof Element)) continue;
+          if (
+            node.matches?.('[data-watch-card], [data-home-watch-open]')
+            || node.querySelector?.('[data-watch-card], [data-home-watch-open]')
+          ) {
+            scheduleEnhance();
+            return;
+          }
+        }
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
