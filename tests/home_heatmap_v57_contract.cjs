@@ -19,17 +19,20 @@ test('heatmap is additive and does not block Home with historical calls', () => 
   assert.match(js, /document\.visibilityState !== 'visible'/);
 });
 
-test('heatmap uses market cap sizing and only promotes logos on large tiles', () => {
+test('heatmap uses market cap sizing and only promotes logos on genuinely large tiles', () => {
   assert.match(js, /relativeWeight/);
   assert.match(js, /Math\.pow\(cap, 0\.58\)/);
-  assert.match(js, /LOGO_AREA_THRESHOLD/);
-  assert.match(js, /area >= LOGO_AREA_THRESHOLD && row\.logo/);
-  assert.match(js, /market === market/);
+  assert.match(js, /area >= LOGO_AREA_THRESHOLD/);
+  assert.match(js, /rect\.width >= LOGO_MIN_WIDTH/);
+  assert.match(js, /rect\.height >= LOGO_MIN_HEIGHT/);
+  assert.match(js, /row\.market === market/);
   assert.match(css, /grid-template-columns:minmax\(0,\.9fr\) minmax\(0,1\.1fr\)/);
   assert.match(css, /@media\(max-width:720px\)/);
+  assert.match(css, /cvhm-name-row/);
+  assert.doesNotMatch(css, /cvhm-logo\{position:absolute/);
 });
 
-test('server heatmap reuses shared Home SWR cache instead of provider fan-out', () => {
+test('server heatmap reuses shared Home SWR cache and preserves last valid market cap', () => {
   const start = main.indexOf('@app.get("/api/heatmap")');
   const end = main.indexOf('def compute_net_liquidity', start);
   const block = main.slice(start, end);
@@ -38,6 +41,7 @@ test('server heatmap reuses shared Home SWR cache instead of provider fan-out', 
   assert.match(main, /"207940\.KS"/);
   assert.match(main, /"AMZN"/);
   assert.match(main, /"TSM"/);
+  assert.match(main, /row\.get\("marketCap"\) or \(previous_rows\.get\(ticker\) or \{\}\)\.get\("marketCap"\) or 0/);
 });
 
 test('persistent snapshot uses real valuation market cap, not trading volume', () => {
@@ -46,13 +50,11 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
   assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
 });
 
-test('template loads rollback-safe heatmap assets', () => {
-  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=/);
+test('template loads corrected rollback-safe heatmap assets', () => {
+  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v58a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v58a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(html, /home_heatmap_v57\\.css\\?v=20260922v58a/);
-  assert.match(html, /home_heatmap_v57\\.js\\?v=20260922v58a/);
   assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v58'/);
-  assert.match(js, /stripNav\\.hidden = next === 'heatmap'/);
+  assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
 });
