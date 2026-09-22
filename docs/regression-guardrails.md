@@ -78,3 +78,10 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 
 - U.S. heatmap tile AREA must remain proportional to raw `marketCap`. Korea is the only intentional exception: V61 uses `marketCap^0.58` for mobile readability, and the UI must explicitly label that visual adjustment. Do not add any other non-linear scale silently.
 - Small/short heatmap tiles must not render the price line if it would clip; name + daily change take priority.
+
+
+## Macro / Fed policy
+- Do not present monthly `FEDFUNDS` as the current Fed target rate. Current policy display uses daily `DFEDTARL` + `DFEDTARU`; show daily `DFF` separately as EFFR.
+- Macro data remains precomputed in `static/data/macro_cache.json`; browser/Render request-time FRED fan-out is forbidden.
+- Macro cards with valid `chart_data` must render a visible sparkline without requiring Lightweight Charts.
+- Macro traffic-light state must include inflation and Fed stance, but must remain descriptive: never label it as a forecast of the next FOMC action or as a trading recommendation.
