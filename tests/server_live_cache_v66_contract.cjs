@@ -33,3 +33,7 @@ test('usage dashboard is token protected and not linked from public UI', () => {
   assert.match(admin, /sessionStorage/);
   assert.doesNotMatch(html, />Chart View 사용 현황</);
 });
+
+test('automated browser visits are not counted as users', () => {
+  assert.match(visitor, /if \(navigator\.webdriver\) return/);
+});
