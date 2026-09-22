@@ -140,3 +140,10 @@ A user-visible change is complete only when:
 - 2026-09-22 V60 heatmap weighting: U.S. remains raw market-cap area. Korea intentionally uses `marketCap^0.82` only, because Samsung Electronics/SK hynix dominate the small representative set enough to make the remaining Korean large caps unreadable on mobile. The UI explicitly labels Korea as visually adjusted and the U.S. as actual market-cap share.
 
 - 2026-09-22 V61 Korea heatmap: V60's `marketCap^0.82` was visually too close to raw market-cap sizing. Korea now restores the stronger `marketCap^0.58` geometry that matched the initially preferred balanced layout. U.S. remains raw market-cap area. This changes only Korean tile geometry, not market-cap data or quote data.
+
+
+## Macro policy / charts V62
+- Macro remains precomputed by GitHub Actions; Render request paths never contact FRED, so adding policy-rate freshness does not slow Home/Market requests.
+- Monthly `FEDFUNDS` is no longer the displayed policy-rate source. The cache now contains `FEDTARGET` built from daily FRED `DFEDTARL` + `DFEDTARU`, plus daily `DFF` for EFFR.
+- Macro mini charts are dependency-free inline SVG sparklines rendered from cached `chart_data`; they do not load Lightweight Charts and therefore do not violate the Home chart-library guardrail.
+- The traffic light is a descriptive regime summary across inflation (PCE/trimmed PCE/BEI), Fed stance/recent target move, labor/activity, credit/VIX, and liquidity. It is not a forecast of the next FOMC decision or a buy/sell signal.
