@@ -2,7 +2,7 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v60';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v61';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 60_000;
@@ -83,9 +83,9 @@
   function relativeWeight(row) {
     const cap = Math.max(1, number(row.marketCap) || 1);
     // U.S.: preserve Finviz-style true market-cap area.
-    // Korea: gently compress mega-cap dominance so the remaining large caps
+    // Korea: restore the stronger readability compression used by the first accepted layout so the remaining large caps
     // stay readable on mobile. The non-linear scale is explicitly labeled.
-    return row.market === 'KR' ? Math.pow(cap, 0.82) : cap;
+    return row.market === 'KR' ? Math.pow(cap, 0.58) : cap;
   }
 
   function layout(items, x, y, width, height, out) {
@@ -433,7 +433,7 @@
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v60',
+    version: 'v61',
     refresh,
     refreshMs: REFRESH_MS
   });

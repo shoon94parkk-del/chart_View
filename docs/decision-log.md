@@ -93,3 +93,10 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V60 keeps U.S. treemap weight as raw `marketCap`, while Korea alone uses `marketCap^0.82`. This is deliberately mild—less distortion than the original V57/V58 `^0.58`—and the UI explicitly says the Korean map is visually adjusted while the U.S. map uses actual market-cap share. Data values themselves remain real market-cap values; only Korean tile geometry is compressed.
 
 **Rollback:** `backup/pre-kr-heatmap-compression-v60-20260922` at `b50eee65a09691d77a225420977654dd5bfc0c29`.
+
+### Korea heatmap returns to the stronger first-layout compression
+**Observed issue:** V60's Korea-only `marketCap^0.82` adjustment was too mild; Samsung Electronics and SK hynix still occupied nearly the same dominant geometry as raw market-cap mode, unlike the initially preferred balanced Korean layout.
+
+**Decision:** V61 keeps U.S. unchanged on raw `marketCap`, but Korea uses `marketCap^0.58`, matching the geometry philosophy of the first accepted Korean heatmap. The UI continues to label Korea as visually adjusted. Underlying market-cap values and quote values remain unchanged.
+
+**Rollback:** `backup/pre-kr-heatmap-v61-20260922` at `31ee4ad260c93b7c722199e0f0acef80722f32ac`.
