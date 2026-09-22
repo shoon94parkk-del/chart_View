@@ -175,3 +175,13 @@ A user-visible change is complete only when:
 - The slow `/api/heatmap` path is geometry/market-cap support only and refreshes every 5 minutes. Intraday price/day-change freshness comes from one batch `/api/quotes` request for the 18 displayed Home symbols.
 - Initial Home activation fetches all 18 once; during regular market hours only the currently open market group is polled every 5 seconds. Hidden/inactive Home stops polling.
 - `market_service.fetch_quote_snapshot` cache TTL is 5 seconds instead of 60, so the app itself does not impose a one-minute lag on U.S. Home quotes.
+
+
+## Server-driven Home live cache + private usage dashboard V66
+- Home Card/Heatmap intraday quotes are now produced by one Render background worker and exposed through memory-only `/api/home-live`. Browser Home code no longer triggers provider quote fetches.
+- The worker refreshes the open market every 5 seconds **only while at least one recently active visitor is on Home**. With no Home viewers it stops provider polling and only re-checks state periodically; closed markets are not polled.
+- The existing Watchlist live layer remains demand-driven and is now explicitly Watchlist-only to avoid duplicate Home quote work.
+- A global privacy-light heartbeat (`visitor_v66.js`) sends a random browser ID plus current app surface every 20 seconds. The server stores only a salted daily hash, never the raw ID.
+- Private usage view: `/admin/usage`, backed by token-protected `/api/admin/usage`. It shows today's unique anonymous browsers, active visitors, active Home viewers, and Home live-worker state.
+- Usage counts are in the current Render process memory and therefore reset on deploy/restart. This limitation is shown in the admin dashboard.
+- Render secrets `CHARTVIEW_ADMIN_TOKEN` and `CHARTVIEW_ANALYTICS_SALT` are environment variables only; never commit them.

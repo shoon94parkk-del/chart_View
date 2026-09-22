@@ -56,6 +56,7 @@ jobs:
           node --test tests/live_quotes_v56_contract.cjs
           node --test tests/home_heatmap_v57_contract.cjs
           node --test tests/macro_policy_v62_contract.cjs
+          node --test tests/server_live_cache_v66_contract.cjs
       - name: Static cache shape
         run: |
           python - <<'PY'

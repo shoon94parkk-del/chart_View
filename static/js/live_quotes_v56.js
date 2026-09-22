@@ -46,8 +46,9 @@
   }
 
   function activeMode() {
+    // Home live quotes are server-driven by /api/home-live V66.
+    // Keep this module focused on Watchlist only to avoid duplicate provider-triggering requests.
     if (document.getElementById('watchlist-tab')?.classList.contains('active')) return 'watchlist';
-    if (document.getElementById('home-tab')?.classList.contains('active')) return 'home';
     return '';
   }
 
@@ -371,7 +372,7 @@
   }
 
   window.ChartViewLiveQuotes = Object.freeze({
-    version: 'v64',
+    version: 'v66',
     refresh: () => refreshActiveQuotes({ force: true }),
     watchlistPollMs: WATCHLIST_POLL_MS,
   });

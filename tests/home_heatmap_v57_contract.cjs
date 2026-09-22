@@ -53,12 +53,12 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
   assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
 });
 
-test('template loads V65 live-parity heatmap assets', () => {
+test('template loads V66 server-live heatmap assets', () => {
   assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v61a/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v65a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v66a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v65'/);
-  assert.match(js, /version: 'v65'/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v66'/);
+  assert.match(js, /version: 'v66'/);
   assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
@@ -72,14 +72,15 @@ test('heatmap prefers the freshest shared Home snapshot instead of a stale priva
   assert.doesNotMatch(js, /requestIdleCallback/);
 });
 
-test('card and heatmap share the same live quote rows', () => {
+test('card and heatmap share the same Render server-live rows', () => {
   assert.match(js, /LIVE_QUOTE_POLL_MS\s*=\s*5_000/);
-  assert.match(js, /home-major-live-v65/);
+  assert.match(js, /LIVE_ENDPOINT = '\/api\/home-live'/);
   assert.match(js, /function syncMajorCards\(rows\)/);
   assert.match(js, /syncMajorCards\(rows\)/);
   assert.match(js, /function quoteCacheMerge\(data\)/);
-  assert.match(js, /refreshLiveQuotes\(true\)/);
-  assert.match(js, /openMarketSymbols/);
+  assert.match(js, /refreshServerLive\(true\)/);
+  assert.doesNotMatch(js, /home-major-live-v65/);
+  assert.doesNotMatch(js, /\/api\/quotes\?tickers=/);
 });
 
 test('global quote cache no longer adds a 60 second delay', () => {
@@ -89,4 +90,10 @@ test('global quote cache no longer adds a 60 second delay', () => {
   const end = market.indexOf('def fetch_history_series', start);
   const block = market.slice(start, end);
   assert.match(block, /now - cached\[0\] < QUOTE_CACHE_TTL_SECONDS/);
+});
+
+test('server-live endpoint is cache-only from the browser perspective', () => {
+  assert.match(js, /home-server-cache-v66/);
+  assert.match(js, /fetch\(LIVE_ENDPOINT/);
+  assert.match(js, /liveEndpoint: LIVE_ENDPOINT/);
 });
