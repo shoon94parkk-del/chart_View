@@ -41,3 +41,19 @@ def test_wrong_symbol_for_name_is_rejected_with_expected_symbol():
     errors = module.validate(valid_day(symbol="204270.KQ", code="204270"), by_symbol, by_name)
     assert any("identity mismatch" in error for error in errors)
     assert any("expected=204620.KQ" in error for error in errors)
+
+
+def test_user_final_selection_allows_two_corrected_picks():
+    by_symbol, by_name = identity_index()
+    day = valid_day()
+    day["analysis"] = {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": day["tradeDate"],
+    }
+    day["top3"] = day["top3"][:2]
+    for pick in day["top3"]:
+        for key in module.REQUIRED_SCORES:
+            pick.pop(key, None)
+    assert module.validate(day, by_symbol, by_name) == []
