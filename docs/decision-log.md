@@ -4,6 +4,14 @@ Append-only record of high-risk behavioral decisions. New work should add entrie
 
 ## 2026-09-22
 
+### Live quotes are visible-surface polling only
+**Problem:** OpenStock-style frequent price updates improve legibility, but naive polling can recreate the old watchlist full-refresh latency, duplicate Home boot work, or accidentally refresh 1-month history every few seconds.
+
+**Decision:** keep Chart View's existing providers and data contracts. Korean current prices remain on the unified Naver Finance/KRX-Koscom path; global quotes remain on the existing Yahoo quote path. The additive `live_quotes_v56.js` layer refreshes only `/api/quotes`, never `/api/compare`: visible Watchlist Korean rows may update every 5 seconds while the market is open, closed-market/global rows use a slower 30-second cadence, and Home uses a 30-second cadence. Polling stops when the document is hidden or the user leaves Home/Watchlist. Cached 1-month returns are preserved.
+
+**Protection:** `tests/live_quotes_v56_contract.cjs`, existing Korean price-consistency tests, watchlist cache/incremental-refresh tests, mobile suites. Rollback baseline: branch `backup/pre-openstock-ux-20260922` at `71d78dcb22fed5ac4826c6567ae7039221360215`.
+
+
 ### Watchlist entry is stale-while-revalidate, not full refresh
 **Problem:** even after incremental add was fixed, app boot/watchlist entry could still start a full quote + 1-month-return refresh for every saved stock, so simply opening the screen felt slow.
 

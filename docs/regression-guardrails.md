@@ -24,6 +24,11 @@ These rules come from bugs already seen in production. Do not remove a guardrail
 - Only the new stock gets its 1-month `/api/compare` fetch.
 - Existing cached rows remain visible if refresh fails.
 - Existing localStorage contracts remain compatible.
+- Live polling must never call `/api/compare`; it may update current-price fields only through `/api/quotes`.
+- Frequent Korean quote polling runs only while Watchlist is active/visible; hidden/inactive screens must not keep polling.
+- Home live quote refresh must not duplicate the existing cache-first boot refresh.
+- Live quote cache merges must preserve the cached 1-month return and its independent freshness timestamp.
+- Korean current prices must keep using the unified Naver Finance/KRX-Koscom path across Home, Watchlist, compare, and valuation.
 
 ## Screener trust
 - Discover opens base screener and starts at top.

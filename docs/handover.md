@@ -33,6 +33,7 @@
 - 단일 종목 상세·history·요청 취소: `static/js/single_detail_v40.js`
 - 비교 수익률 차트: 기존 `static/js/chart.js` 엔진 유지
 - 관심목록 저장/목록 UI: 기존 `static/js/watchlist_v30.js`, 저장 형식 유지
+- 실시간 표시 보강: `static/js/live_quotes_v56.js` (활성/가시 영역의 현재가만 경량 polling, `/api/compare` 금지, 1달 수익률 캐시 보존)
 - 개인화 뉴스 UI: `static/js/personalized_news_v40.js`
 - 개인화 뉴스 서버: `news_service_v37.py`
 - 화면 완성/접근성: `static/js/release_ui_v40.js`, `static/js/release_flow_v40.js`
