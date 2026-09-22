@@ -4,6 +4,7 @@
   const VISITOR_KEY = 'chartview-anon-visitor-v66';
   const HEARTBEAT_MS = 20_000;
   let timer = null;
+  let memoryVisitorId = '';
 
   function visitorId() {
     try {
@@ -15,7 +16,8 @@
       localStorage.setItem(VISITOR_KEY, value);
       return value;
     } catch (_) {
-      return 'cv-session-' + Math.random().toString(36).slice(2, 14);
+      if (!memoryVisitorId) memoryVisitorId = 'cv-session-' + Math.random().toString(36).slice(2, 14);
+      return memoryVisitorId;
     }
   }
 
