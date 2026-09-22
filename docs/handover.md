@@ -172,3 +172,5 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Macro mini charts are inline SVG from cached chart_data; no Lightweight Charts dependency.
 - Traffic light combines inflation/Fed/labor/financial-stress/liquidity descriptively and does not predict FOMC decisions.
 - Rollback: `backup/pre-macro-fed-signal-v62-20260922`.
+
+- V62b: direct FRED CSV timed out on GitHub Actions, so DFF/DFEDTARL/DFEDTARU collection uses the Equibles FRED mirror. Keep runtime cache-only.

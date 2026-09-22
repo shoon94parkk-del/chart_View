@@ -108,3 +108,9 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V62 replaces displayed `FEDFUNDS` with a synthetic `FEDTARGET` row built from official daily FRED target lower/upper bounds (`DFEDTARL`, `DFEDTARU`) and adds daily `DFF` as EFFR. All collection stays in the scheduled GitHub Action and the app still serves a committed cache. Macro charts use inline SVG sparklines from cached chart data, adding no external chart-library request. The traffic light is reworked around inflation, Fed stance/recent target move, labor/activity, credit/VIX and liquidity, as a descriptive regime state only.
 
 **Protection:** `tests/test_macro_pce.py`, `tests/macro_policy_v62_contract.cjs`, normal mobile/production suites. Rollback: `backup/pre-macro-fed-signal-v62-20260922`.
+
+
+### Macro daily Fed series use the stable FRED mirror in cache generation
+**Observed issue:** the first V62 main cache run timed out on direct FRED CSV for both `DFF` and the target-range bounds, while all Equibles-mirrored FRED series completed normally.
+
+**Decision:** V62b uses Equibles CSV for `DFF`, `DFEDTARL`, and `DFEDTARU` during the scheduled GitHub cache build. The series remain Federal Reserve/FRED-defined and link to FRED; only the transport path changes. Runtime remains cache-only.
