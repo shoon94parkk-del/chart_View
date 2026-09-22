@@ -24,7 +24,7 @@ test('macro traffic light explicitly uses inflation and Fed stance', () => {
   assert.match(main, /targetLower/);
   assert.match(main, /moveBp/);
   assert.match(main, /descriptive Fed-policy\/inflation\/labor\/financial-stress regime/);
-  assert.match(main, /향후 FOMC 결정을 예측하지 않습니다/);
+  assert.match(main, /FOMC 결정을 예측하는 신호도 아닙니다/);
 });
 
 test('macro charts use local SVG sparklines and do not depend on chart library', () => {
