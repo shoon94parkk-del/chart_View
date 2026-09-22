@@ -14,8 +14,35 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "static" / "data" / "home_snapshot.json"
-TICKERS = ["005930.KS", "000660.KS", "NVDA", "AAPL", "MSFT", "META", "TSLA", "GOOGL"]
+TICKERS = [
+    "005930.KS", "000660.KS", "207940.KS", "005380.KS",
+    "000270.KS", "373220.KS", "035420.KS", "068270.KS",
+    "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN",
+    "TSM", "META", "AVGO", "TSLA", "AMD",
+]
 HEADERS = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+VALUATION_CACHE = ROOT / "static" / "data" / "valuation_cache.json"
+
+
+def load_market_caps() -> dict[str, float]:
+    """Use the daily valuation cache for actual market cap.
+
+    Yahoo chart metadata exposes regularMarketVolume, which must never be
+    mislabeled as market capitalization.
+    """
+    try:
+        payload = json.loads(VALUATION_CACHE.read_text(encoding="utf-8"))
+        quotes = payload.get("quotes") or {}
+        return {
+            ticker: float((quotes.get(ticker) or {}).get("marketCap") or 0)
+            for ticker in TICKERS
+        }
+    except Exception as exc:
+        print(f"valuation market-cap cache unavailable: {exc}")
+        return {ticker: 0.0 for ticker in TICKERS}
+
+
+MARKET_CAPS = load_market_caps()
 
 
 def fetch(ticker: str) -> dict:
@@ -37,7 +64,7 @@ def fetch(ticker: str) -> dict:
     as_of = datetime.fromtimestamp(int(market_time), timezone.utc).isoformat() if market_time else None
     return {"ticker": ticker, "name": meta.get("shortName") or meta.get("longName") or ticker,
             "price": round(float(price), 4), "change": round(change, 4) if change is not None else None,
-            "marketCap": meta.get("regularMarketVolume") or 0, "asOf": as_of, "stale": False}
+            "marketCap": MARKET_CAPS.get(ticker, 0), "asOf": as_of, "stale": False}
 
 
 def main() -> None:
