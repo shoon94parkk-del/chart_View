@@ -161,3 +161,8 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V67 computes U.S. snapshot change from the last two valid daily closes, uses Naver fluctuationsRatio for Korean snapshot rows, and wires the existing Naver realtime patch into the actual functions imported by main.py. Geometry/market-cap caching is unchanged.
 
 **Rollback:** backup/pre-daily-change-fix-v67-20260922.
+
+### Daily visitor totals persist in Render Key Value
+**Context:** V66 initially counted anonymous daily browsers in process memory, which reset on deploy/restart and made “today” totals unreliable during active development.
+
+**Decision:** persist only the salted daily browser hash set in Render Key Value with a 10-day TTL. Keep live presence (activeNow, activeHome) in process memory because it intentionally expires within the heartbeat window. The admin API reports which backend is active and falls back to memory if Key Value is unavailable.

@@ -116,7 +116,7 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Card and Heatmap must continue to apply the exact same shared live rows in one render pass.
 - Visitor tracking is anonymous-browser counting only: random local ID -> salted daily hash. Do not collect IP, email, phone, precise location, or account identity for this dashboard.
 - `/api/admin/usage` requires `X-ChartView-Admin` with `CHARTVIEW_ADMIN_TOKEN`; never expose the token in HTML/JS/repo.
-- Admin usage counts are current-instance memory and may reset on deploy/restart; never present them as durable analytics unless persistent storage is added.
+- Daily unique-browser totals must use Render Key Value when CHARTVIEW_ANALYTICS_REDIS is configured; they must survive web-service deploy/restart. activeNow and activeHome stay process-memory heartbeat state.
 
 - Automation/Playwright browsers must not contribute to visitor counts; `visitor_v66.js` exits when `navigator.webdriver` is true.
 
@@ -126,3 +126,5 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Persistent Home snapshot: KR uses Naver fluctuationsRatio; US uses the last two valid Yahoo daily closes.
 - A 5d Yahoo request must not use meta.previousClose or meta.chartPreviousClose to populate Home change.
 - Korean current quote surfaces must bind the installed realtime_korea patch, not a pre-patch imported function reference.
+
+- Persistent analytics uses only salted anonymous daily browser hashes in Render Key Value; do not store raw browser IDs or identifying profile data.

@@ -183,7 +183,7 @@ A user-visible change is complete only when:
 - The existing Watchlist live layer remains demand-driven and is now explicitly Watchlist-only to avoid duplicate Home quote work.
 - A global privacy-light heartbeat (`visitor_v66.js`) sends a random browser ID plus current app surface every 20 seconds. The server stores only a salted daily hash, never the raw ID.
 - Private usage view: `/admin/usage`, backed by token-protected `/api/admin/usage`. It shows today's unique anonymous browsers, active visitors, active Home viewers, and Home live-worker state.
-- Usage counts are in the current Render process memory and therefore reset on deploy/restart. This limitation is shown in the admin dashboard.
+- Daily unique-browser totals persist in Render Key Value (10-day TTL) and survive web-service deploy/restart. activeNow and activeHome remain current-process heartbeat state by design.
 - Render secrets `CHARTVIEW_ADMIN_TOKEN` and `CHARTVIEW_ANALYTICS_SALT` are environment variables only; never commit them.
 
 
