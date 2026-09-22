@@ -2,13 +2,15 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v57';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v58';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 60_000;
   const FAST_RETRY_MS = 5_000;
   const MIN_FULL_ROWS = 14;
-  const LOGO_AREA_THRESHOLD = 0.105;
+  const LOGO_AREA_THRESHOLD = 0.12;
+  const LOGO_MIN_WIDTH = 0.26;
+  const LOGO_MIN_HEIGHT = 0.22;
 
   const STOCKS = {
     '005930.KS': { name: '삼성전자', market: 'KR', logo: '/static/logos/samsung.svg', fallback: '삼성' },
@@ -156,15 +158,20 @@
   function makeLogo(row) {
     const wrap = document.createElement('span');
     wrap.className = 'cvhm-logo';
+
     if (row.logo) {
       const img = document.createElement('img');
       img.src = row.logo;
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
-      img.onerror = () => img.remove();
+      img.onerror = () => {
+        img.remove();
+        wrap.classList.add('fallback-only');
+      };
       wrap.appendChild(img);
     }
+
     const fallback = document.createElement('span');
     fallback.textContent = row.fallback;
     wrap.appendChild(fallback);
@@ -178,13 +185,35 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function compactName(row, rect) {
+    const constrained = rect.width < 0.2 || rect.height < 0.18;
+    if (!constrained) return row.name;
+    if (row.name.length <= 7) return row.name;
+    return row.symbol.replace(/\.(KS|KQ)$/, '');
+  }
+
   function createTile(rect) {
     const row = rect.row.row;
     const area = rect.width * rect.height;
+    const isLarge = area >= 0.11;
+    const isMedium = area >= 0.055;
+    const showLogo = Boolean(
+      row.logo &&
+      area >= LOGO_AREA_THRESHOLD &&
+      rect.width >= LOGO_MIN_WIDTH &&
+      rect.height >= LOGO_MIN_HEIGHT
+    );
+    const showPrice = Boolean(
+      area >= 0.075 &&
+      rect.width >= 0.18 &&
+      rect.height >= 0.19
+    );
+
     const tile = document.createElement('button');
     tile.type = 'button';
     tile.className = 'cvhm-tile ' + toneClass(row.change) +
-      (area >= 0.11 ? ' is-large' : area >= 0.055 ? ' is-medium' : ' is-small');
+      (isLarge ? ' is-large' : isMedium ? ' is-medium' : ' is-small') +
+      (rect.width < 0.2 ? ' is-narrow' : '');
     tile.style.left = (rect.x * 100).toFixed(4) + '%';
     tile.style.top = (rect.y * 100).toFixed(4) + '%';
     tile.style.width = (rect.width * 100).toFixed(4) + '%';
@@ -193,24 +222,31 @@
     tile.title = row.name + ' · ' + signedPercent(row.change) + ' · ' + formatPrice(row.symbol, row.price);
     tile.setAttribute('aria-label', tile.title + ' · 종목 분석 열기');
 
-    if (area >= LOGO_AREA_THRESHOLD && row.logo) tile.appendChild(makeLogo(row));
-
     const copy = document.createElement('span');
     copy.className = 'cvhm-copy';
+
+    const nameRow = document.createElement('span');
+    nameRow.className = 'cvhm-name-row';
+    if (showLogo) nameRow.appendChild(makeLogo(row));
+
     const name = document.createElement('span');
     name.className = 'cvhm-name';
-    name.textContent = area < 0.038 ? row.symbol.replace(/\.(KS|KQ)$/, '') : row.name;
+    name.textContent = compactName(row, rect);
+    nameRow.appendChild(name);
+
     const change = document.createElement('strong');
     change.className = 'cvhm-change';
     change.textContent = signedPercent(row.change);
-    copy.append(name, change);
 
-    if (area >= 0.052) {
+    copy.append(nameRow, change);
+
+    if (showPrice) {
       const price = document.createElement('small');
       price.className = 'cvhm-price';
       price.textContent = formatPrice(row.symbol, row.price);
       copy.appendChild(price);
     }
+
     tile.appendChild(copy);
     tile.addEventListener('click', () => openAnalysis(row));
     return tile;
@@ -224,6 +260,15 @@
       .map((row) => ({ row, weight: relativeWeight(row) }));
 
     container.replaceChildren();
+
+    if (!marketRows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'cvhm-empty';
+      empty.textContent = '시가총액 데이터를 갱신 중입니다.';
+      container.appendChild(empty);
+      return;
+    }
+
     const rects = [];
     layout(marketRows, 0, 0, 1, 1, rects);
     rects.forEach((rect) => container.appendChild(createTile(rect)));
@@ -234,14 +279,20 @@
     const strip = card.querySelector('[data-home-stock-strip]');
     const caption = card.querySelector('.home16-caption');
     const panel = card.querySelector('[data-cvhm-panel]');
+    const stripNav = card.querySelector('.home16-strip-nav');
+
+    card.classList.toggle('is-heatmap-view', next === 'heatmap');
     card.querySelectorAll('[data-cvhm-view]').forEach((button) => {
       const active = button.dataset.cvhmView === next;
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
+
     if (strip) strip.hidden = next === 'heatmap';
     if (caption) caption.hidden = next === 'heatmap';
     if (panel) panel.hidden = next !== 'heatmap';
+    if (stripNav) stripNav.hidden = next === 'heatmap';
+
     try { localStorage.setItem(VIEW_KEY, next); } catch (_) {}
   }
 
@@ -295,6 +346,7 @@
 
     const rows = mergedRows(payload);
     if (!rows.length) return;
+
     const signature = rows.map((row) => [row.symbol, row.price, row.change, row.marketCap].join(':')).join('|');
     if (signature === lastSignature && shell.panel.dataset.cvhmReady === '1') return;
     lastSignature = signature;
@@ -308,13 +360,16 @@
     if (!isHomeActive() || document.visibilityState !== 'visible' || navigator.onLine === false || inFlight) return;
     const controller = new AbortController();
     inFlight = controller;
+
     try {
       const response = await fetch('/api/heatmap', { cache: 'no-store', signal: controller.signal });
       if (!response.ok) throw new Error('heatmap HTTP ' + response.status);
       const data = await response.json();
+
       if (data?.results?.length) {
         try { localStorage.setItem(HEATMAP_CACHE_KEY, JSON.stringify(data)); } catch (_) {}
         render(data);
+
         if (data.results.length < MIN_FULL_ROWS && !retryTimer) {
           retryTimer = setTimeout(() => {
             retryTimer = null;
@@ -375,7 +430,7 @@
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v57',
+    version: 'v58',
     refresh,
     refreshMs: REFRESH_MS
   });

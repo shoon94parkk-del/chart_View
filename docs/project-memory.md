@@ -132,3 +132,5 @@ A user-visible change is complete only when:
 - Korea and U.S. are separate market-cap groups so KRW and USD market caps are never compared as if they shared a currency.
 - Tile area is monotonic with market cap but visually compressed for readability; only sufficiently large tiles show local company logos.
 - Persistent snapshot generation now reads actual market cap from `valuation_cache.json`; `regularMarketVolume` must never be stored as `marketCap`.
+
+- 2026-09-22 heatmap mobile correction: live Korean quote refreshes can omit marketCap, so Home SWR must preserve the last valid marketCap instead of replacing it with 0. V58 also moves logos inline beside names, hides card-only strip arrows in Heatmap mode, starts a fresh heatmap browser cache key, and shows an explicit loading message instead of a blank market block.

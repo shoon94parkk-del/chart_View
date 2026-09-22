@@ -134,3 +134,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Heatmap uses shared Home SWR data; do not replace it with per-tile quote fetches.
 - True market cap comes from `static/data/valuation_cache.json`; old `regularMarketVolume -> marketCap` behavior was incorrect.
 - Rollback branch: `backup/pre-home-heatmap-20260922`.
+
+## 2026-09-22 Heatmap mobile correction V58
+- Fixed blank Korea heatmap: Home SWR now preserves previous valid marketCap when live Korean quotes omit it.
+- Logos are small inline marks beside the company name on sufficiently large tiles; no absolute white logo bubble.
+- Heatmap mode hides the horizontal-card previous/next arrows and uses a mobile stacked header.
+- Constrained tiles shorten labels/hide price to avoid clipping; missing market-cap rows show a refresh message instead of an empty board.
+- Browser heatmap cache key moved to V58 to discard the bad zero-cap cache.
+- Rollback branch: `backup/pre-heatmap-mobile-fix-20260922`.
