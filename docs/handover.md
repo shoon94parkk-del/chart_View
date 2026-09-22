@@ -227,3 +227,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Rollback: `backup/pre-server-live-cache-v66-20260922`.
 
 - Automation/Playwright visits are excluded from usage counts via `navigator.webdriver`.
+
+
+## 2026-09-22 Home daily-change correctness V67
+- Root cause of absurd Heatmap changes: GitHub Home snapshot stored Yahoo 5D chart-range return as change.
+- KR snapshot: Naver Finance fluctuationsRatio.
+- US snapshot: current/latest price vs immediately preceding daily close.
+- main.py installs the existing Korean realtime patch before binding quote/compare/valuation helpers.
+- Do not regress Home change to Yahoo 5D meta previousClose/chartPreviousClose.
+- Rollback: backup/pre-daily-change-fix-v67-20260922.

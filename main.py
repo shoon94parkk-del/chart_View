@@ -27,7 +27,15 @@ try:
     import redis.asyncio as redis_async
 except Exception:
     redis_async = None
-from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
+import market_service as _market_service
+from realtime_korea import install_patch as _install_korea_realtime
+
+# Bind the canonical Korean realtime path before local function aliases are made.
+_install_korea_realtime(_market_service)
+fetch_compare_stock = _market_service.fetch_compare_stock
+fetch_valuation_snapshot = _market_service.fetch_valuation_snapshot
+fetch_quote_snapshot = _market_service.fetch_quote_snapshot
+fetch_history_series = _market_service.fetch_history_series
 from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
 from news_service_v37 import router as news_router_v37

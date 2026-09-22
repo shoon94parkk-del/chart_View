@@ -119,3 +119,10 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Admin usage counts are current-instance memory and may reset on deploy/restart; never present them as durable analytics unless persistent storage is added.
 
 - Automation/Playwright browsers must not contribute to visitor counts; `visitor_v66.js` exits when `navigator.webdriver` is true.
+
+
+## Home today-change semantics
+- Any field labeled 오늘/Today must be previous trading close -> current/latest regular-session price, not a 5D/1M chart-range return.
+- Persistent Home snapshot: KR uses Naver fluctuationsRatio; US uses the last two valid Yahoo daily closes.
+- A 5d Yahoo request must not use meta.previousClose or meta.chartPreviousClose to populate Home change.
+- Korean current quote surfaces must bind the installed realtime_korea patch, not a pre-patch imported function reference.
