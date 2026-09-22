@@ -130,3 +130,9 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V64 performs one lightweight all-symbol current-quote bootstrap whenever Watchlist becomes active, then returns to the existing visibility-scoped polling cadence. Historical 1-month returns remain separate and are never fetched by this path. Heatmap selects the freshest payload between the shared Home snapshot and its private cache, prefers Home on equal timestamps, and schedules first revalidation promptly rather than waiting for browser idle.
 
 **Rollback:** `backup/pre-cross-device-sync-v64-20260922` at `d52f21c34557f0528a5ecc9300d20e4df0314d52`.
+
+
+### Manual PICK corrections may leave fewer than three names
+**Context:** Intekplus was manually selected again on 2026-09-17 and 2026-09-21 even though its valid first PICK was 2026-09-14. The user asked to remove the later duplicate selections, not substitute other stocks.
+
+**Decision:** remove only those later Intekplus entries from the ranking ledger and performance ledger. Manual `user_final_selection` days are valid with 1–3 consecutively ranked picks; GPT-reviewed automated TOP3 days still require exactly three. Never invent a replacement when correcting historical manual selections.
