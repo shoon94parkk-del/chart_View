@@ -136,3 +136,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Context:** Intekplus was manually selected again on 2026-09-17 and 2026-09-21 even though its valid first PICK was 2026-09-14. The user asked to remove the later duplicate selections, not substitute other stocks.
 
 **Decision:** remove only those later Intekplus entries from the ranking ledger and performance ledger. Manual `user_final_selection` days are valid with 1–3 consecutively ranked picks; GPT-reviewed automated TOP3 days still require exactly three. Never invent a replacement when correcting historical manual selections.
+
+
+### Home intraday freshness is quote-batch driven, not heatmap-endpoint driven
+**Observed issue:** V64 synchronized cache preference, but Heatmap still overlaid `chartview-watchlist-quotes-v33.dayChange` while the Card retained the Home snapshot value. Heatmap could therefore show a newer percentage than Card. The separate `/api/heatmap` revalidation was also slower than the small-card path.
+
+**Decision:** V65 separates slow geometry from fast quote state. Market-cap geometry remains cached and uses `/api/heatmap` only on a 5-minute cadence. One concurrent batch `/api/quotes` request fetches all 18 displayed symbols on Home activation; while a market is open, only that market's displayed symbols are refreshed every 5 seconds. The same merged rows update Card and Heatmap in one render pass. The server current-quote TTL is reduced from 60s to 5s. No extra historical calls are introduced.
+
+**Rollback:** `backup/pre-home-card-heatmap-parity-v65-20260922`.
