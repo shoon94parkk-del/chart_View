@@ -2,7 +2,7 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v58';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v59';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 60_000;
@@ -81,8 +81,9 @@
   }
 
   function relativeWeight(row) {
-    const cap = Math.max(1, number(row.marketCap) || 1);
-    return Math.pow(cap, 0.58);
+    // Finviz-style semantics: tile AREA is the actual market-cap share
+    // within each market group. Do not compress or expand cap differences.
+    return Math.max(1, number(row.marketCap) || 1);
   }
 
   function layout(items, x, y, width, height, out) {
@@ -204,9 +205,9 @@
       rect.height >= LOGO_MIN_HEIGHT
     );
     const showPrice = Boolean(
-      area >= 0.075 &&
-      rect.width >= 0.18 &&
-      rect.height >= 0.19
+      area >= 0.09 &&
+      rect.width >= 0.22 &&
+      rect.height >= 0.25
     );
 
     const tile = document.createElement('button');
@@ -327,7 +328,7 @@
           '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇰🇷 한국 대표</strong><span>KRW 시총 기준</span></div><div class="cvhm-treemap" data-cvhm-market="KR"></div></section>' +
           '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇺🇸 미국 대표</strong><span>USD 시총 기준</span></div><div class="cvhm-treemap" data-cvhm-market="US"></div></section>' +
         '</div>' +
-        '<div class="cvhm-legend"><span><i class="up"></i>상승</span><span><i class="flat"></i>보합</span><span><i class="down"></i>하락</span><small>박스 크기 = 같은 시장 내 시총 상대 크기 · 시인성 보정</small></div>';
+        '<div class="cvhm-legend"><span><i class="up"></i>상승</span><span><i class="flat"></i>보합</span><span><i class="down"></i>하락</span><small>박스 면적 = 같은 시장 내 실제 시가총액 비중</small></div>';
       const strip = card.querySelector('[data-home-stock-strip]');
       if (strip) strip.insertAdjacentElement('afterend', panel);
       else card.appendChild(panel);
@@ -430,7 +431,7 @@
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v58',
+    version: 'v59',
     refresh,
     refreshMs: REFRESH_MS
   });
