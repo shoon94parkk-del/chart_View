@@ -1,0 +1,82 @@
+/* Chart View v56 live quote layer: lightweight, additive, rollback-safe. */
+.watchlist-live-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.watchlist-live-line > b {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.watchlist-live-line > b.up,
+.home-live-day-change.up {
+  color: #ef4452;
+}
+
+.watchlist-live-line > b.down,
+.home-live-day-change.down {
+  color: #3182f6;
+}
+
+.watchlist-live-line > b.flat,
+.home-live-day-change.flat {
+  color: #8b95a1;
+}
+
+.watchlist-live-line > i {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8b95a1;
+  font-style: normal;
+  font-weight: 650;
+}
+
+.watchlist-live-line > i.live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.home-live-day-change {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+[data-watch-price].live-price-flash {
+  animation: chartview-live-price-flash 520ms ease-out;
+}
+
+@keyframes chartview-live-price-flash {
+  0% { transform: translateY(-1px); opacity: .55; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-watch-price].live-price-flash {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .watchlist-live-line {
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .watchlist-live-line > i {
+    font-size: 10px;
+  }
+}
