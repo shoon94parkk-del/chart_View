@@ -126,7 +126,7 @@
     },
     {
       "tradeDate": "2026-09-17",
-      "status": "사용자 확정 TOP3 — 2026-09-17 종가 기준",
+      "status": "사용자 확정 2종목 — 2026-09-17 종가 기준",
       "analysis": {
         "sourceType": "user_final_selection",
         "status": "complete",
@@ -159,18 +159,6 @@
           "totalScore": 0,
           "grade": "사용자 확정",
           "reason": "AI/HBM 및 첨단 패키징 확대에 따른 레이저 공정 장비 성장."
-        },
-        {
-          "rank": 3,
-          "code": "064290",
-          "symbol": "064290.KQ",
-          "name": "인텍플러스",
-          "close": 48350,
-          "previousClose": 50800,
-          "changePct": -4.82,
-          "totalScore": 0,
-          "grade": "사용자 확정",
-          "reason": "첨단 패키징 복잡도 상승에 따른 3D 광학 검사 수요 확대."
         }
       ]
     },
@@ -202,7 +190,7 @@
     },
     {
       "tradeDate": "2026-09-21",
-      "status": "사용자 확정 TOP3 — 2026-09-21 종가 기준",
+      "status": "사용자 확정 2종목 — 2026-09-21 종가 기준",
       "analysis": {
         "sourceType": "user_final_selection",
         "status": "complete",
@@ -235,18 +223,6 @@
           "totalScore": 90,
           "grade": "사용자 확정",
           "reason": "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체."
-        },
-        {
-          "rank": 3,
-          "code": "064290",
-          "symbol": "064290.KQ",
-          "name": "인텍플러스",
-          "close": 50200,
-          "previousClose": 46750,
-          "changePct": 7.38,
-          "totalScore": 86,
-          "grade": "사용자 확정",
-          "reason": "첨단 패키징·반도체 3D 검사장비 수주잔고 확대가 향후 실적 턴어라운드로 연결될 가능성이 높은 검사장비 업체."
         }
       ]
     }
