@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import requests
 import pandas as pd
 import io
@@ -20,6 +21,8 @@ import asyncio
 import os
 import threading
 import re
+import hashlib
+import secrets
 from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
 from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
@@ -47,6 +50,29 @@ HOME_MAJOR_TICKERS = [
     "TSM", "META", "AVGO", "TSLA", "AMD",
 ]
 HOME_SNAPSHOT_LOCK = asyncio.Lock()
+
+HOME_LIVE_ACTIVE_REFRESH_SEC = 5.0
+HOME_LIVE_IDLE_CHECK_SEC = 30.0
+VISITOR_HEARTBEAT_SEC = 20
+VISITOR_ACTIVE_WINDOW_SEC = 45
+HOME_LIVE_CACHE = {
+    "quotes": {},
+    "updatedAt": None,
+    "marketUpdatedAt": {"KR": None, "US": None},
+    "marketUpdatedEpoch": {"KR": 0.0, "US": 0.0},
+    "refreshing": False,
+    "lastError": None,
+    "source": "render-memory-v66",
+}
+HOME_LIVE_REFRESH_LOCK = asyncio.Lock()
+HOME_LIVE_WAKE_EVENT = None
+VISITOR_STATE_LOCK = threading.Lock()
+VISITOR_LAST_SEEN = {}
+VISITOR_DAILY = {}
+SERVER_STARTED_AT = datetime.now(timezone.utc).isoformat()
+KST = ZoneInfo("Asia/Seoul")
+ET = ZoneInfo("America/New_York")
+
 
 # P0-2: Home support data is immutable for a running Render revision.
 # Keep parsed source files in memory so each Home request does not re-read/re-parse
@@ -130,12 +156,184 @@ def self_ping_worker():
         except Exception as e:
             print(f"[Self-Ping] Ping failed: {e}")
 
+
+def _market_is_open(local_dt: datetime, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> bool:
+    if local_dt.weekday() >= 5:
+        return False
+    minute = local_dt.hour * 60 + local_dt.minute
+    return start_hour * 60 + start_minute <= minute < end_hour * 60 + end_minute
+
+
+def _open_home_markets(now_utc: datetime | None = None) -> dict[str, list[str]]:
+    now_utc = now_utc or datetime.now(timezone.utc)
+    markets = {}
+    kr = now_utc.astimezone(KST)
+    us = now_utc.astimezone(ET)
+    if _market_is_open(kr, 9, 0, 15, 30):
+        markets["KR"] = [ticker for ticker in HOME_MAJOR_TICKERS if ticker.endswith((".KS", ".KQ"))]
+    if _market_is_open(us, 9, 30, 16, 0):
+        markets["US"] = [ticker for ticker in HOME_MAJOR_TICKERS if not ticker.endswith((".KS", ".KQ"))]
+    return markets
+
+
+def _today_kst() -> str:
+    return datetime.now(timezone.utc).astimezone(KST).date().isoformat()
+
+
+def _visitor_hash(visitor_id: str, day: str) -> str:
+    salt = os.environ.get("CHARTVIEW_ANALYTICS_SALT") or os.environ.get("CHARTVIEW_ADMIN_TOKEN") or "chartview-local"
+    return hashlib.sha256(f"{salt}:{day}:{visitor_id}".encode("utf-8")).hexdigest()
+
+
+def _record_visitor(visitor_id: str, surface: str) -> tuple[int, int]:
+    now = time.time()
+    day = _today_kst()
+    visitor_key = _visitor_hash(visitor_id, day)
+    surface = surface if surface in {"home", "watchlist", "chart", "market", "screener", "pick", "other"} else "other"
+    with VISITOR_STATE_LOCK:
+        VISITOR_DAILY.setdefault(day, set()).add(visitor_key)
+        VISITOR_LAST_SEEN[visitor_key] = {"timestamp": now, "surface": surface}
+        for old_day in list(VISITOR_DAILY):
+            try:
+                if (datetime.fromisoformat(day).date() - datetime.fromisoformat(old_day).date()).days > 7:
+                    VISITOR_DAILY.pop(old_day, None)
+            except Exception:
+                VISITOR_DAILY.pop(old_day, None)
+        stale_cutoff = now - 86400
+        for key, row in list(VISITOR_LAST_SEEN.items()):
+            if float(row.get("timestamp") or 0) < stale_cutoff:
+                VISITOR_LAST_SEEN.pop(key, None)
+        active = [row for row in VISITOR_LAST_SEEN.values() if now - float(row.get("timestamp") or 0) <= VISITOR_ACTIVE_WINDOW_SEC]
+        return len(active), sum(1 for row in active if row.get("surface") == "home")
+
+
+def _visitor_counts() -> tuple[int, int, int]:
+    now = time.time()
+    day = _today_kst()
+    with VISITOR_STATE_LOCK:
+        active = [row for row in VISITOR_LAST_SEEN.values() if now - float(row.get("timestamp") or 0) <= VISITOR_ACTIVE_WINDOW_SEC]
+        return (
+            len(VISITOR_DAILY.get(day, set())),
+            len(active),
+            sum(1 for row in active if row.get("surface") == "home"),
+        )
+
+
+def _seed_home_live_from_snapshot(snapshot: dict | None) -> None:
+    if not snapshot:
+        return
+    quotes = HOME_LIVE_CACHE["quotes"]
+    for row in ((snapshot.get("heatmap") or {}).get("results") or []):
+        ticker = str(row.get("ticker") or "").upper()
+        if ticker not in HOME_MAJOR_TICKERS:
+            continue
+        quotes[ticker] = {
+            "ticker": ticker,
+            "price": row.get("price"),
+            "change": row.get("change"),
+            "asOf": row.get("asOf"),
+            "currency": "KRW" if ticker.endswith((".KS", ".KQ")) else "USD",
+            "source": "home snapshot fallback",
+            "marketStatus": None,
+            "delayTime": None,
+        }
+
+
+def _home_live_results() -> list[dict]:
+    quotes = HOME_LIVE_CACHE.get("quotes") or {}
+    return [dict(quotes[ticker]) for ticker in HOME_MAJOR_TICKERS if ticker in quotes]
+
+
+async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
+    if not markets:
+        return
+    async with HOME_LIVE_REFRESH_LOCK:
+        HOME_LIVE_CACHE["refreshing"] = True
+        try:
+            symbols = []
+            market_by_symbol = {}
+            for market, tickers in markets.items():
+                for ticker in tickers:
+                    symbols.append(ticker)
+                    market_by_symbol[ticker] = market
+            fetched = await asyncio.gather(
+                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in symbols],
+                return_exceptions=True,
+            )
+            now_epoch = time.time()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            good_markets = set()
+            errors = []
+            for ticker, item in zip(symbols, fetched):
+                if isinstance(item, Exception):
+                    errors.append(f"{ticker}: {item}")
+                    continue
+                if not item:
+                    errors.append(f"{ticker}: empty quote")
+                    continue
+                HOME_LIVE_CACHE["quotes"][ticker] = item
+                good_markets.add(market_by_symbol[ticker])
+
+            if good_markets:
+                HOME_LIVE_CACHE["updatedAt"] = now_iso
+                for market in good_markets:
+                    HOME_LIVE_CACHE["marketUpdatedAt"][market] = now_iso
+                    HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now_epoch
+            HOME_LIVE_CACHE["lastError"] = "; ".join(errors[:4]) if errors else None
+        finally:
+            HOME_LIVE_CACHE["refreshing"] = False
+
+
+async def _home_live_worker() -> None:
+    global HOME_LIVE_WAKE_EVENT
+    if HOME_LIVE_WAKE_EVENT is None:
+        HOME_LIVE_WAKE_EVENT = asyncio.Event()
+    while True:
+        markets = _open_home_markets()
+        _, _, active_home = _visitor_counts()
+        timeout = HOME_LIVE_IDLE_CHECK_SEC
+
+        if markets and active_home > 0:
+            now = time.time()
+            due = {}
+            wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC
+            for market, tickers in markets.items():
+                age = now - float(HOME_LIVE_CACHE["marketUpdatedEpoch"].get(market) or 0)
+                if age >= HOME_LIVE_ACTIVE_REFRESH_SEC:
+                    due[market] = tickers
+                else:
+                    wait_for = min(wait_for, max(0.5, HOME_LIVE_ACTIVE_REFRESH_SEC - age))
+            if due:
+                await _refresh_home_live(due)
+                wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC
+            timeout = wait_for
+        elif not markets:
+            timeout = 60.0
+
+        try:
+            await asyncio.wait_for(HOME_LIVE_WAKE_EVENT.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+        finally:
+            HOME_LIVE_WAKE_EVENT.clear()
+
+
+def _admin_token_ok(request: Request) -> bool:
+    expected = os.environ.get("CHARTVIEW_ADMIN_TOKEN") or ""
+    supplied = request.headers.get("X-ChartView-Admin") or ""
+    return bool(expected and supplied and secrets.compare_digest(expected, supplied))
+
+
 @app.on_event("startup")
 async def startup_event():
-    """Serve the disk snapshot immediately and refresh remote data in the background."""
+    """Serve cached data immediately and keep live Home quotes warm only for active Home visitors."""
+    global HOME_LIVE_WAKE_EVENT
     ping_thread = threading.Thread(target=self_ping_worker, daemon=True)
     ping_thread.start()
-    _seed_home_snapshot_from_disk()
+    snapshot = _seed_home_snapshot_from_disk()
+    _seed_home_live_from_snapshot(snapshot)
+    HOME_LIVE_WAKE_EVENT = asyncio.Event()
+    asyncio.create_task(_home_live_worker())
     asyncio.create_task(_refresh_home_snapshot(force=True))
     asyncio.create_task(_refresh_market_now(force=True))
 
@@ -306,6 +504,82 @@ def validated_tickers(raw: str) -> list[str]:
     if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
         raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
     return symbols
+
+
+
+@app.post("/api/activity")
+async def visitor_activity(request: Request):
+    """Privacy-light heartbeat used for anonymous daily browser counts and adaptive Home polling."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    visitor_id = str(body.get("visitorId") or "").strip()
+    surface = str(body.get("surface") or "other").strip().lower()
+    if not visitor_id or len(visitor_id) > 128 or not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", visitor_id):
+        raise HTTPException(400, "유효한 방문자 식별자가 필요합니다.")
+    active, active_home = _record_visitor(visitor_id, surface)
+    if HOME_LIVE_WAKE_EVENT is not None and surface == "home":
+        HOME_LIVE_WAKE_EVENT.set()
+    return {
+        "ok": True,
+        "heartbeatSec": VISITOR_HEARTBEAT_SEC,
+        "activeVisitors": active,
+        "activeHomeVisitors": active_home,
+    }
+
+
+@app.get("/api/home-live")
+async def home_live_snapshot():
+    """Return only Render's current in-memory Home quote snapshot; never calls providers."""
+    updated = HOME_LIVE_CACHE.get("updatedAt")
+    age = None
+    if updated:
+        try:
+            age = max(0.0, (datetime.now(timezone.utc) - datetime.fromisoformat(updated)).total_seconds())
+        except Exception:
+            age = None
+    return {
+        "results": _home_live_results(),
+        "updatedAt": updated,
+        "marketUpdatedAt": dict(HOME_LIVE_CACHE.get("marketUpdatedAt") or {}),
+        "cacheAgeSec": round(age, 2) if age is not None else None,
+        "refreshing": bool(HOME_LIVE_CACHE.get("refreshing")),
+        "source": "Render shared memory · server-driven V66",
+    }
+
+
+@app.get("/admin/usage")
+async def admin_usage_page(request: Request):
+    response = templates.TemplateResponse("admin_usage.html", {"request": request})
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
+
+
+@app.get("/api/admin/usage")
+async def admin_usage_data(request: Request):
+    if not _admin_token_ok(request):
+        raise HTTPException(403, "관리자 인증이 필요합니다.")
+    today_unique, active_now, active_home = _visitor_counts()
+    markets = _open_home_markets()
+    return {
+        "date": _today_kst(),
+        "todayUniqueBrowsers": today_unique,
+        "activeNow": active_now,
+        "activeHome": active_home,
+        "heartbeatWindowSec": VISITOR_ACTIVE_WINDOW_SEC,
+        "serverStartedAt": SERVER_STARTED_AT,
+        "countScope": "current Render instance; anonymous browser ID; resets on deploy/restart",
+        "live": {
+            "openMarkets": list(markets),
+            "updatedAt": HOME_LIVE_CACHE.get("updatedAt"),
+            "marketUpdatedAt": dict(HOME_LIVE_CACHE.get("marketUpdatedAt") or {}),
+            "rows": len(HOME_LIVE_CACHE.get("quotes") or {}),
+            "refreshing": bool(HOME_LIVE_CACHE.get("refreshing")),
+            "lastError": HOME_LIVE_CACHE.get("lastError"),
+            "mode": "5s while Home has active visitors; no provider polling when Home is idle/markets closed",
+        },
+    }
 
 
 @app.get("/api/quotes")
