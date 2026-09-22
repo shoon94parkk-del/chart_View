@@ -151,5 +151,5 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 **Decision:** V66 introduces one Render background worker. It refreshes the currently open market's Home symbols every 5 seconds only while a visitor heartbeat says at least one user is actively viewing Home. When Home has no active viewers, provider polling stops; when markets are closed, it also stops. Browsers poll only the tiny in-memory `/api/home-live` payload. This caps provider work independent of concurrent Home viewers while preserving Card/Heatmap parity.
 
-### Usage counting is private, anonymous, and process-local
-**Decision:** add a random browser heartbeat and store only salted daily hashes in Render memory. The private `/admin/usage` page uses a server environment token and is not linked from the public UI. Counts are intentionally labeled as current-instance values because free durable analytics storage is not part of V66.
+### Usage counting is private, anonymous, and persisted for the current day
+**Decision:** add a random browser heartbeat and store only salted daily hashes. Current activity stays in process memory for cheap worker gating, while the daily unique-browser set is stored in the free Render Key Value instance through `CHARTVIEW_ANALYTICS_REDIS` with memory fallback. The `/admin/usage` view requires a server environment token and is not linked from public UI. The number is an approximate browser count, not an exact person count.
