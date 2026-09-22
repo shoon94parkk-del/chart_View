@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Chart View 관리자 사용 현황</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, Pretendard, system-ui, sans-serif; }
+    body { margin:0; background:#f5f7fb; color:#111827; }
+    main { max-width:720px; margin:0 auto; padding:24px 16px 60px; }
+    h1 { font-size:24px; margin:0 0 6px; }
+    .muted { color:#6b7280; font-size:13px; }
+    .login,.grid,.card { background:white; border:1px solid #e5e7eb; border-radius:18px; box-shadow:0 4px 18px rgba(15,23,42,.05); }
+    .login { padding:16px; margin-top:18px; display:flex; gap:8px; }
+    input { flex:1; min-width:0; border:1px solid #d1d5db; border-radius:12px; padding:12px; font-size:16px; }
+    button { border:0; border-radius:12px; padding:0 16px; font-weight:700; background:#111827; color:white; }
+    .grid { margin-top:16px; padding:14px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .card { padding:16px; }
+    .card strong { display:block; font-size:28px; margin-top:4px; }
+    .wide { grid-column:1/-1; }
+    .ok { color:#047857; } .bad { color:#b91c1c; }
+    dl { margin:0; display:grid; grid-template-columns:140px 1fr; gap:8px 12px; font-size:14px; }
+    dt { color:#6b7280; } dd { margin:0; word-break:break-word; }
+    @media (max-width:520px) { .grid { grid-template-columns:1fr; } .wide { grid-column:auto; } dl { grid-template-columns:1fr; gap:3px; } dt { margin-top:8px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Chart View 사용 현황</h1>
+    <div class="muted">관리자 토큰으로만 조회됩니다. 토큰은 이 브라우저 세션에만 보관합니다.</div>
+
+    <div class="login">
+      <input id="token" type="password" autocomplete="current-password" placeholder="관리자 토큰">
+      <button id="load" type="button">조회</button>
+    </div>
+
+    <section id="content" class="grid" hidden>
+      <div class="card"><span>오늘 고유 브라우저</span><strong id="today">-</strong></div>
+      <div class="card"><span>현재 접속</span><strong id="active">-</strong></div>
+      <div class="card"><span>현재 홈 화면</span><strong id="homeActive">-</strong></div>
+      <div class="card"><span>Live rows</span><strong id="rows">-</strong></div>
+      <div class="card wide">
+        <dl>
+          <dt>기준일</dt><dd id="date">-</dd>
+          <dt>열린 시장</dt><dd id="markets">-</dd>
+          <dt>최근 Live 갱신</dt><dd id="updated">-</dd>
+          <dt>Worker 모드</dt><dd id="mode">-</dd>
+          <dt>서버 시작</dt><dd id="started">-</dd>
+          <dt>집계 범위</dt><dd id="scope">-</dd>
+          <dt>마지막 오류</dt><dd id="error">없음</dd>
+        </dl>
+      </div>
+    </section>
+    <p id="status" class="muted"></p>
+  </main>
+<script>
+(() => {
+  const token = document.getElementById('token');
+  const status = document.getElementById('status');
+  const content = document.getElementById('content');
+  let timer = null;
+  try { token.value = sessionStorage.getItem('chartview-admin-token') || ''; } catch (_) {}
+
+  const set = (id, value) => { document.getElementById(id).textContent = value ?? '-'; };
+  async function load() {
+    const value = token.value.trim();
+    if (!value) { status.textContent = '관리자 토큰을 입력해 주세요.'; return; }
+    status.textContent = '불러오는 중...';
+    try {
+      const response = await fetch('/api/admin/usage', {
+        cache:'no-store',
+        headers:{'X-ChartView-Admin': value},
+      });
+      if (!response.ok) throw new Error(response.status === 403 ? '토큰이 올바르지 않습니다.' : '조회 실패 ' + response.status);
+      const data = await response.json();
+      try { sessionStorage.setItem('chartview-admin-token', value); } catch (_) {}
+      set('today', data.todayUniqueBrowsers);
+      set('active', data.activeNow);
+      set('homeActive', data.activeHome);
+      set('rows', data.live?.rows);
+      set('date', data.date);
+      set('markets', (data.live?.openMarkets || []).join(', ') || '장 마감');
+      set('updated', data.live?.updatedAt || '아직 없음');
+      set('mode', data.live?.mode);
+      set('started', data.serverStartedAt);
+      set('scope', data.countScope);
+      set('error', data.live?.lastError || '없음');
+      content.hidden = false;
+      status.textContent = '15초마다 자동 갱신됩니다.';
+      clearInterval(timer);
+      timer = setInterval(load, 15000);
+    } catch (error) {
+      content.hidden = true;
+      status.textContent = String(error.message || error);
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+  document.getElementById('load').addEventListener('click', load);
+  token.addEventListener('keydown', (event) => { if (event.key === 'Enter') load(); });
+  if (token.value) load();
+})();
+</script>
+</body>
+</html>
