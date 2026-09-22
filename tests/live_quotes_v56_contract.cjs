@@ -15,12 +15,14 @@ test('live quote layer only refreshes lightweight current quotes', () => {
   assert.doesNotMatch(live, /location\.reload|window\.__renderWatchlist/);
 });
 
-test('live polling is limited to visible active surfaces and stops in background', () => {
+test('watchlist entry bootstraps all current quotes, then frequent polling stays visible-only', () => {
   assert.match(live, /document\.visibilityState !== 'visible'/);
   assert.match(live, /function activeMode\(\)/);
   assert.match(live, /visibleWatchSymbols/);
+  assert.match(live, /fullWatchlist \? rows\.map\(\(row\) => row\.symbol\) : visibleWatchSymbols\(rows\)/);
+  assert.match(live, /const bootstrapAll = modeChanged && mode === 'watchlist'/);
+  assert.match(live, /fullWatchlist: bootstrapAll/);
   assert.match(live, /if \(inFlight\) inFlight\.abort\(\)/);
-  assert.match(live, /modeChanged && mode === 'watchlist'/);
 });
 
 test('live quote cache merge preserves historical return fields', () => {
@@ -46,4 +48,13 @@ test('template loads rollback-safe additive live assets', () => {
   const legacyPatch = html.indexOf('/static/js/ux_patch.js');
   assert.ok(bundle >= 0 && liveIndex > bundle && legacyPatch > liveIndex);
   assert.match(css, /prefers-reduced-motion/);
+});
+
+test('all watchlist cards keep a today-change slot even before a fresh quote arrives', () => {
+  assert.match(live, /if \(card\) ensureLiveLine\(card\)/);
+  assert.match(live, /오늘 —/);
+  assert.match(live, /lastMode = ''/);
+  assert.match(live, /setTimeout\(\(\) => tick\(false\), 0\)/);
+  assert.match(live, /version: 'v64'/);
+  assert.match(html, /\/static\/js\/live_quotes_v56\.js\?v=20260922v64a/);
 });
