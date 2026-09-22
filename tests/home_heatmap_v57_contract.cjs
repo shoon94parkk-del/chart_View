@@ -1,0 +1,53 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = path.resolve(__dirname, '..');
+const js = fs.readFileSync(path.join(ROOT, 'static/js/home_heatmap_v57.js'), 'utf8');
+const css = fs.readFileSync(path.join(ROOT, 'static/css/home_heatmap_v57.css'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'templates/index.html'), 'utf8');
+const main = fs.readFileSync(path.join(ROOT, 'main.py'), 'utf8');
+const generator = fs.readFileSync(path.join(ROOT, 'scripts/generate_home_snapshot.py'), 'utf8');
+
+test('heatmap is additive and does not block Home with historical calls', () => {
+  assert.match(js, /requestIdleCallback/);
+  assert.match(js, /\/api\/heatmap/);
+  assert.doesNotMatch(js, /\/api\/compare/);
+  assert.doesNotMatch(js, /location\.reload/);
+  assert.match(js, /REFRESH_MS\s*=\s*60_000/);
+  assert.match(js, /document\.visibilityState !== 'visible'/);
+});
+
+test('heatmap uses market cap sizing and only promotes logos on large tiles', () => {
+  assert.match(js, /relativeWeight/);
+  assert.match(js, /Math\.pow\(cap, 0\.58\)/);
+  assert.match(js, /LOGO_AREA_THRESHOLD/);
+  assert.match(js, /area >= LOGO_AREA_THRESHOLD && row\.logo/);
+  assert.match(js, /market === market/);
+  assert.match(css, /grid-template-columns:minmax\(0,\.9fr\) minmax\(0,1\.1fr\)/);
+  assert.match(css, /@media\(max-width:720px\)/);
+});
+
+test('server heatmap reuses shared Home SWR cache instead of provider fan-out', () => {
+  const start = main.indexOf('@app.get("/api/heatmap")');
+  const end = main.indexOf('def compute_net_liquidity', start);
+  const block = main.slice(start, end);
+  assert.match(block, /await home_snapshot\(fresh=fresh\)/);
+  assert.doesNotMatch(block, /fetch_quote_snapshot/);
+  assert.match(main, /"207940\.KS"/);
+  assert.match(main, /"AMZN"/);
+  assert.match(main, /"TSM"/);
+});
+
+test('persistent snapshot uses real valuation market cap, not trading volume', () => {
+  assert.match(generator, /VALUATION_CACHE/);
+  assert.match(generator, /MARKET_CAPS\.get\(ticker, 0\)/);
+  assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
+});
+
+test('template loads rollback-safe heatmap assets', () => {
+  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=/);
+  assert.match(css, /prefers-reduced-motion/);
+});
