@@ -183,3 +183,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - No macro API/data/signal change; only rendering containment and asset cache bust.
 - App CI macro cache expectation is 16 rows with FEDTARGET + DFF.
 - Rollback: `backup/pre-macro-chart-clip-v63-20260922`.
+
+
+## 2026-09-22 Cross-device sync V64
+- Watchlist: on entry, one `/api/quotes` request covers all saved symbols so mobile/desktop “오늘 등락률” is complete. Subsequent high-frequency polling remains visible-only; no 1M historical fan-out.
+- Cards without a current quote still render the `오늘 —` line, so row structure is consistent.
+- Home Heatmap chooses the fresher of shared Home snapshot vs private heatmap cache; equal timestamps prefer Home.
+- First Heatmap revalidation is prompt (short timer), not browser-idle dependent.
+- Direct-loaded assets are cache-busted to V64; generated legacy bundle is untouched.
+- Rollback: `backup/pre-cross-device-sync-v64-20260922`.
