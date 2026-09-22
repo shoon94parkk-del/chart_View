@@ -31,6 +31,7 @@
   }
 
   async function heartbeat() {
+    if (navigator.webdriver) return;
     if (document.visibilityState !== 'visible' || navigator.onLine === false) return;
     try {
       await fetch('/api/activity', {
