@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const macro = fs.readFileSync('static/js/macro.js', 'utf8');
+const css = fs.readFileSync('static/css/style.css', 'utf8');
 const main = fs.readFileSync('main.py', 'utf8');
 const generator = fs.readFileSync('scripts/generate_macro_cache.py', 'utf8');
 const html = fs.readFileSync('templates/index.html', 'utf8');
@@ -37,6 +38,16 @@ test('macro charts use local SVG sparklines and do not depend on chart library',
   assert.match(macro, /bp 최근 변경/);
 });
 
-test('macro asset is cache-busted', () => {
-  assert.match(html, /\/static\/js\/macro\.js\?v=20260922v62a/);
+test('macro sparkline is physically clipped to its card', () => {
+  assert.match(macro, /width="100%" height="100%"/);
+  assert.match(macro, /overflow="hidden"/);
+  assert.match(css, /\.mc-chart-wrapper[\s\S]*overflow:\s*hidden/);
+  assert.match(css, /\.mc-mini-chart[\s\S]*height:\s*80px[\s\S]*overflow:\s*hidden/);
+  assert.match(css, /\.mc-mini-chart-core[\s\S]*height:\s*120px/);
+  assert.match(css, /\.macro-sparkline[\s\S]*width:\s*100%[\s\S]*height:\s*100%[\s\S]*overflow:\s*hidden/);
+});
+
+test('macro assets are cache-busted', () => {
+  assert.match(html, /\/static\/css\/style\.css\?v=20260922v63a/);
+  assert.match(html, /\/static\/js\/macro\.js\?v=20260922v63a/);
 });
