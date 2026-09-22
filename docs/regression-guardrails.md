@@ -92,3 +92,11 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - `.mc-chart-wrapper` and `.mc-mini-chart` keep overflow hidden; ordinary indicator charts are 80px tall and the core net-liquidity chart is explicitly 120px.
 - Do not reintroduce negative horizontal margins on macro mini charts.
 - Static macro cache shape is 16 rows and includes both `FEDTARGET` and `DFF`.
+
+
+## Cross-device current quote consistency
+- Entering Watchlist may fetch **all saved symbols once through lightweight `/api/quotes`** so every device gets complete today-change coverage. This one-shot bootstrap must never call `/api/compare`.
+- Repeated/frequent Watchlist polling remains visibility-scoped; do not turn the 5-second loop into an all-20-symbol historical/current full refresh.
+- Every rendered watchlist card keeps a day-change slot even when current quote data is temporarily missing.
+- Card and Heatmap on Home must use the freshest shared snapshot. A stale heatmap-only local cache must never override a newer Home snapshot.
+- Do not defer the first visible Heatmap sync behind `requestIdleCallback`; desktop busy time must not make Heatmap visibly trail Card.
