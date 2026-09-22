@@ -149,3 +149,9 @@ A user-visible change is complete only when:
 - The traffic light is a descriptive regime summary across inflation (PCE/trimmed PCE/BEI), Fed stance/recent target move, labor/activity, credit/VIX, and liquidity. It is not a forecast of the next FOMC decision or a buy/sell signal.
 
 - 2026-09-22 V62b provider hardening: GitHub-hosted runners intermittently time out on direct `fred.stlouisfed.org/graph/fredgraph.csv`. `FEDTARGET` bounds and daily `DFF` now use the already-stable Equibles FRED mirror path, while links/semantics remain FRED/Federal Reserve series. This affects only scheduled cache generation, not runtime latency.
+
+
+## Macro sparkline containment V63
+- Mobile screenshot exposed native SVG overflow: V62 sparklines had a viewBox but no explicit rendered width/height, so mobile browsers could paint beyond the 80px chart slot.
+- V63 clips both wrapper and chart container, renders SVG at 100% x 100%, removes negative mini-chart margins, and gives the net-liquidity core chart an explicit 120px height.
+- This is rendering-only: macro data, Fed signal logic, cache cadence, and runtime request count are unchanged.
