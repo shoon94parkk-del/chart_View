@@ -107,3 +107,13 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - `/api/heatmap` is not the intraday quote transport. It may refresh market-cap geometry slowly; live price/day-change uses batch `/api/quotes`.
 - Home initial live quote request may cover all displayed Home symbols once (18 <= API max 20). Repeated 5-second polling is limited to the currently open market group and only while Home is active and visible.
 - The generic current-quote cache must not impose a 60-second Home lag; current contract is 5 seconds.
+
+
+## Server-driven Home live cache / private analytics
+- Home browser code must not call `/api/quotes` for major Card/Heatmap intraday refreshes. It reads `/api/home-live`, which must be provider-free and memory-only.
+- Only the Render background worker may refresh Home major live quotes. It runs at 5-second cadence only when an exchange is open **and** at least one active Home viewer exists.
+- Do not let `live_quotes_v56.js` poll Home; it is Watchlist-only after V66.
+- Card and Heatmap must continue to apply the exact same shared live rows in one render pass.
+- Visitor tracking is anonymous-browser counting only: random local ID -> salted daily hash. Do not collect IP, email, phone, precise location, or account identity for this dashboard.
+- `/api/admin/usage` requires `X-ChartView-Admin` with `CHARTVIEW_ADMIN_TOKEN`; never expose the token in HTML/JS/repo.
+- Admin usage counts are current-instance memory and may reset on deploy/restart; never present them as durable analytics unless persistent storage is added.
