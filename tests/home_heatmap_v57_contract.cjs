@@ -50,4 +50,9 @@ test('template loads rollback-safe heatmap assets', () => {
   assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=/);
   assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=/);
   assert.match(css, /prefers-reduced-motion/);
+  assert.match(html, /home_heatmap_v57\\.css\\?v=20260922v58a/);
+  assert.match(html, /home_heatmap_v57\\.js\\?v=20260922v58a/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v58'/);
+  assert.match(js, /stripNav\\.hidden = next === 'heatmap'/);
+  assert.match(js, /cvhm-empty/);
 });
