@@ -236,3 +236,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - main.py installs the existing Korean realtime patch before binding quote/compare/valuation helpers.
 - Do not regress Home change to Yahoo 5D meta previousClose/chartPreviousClose.
 - Rollback: backup/pre-daily-change-fix-v67-20260922.
+
+
+## V67 generated snapshot verification
+- GitHub Action regenerated `home_snapshot.json` with source `github-actions-daily-change-v67` and zero provider errors.
+- Verified generated examples: Samsung Electronics +1.28%, SK hynix -1.45%, NVDA +2.299%, AAPL +0.8479%, MSFT +1.5857%.
+- NVDA's prior erroneous +7.78% was Yahoo's 5D range return; it is no longer used as a Home today-change value.
+- This documentation-only commit exists to pin final production CI and Render revision after the bot-generated snapshot commit.
