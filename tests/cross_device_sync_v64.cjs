@@ -48,7 +48,7 @@ const freshSnapshot = {
       });
       const page = await context.newPage();
       const bootstrapRequests = [];
-      const homeLiveRequests = [];
+      let homeLiveRequests = 0;
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
@@ -72,13 +72,30 @@ const freshSnapshot = {
         await delay(3000);
         await route.fulfill(json({results:heatRows,generatedAt:freshSnapshot.generatedAt,source:'test'}));
       });
+      await page.route('**/api/activity', route => route.fulfill(json({ok:true,heartbeatSec:20,activeVisitors:1,activeHomeVisitors:1})));
+      await page.route('**/api/home-live*', route => {
+        homeLiveRequests += 1;
+        return route.fulfill(json({
+          results: heatRows.map((row, index) => ({
+            ticker: row.ticker,
+            price: 100 + index,
+            change: 1.23,
+            currency: /\.(KS|KQ)$/.test(row.ticker) ? 'KRW' : 'USD',
+            asOf: '2026-09-22T06:31:00Z',
+            source: 'Render shared memory test',
+            marketStatus: 'OPEN',
+            delayTime: 0,
+          })),
+          updatedAt: '2026-09-22T06:31:00Z',
+          source: 'Render shared memory · server-driven V66',
+        }));
+      });
       await page.route('**/api/quotes?*', route => {
         const req = route.request();
         const url = new URL(req.url());
         const symbols = (url.searchParams.get('tickers') || '').split(',').filter(Boolean);
         const mode = req.headers()['x-chartview-quote-mode'] || '';
         if (mode === 'watchlist-bootstrap-v64') bootstrapRequests.push(symbols);
-        if (mode === 'home-major-live-v65') homeLiveRequests.push(symbols);
         return route.fulfill(json({
           fetchedAt:'2026-09-22T06:31:00Z',
           results:symbols.map((ticker,index) => ({
@@ -112,14 +129,13 @@ const freshSnapshot = {
       await samsungChange.waitFor({timeout:1500});
 
       // A single fast quote batch must drive both Card and Heatmap to the exact same live value.
-      await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v65', null, {timeout:5000});
+      await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v66', null, {timeout:5000});
       await page.waitForFunction(() => {
         const card = document.querySelector('.home16-stock[data-home-symbol="005930.KS"] b');
         const heat = document.querySelector('[data-cvhm-symbol="005930.KS"] .cvhm-change');
         return card?.textContent?.trim() === '+1.23%' && heat?.textContent?.trim() === '+1.23%';
       }, null, {timeout:5000});
-      assert.ok(homeLiveRequests.length >= 1, `${profile.name}: missing Home all-symbol live quote request`);
-      assert.equal(new Set(homeLiveRequests[0]).size, 18, `${profile.name}: initial Home live request did not cover all heatmap symbols`);
+      assert.ok(homeLiveRequests >= 1, `${profile.name}: missing Home shared-cache request`);
 
       // Enter Watchlist and verify one all-symbol lightweight bootstrap irrespective of viewport size.
       await page.locator('.app-bottom-btn[data-app-mode="watchlist"]').click();
@@ -141,7 +157,7 @@ const freshSnapshot = {
   } finally {
     await browser.close();
   }
-  console.log('cross-device V65 quote parity OK');
+  console.log('cross-device V66 server-live parity OK');
 })().catch(err => {
   console.error(err);
   process.exit(1);
