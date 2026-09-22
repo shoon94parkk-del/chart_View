@@ -116,4 +116,4 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Card and Heatmap must continue to apply the exact same shared live rows in one render pass.
 - Visitor tracking is anonymous-browser counting only: random local ID -> salted daily hash. Do not collect IP, email, phone, precise location, or account identity for this dashboard.
 - `/api/admin/usage` requires `X-ChartView-Admin` with `CHARTVIEW_ADMIN_TOKEN`; never expose the token in HTML/JS/repo.
-- Admin usage counts are current-instance memory and may reset on deploy/restart; never present them as durable analytics unless persistent storage is added.
+- Daily unique-browser totals use Render Key Value when available, with process-memory fallback. Active-now/Home-active remain current-process state. Treat the metric as an anonymous browser estimate rather than an exact person count.
