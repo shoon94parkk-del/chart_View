@@ -57,6 +57,7 @@ jobs:
           node --test tests/home_heatmap_v57_contract.cjs
           node --test tests/macro_policy_v62_contract.cjs
           node --test tests/server_live_cache_v66_contract.cjs
+          node --test tests/share_deeplink_v68_contract.cjs
       - name: Static cache shape
         run: |
           python - <<'PY'
@@ -148,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [mobile_smoke, app_release_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42, cross_device_sync_v64]
+        suite: [mobile_smoke, app_release_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42, cross_device_sync_v64, share_deeplink_v68]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
