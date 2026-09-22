@@ -225,3 +225,5 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Owner dashboard: `/admin/usage`; API requires `X-ChartView-Admin`. Secrets live only in Render environment.
 - Analytics are process-local and reset on deploy/restart. Do not claim durable historical user counts.
 - Rollback: `backup/pre-server-live-cache-v66-20260922`.
+
+- Automation/Playwright visits are excluded from usage counts via `navigator.webdriver`.
