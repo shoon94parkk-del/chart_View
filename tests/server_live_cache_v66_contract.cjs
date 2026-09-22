@@ -33,3 +33,23 @@ test('usage dashboard is token protected and not linked from public UI', () => {
   assert.match(admin, /sessionStorage/);
   assert.doesNotMatch(html, />Chart View 사용 현황</);
 });
+
+test('daily unique count persists in Render Key Value with memory fallback', () => {
+  const requirements = fs.readFileSync('requirements.txt', 'utf8');
+  assert.match(requirements, /redis>=5\.0\.0/);
+  assert.match(main, /CHARTVIEW_ANALYTICS_REDIS/);
+  assert.match(main, /async def _persist_daily_visitor/);
+  assert.match(main, /chartview:visitors:/);
+  assert.match(main, /await client\.sadd/);
+  assert.match(main, /await client\.scard/);
+  assert.match(main, /analyticsBackend/);
+});
+
+test('heartbeat response does not expose visitor counts publicly', () => {
+  const start = main.indexOf('@app.post("/api/activity")');
+  const end = main.indexOf('@app.get("/api/home-live")', start);
+  const block = main.slice(start, end);
+  assert.doesNotMatch(block, /activeVisitors/);
+  assert.doesNotMatch(block, /activeHomeVisitors/);
+  assert.match(block, /"heartbeatSec": VISITOR_HEARTBEAT_SEC/);
+});
