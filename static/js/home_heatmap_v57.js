@@ -539,6 +539,7 @@
             requestAnimationFrame(() => {
               ensureShell();
               render(cachedPayload());
+              refreshLiveQuotes(true);
             });
             return;
           }
