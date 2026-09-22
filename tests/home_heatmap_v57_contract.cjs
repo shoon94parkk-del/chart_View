@@ -15,7 +15,7 @@ test('heatmap is additive and does not block Home with historical calls', () => 
   assert.match(js, /\/api\/heatmap/);
   assert.doesNotMatch(js, /\/api\/compare/);
   assert.doesNotMatch(js, /location\.reload/);
-  assert.match(js, /REFRESH_MS\\s*=\\s*300_000/);
+  assert.match(js, /REFRESH_MS\s*=\s*300_000/);
   assert.match(js, /document\.visibilityState !== 'visible'/);
 });
 
