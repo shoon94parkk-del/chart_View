@@ -100,3 +100,10 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Every rendered watchlist card keeps a day-change slot even when current quote data is temporarily missing.
 - Card and Heatmap on Home must use the freshest shared snapshot. A stale heatmap-only local cache must never override a newer Home snapshot.
 - Do not defer the first visible Heatmap sync behind `requestIdleCallback`; desktop busy time must not make Heatmap visibly trail Card.
+
+
+## Home Card / Heatmap live parity
+- Card and Heatmap daily change must come from the same merged Home live-quote rows. If Heatmap applies `QUOTE_CACHE_KEY.dayChange`, Card must be updated in the same render pass.
+- `/api/heatmap` is not the intraday quote transport. It may refresh market-cap geometry slowly; live price/day-change uses batch `/api/quotes`.
+- Home initial live quote request may cover all displayed Home symbols once (18 <= API max 20). Repeated 5-second polling is limited to the currently open market group and only while Home is active and visible.
+- The generic current-quote cache must not impose a 60-second Home lag; current contract is 5 seconds.
