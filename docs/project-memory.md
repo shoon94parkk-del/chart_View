@@ -43,6 +43,14 @@ Intentional order: Market -> Watchlist -> PICK -> News.
 
 ## Watchlist
 Primary file: `static/js/watchlist_v30.js`.
+Live interaction layer: `static/js/live_quotes_v56.js`.
+- The live layer is additive and loaded directly from `templates/index.html`; it is intentionally not part of the generated release bundle.
+- It follows OpenStock's cache-first/polling interaction idea but uses original Chart View code and existing Chart View providers.
+- Korean current quotes: unified Naver Finance/KRX-Koscom path with the existing 5-second server-side shared cache.
+- Global current quotes: existing Yahoo quote path.
+- While Watchlist is visible, Korean rows can refresh every 5 seconds during an open market; global/closed-market rows are slower. Home uses a slower cadence.
+- The live layer updates price/day-change DOM fields in place and never requests 1-month history.
+- Background/hidden/inactive tabs stop live polling.
 - Current price + 1-month return are shown.
 - Add/remove must persist and paint immediately.
 - Adding one stock must **never refresh every existing watchlist row**.
