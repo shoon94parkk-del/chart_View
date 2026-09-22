@@ -122,3 +122,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V63 sets SVG width/height to 100%, clips wrapper and chart container, removes negative chart margins, and explicitly sizes the core chart to 120px. No data or macro-regime semantics change. App CI also fixes the expected macro cache shape at 16 rows including `FEDTARGET` and `DFF`.
 
 **Rollback:** `backup/pre-macro-chart-clip-v63-20260922` at `d67da7986c51c67abd252b4cddabb52cb7955f37`.
+
+
+### Watchlist bootstrap is all-symbol once; Heatmap follows the freshest Home snapshot
+**Observed issue:** Desktop and mobile showed different Watchlist “today” coverage because V56 polled only cards currently inside the viewport. A large desktop viewport populated more symbols, while mobile left off-screen rows without `dayChange`. Separately, Home Card updated from a fresh `/api/home-snapshot`, but Heatmap preferred its older private local cache and waited for an idle callback before revalidating, making desktop Heatmap visibly lag.
+
+**Decision:** V64 performs one lightweight all-symbol current-quote bootstrap whenever Watchlist becomes active, then returns to the existing visibility-scoped polling cadence. Historical 1-month returns remain separate and are never fetched by this path. Heatmap selects the freshest payload between the shared Home snapshot and its private cache, prefers Home on equal timestamps, and schedules first revalidation promptly rather than waiting for browser idle.
+
+**Rollback:** `backup/pre-cross-device-sync-v64-20260922` at `d52f21c34557f0528a5ecc9300d20e4df0314d52`.

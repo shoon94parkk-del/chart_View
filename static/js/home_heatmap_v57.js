@@ -2,7 +2,7 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v61';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v64';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 60_000;
@@ -34,6 +34,7 @@
   };
 
   let refreshTimer = null;
+  let refreshKickTimer = null;
   let retryTimer = null;
   let inFlight = null;
   let lastSignature = '';
@@ -148,14 +149,24 @@
       .filter(Boolean);
   }
 
+  function payloadTime(payload) {
+    const parsed = Date.parse(payload?.generatedAt || '');
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   function cachedPayload() {
     const own = readJson(HEATMAP_CACHE_KEY, null);
-    if (own?.results?.length) return own;
     const home = readJson(HOME_SNAPSHOT_KEY, null);
-    if (home?.heatmap?.results?.length) {
-      return { results: home.heatmap.results, generatedAt: home.generatedAt || '' };
+    const shared = home?.heatmap?.results?.length
+      ? { results: home.heatmap.results, generatedAt: home.generatedAt || '' }
+      : null;
+
+    if (shared?.results?.length && own?.results?.length) {
+      // Cards and heatmap must converge on the freshest shared Home snapshot.
+      // Equal timestamps prefer Home so a newly painted card cannot be followed by stale heatmap geometry.
+      return payloadTime(shared) >= payloadTime(own) ? shared : own;
     }
-    return null;
+    return shared?.results?.length ? shared : (own?.results?.length ? own : null);
   }
 
   function makeLogo(row) {
@@ -313,7 +324,13 @@
         button.type = 'button';
         button.dataset.cvhmView = view;
         button.textContent = label;
-        button.addEventListener('click', () => setView(card, view));
+        button.addEventListener('click', () => {
+          setView(card, view);
+          if (view === 'heatmap') {
+            render(cachedPayload());
+            scheduleRefresh(0);
+          }
+        });
         toggle.appendChild(button);
       });
       const actions = card.querySelector('.home16-head-actions');
@@ -387,16 +404,18 @@
     }
   }
 
-  function scheduleIdleRefresh() {
-    const run = () => refresh();
-    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1400 });
-    else setTimeout(run, 600);
+  function scheduleRefresh(delay = 180) {
+    if (refreshKickTimer) clearTimeout(refreshKickTimer);
+    refreshKickTimer = setTimeout(() => {
+      refreshKickTimer = null;
+      refresh();
+    }, delay);
   }
 
   function start() {
-    render(cachedPayload());
     ensureShell();
-    scheduleIdleRefresh();
+    render(cachedPayload());
+    scheduleRefresh();
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -427,13 +446,13 @@
       }
       if (isHomeActive()) {
         render(cachedPayload());
-        scheduleIdleRefresh();
+        scheduleRefresh();
       }
     });
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v61',
+    version: 'v64',
     refresh,
     refreshMs: REFRESH_MS
   });

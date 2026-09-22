@@ -11,7 +11,7 @@ const main = fs.readFileSync(path.join(ROOT, 'main.py'), 'utf8');
 const generator = fs.readFileSync(path.join(ROOT, 'scripts/generate_home_snapshot.py'), 'utf8');
 
 test('heatmap is additive and does not block Home with historical calls', () => {
-  assert.match(js, /requestIdleCallback/);
+  assert.match(js, /function scheduleRefresh\(delay = 180\)/);
   assert.match(js, /\/api\/heatmap/);
   assert.doesNotMatch(js, /\/api\/compare/);
   assert.doesNotMatch(js, /location\.reload/);
@@ -53,13 +53,21 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
   assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
 });
 
-test('template loads V60 rollback-safe heatmap assets', () => {
+test('template loads V64 synchronized heatmap assets', () => {
   assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v61a/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v61a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v64a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v61'/);
-  assert.match(js, /version: 'v61'/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v64'/);
+  assert.match(js, /version: 'v64'/);
   assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
+});
+
+test('heatmap prefers the freshest shared Home snapshot instead of a stale private cache', () => {
+  assert.match(js, /function payloadTime\(payload\)/);
+  assert.match(js, /payloadTime\(shared\) >= payloadTime\(own\) \? shared : own/);
+  assert.match(js, /Equal timestamps prefer Home/);
+  assert.match(js, /scheduleRefresh\(0\)/);
+  assert.doesNotMatch(js, /requestIdleCallback/);
 });

@@ -155,3 +155,11 @@ A user-visible change is complete only when:
 - Mobile screenshot exposed native SVG overflow: V62 sparklines had a viewBox but no explicit rendered width/height, so mobile browsers could paint beyond the 80px chart slot.
 - V63 clips both wrapper and chart container, renders SVG at 100% x 100%, removes negative mini-chart margins, and gives the net-liquidity core chart an explicit 120px height.
 - This is rendering-only: macro data, Fed signal logic, cache cadence, and runtime request count are unchanged.
+
+
+## Cross-device quote + heatmap sync V64
+- Watchlist entry now performs one lightweight `/api/quotes` bootstrap for all saved symbols (max 20), so mobile and desktop have the same current-price/day-change coverage. This does **not** request 1-month history.
+- After that one bootstrap, frequent polling remains visible-card only (KR open cadence 5s; global/closed cadence slower), preserving the lightweight live architecture.
+- Every watchlist card gets a stable `오늘 —` slot immediately; a missing/late current quote no longer makes the row structurally different on mobile.
+- Home heatmap no longer blindly prefers its private browser cache. It compares the private heatmap payload with the shared Home snapshot and uses the fresher one; equal timestamps prefer Home so Card and Heatmap stay synchronized.
+- The first heatmap revalidation uses a short timer rather than `requestIdleCallback`, avoiding desktop delays caused by long busy/idle scheduling.
