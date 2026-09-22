@@ -161,10 +161,12 @@
       const grid = document.getElementById('watchlist-v30-grid');
       if (grid && grid.childElementCount) {
         schedule();
+        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
         return grid;
       }
       const result = base.apply(this, arguments);
       schedule();
+      setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
       return result;
     };
   }
