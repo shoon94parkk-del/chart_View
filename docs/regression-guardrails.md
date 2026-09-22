@@ -76,5 +76,5 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Card-only previous/next strip controls stay hidden while Heatmap view is active.
 - A market with temporarily missing cap data shows a clear refresh state; never render a large unexplained blank rectangle.
 
-- Heatmap tile AREA must be proportional to raw `marketCap` within the same market group. Do not apply exponent/root/log compression unless the UI explicitly labels a non-linear scale.
+- U.S. heatmap tile AREA must remain proportional to raw `marketCap`. Korea is the only intentional exception: V60 uses `marketCap^0.82` for mobile readability, and the UI must explicitly label that visual adjustment. Do not add any other non-linear scale silently.
 - Small/short heatmap tiles must not render the price line if it would clip; name + daily change take priority.

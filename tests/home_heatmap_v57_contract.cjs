@@ -19,10 +19,12 @@ test('heatmap is additive and does not block Home with historical calls', () => 
   assert.match(js, /document\.visibilityState !== 'visible'/);
 });
 
-test('heatmap uses market cap sizing and only promotes logos on genuinely large tiles', () => {
+test('heatmap keeps U.S. true-cap sizing and only compresses Korea', () => {
   assert.match(js, /relativeWeight/);
-  assert.doesNotMatch(js, /Math\.pow\(cap,/);
-  assert.match(js, /return Math\.max\(1, number\(row\.marketCap\) \|\| 1\)/);
+  assert.match(js, /row\.market === 'KR' \? Math\.pow\(cap, 0\.82\) : cap/);
+  assert.match(js, /미국 = 실제 시총 비중 · 한국 = 시총 영향 완화/);
+  assert.match(js, /KRW 시총 기준 · 시인성 보정/);
+  assert.match(js, /USD 실제 시총 비중/);
   assert.match(js, /area >= LOGO_AREA_THRESHOLD/);
   assert.match(js, /rect\.width >= LOGO_MIN_WIDTH/);
   assert.match(js, /rect\.height >= LOGO_MIN_HEIGHT/);
@@ -51,12 +53,12 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
   assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
 });
 
-test('template loads corrected rollback-safe heatmap assets', () => {
-  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v59a/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v59a/);
+test('template loads V60 rollback-safe heatmap assets', () => {
+  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v60a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v60a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v59'/);
-  assert.match(js, /박스 면적 = 같은 시장 내 실제 시가총액 비중/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v60'/);
+  assert.match(js, /version: 'v60'/);
   assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
