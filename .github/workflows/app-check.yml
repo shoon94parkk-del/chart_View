@@ -54,6 +54,7 @@ jobs:
           python -m pytest -q
           node --test tests/frontend.test.cjs
           node --test tests/live_quotes_v56_contract.cjs
+          node --test tests/home_heatmap_v57_contract.cjs
       - name: Static cache shape
         run: |
           python - <<'PY'
