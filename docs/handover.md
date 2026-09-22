@@ -192,3 +192,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - First Heatmap revalidation is prompt (short timer), not browser-idle dependent.
 - Direct-loaded assets are cache-busted to V64; generated legacy bundle is untouched.
 - Rollback: `backup/pre-cross-device-sync-v64-20260922`.
+
+
+## 2026-09-22 Intekplus PICK correction
+- Keep Intekplus (`064290.KQ`) only on 2026-09-14.
+- Removed its 2026-09-17 and 2026-09-21 manual PICK records from source ranking history and recommendation performance history.
+- 2026-09-17 and 2026-09-21 now remain as two-stock user-final selections; no replacement stock was invented.
+- Validator now accepts 1–3 picks for `user_final_selection` while GPT-reviewed TOP3 remains exactly three.
