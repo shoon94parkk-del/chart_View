@@ -85,3 +85,10 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Macro data remains precomputed in `static/data/macro_cache.json`; browser/Render request-time FRED fan-out is forbidden.
 - Macro cards with valid `chart_data` must render a visible sparkline without requiring Lightweight Charts.
 - Macro traffic-light state must include inflation and Fed stance, but must remain descriptive: never label it as a forecast of the next FOMC action or as a trading recommendation.
+
+
+## Macro sparkline containment
+- Inline macro SVG must declare rendered width/height and stay clipped inside `.mc-mini-chart`; chart paths must never paint into descriptions, neighboring cards, or section headings.
+- `.mc-chart-wrapper` and `.mc-mini-chart` keep overflow hidden; ordinary indicator charts are 80px tall and the core net-liquidity chart is explicitly 120px.
+- Do not reintroduce negative horizontal margins on macro mini charts.
+- Static macro cache shape is 16 rows and includes both `FEDTARGET` and `DFF`.

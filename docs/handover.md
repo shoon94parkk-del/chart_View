@@ -174,3 +174,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Rollback: `backup/pre-macro-fed-signal-v62-20260922`.
 
 - V62b: direct FRED CSV timed out on GitHub Actions, so DFF/DFEDTARL/DFEDTARU collection uses the Equibles FRED mirror. Keep runtime cache-only.
+
+
+## 2026-09-22 Macro chart containment V63
+- Fixes SVG sparkline lines escaping their macro cards on mobile.
+- SVG renders at 100% x 100%; wrapper/container clip overflow; normal chart height 80px; core liquidity chart 120px.
+- Negative mini-chart margins removed.
+- No macro API/data/signal change; only rendering containment and asset cache bust.
+- App CI macro cache expectation is 16 rows with FEDTARGET + DFF.
+- Rollback: `backup/pre-macro-chart-clip-v63-20260922`.

@@ -77,10 +77,11 @@ jobs:
           assert price_ready >= 40, price_ready
           macro=json.loads(Path('static/data/macro_cache.json').read_text(encoding='utf-8'))
           rows=macro.get('results', [])
-          assert len(rows) == 15, len(rows)
+          assert len(rows) == 16, len(rows)
           assert all(x.get('chart_data') and x.get('asOf') for x in rows)
           macro_symbols={x.get('original_symbol') or x.get('symbol') for x in rows}
           assert {'PCEPI','PCETRIM12M159SFRBDAL'} <= macro_symbols, macro_symbols
+          assert {'FEDTARGET','DFF'} <= macro_symbols, macro_symbols
           print('cache checks OK:', len(stocks), 'stocks /', len(quotes), 'consensus / JYP', jyp[0].get('symbol'))
           PY
       - name: App UX and market invariants

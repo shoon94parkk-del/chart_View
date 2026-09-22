@@ -114,3 +114,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Observed issue:** the first V62 main cache run timed out on direct FRED CSV for both `DFF` and the target-range bounds, while all Equibles-mirrored FRED series completed normally.
 
 **Decision:** V62b uses Equibles CSV for `DFF`, `DFEDTARL`, and `DFEDTARU` during the scheduled GitHub cache build. The series remain Federal Reserve/FRED-defined and link to FRED; only the transport path changes. Runtime remains cache-only.
+
+
+### Macro sparklines are sized by CSS, not SVG intrinsic dimensions
+**Observed issue:** V62 restored macro charts with inline SVG, but the SVG specified only a viewBox. On Samsung Internet/mobile the SVG intrinsic size overflowed the 80px chart slot, so the path painted through descriptions and subsequent cards.
+
+**Decision:** V63 sets SVG width/height to 100%, clips wrapper and chart container, removes negative chart margins, and explicitly sizes the core chart to 120px. No data or macro-regime semantics change. App CI also fixes the expected macro cache shape at 16 rows including `FEDTARGET` and `DFF`.
+
+**Rollback:** `backup/pre-macro-chart-clip-v63-20260922` at `d67da7986c51c67abd252b4cddabb52cb7955f37`.

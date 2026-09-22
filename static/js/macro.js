@@ -227,7 +227,7 @@ function sparklineSvg(rows, isUp, height = 80, area = false) {
     const line = points.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
     const stroke = isUp ? '#F04452' : '#3182F6';
     const fill = area ? `${line} L100,${height} L0,${height} Z` : '';
-    return `<svg class="macro-sparkline" viewBox="0 0 100 ${height}" preserveAspectRatio="none" aria-hidden="true">
+    return `<svg class="macro-sparkline" viewBox="0 0 100 ${height}" width="100%" height="100%" preserveAspectRatio="none" overflow="hidden" aria-hidden="true">
         ${area ? `<path d="${fill}" fill="${stroke}" fill-opacity=".10"></path>` : ''}
         <path d="${line}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>`;
