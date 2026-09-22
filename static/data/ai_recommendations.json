@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-22T16:14:28+09:00",
+  "updated": "2026-09-22T18:45:30+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -251,6 +251,60 @@
       "grade": "사용자 확정",
       "reason": "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체.",
       "score": 90,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-22",
+      "rank": 1,
+      "symbol": "089030.KQ",
+      "code": "089030",
+      "name": "테크윙",
+      "recommendedPrice": 47600.0,
+      "currentPrice": 47600.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-22",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "HBM Cube Prober 고객 확대와 메모리 테스트 장비 성장성이 실적에 연결되는 가운데 기술적 과열 부담이 낮은 반도체 검사장비 업체.",
+      "score": 90,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-22",
+      "rank": 2,
+      "symbol": "086390.KQ",
+      "code": "086390",
+      "name": "유니테스트",
+      "recommendedPrice": 12290.0,
+      "currentPrice": 12290.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-22",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "HBM4 wafer tester 수주와 메모리 테스트 장비 실적 회복이 확인되는 가운데 밸류에이션 부담이 상대적으로 낮은 테스트 장비 업체.",
+      "score": 89,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-22",
+      "rank": 3,
+      "symbol": "417840.KQ",
+      "code": "417840",
+      "name": "저스템",
+      "recommendedPrice": 16140.0,
+      "currentPrice": 16140.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-22",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체.",
+      "score": 88,
       "analysisSource": "사용자 최종 선택"
     }
   ]
