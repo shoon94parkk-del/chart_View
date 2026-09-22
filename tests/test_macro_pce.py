@@ -19,3 +19,9 @@ def test_yoy_transform_uses_same_month_previous_year():
     result = transform_yoy(rows)
     assert result[0] == {"time": "2026-01-01", "value": 3.0}
     assert result[1] == {"time": "2026-02-01", "value": 4.0}
+
+
+def test_policy_rate_uses_daily_target_range_and_effr():
+    assert INDICATORS["FEDTARGET"]["feed"] == "policy:fedtarget"
+    assert INDICATORS["DFF"]["feed"] == "fredcsv:DFF"
+    assert "FEDFUNDS" not in INDICATORS

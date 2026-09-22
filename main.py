@@ -758,7 +758,8 @@ MACRO_DISPLAY_META = {
     "WALCL": {"unit": "USD million", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
     "WTREGEN": {"unit": "USD million", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
     "M2SL": {"unit": "USD billion", "changeUnit": "%", "changeBasis": "previous observation", "category": "liquidity"},
-    "FEDFUNDS": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous observation", "category": "rates"},
+    "FEDTARGET": {"unit": "% range", "changeUnit": "bp", "changeBasis": "previous FOMC target change", "category": "rates"},
+    "DFF": {"unit": "%", "changeUnit": "bp", "changeBasis": "previous daily observation", "category": "rates"},
     "^VIX": {"unit": "index point", "changeUnit": "pt", "changeBasis": "previous observation", "category": "risk"},
 }
 
@@ -787,154 +788,175 @@ def _macro_display_row(row):
 
 
 def generate_macro_summary(ordered_results, net_liquidity):
-    """모든 경제 지표를 종합 분석하여 한줄 요약 + 신호등 생성"""
-    
-    # 지표별 점수: -2(매우 부정) ~ +2(매우 긍정)
+    """Describe the macro regime using Fed policy, inflation and market stress.
+
+    This is a descriptive traffic-light state, not a forecast or trading signal.
+    """
+    rows = {
+        (item.get("original_symbol") or item.get("symbol")): item
+        for item in ordered_results
+        if isinstance(item, dict)
+    }
+
     scores = {}
     details = []
-    
-    for item in ordered_results:
-        sym = item.get("original_symbol", item.get("symbol"))
-        val = item.get("value", 0)
-        is_error = item.get("error", False)
-        if is_error or val == 0:
-            continue
-        
-        if sym == "T10Y2Y":
-            # 장단기 금리차: 0 이하=역전(위험), 0~0.3=좁음(주의), 0.3+=정상
-            if val < 0:
-                scores["금리차"] = -2
-                details.append("금리역전⚠️")
-            elif val < 0.3:
-                scores["금리차"] = -1
-                details.append("금리차 좁음")
-            else:
-                scores["금리차"] = 1
-                details.append("금리차 정상")
-        
-        elif sym == "^VIX":
-            if val > 30:
-                scores["VIX"] = -2
-                details.append(f"VIX {val:.0f} 공포🔴")
-            elif val > 20:
-                scores["VIX"] = -1
-                details.append(f"VIX {val:.0f} 경계")
-            elif val > 15:
-                scores["VIX"] = 0
-                details.append(f"VIX {val:.0f} 보통")
-            else:
-                scores["VIX"] = 2
-                details.append(f"VIX {val:.0f} 안정🟢")
-        
-        elif sym == "BAMLH0A0HYM2":
-            # 하이일드 스프레드: 5+심각, 4~5주의, ~4정상
-            if val > 5:
-                scores["신용"] = -2
-                details.append("신용스프레드 확대⚠️")
-            elif val > 4:
-                scores["신용"] = -1
-                details.append("신용스프레드 주의")
-            else:
-                scores["신용"] = 1
-                details.append("신용스프레드 안정")
-        
-        elif sym == "FEDFUNDS":
-            if val >= 5:
-                scores["금리"] = -1
-                details.append(f"기준금리 {val:.1f}% 긴축")
-            elif val >= 3:
-                scores["금리"] = 0
-                details.append(f"기준금리 {val:.1f}%")
-            elif val <= 2:
-                scores["금리"] = 1
-                details.append(f"기준금리 {val:.1f}% 완화")
-        
-        elif sym == "T10YIE":
-            # 기대인플레이션: 2.5%+높음, 2~2.5보통, ~2낮음
-            if val > 2.5:
-                scores["인플레"] = -1
-                details.append(f"기대인플레 {val:.1f}%↑")
-            elif val >= 2.0:
-                scores["인플레"] = 0
-                details.append(f"기대인플레 {val:.1f}%")
-            else:
-                scores["인플레"] = 1
-                details.append(f"기대인플레 {val:.1f}%↓")
-        
-        elif sym == "DGS10":
-            # 10년물 금리
-            if val > 4.5:
-                scores["장기금리"] = -1
-                details.append(f"10Y {val:.1f}% 고금리")
-            elif val > 3.5:
-                scores["장기금리"] = 0
-                details.append(f"10Y {val:.1f}%")
-            else:
-                scores["장기금리"] = 1
-                details.append(f"10Y {val:.1f}% 저금리")
-        
-        elif sym == "M2SL":
-            change = item.get("change", 0)
-            if change > 0.5:
-                scores["M2"] = 1
-                details.append("M2 통화량↑")
-            elif change < -0.5:
-                scores["M2"] = -1
-                details.append("M2 통화량↓")
-    
-    # 순유동성Liquidity)
+
+    def value(symbol):
+        try:
+            raw = rows.get(symbol, {}).get("value")
+            return float(raw) if raw is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    # 1) Inflation pressure: the Fed's 2% objective makes this the primary policy axis.
+    pce = value("PCEPI")
+    trimmed = value("PCETRIM12M159SFRBDAL")
+    bei = value("T10YIE")
+    inflation_values = [x for x in (pce, trimmed) if x is not None]
+    if inflation_values:
+        inflation_anchor = max(inflation_values)
+        if inflation_anchor >= 3.0:
+            scores["물가"] = -2
+            details.append(f"물가 압력 높음(PCE {pce:.1f}%)" if pce is not None else "물가 압력 높음")
+        elif inflation_anchor >= 2.4:
+            scores["물가"] = -1
+            details.append(f"물가 2% 목표 상회({inflation_anchor:.1f}%)")
+        elif inflation_anchor >= 1.8:
+            scores["물가"] = 1
+            details.append(f"물가 2% 부근({inflation_anchor:.1f}%)")
+        else:
+            scores["물가"] = 0
+            details.append(f"물가 낮음({inflation_anchor:.1f}%)")
+    if bei is not None:
+        if bei >= 2.6:
+            scores["기대물가"] = -1
+            details.append(f"기대인플레 {bei:.1f}%↑")
+        elif bei <= 2.1:
+            scores["기대물가"] = 1
+            details.append(f"기대인플레 {bei:.1f}% 안정")
+        else:
+            scores["기대물가"] = 0
+
+    # 2) Fed stance: target range and most recent discrete FOMC move.
+    target = rows.get("FEDTARGET") or {}
+    dff = value("DFF")
+    try:
+        lower = float(target.get("targetLower"))
+        upper = float(target.get("targetUpper"))
+        move_bp = float(target.get("moveBp") or 0)
+        target_mid = (lower + upper) / 2.0
+        if move_bp >= 12.5:
+            scores["Fed"] = -2
+            stance = f"Fed {lower:.2f}~{upper:.2f}% · 최근 +{move_bp:.0f}bp"
+        elif move_bp <= -12.5:
+            scores["Fed"] = 1
+            stance = f"Fed {lower:.2f}~{upper:.2f}% · 최근 {move_bp:.0f}bp"
+        elif target_mid >= 4.5:
+            scores["Fed"] = -1
+            stance = f"Fed {lower:.2f}~{upper:.2f}% · 높은 금리 유지"
+        else:
+            scores["Fed"] = 0
+            stance = f"Fed {lower:.2f}~{upper:.2f}% · 동결"
+        if dff is not None:
+            stance += f" · EFFR {dff:.2f}%"
+        details.append(stance)
+    except (TypeError, ValueError):
+        if dff is not None:
+            scores["Fed"] = 0
+            details.append(f"EFFR {dff:.2f}%")
+
+    # 3) Labor/growth: rising unemployment or weak retail activity adds caution.
+    unrate = value("UNRATE")
+    if unrate is not None:
+        unrow = rows.get("UNRATE") or {}
+        try:
+            ud = float(unrow.get("delta") or 0)
+        except (TypeError, ValueError):
+            ud = 0
+        if unrate >= 5.0 or (unrate >= 4.5 and ud >= 0.2):
+            scores["고용"] = -2
+            details.append(f"실업률 {unrate:.1f}% 약화")
+        elif unrate >= 4.5:
+            scores["고용"] = -1
+            details.append(f"실업률 {unrate:.1f}% 주의")
+        else:
+            scores["고용"] = 1
+
+    retail = rows.get("RSAFS") or {}
+    try:
+        retail_change = float(retail.get("change"))
+    except (TypeError, ValueError):
+        retail_change = None
+    if retail_change is not None:
+        if retail_change <= -1.0:
+            scores["소비"] = -1
+            details.append("소매판매 둔화")
+        elif retail_change >= 1.0:
+            scores["소비"] = 1
+
+    # 4) Financial stress: credit and volatility can offset or amplify policy pressure.
+    hy = value("BAMLH0A0HYM2")
+    vix = value("^VIX")
+    if hy is not None:
+        if hy >= 5.0:
+            scores["신용"] = -2
+            details.append(f"신용스프레드 {hy:.1f}% 위험")
+        elif hy >= 4.0:
+            scores["신용"] = -1
+            details.append(f"신용스프레드 {hy:.1f}% 주의")
+        else:
+            scores["신용"] = 1
+            details.append("신용스프레드 안정")
+    if vix is not None:
+        if vix >= 30:
+            scores["VIX"] = -2
+            details.append(f"VIX {vix:.0f} 공포")
+        elif vix >= 20:
+            scores["VIX"] = -1
+            details.append(f"VIX {vix:.0f} 경계")
+        elif vix < 17:
+            scores["VIX"] = 1
+            details.append(f"VIX {vix:.0f} 안정")
+        else:
+            scores["VIX"] = 0
+
+    # 5) Liquidity is useful context, but receives less weight than Fed/inflation stress.
     if net_liquidity and not net_liquidity.get("error"):
-        nl_change = net_liquidity.get("change", 0)
-        if nl_change > 1:
-            scores["유동성"] = 2
-            details.append(f"순유동성 +{nl_change:.1f}%🟢")
-        elif nl_change > 0:
+        try:
+            nl_change = float(net_liquidity.get("change") or 0)
+        except (TypeError, ValueError):
+            nl_change = 0
+        if nl_change >= 1.0:
             scores["유동성"] = 1
             details.append(f"순유동성 +{nl_change:.1f}%")
-        elif nl_change > -1:
+        elif nl_change <= -1.0:
             scores["유동성"] = -1
             details.append(f"순유동성 {nl_change:.1f}%")
-        else:
-            scores["유동성"] = -2
-            details.append(f"순유동성 {nl_change:.1f}%🔴")
-    
-    # 종합 점수 계산
+
     if not scores:
         return {"text": "지표 데이터를 가져오는 중입니다.", "level": "yellow"}
-    
-    total_score = sum(scores.values())
-    max_possible = len(scores) * 2
-    min_possible = len(scores) * -2
-    
-    # 점수 비율 (-1.0 ~ +1.0)
-    if max_possible > 0:
-        ratio = total_score / max_possible if total_score >= 0 else total_score / abs(min_possible)
-    else:
-        ratio = 0
-    
-    # 신호등 결정
-    if total_score <= -3 or ratio <= -0.4:
+
+    total = sum(scores.values())
+    negative_axes = sum(1 for score in scores.values() if score < 0)
+    severe_axes = sum(1 for score in scores.values() if score <= -2)
+
+    # Red requires broad or severe stress; mixed policy/inflation pressure is yellow.
+    if severe_axes >= 2 or total <= -5 or negative_axes >= 4:
         level = "red"
-    elif total_score <= 0 or ratio <= 0.1:
+        judgment = "현재는 물가·정책·금융 스트레스 중 부정 압력이 넓게 나타납니다."
+    elif total <= 0 or negative_axes >= 2:
         level = "yellow"
+        judgment = "물가·통화정책 부담과 금융시장 안정 신호가 함께 나타납니다."
     else:
         level = "green"
-    
-    # 투자 행동을 지시하지 않고, 계산된 신호 구성을 설명한다.
-    detail_str = " | ".join(details[:6])
-    if level == "red":
-        judgment = "→ 현재 집계에서는 긴축·위험 신호가 상대적으로 많습니다."
-    elif level == "yellow":
-        judgment = "→ 현재 집계에서는 긍정·부정 신호가 함께 나타납니다."
-    else:
-        judgment = "→ 현재 집계에서는 완화·안정 신호가 상대적으로 많습니다."
+        judgment = "현재는 금융 스트레스가 낮고 거시 지표의 안정 신호가 상대적으로 많습니다."
 
-    text = f"{detail_str} {judgment}"
     return {
-        "text": text,
+        "text": " | ".join(details[:7]) + f" → {judgment}",
         "level": level,
-        "method": "rule-based descriptive signal aggregation",
-        "notice": "시장 환경을 설명하기 위한 요약이며 투자 행동을 권유하지 않습니다.",
+        "method": "descriptive Fed-policy/inflation/labor/financial-stress regime",
+        "components": scores,
+        "notice": "시장 환경을 설명하기 위한 요약이며 투자 행동을 권유하지 않습니다. 향후 FOMC 결정을 예측하는 신호도 아닙니다.",
     }
 
 

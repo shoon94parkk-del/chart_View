@@ -100,3 +100,11 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V61 keeps U.S. unchanged on raw `marketCap`, but Korea uses `marketCap^0.58`, matching the geometry philosophy of the first accepted Korean heatmap. The UI continues to label Korea as visually adjusted. Underlying market-cap values and quote values remain unchanged.
 
 **Rollback:** `backup/pre-kr-heatmap-v61-20260922` at `31ee4ad260c93b7c722199e0f0acef80722f32ac`.
+
+
+### Macro policy rate uses daily target bounds and EFFR
+**Observed issue:** The Market macro summary showed 3.6% as “Fed Rate” because it used monthly-average FRED `FEDFUNDS`. After an FOMC target change, that monthly series can remain stale for the user-facing meaning of “current policy rate”. Macro cards also had numeric values but blank mini-chart areas because their renderer depended on Lightweight Charts, which is intentionally lazy-loaded only for Analysis.
+
+**Decision:** V62 replaces displayed `FEDFUNDS` with a synthetic `FEDTARGET` row built from official daily FRED target lower/upper bounds (`DFEDTARL`, `DFEDTARU`) and adds daily `DFF` as EFFR. All collection stays in the scheduled GitHub Action and the app still serves a committed cache. Macro charts use inline SVG sparklines from cached chart data, adding no external chart-library request. The traffic light is reworked around inflation, Fed stance/recent target move, labor/activity, credit/VIX and liquidity, as a descriptive regime state only.
+
+**Protection:** `tests/test_macro_pce.py`, `tests/macro_policy_v62_contract.cjs`, normal mobile/production suites. Rollback: `backup/pre-macro-fed-signal-v62-20260922`.

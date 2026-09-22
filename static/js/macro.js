@@ -10,7 +10,7 @@ let macroCharts = [];
 let macroObservers = [];
 let macroLoadSeq = 0;
 
-const MACRO_RATE_SYMBOLS = new Set(['T10Y2Y', 'T10Y3M', 'BAMLH0A0HYM2', 'DFII10', 'T10YIE', 'PCEPI', 'PCETRIM12M159SFRBDAL', 'FEDFUNDS', 'UNRATE']);
+const MACRO_RATE_SYMBOLS = new Set(['T10Y2Y', 'T10Y3M', 'BAMLH0A0HYM2', 'DFII10', 'T10YIE', 'PCEPI', 'PCETRIM12M159SFRBDAL', 'FEDTARGET', 'DFF', 'UNRATE']);
 
 function cleanupMacroCharts() {
     macroObservers.forEach(observer => {
@@ -34,6 +34,9 @@ function formatMacroValue(item) {
     const value = Number(item.value);
     if (!Number.isFinite(value)) return 'N/A';
 
+    if (symbol === 'FEDTARGET' && Number.isFinite(Number(item.targetLower)) && Number.isFinite(Number(item.targetUpper))) {
+        return `${Number(item.targetLower).toFixed(2)}~${Number(item.targetUpper).toFixed(2)}%`;
+    }
     if (MACRO_RATE_SYMBOLS.has(symbol)) return `${macroNumber(value, 2)}%`;
     if (symbol === '^VIX') return macroNumber(value, 2);
     if (symbol === 'RRPONTSYD') return `$${macroNumber(value, 2)}B`;
@@ -48,6 +51,10 @@ function formatMacroChange(item) {
     const delta = Number(item.delta);
     const change = Number(item.change);
 
+    if (symbol === 'FEDTARGET' && Number.isFinite(Number(item.moveBp))) {
+        const bp = Number(item.moveBp);
+        return `${bp > 0 ? '+' : ''}${bp.toFixed(0)}bp 최근 변경`;
+    }
     if (MACRO_RATE_SYMBOLS.has(symbol) && Number.isFinite(delta)) {
         const bp = delta * 100;
         return `${bp > 0 ? '+' : ''}${bp.toFixed(Math.abs(bp) < 1 ? 1 : 0)}bp`;
@@ -195,24 +202,41 @@ function renderNetLiquidityCard(nlData) {
     requestAnimationFrame(() => drawMacroArea(chartId, nlData.chart_data || [], isUp, 120));
 }
 
+function sparklineSvg(rows, isUp, height = 80, area = false) {
+    const clean = (rows || []).map((row, index) => ({
+        x: index,
+        value: Number(row?.value),
+    })).filter((row) => Number.isFinite(row.value));
+    if (clean.length < 2) return '';
+
+    const values = clean.map((row) => row.value);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    if (max === min) { max += 0.5; min -= 0.5; }
+    const pad = (max - min) * 0.08;
+    max += pad; min -= pad;
+
+    const width = 100;
+    const yTop = 5;
+    const yBottom = height - 6;
+    const points = clean.map((row, index) => {
+        const x = clean.length === 1 ? width / 2 : (index / (clean.length - 1)) * width;
+        const y = yBottom - ((row.value - min) / (max - min)) * (yBottom - yTop);
+        return [x, y];
+    });
+    const line = points.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+    const stroke = isUp ? '#F04452' : '#3182F6';
+    const fill = area ? `${line} L100,${height} L0,${height} Z` : '';
+    return `<svg class="macro-sparkline" viewBox="0 0 100 ${height}" preserveAspectRatio="none" aria-hidden="true">
+        ${area ? `<path d="${fill}" fill="${stroke}" fill-opacity=".10"></path>` : ''}
+        <path d="${line}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>`;
+}
+
 function drawMacroArea(chartId, rows, isUp, height) {
     const container = document.getElementById(chartId);
-    if (!container || !rows.length || typeof LightweightCharts === 'undefined') return;
-    const chart = LightweightCharts.createChart(container, {
-        width: container.clientWidth, height,
-        layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#999' },
-        grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-        rightPriceScale: { visible: false }, timeScale: { visible: false, borderVisible: false },
-        handleScroll: false, handleScale: false,
-    });
-    const series = chart.addAreaSeries({
-        topColor: isUp ? 'rgba(0,200,83,.12)' : 'rgba(240,68,82,.12)',
-        bottomColor: 'transparent', lineColor: isUp ? '#00C853' : '#F04452',
-        lineWidth: 2, priceLineVisible: false, crosshairMarkerVisible: false,
-    });
-    series.setData(rows);
-    chart.timeScale().fitContent();
-    bindResponsiveChart(container, chart, height);
+    if (!container || !rows.length) return;
+    container.innerHTML = sparklineSvg(rows, isUp, height, true);
 }
 
 function renderMacroGrid(indicators) {
@@ -259,22 +283,8 @@ function renderMacroGrid(indicators) {
     });
 }
 
-function drawMacroLine(chartId, rows, isUp, symbol) {
+function drawMacroLine(chartId, rows, isUp) {
     const container = document.getElementById(chartId);
-    if (!container || typeof LightweightCharts === 'undefined') return;
-    const chart = LightweightCharts.createChart(container, {
-        width: container.clientWidth, height: 80,
-        layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#999' },
-        grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-        rightPriceScale: { visible: false }, timeScale: { visible: false, borderVisible: false },
-        handleScroll: false, handleScale: false,
-    });
-    let lineColor = isUp ? '#F04452' : '#3182F6';
-    if (symbol === '^VIX' || symbol === 'T10YIE' || symbol === 'DFII10') {
-        lineColor = isUp ? '#F04452' : '#3182F6';
-    }
-    const series = chart.addLineSeries({ color: lineColor, lineWidth: 2, priceLineVisible: false, crosshairMarkerVisible: false });
-    series.setData(rows);
-    chart.timeScale().fitContent();
-    bindResponsiveChart(container, chart, 80);
+    if (!container || !rows?.length) return;
+    container.innerHTML = sparklineSvg(rows, isUp, 80, false);
 }
