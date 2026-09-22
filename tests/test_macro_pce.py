@@ -23,5 +23,5 @@ def test_yoy_transform_uses_same_month_previous_year():
 
 def test_policy_rate_uses_daily_target_range_and_effr():
     assert INDICATORS["FEDTARGET"]["feed"] == "policy:fedtarget"
-    assert INDICATORS["DFF"]["feed"] == "fredcsv:DFF"
+    assert INDICATORS["DFF"]["feed"] == "equibles:dff"
     assert "FEDFUNDS" not in INDICATORS
