@@ -215,3 +215,13 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Global quote cache TTL is 5 seconds; Korean realtime cache was already 5 seconds.
 - Browser regression asserts Samsung Card and Heatmap both move to the same +1.23% from the same live batch.
 - Rollback: `backup/pre-home-card-heatmap-parity-v65-20260922`.
+
+
+## 2026-09-22 Server-live + private usage V66
+- Home Card/Heatmap no longer call provider-backed `/api/quotes`; they read Render's `/api/home-live` memory snapshot every 5 seconds.
+- Background worker owns provider refresh: open market + active Home viewer => 5-second refresh; no active Home viewers/closed market => no provider polling.
+- Watchlist live polling remains separate and Watchlist-only.
+- Global anonymous heartbeat runs every 20s. Daily visitor identity is a salted hash of a random browser ID.
+- Owner dashboard: `/admin/usage`; API requires `X-ChartView-Admin`. Secrets live only in Render environment.
+- Analytics are process-local and reset on deploy/restart. Do not claim durable historical user counts.
+- Rollback: `backup/pre-server-live-cache-v66-20260922`.
