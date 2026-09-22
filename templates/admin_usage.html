@@ -48,6 +48,7 @@
           <dt>Worker 모드</dt><dd id="mode">-</dd>
           <dt>서버 시작</dt><dd id="started">-</dd>
           <dt>집계 범위</dt><dd id="scope">-</dd>
+          <dt>일일 집계 저장소</dt><dd id="backend">-</dd>
           <dt>마지막 오류</dt><dd id="error">없음</dd>
         </dl>
       </div>
@@ -85,6 +86,7 @@
       set('mode', data.live?.mode);
       set('started', data.serverStartedAt);
       set('scope', data.countScope);
+      set('backend', data.analyticsBackend || 'memory');
       set('error', data.live?.lastError || '없음');
       content.hidden = false;
       status.textContent = '15초마다 자동 갱신됩니다.';
