@@ -1406,6 +1406,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const SORT_KEY = 'chartview-watchlist-sort-v33';
   const QUOTE_FRESH_MS = 5 * 60 * 1000;
+  const RETURN_FRESH_MS = 12 * 60 * 60 * 1000;
+  const ENTRY_REFRESH_THROTTLE_MS = 60 * 1000;
   const MAX_WATCHLIST = 20;
   const DEFAULT_WATCHLIST = [
     { symbol: '005930.KS', name: '삼성전자' },
@@ -1439,6 +1441,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let quoteSeq = 0;
   let quoteLoadPromise = null;
   let searchTimer = null;
+  let lastEntryRefreshAt = 0;
+  let entryReturnTimer = null;
   const quoteQueue = new Set();
   const returnQueue = new Set();
   const quoteStatus = new Map();
@@ -1865,7 +1869,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     updateSummary();
   }
 
-  function render({ refreshQuotes = true } = {}) {
+  function render({ refreshQuotes = false } = {}) {
     const tab = installTab();
     if (!tab) return;
     const count = tab.querySelector('[data-watch-count]');
@@ -1910,7 +1914,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const quote = quoteFor(symbol);
     return Boolean(quote)
       && quote.return !== null && quote.return !== undefined
-      && Date.now() - Number(quote.returnUpdatedAt || 0) < QUOTE_FRESH_MS;
+      && Date.now() - Number(quote.returnUpdatedAt || 0) < RETURN_FRESH_MS;
   }
 
   function setRowState(symbol, state) {
@@ -2197,6 +2201,64 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     }
   }
 
+  async function refreshCurrentQuotesQuietly() {
+    const symbols = watchlist
+      .map((row) => row.symbol)
+      .filter((symbol) => !quoteIsFresh(symbol));
+    if (!symbols.length) return;
+
+    try {
+      await fetchQuoteBatch(symbols.slice(0, 20));
+      quoteCache.updatedAt = Date.now();
+      saveQuoteCache();
+      updateSummary();
+      updateUpdatedLabel(false);
+      renderHomeShortcut();
+    } catch (_) {
+      // Screen entry must remain instant even when the provider is slow/down.
+    }
+  }
+
+  async function refreshReturnsQuietly() {
+    const symbols = watchlist
+      .map((row) => row.symbol)
+      .filter((symbol) => !returnIsFresh(symbol));
+    if (!symbols.length) return;
+
+    for (let i = 0; i < symbols.length; i += 6) {
+      const batch = symbols.slice(i, i + 6);
+      try {
+        await fetchReturnBatch(batch);
+      } catch (_) {
+        // Keep cached returns; explicit refresh owns user-visible retry state.
+      }
+    }
+    saveQuoteCache();
+    updateSummary();
+    renderHomeShortcut();
+    if (sortMode === 'return-desc' || sortMode === 'return-asc') renderGrid();
+  }
+
+  function refreshWatchlistOnEntry() {
+    const now = Date.now();
+    if (now - lastEntryRefreshAt < ENTRY_REFRESH_THROTTLE_MS) return;
+    lastEntryRefreshAt = now;
+
+    // Entry is stale-while-revalidate: paint cached rows immediately, then only
+    // refresh lightweight current quotes. Historical 1-month returns are much
+    // more expensive and change far less often, so refresh them later and only
+    // when their separate long TTL has expired.
+    refreshCurrentQuotesQuietly();
+
+    clearTimeout(entryReturnTimer);
+    const runReturns = () => refreshReturnsQuietly();
+    if ('requestIdleCallback' in window) {
+      entryReturnTimer = setTimeout(() => requestIdleCallback(runReturns, { timeout: 2500 }), 1200);
+    } else {
+      entryReturnTimer = setTimeout(runReturns, 1800);
+    }
+  }
+
   async function loadQuotes(force = false) {
     return loadQuoteRows([...watchlist], force);
   }
@@ -2303,6 +2365,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   window.__installWatchlist = installTab;
   window.__renderWatchlist = render;
+  window.__refreshWatchlistOnEntry = refreshWatchlistOnEntry;
   window.__isWatchlisted = isWatchlisted;
   window.__toggleWatchlist = toggleWatchlist;
   window.__recordRecentTicker = recordRecent;
@@ -2318,7 +2381,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       if (typeof window.loadData === 'function' && document.getElementById('chart-tab')?.classList.contains('active')) window.loadData();
     } catch (_) { }
     renderHomeShortcut();
-    render();
+    // App boot only paints locally cached watchlist data. Do not start a hidden
+    // full watchlist quote/history refresh before the user even opens the tab.
+    render({ refreshQuotes: false });
     setTimeout(renderHomeShortcut, 500);
     setTimeout(renderHomeShortcut, 1800);
     document.addEventListener('chartview:watchlist-change', renderHomeShortcut);
@@ -2501,10 +2566,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       const grid = document.getElementById('watchlist-v30-grid');
       if (grid && grid.childElementCount) {
         schedule();
+        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
         return grid;
       }
       const result = base.apply(this, arguments);
       schedule();
+      setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
       return result;
     };
   }
