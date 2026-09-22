@@ -163,3 +163,8 @@ A user-visible change is complete only when:
 - Every watchlist card gets a stable `오늘 —` slot immediately; a missing/late current quote no longer makes the row structurally different on mobile.
 - Home heatmap no longer blindly prefers its private browser cache. It compares the private heatmap payload with the shared Home snapshot and uses the fresher one; equal timestamps prefer Home so Card and Heatmap stay synchronized.
 - The first heatmap revalidation uses a short timer rather than `requestIdleCallback`, avoiding desktop delays caused by long busy/idle scheduling.
+
+
+## PICK ledger correction — Intekplus
+- 2026-09-22 user correction: `064290.KQ 인텍플러스` remains valid only for 2026-09-14. Its later manual selections on 2026-09-17 and 2026-09-21 were removed from both source PICK history and recommendation performance history.
+- Corrected user-final dates retain only their actually confirmed remaining names; no replacement stock is fabricated.
