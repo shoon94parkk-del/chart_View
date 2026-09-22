@@ -46,6 +46,13 @@ Primary file: `static/js/watchlist_v30.js`.
 - Current price + 1-month return are shown.
 - Add/remove must persist and paint immediately.
 - Adding one stock must **never refresh every existing watchlist row**.
+- Opening the Watchlist screen is cache-first and must not start a foreground/full-list historical refresh.
+- App boot paints cached watchlist values only; it does not secretly refresh the whole watchlist.
+- On Watchlist entry:
+  1. cached rows render immediately,
+  2. stale current quotes may revalidate quietly through `/api/quotes`,
+  3. 1-month returns use a separate 12-hour freshness window and only revalidate later/idle when stale.
+- Explicit `↻ 새로고침` is the foreground path that may force both current quotes and 1-month returns.
 - New-stock priority path:
   1. lightweight current quote via `/api/quotes`
   2. only that symbol's 1-month return via `/api/compare?period=1mo` in background
