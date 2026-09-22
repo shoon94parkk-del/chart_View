@@ -1,24 +1,78 @@
 {
-  "generatedAt": "2026-09-22T01:54:18.725775+00:00",
+  "generatedAt": "2026-09-22T03:02:18.585934+00:00",
   "source": "github-actions-yahoo-chart",
   "heatmap": {
     "results": [
       {
         "ticker": "005930.KS",
         "name": "SamsungElec",
-        "price": 279500.0,
-        "change": 12.4748,
-        "marketCap": 5107901,
-        "asOf": "2026-09-22T01:34:15+00:00",
+        "price": 280500.0,
+        "change": 12.8773,
+        "marketCap": 1846845869391872.0,
+        "asOf": "2026-09-22T02:42:12+00:00",
         "stale": false
       },
       {
         "ticker": "000660.KS",
         "name": "SK hynix",
-        "price": 1916000.0,
-        "change": 13.3728,
-        "marketCap": 944638,
-        "asOf": "2026-09-22T01:34:15+00:00",
+        "price": 1919000.0,
+        "change": 13.5503,
+        "marketCap": 1371439697494016.0,
+        "asOf": "2026-09-22T02:42:12+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "207940.KS",
+        "name": "SAMSUNG BIOLOGICS",
+        "price": 1397000.0,
+        "change": -1.0623,
+        "marketCap": 64853624487936.0,
+        "asOf": "2026-09-22T02:42:12+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "005380.KS",
+        "name": "HyundaiMtr",
+        "price": 367000.0,
+        "change": 0.0,
+        "marketCap": 95438518616064.0,
+        "asOf": "2026-09-22T02:42:13+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "000270.KS",
+        "name": "KIA CORP.",
+        "price": 120500.0,
+        "change": -1.0673,
+        "marketCap": 46871917625344.0,
+        "asOf": "2026-09-22T02:42:12+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "373220.KS",
+        "name": "LG Energy Solution",
+        "price": 352500.0,
+        "change": -3.5568,
+        "marketCap": 82602002219008.0,
+        "asOf": "2026-09-22T02:42:10+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "035420.KS",
+        "name": "NAVER",
+        "price": 201500.0,
+        "change": -2.1845,
+        "marketCap": 30410281058304.0,
+        "asOf": "2026-09-22T02:42:14+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "068270.KS",
+        "name": "Celltrion",
+        "price": 179300.0,
+        "change": 1.0141,
+        "marketCap": 41244495446016.0,
+        "asOf": "2026-09-22T02:42:13+00:00",
         "stale": false
       },
       {
@@ -26,7 +80,7 @@
         "name": "NVIDIA Corporation",
         "price": 227.38,
         "change": 7.7835,
-        "marketCap": 109274173,
+        "marketCap": 5490544738304.0,
         "asOf": "2026-09-21T20:00:00+00:00",
         "stale": false
       },
@@ -35,7 +89,7 @@
         "name": "Apple Inc.",
         "price": 338.98,
         "change": 1.7713,
-        "marketCap": 34913171,
+        "marketCap": 4947135430656.0,
         "asOf": "2026-09-21T20:00:01+00:00",
         "stale": false
       },
@@ -44,25 +98,7 @@
         "name": "Microsoft Corporation",
         "price": 501.61,
         "change": -0.7519,
-        "marketCap": 26347908,
-        "asOf": "2026-09-21T20:00:01+00:00",
-        "stale": false
-      },
-      {
-        "ticker": "META",
-        "name": "Meta Platforms, Inc.",
-        "price": 741.245,
-        "change": 11.3649,
-        "marketCap": 48450536,
-        "asOf": "2026-09-21T20:00:01+00:00",
-        "stale": false
-      },
-      {
-        "ticker": "TSLA",
-        "name": "Tesla, Inc.",
-        "price": 375.3,
-        "change": 4.5491,
-        "marketCap": 36296184,
+        "marketCap": 3724727812096.0,
         "asOf": "2026-09-21T20:00:01+00:00",
         "stale": false
       },
@@ -71,7 +107,61 @@
         "name": "Alphabet Inc.",
         "price": 354.97,
         "change": 1.5971,
-        "marketCap": 28211544,
+        "marketCap": 4341260091392.0,
+        "asOf": "2026-09-21T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "AMZN",
+        "name": "Amazon.com, Inc.",
+        "price": 258.45,
+        "change": 1.9366,
+        "marketCap": 2787722657792.0,
+        "asOf": "2026-09-21T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "TSM",
+        "name": "Taiwan Semiconductor Manufactur",
+        "price": 445.14,
+        "change": 6.4903,
+        "marketCap": 2308707188736.0,
+        "asOf": "2026-09-21T20:00:02+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "META",
+        "name": "Meta Platforms, Inc.",
+        "price": 741.245,
+        "change": 11.3649,
+        "marketCap": 1888326254592.0,
+        "asOf": "2026-09-21T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "AVGO",
+        "name": "Broadcom Inc.",
+        "price": 362.66,
+        "change": 5.2042,
+        "marketCap": 1731204612096.0,
+        "asOf": "2026-09-21T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "TSLA",
+        "name": "Tesla, Inc.",
+        "price": 375.3,
+        "change": 4.5491,
+        "marketCap": 1482265198592.0,
+        "asOf": "2026-09-21T20:00:01+00:00",
+        "stale": false
+      },
+      {
+        "ticker": "AMD",
+        "name": "Advanced Micro Devices, Inc.",
+        "price": 615.52,
+        "change": 24.7482,
+        "marketCap": 1004821020672.0,
         "asOf": "2026-09-21T20:00:01+00:00",
         "stale": false
       }
