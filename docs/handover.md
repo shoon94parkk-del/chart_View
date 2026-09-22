@@ -156,3 +156,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Labels explicitly distinguish Korean visual adjustment from U.S. actual market-cap share.
 - Browser heatmap cache key moved to V60; data source/cache/API behavior is unchanged.
 - Rollback branch: `backup/pre-kr-heatmap-compression-v60-20260922`.
+
+## 2026-09-22 Heatmap KR balance V61
+- U.S. remains raw market-cap weighting exactly as V59/V60.
+- Korea changed from `marketCap^0.82` to `marketCap^0.58` because V60 was visually too close to raw sizing.
+- This restores the more balanced first Korean layout: Samsung Electronics/SK hynix stay largest, while the other representative names receive materially more readable area.
+- Browser heatmap cache key moved to V61.
+- Rollback branch: `backup/pre-kr-heatmap-v61-20260922`.
