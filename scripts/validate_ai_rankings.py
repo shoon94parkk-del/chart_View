@@ -52,9 +52,7 @@ def validate(day: dict, by_symbol: dict[str, dict] | None = None, by_name: dict[
         actual_ranks = [int(number(pick.get("rank"))) for pick in picks]
         if not (1 <= len(picks) <= 3) or actual_ranks != list(range(1, len(picks) + 1)):
             errors.append(f"{date}: user final selection must contain ranked 1..3 picks")
-    else:
-        if source_type != "gpt_screener_review":
-            errors.append(f"{date}: analysis.sourceType must be gpt_screener_review")
+    elif source_type == "gpt_screener_review":
         if analysis.get("status") != "complete" or not analysis.get("model") or not analysis.get("candidateTradeDate"):
             errors.append(f"{date}: completed GPT model and candidateTradeDate are required")
         if analysis.get("candidateTradeDate") != date:
@@ -64,19 +62,25 @@ def validate(day: dict, by_symbol: dict[str, dict] | None = None, by_name: dict[
             errors.append(f"{date}: companyGrowth weight must exceed technical weight")
         if len(picks) != 3 or [number(pick.get("rank")) for pick in picks] != [1, 2, 3]:
             errors.append(f"{date}: exactly ranked TOP3 is required")
+    elif source_type:
+        errors.append(f"{date}: unsupported analysis.sourceType {source_type}")
+    else:
+        # Historical PICK days published before analysis metadata was introduced.
+        if len(picks) != 3 or [number(pick.get("rank")) for pick in picks] != [1, 2, 3]:
+            errors.append(f"{date}: legacy published day must retain ranked TOP3")
 
     for pick in picks:
         symbol = str(pick.get("symbol") or "").upper()
         code = str(pick.get("code") or "")
         name = str(pick.get("name") or "")
 
-        if source_type == "user_final_selection":
-            if not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
-                errors.append(f"{date}: incomplete user-final pick {pick.get('rank')}")
-                continue
-        else:
+        if not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
+            errors.append(f"{date}: incomplete pick {pick.get('rank')}")
+            continue
+
+        if source_type == "gpt_screener_review":
             missing = [key for key in REQUIRED_SCORES if key not in pick]
-            if missing or not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
+            if missing:
                 errors.append(f"{date}: incomplete pick {pick.get('rank')}")
                 continue
             total = sum(number(pick.get(key)) for key in REQUIRED_SCORES)
@@ -93,10 +97,14 @@ def validate(day: dict, by_symbol: dict[str, dict] | None = None, by_name: dict[
                 hint = f"; expected={','.join(expected_symbols)}" if expected_symbols else ""
                 errors.append(f"{date}: symbol not found for {name}: {symbol}{hint}")
             elif normalize_name(row.get("name")) != normalize_name(name):
-                hint = f"; expected={','.join(expected_symbols)}" if expected_symbols else ""
-                errors.append(
-                    f"{date}: identity mismatch: {symbol} is {row.get('name')}, not {name}{hint}"
-                )
+                # Display-name aliases are accepted when the supplied name does
+                # not resolve to a different known symbol (e.g. LS ELECTRIC vs 엘에스일렉트릭).
+                conflicting = [candidate for candidate in expected_symbols if candidate != symbol]
+                if conflicting:
+                    errors.append(
+                        f"{date}: identity mismatch: {symbol} is {row.get('name')}, not {name}; "
+                        f"expected={','.join(conflicting)}"
+                    )
     return errors
 
 
@@ -107,7 +115,7 @@ def main() -> None:
     errors = [error for day in payload.get("days") or [] for error in validate(day, by_symbol, by_name)]
     if errors:
         raise SystemExit("\n".join(errors))
-    print(f"Validated {len(payload.get('days') or [])} GPT-reviewed TOP3 days with symbol/name identity checks")
+    print(f"Validated {len(payload.get('days') or [])} published PICK days with source-aware identity checks")
 
 
 if __name__ == "__main__":
