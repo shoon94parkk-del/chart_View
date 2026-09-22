@@ -2,7 +2,7 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v59';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v60';
   const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 60_000;
@@ -81,9 +81,11 @@
   }
 
   function relativeWeight(row) {
-    // Finviz-style semantics: tile AREA is the actual market-cap share
-    // within each market group. Do not compress or expand cap differences.
-    return Math.max(1, number(row.marketCap) || 1);
+    const cap = Math.max(1, number(row.marketCap) || 1);
+    // U.S.: preserve Finviz-style true market-cap area.
+    // Korea: gently compress mega-cap dominance so the remaining large caps
+    // stay readable on mobile. The non-linear scale is explicitly labeled.
+    return row.market === 'KR' ? Math.pow(cap, 0.82) : cap;
   }
 
   function layout(items, x, y, width, height, out) {
@@ -325,10 +327,10 @@
       panel.dataset.cvhmPanel = '';
       panel.innerHTML =
         '<div class="cvhm-board">' +
-          '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇰🇷 한국 대표</strong><span>KRW 시총 기준</span></div><div class="cvhm-treemap" data-cvhm-market="KR"></div></section>' +
-          '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇺🇸 미국 대표</strong><span>USD 시총 기준</span></div><div class="cvhm-treemap" data-cvhm-market="US"></div></section>' +
+          '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇰🇷 한국 대표</strong><span>KRW 시총 기준 · 시인성 보정</span></div><div class="cvhm-treemap" data-cvhm-market="KR"></div></section>' +
+          '<section class="cvhm-market"><div class="cvhm-market-head"><strong>🇺🇸 미국 대표</strong><span>USD 실제 시총 비중</span></div><div class="cvhm-treemap" data-cvhm-market="US"></div></section>' +
         '</div>' +
-        '<div class="cvhm-legend"><span><i class="up"></i>상승</span><span><i class="flat"></i>보합</span><span><i class="down"></i>하락</span><small>박스 면적 = 같은 시장 내 실제 시가총액 비중</small></div>';
+        '<div class="cvhm-legend"><span><i class="up"></i>상승</span><span><i class="flat"></i>보합</span><span><i class="down"></i>하락</span><small>미국 = 실제 시총 비중 · 한국 = 시총 영향 완화</small></div>';
       const strip = card.querySelector('[data-home-stock-strip]');
       if (strip) strip.insertAdjacentElement('afterend', panel);
       else card.appendChild(panel);
@@ -431,7 +433,7 @@
   }
 
   window.ChartViewHomeHeatmap = Object.freeze({
-    version: 'v59',
+    version: 'v60',
     refresh,
     refreshMs: REFRESH_MS
   });
