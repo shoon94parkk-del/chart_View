@@ -65,3 +65,10 @@ Valuation-band requests were batched, parsed Home source files are memory-cached
 
 ## Earlier decisions
 See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md`, and V35-V41 documents for older detailed design/history.
+
+### Home major stocks get a cache-backed market-cap heatmap
+**Problem:** The horizontal major-stock strip is easy to read one-by-one but does not communicate market breadth or relative company scale like Finviz. A naive heatmap implementation would add many provider calls and slow Home.
+
+**Decision:** add an independent V57 heatmap layer with a Card/Heatmap toggle. It reuses the existing Home stale-while-revalidate snapshot via a cheap `/api/heatmap` projection. The browser requests it only after idle and then at 60-second visible-Home intervals. Korea and U.S. are rendered as separate treemap groups because their raw market caps are denominated in different currencies. Actual market cap comes from the valuation cache; the previous snapshot generator bug that wrote trading volume into `marketCap` is removed. Logos render only on sufficiently large tiles.
+
+**Protection:** `tests/home_heatmap_v57_contract.cjs`, existing Home/mobile suites, exact-revision production verification. Rollback baseline: `backup/pre-home-heatmap-20260922` at `7be471906681700b0509e6186a734d385b636c9c`.
