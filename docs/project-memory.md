@@ -47,7 +47,7 @@ Primary file: `static/js/watchlist_v30.js`.
 - Add/remove must persist and paint immediately.
 - Adding one stock must **never refresh every existing watchlist row**.
 - Opening the Watchlist screen is cache-first and must not start a foreground/full-list historical refresh.
-- App boot paints cached watchlist values only; it does not secretly refresh the whole watchlist.
+- App boot paints cached watchlist values immediately and may quietly revalidate lightweight current quotes, but it does not start 1-month historical refreshes.
 - On Watchlist entry:
   1. cached rows render immediately,
   2. stale current quotes may revalidate quietly through `/api/quotes`,
