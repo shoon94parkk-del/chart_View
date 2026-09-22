@@ -205,3 +205,13 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Validate GPT TOP3 workflow passed after source-aware validator alignment.
 - The automatic `data: refresh GPT TOP3 track record` commit preserved the correction: Intekplus exists only on 2026-09-14; 2026-09-17 and 2026-09-21 remain two-name manual selections.
 - This note intentionally triggers a final exact-revision production verification on top of the bot-generated data refresh.
+
+
+## 2026-09-22 Home live parity V65
+- Home Card + Heatmap are now driven by one shared merged live-quote state.
+- Initial Home: one batch `/api/quotes` for all 18 displayed symbols.
+- Open market: 5-second quote polling only for the active KR or US group; hidden/inactive Home does not poll.
+- `/api/heatmap` is geometry/market-cap support and refreshes every 5 minutes, not the intraday price path.
+- Global quote cache TTL is 5 seconds; Korean realtime cache was already 5 seconds.
+- Browser regression asserts Samsung Card and Heatmap both move to the same +1.23% from the same live batch.
+- Rollback: `backup/pre-home-card-heatmap-parity-v65-20260922`.
