@@ -167,11 +167,21 @@ def test_home_pick_bootstrap_prefers_latest_version_and_disables_stale_cache():
     assert '"Cache-Control": "no-cache, max-age=0, must-revalidate"' in main
 
 
-def test_2026_09_21_pick_is_published_to_rankings_and_ledger():
+def test_intekplus_is_kept_only_on_2026_09_14_after_user_correction():
     import json
     rankings = json.loads(read("static/data/ai_daily_rankings.json"))
     ledger = json.loads(read("static/data/ai_recommendations.json"))
-    day = next(row for row in rankings.get("days", []) if row.get("tradeDate") == "2026-09-21")
-    assert [row.get("name") for row in day.get("top3", [])] == ["삼성전자", "효성중공업", "인텍플러스"]
-    published = [row for row in ledger.get("recommendations", []) if row.get("recommendedDate") == "2026-09-21"]
-    assert [row.get("name") for row in sorted(published, key=lambda row: row.get("rank", 0))] == ["삼성전자", "효성중공업", "인텍플러스"]
+
+    day_14 = next(row for row in rankings.get("days", []) if row.get("tradeDate") == "2026-09-14")
+    assert any(row.get("name") == "인텍플러스" for row in day_14.get("top3", []))
+
+    day_17 = next(row for row in rankings.get("days", []) if row.get("tradeDate") == "2026-09-17")
+    day_21 = next(row for row in rankings.get("days", []) if row.get("tradeDate") == "2026-09-21")
+    assert [row.get("name") for row in day_17.get("top3", [])] == ["펌텍코리아", "이오테크닉스"]
+    assert [row.get("name") for row in day_21.get("top3", [])] == ["삼성전자", "효성중공업"]
+
+    intek_rows = [
+        row for row in ledger.get("recommendations", [])
+        if row.get("symbol") == "064290.KQ"
+    ]
+    assert [row.get("recommendedDate") for row in intek_rows] == ["2026-09-14"]
