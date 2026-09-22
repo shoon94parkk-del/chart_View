@@ -53,6 +53,7 @@ jobs:
           pip install -q -r requirements.txt pytest httpx
           python -m pytest -q
           node --test tests/frontend.test.cjs
+          node --test tests/live_quotes_v56_contract.cjs
       - name: Static cache shape
         run: |
           python - <<'PY'
