@@ -144,3 +144,12 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V65 separates slow geometry from fast quote state. Market-cap geometry remains cached and uses `/api/heatmap` only on a 5-minute cadence. One concurrent batch `/api/quotes` request fetches all 18 displayed symbols on Home activation; while a market is open, only that market's displayed symbols are refreshed every 5 seconds. The same merged rows update Card and Heatmap in one render pass. The server current-quote TTL is reduced from 60s to 5s. No extra historical calls are introduced.
 
 **Rollback:** `backup/pre-home-card-heatmap-parity-v65-20260922`.
+
+
+### Home live quotes become server-driven and activity-gated
+**Context:** V65 made Card and Heatmap share one fast quote batch, but each browser still triggered `/api/quotes`. On the Free Render plan this meant user traffic could still initiate provider work, while the desired model was “Render owns the latest snapshot; users only read it”.
+
+**Decision:** V66 introduces one Render background worker. It refreshes the currently open market's Home symbols every 5 seconds only while a visitor heartbeat says at least one user is actively viewing Home. When Home has no active viewers, provider polling stops; when markets are closed, it also stops. Browsers poll only the tiny in-memory `/api/home-live` payload. This caps provider work independent of concurrent Home viewers while preserving Card/Heatmap parity.
+
+### Usage counting is private, anonymous, and process-local
+**Decision:** add a random browser heartbeat and store only salted daily hashes in Render memory. The private `/admin/usage` page uses a server environment token and is not linked from the public UI. Counts are intentionally labeled as current-instance values because free durable analytics storage is not part of V66.
