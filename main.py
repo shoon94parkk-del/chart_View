@@ -23,6 +23,10 @@ import threading
 import re
 import hashlib
 import secrets
+try:
+    import redis.asyncio as redis_async
+except Exception:
+    redis_async = None
 from market_service import fetch_compare_stock, fetch_valuation_snapshot, fetch_quote_snapshot, fetch_history_series
 from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
@@ -69,6 +73,7 @@ HOME_LIVE_WAKE_EVENT = None
 VISITOR_STATE_LOCK = threading.Lock()
 VISITOR_LAST_SEEN = {}
 VISITOR_DAILY = {}
+ANALYTICS_REDIS_CLIENT = None
 SERVER_STARTED_AT = datetime.now(timezone.utc).isoformat()
 KST = ZoneInfo("Asia/Seoul")
 ET = ZoneInfo("America/New_York")
@@ -217,6 +222,50 @@ def _visitor_counts() -> tuple[int, int, int]:
             len(active),
             sum(1 for row in active if row.get("surface") == "home"),
         )
+
+
+async def _analytics_redis_client():
+    global ANALYTICS_REDIS_CLIENT
+    if ANALYTICS_REDIS_CLIENT is not None:
+        return ANALYTICS_REDIS_CLIENT
+    url = os.environ.get("CHARTVIEW_ANALYTICS_REDIS") or ""
+    if not url or redis_async is None:
+        return None
+    try:
+        client = redis_async.from_url(url, decode_responses=True, socket_timeout=1.5)
+        await client.ping()
+        ANALYTICS_REDIS_CLIENT = client
+        return client
+    except Exception as exc:
+        print(f"[ANALYTICS] Redis unavailable, memory fallback: {exc}")
+        return None
+
+
+async def _persist_daily_visitor(visitor_id: str) -> bool:
+    client = await _analytics_redis_client()
+    if client is None:
+        return False
+    day = _today_kst()
+    key = f"chartview:visitors:{day}"
+    try:
+        await client.sadd(key, _visitor_hash(visitor_id, day))
+        await client.expire(key, 60 * 60 * 24 * 10)
+        return True
+    except Exception as exc:
+        print(f"[ANALYTICS] Redis write failed: {exc}")
+        return False
+
+
+async def _persistent_today_unique() -> tuple[int | None, str]:
+    client = await _analytics_redis_client()
+    if client is None:
+        return None, "memory"
+    key = f"chartview:visitors:{_today_kst()}"
+    try:
+        return int(await client.scard(key)), "render-key-value"
+    except Exception as exc:
+        print(f"[ANALYTICS] Redis read failed: {exc}")
+        return None, "memory"
 
 
 def _seed_home_live_from_snapshot(snapshot: dict | None) -> None:
@@ -519,6 +568,7 @@ async def visitor_activity(request: Request):
     if not visitor_id or len(visitor_id) > 128 or not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", visitor_id):
         raise HTTPException(400, "유효한 방문자 식별자가 필요합니다.")
     _record_visitor(visitor_id, surface)
+    await _persist_daily_visitor(visitor_id)
     if HOME_LIVE_WAKE_EVENT is not None and surface == "home":
         HOME_LIVE_WAKE_EVENT.set()
     return {
@@ -558,16 +608,22 @@ async def admin_usage_page(request: Request):
 async def admin_usage_data(request: Request):
     if not _admin_token_ok(request):
         raise HTTPException(403, "관리자 인증이 필요합니다.")
-    today_unique, active_now, active_home = _visitor_counts()
+    memory_today, active_now, active_home = _visitor_counts()
+    persistent_today, backend = await _persistent_today_unique()
     markets = _open_home_markets()
-    return {
+    payload = {
         "date": _today_kst(),
-        "todayUniqueBrowsers": today_unique,
+        "todayUniqueBrowsers": persistent_today if persistent_today is not None else memory_today,
         "activeNow": active_now,
         "activeHome": active_home,
         "heartbeatWindowSec": VISITOR_ACTIVE_WINDOW_SEC,
         "serverStartedAt": SERVER_STARTED_AT,
-        "countScope": "current Render instance; anonymous browser ID; resets on deploy/restart",
+        "countScope": (
+            "anonymous browser ID · daily unique in Render Key Value"
+            if backend == "render-key-value"
+            else "anonymous browser ID · current Render process memory fallback"
+        ),
+        "analyticsBackend": backend,
         "live": {
             "openMarkets": list(markets),
             "updatedAt": HOME_LIVE_CACHE.get("updatedAt"),
@@ -578,6 +634,7 @@ async def admin_usage_data(request: Request):
             "mode": "5s while Home has active visitors; no provider polling when Home is idle/markets closed",
         },
     }
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/quotes")
