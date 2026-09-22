@@ -43,7 +43,7 @@ INDICATORS: dict[str, dict[str, str]] = {
     "WTREGEN": {"name": "재무부 일반계정 (TGA)", "desc": "미 재무부 일반계정 잔액입니다.", "link": "https://fred.stlouisfed.org/series/WTREGEN", "feed": "dbnomics:FED/H41/RESPPLLDT_N.WW"},
     "M2SL": {"name": "M2 통화량 (Money Supply)", "desc": "미국 M2 통화량입니다.", "link": "https://fred.stlouisfed.org/series/M2SL", "feed": "equibles:m2sl"},
     "FEDTARGET": {"name": "연준 목표금리 범위", "desc": "FOMC가 정한 연방기금금리 목표 범위입니다. 정책 결정이 반영되면 일 단위로 갱신됩니다.", "link": "https://fred.stlouisfed.org/series/DFEDTARU", "feed": "policy:fedtarget"},
-    "DFF": {"name": "실효 연방기금금리 (EFFR)", "desc": "미국 은행간 실제 익일 연방기금 거래를 바탕으로 한 실효금리입니다.", "link": "https://fred.stlouisfed.org/series/DFF", "feed": "fredcsv:DFF"},
+    "DFF": {"name": "실효 연방기금금리 (EFFR)", "desc": "미국 은행간 실제 익일 연방기금 거래를 바탕으로 한 실효금리입니다.", "link": "https://fred.stlouisfed.org/series/DFF", "feed": "equibles:dff"},
     "^VIX": {"name": "공포 지수 (VIX)", "desc": "CBOE VIX 종가 시계열입니다.", "link": "https://fred.stlouisfed.org/series/VIXCLS", "feed": "equibles:vixcls"},
 }
 
@@ -195,8 +195,8 @@ def fetch_dbnomics(path: str) -> list[dict[str, Any]]:
 
 def fetch_policy_target() -> dict[str, Any]:
     """Build one visible policy-rate row from the official daily target bounds."""
-    lower_rows = fetch_fred_csv("DFEDTARL")
-    upper_rows = fetch_fred_csv("DFEDTARU")
+    lower_rows = fetch_equibles("dfed tarl".replace(" ", ""))
+    upper_rows = fetch_equibles("dfedtaru")
     lower_map = {row["time"]: row["value"] for row in lower_rows}
     upper_map = {row["time"]: row["value"] for row in upper_rows}
     common_dates = sorted(set(lower_map) & set(upper_map))
@@ -237,7 +237,7 @@ def fetch_policy_target() -> dict[str, Any]:
         "previousTargetLower": previous_distinct["lower"],
         "previousTargetUpper": previous_distinct["upper"],
         "chart_data": chart_rows[-120:],
-        "source": "Federal Reserve · FRED daily target range",
+        "source": "Federal Reserve / FRED mirror · Equibles daily target range",
         "asOf": latest["time"],
         "stale": False,
     }
