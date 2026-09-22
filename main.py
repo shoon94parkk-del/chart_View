@@ -956,7 +956,7 @@ def generate_macro_summary(ordered_results, net_liquidity):
         "level": level,
         "method": "descriptive Fed-policy/inflation/labor/financial-stress regime",
         "components": scores,
-        "notice": "현재 시장·통화정책 환경을 설명하는 상태 요약이며 투자 행동 또는 향후 FOMC 결정을 예측하지 않습니다.",
+        "notice": "시장 환경을 설명하기 위한 요약이며 투자 행동을 권유하지 않습니다. 향후 FOMC 결정을 예측하는 신호도 아닙니다.",
     }
 
 
