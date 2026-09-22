@@ -15,6 +15,11 @@ These rules come from bugs already seen in production. Do not remove a guardrail
 ## Watchlist responsiveness
 - Add/remove feels immediate and does not wait for network.
 - Adding one stock does not refetch the full watchlist.
+- Merely opening Watchlist does not trigger a foreground/full-list historical refresh.
+- App boot does not secretly refresh the whole watchlist.
+- Cached rows paint first on entry.
+- Entry-time revalidation may refresh stale current quotes quietly, but 1-month returns use a separate long TTL and deferred background refresh.
+- Explicit manual refresh is the only foreground path that may force quote + return refresh for the whole list.
 - New stock gets `/api/quotes` first.
 - Only the new stock gets its 1-month `/api/compare` fetch.
 - Existing cached rows remain visible if refresh fails.
