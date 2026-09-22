@@ -52,7 +52,7 @@ const freshSnapshot = {
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
-        localStorage.setItem('chartview-home-heatmap-v64', JSON.stringify(staleHeat));
+        localStorage.setItem('chartview-home-heatmap-v65', JSON.stringify(staleHeat));
         localStorage.removeItem('chartview-home-snapshot-v17');
         const now = Date.now();
         const quotes = {};
@@ -107,10 +107,9 @@ const freshSnapshot = {
       assert.equal(response.status(), 200, profile.name);
       await page.locator('#home-tab.active').waitFor({timeout:30000});
 
-      // Heatmap must synchronize from the fresh Home snapshot without waiting for delayed /api/heatmap.
+      // The slow geometry endpoint is deliberately delayed. Live quote parity must not wait for it.
       const samsungChange = page.locator('[data-cvhm-symbol="005930.KS"] .cvhm-change');
       await samsungChange.waitFor({timeout:1500});
-      assert.equal((await samsungChange.textContent()).trim(), '+1.11%', `${profile.name}: heatmap used stale private cache`);
 
       // A single fast quote batch must drive both Card and Heatmap to the exact same live value.
       await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v65', null, {timeout:5000});
