@@ -1,78 +1,78 @@
 {
-  "generatedAt": "2026-09-22T03:02:18.585934+00:00",
+  "generatedAt": "2026-09-22T07:31:44.373496+00:00",
   "source": "github-actions-yahoo-chart",
   "heatmap": {
     "results": [
       {
         "ticker": "005930.KS",
         "name": "SamsungElec",
-        "price": 280500.0,
-        "change": 12.8773,
+        "price": 276500.0,
+        "change": 11.2676,
         "marketCap": 1846845869391872.0,
-        "asOf": "2026-09-22T02:42:12+00:00",
+        "asOf": "2026-09-22T06:30:15+00:00",
         "stale": false
       },
       {
         "ticker": "000660.KS",
         "name": "SK hynix",
-        "price": 1919000.0,
-        "change": 13.5503,
+        "price": 1840000.0,
+        "change": 8.8757,
         "marketCap": 1371439697494016.0,
-        "asOf": "2026-09-22T02:42:12+00:00",
+        "asOf": "2026-09-22T06:30:11+00:00",
         "stale": false
       },
       {
         "ticker": "207940.KS",
         "name": "SAMSUNG BIOLOGICS",
-        "price": 1397000.0,
-        "change": -1.0623,
+        "price": 1391000.0,
+        "change": -1.4873,
         "marketCap": 64853624487936.0,
-        "asOf": "2026-09-22T02:42:12+00:00",
+        "asOf": "2026-09-22T06:30:28+00:00",
         "stale": false
       },
       {
         "ticker": "005380.KS",
         "name": "HyundaiMtr",
-        "price": 367000.0,
-        "change": 0.0,
+        "price": 360500.0,
+        "change": -1.7711,
         "marketCap": 95438518616064.0,
-        "asOf": "2026-09-22T02:42:13+00:00",
+        "asOf": "2026-09-22T06:30:04+00:00",
         "stale": false
       },
       {
         "ticker": "000270.KS",
         "name": "KIA CORP.",
-        "price": 120500.0,
-        "change": -1.0673,
+        "price": 118500.0,
+        "change": -2.7094,
         "marketCap": 46871917625344.0,
-        "asOf": "2026-09-22T02:42:12+00:00",
+        "asOf": "2026-09-22T06:30:25+00:00",
         "stale": false
       },
       {
         "ticker": "373220.KS",
         "name": "LG Energy Solution",
-        "price": 352500.0,
-        "change": -3.5568,
+        "price": 350500.0,
+        "change": -4.104,
         "marketCap": 82602002219008.0,
-        "asOf": "2026-09-22T02:42:10+00:00",
+        "asOf": "2026-09-22T06:30:26+00:00",
         "stale": false
       },
       {
         "ticker": "035420.KS",
         "name": "NAVER",
-        "price": 201500.0,
-        "change": -2.1845,
+        "price": 201000.0,
+        "change": -2.4272,
         "marketCap": 30410281058304.0,
-        "asOf": "2026-09-22T02:42:14+00:00",
+        "asOf": "2026-09-22T06:30:14+00:00",
         "stale": false
       },
       {
         "ticker": "068270.KS",
         "name": "Celltrion",
-        "price": 179300.0,
-        "change": 1.0141,
+        "price": 178500.0,
+        "change": 0.5634,
         "marketCap": 41244495446016.0,
-        "asOf": "2026-09-22T02:42:13+00:00",
+        "asOf": "2026-09-22T06:30:30+00:00",
         "stale": false
       },
       {
