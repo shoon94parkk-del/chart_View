@@ -124,3 +124,11 @@ A user-visible change is complete only when:
 - Precompute more Home valuation support data to reduce cold paths.
 - Split legacy frontend bundles only with sufficient regression coverage.
 - Remove old loaders/workflows only after confirming they are unreferenced and rollback is safe.
+
+## Home market-cap heatmap
+- Added 2026-09-22: `static/js/home_heatmap_v57.js` + `static/css/home_heatmap_v57.css` provide a Finviz-style Home view without replacing the existing major-stock cards.
+- The Home major-stock card has a `카드 / 히트맵` toggle; first-time default is Heatmap and the preference is local-only.
+- Heatmap data comes from the shared `/api/home-snapshot` SWR cache through `/api/heatmap`; the browser refresh is idle/deferred and never fans out into per-stock requests.
+- Korea and U.S. are separate market-cap groups so KRW and USD market caps are never compared as if they shared a currency.
+- Tile area is monotonic with market cap but visually compressed for readability; only sufficiently large tiles show local company logos.
+- Persistent snapshot generation now reads actual market cap from `valuation_cache.json`; `regularMarketVolume` must never be stored as `marketCap`.

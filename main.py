@@ -41,8 +41,10 @@ HOME_SNAPSHOT_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
 HOME_SNAPSHOT_TTL = 60
 HOME_SNAPSHOT_REFRESH_GUARD = 8
 HOME_MAJOR_TICKERS = [
-    "005930.KS", "000660.KS", "NVDA", "AAPL",
-    "MSFT", "META", "TSLA", "GOOGL",
+    "005930.KS", "000660.KS", "207940.KS", "005380.KS",
+    "000270.KS", "373220.KS", "035420.KS", "068270.KS",
+    "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN",
+    "TSM", "META", "AVGO", "TSLA", "AMD",
 ]
 HOME_SNAPSHOT_LOCK = asyncio.Lock()
 
@@ -670,29 +672,23 @@ async def market_now(fresh: bool = False):
     return payload
 
 @app.get("/api/heatmap")
-async def heatmap_data():
-    """Heatmap snapshots via the lightweight chart endpoint (no yfinance.info)."""
-    heatmap_tickers = [
-        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD",
-        "JPM", "V", "MA", "UNH", "JNJ", "LLY", "XOM", "AVGO",
-        "005930.KS", "000660.KS", "035420.KS", "035720.KS", "005380.KS"
-    ]
-    fetched = await asyncio.gather(
-        *[asyncio.to_thread(fetch_quote_snapshot, t) for t in heatmap_tickers],
-        return_exceptions=True,
-    )
-    results = []
-    for ticker, row in zip(heatmap_tickers, fetched):
-        if isinstance(row, Exception) or not row:
-            continue
-        results.append({
-            "ticker": ticker,
-            "name": row.get("name") or ticker,
-            "change": row.get("change", 0),
-            "price": row.get("price"),
-            "marketCap": row.get("marketCap") or 0,
-        })
-    return {"results": results}
+async def heatmap_data(fresh: bool = False):
+    """Return the shared Home snapshot for the visual heatmap.
+
+    The endpoint intentionally does not fan out into per-symbol provider calls.
+    Home remains cache-first; stale data is revalidated by the existing
+    HOME_SNAPSHOT stale-while-revalidate path.
+    """
+    payload = await home_snapshot(fresh=fresh)
+    heatmap = payload.get("heatmap") or {"results": []}
+    return {
+        "results": heatmap.get("results") or [],
+        "generatedAt": payload.get("generatedAt"),
+        "source": payload.get("source"),
+        "cacheAgeSec": payload.get("cacheAgeSec"),
+        "refreshing": payload.get("refreshing"),
+        "cacheMode": payload.get("cacheMode"),
+    }
 
 def compute_net_liquidity(ordered_results):
     """순유동성(Net Liquidity) = WALCL - WTREGEN - RRPONTSYD 계산"""

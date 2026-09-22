@@ -63,3 +63,10 @@ These rules come from bugs already seen in production. Do not remove a guardrail
 
 ## If an intentional redesign changes a guardrail
 Update implementation, regression test, this document, and `docs/decision-log.md` together, then verify exact production revision.
+
+## Home heatmap
+- Heatmap must not add blocking work to initial Home paint; network refresh starts only after Home/cache content is available and the browser is idle.
+- `/api/heatmap` reuses the shared Home SWR snapshot and must not directly fan out to quote providers.
+- Korean and U.S. market caps are sized within separate groups; never compare raw KRW market cap directly with raw USD market cap.
+- Snapshot `marketCap` must be actual market capitalization from valuation data, never trading volume.
+- Existing major-stock card view remains available through the Card/Heatmap toggle and is the rollback fallback.

@@ -1,0 +1,60 @@
+.cvhm-toggle{display:inline-flex;align-items:center;padding:2px;border:1px solid #e5e8eb;border-radius:10px;background:#f7f8fa}
+.cvhm-toggle button{min-height:28px;padding:0 9px;border:0;border-radius:8px;background:transparent;color:#8b95a1;font-size:10px;font-weight:800;cursor:pointer}
+.cvhm-toggle button.active{background:#fff;color:#191f28;box-shadow:0 1px 5px rgba(15,23,42,.08)}
+.cvhm-panel{margin-top:4px}
+.cvhm-board{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px}
+.cvhm-market{min-width:0;padding:9px;border:1px solid #edf0f2;border-radius:16px;background:#f8fafb}
+.cvhm-market-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 7px}
+.cvhm-market-head strong{color:#333d4b;font-size:11px}
+.cvhm-market-head span{color:#9aa4af;font-size:8.5px}
+.cvhm-treemap{position:relative;height:286px;overflow:hidden;border-radius:12px;background:#eef1f4}
+.cvhm-tile{position:absolute;display:block;overflow:hidden;padding:0;border:2px solid rgba(255,255,255,.92);border-radius:7px;color:#24303d;text-align:left;cursor:pointer;transition:filter .16s ease,transform .16s ease;box-sizing:border-box}
+.cvhm-tile:hover{filter:brightness(.97);z-index:2}
+.cvhm-tile:active{transform:scale(.985)}
+.cvhm-tile:focus-visible{outline:2px solid #191f28;outline-offset:-3px;z-index:4}
+.cvhm-up-1{background:#ffe9e9}.cvhm-up-2{background:#ffb7b7}.cvhm-up-3{background:#f45b62;color:#fff}
+.cvhm-down-1{background:#e7f0ff}.cvhm-down-2{background:#aacaff}.cvhm-down-3{background:#4c7ee8;color:#fff}
+.cvhm-flat{background:#e9edf1;color:#4e5968}
+.cvhm-copy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px;min-width:0}
+.cvhm-name{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:850;line-height:1.1}
+.cvhm-change{font-size:12px;font-weight:900;letter-spacing:-.2px}
+.cvhm-price{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8.5px;font-weight:700;opacity:.76}
+.cvhm-tile.is-large .cvhm-copy{align-items:flex-start;justify-content:flex-end;padding:10px}
+.cvhm-tile.is-large .cvhm-name{font-size:13px}
+.cvhm-tile.is-large .cvhm-change{font-size:18px}
+.cvhm-tile.is-large .cvhm-price{font-size:9.5px}
+.cvhm-logo{position:absolute;left:10px;top:9px;z-index:1;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:6px;border-radius:11px;background:rgba(255,255,255,.88);box-shadow:0 3px 12px rgba(15,23,42,.08)}
+.cvhm-logo img{position:absolute;max-width:24px;max-height:22px;object-fit:contain}
+.cvhm-logo>span{font-size:8px;font-weight:900;color:#4e5968}
+.cvhm-logo img+span{opacity:0}
+.cvhm-legend{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px;color:#6b7684;font-size:9px}
+.cvhm-legend>span{display:inline-flex;align-items:center;gap:4px}
+.cvhm-legend i{width:8px;height:8px;border-radius:3px}
+.cvhm-legend i.up{background:#f45b62}.cvhm-legend i.flat{background:#c7cdd4}.cvhm-legend i.down{background:#4c7ee8}
+.cvhm-legend small{margin-left:auto;color:#9aa4af;font-size:8.5px}
+.home16-stock-strip[hidden],.home16-caption[hidden],.cvhm-panel[hidden]{display:none!important}
+@media(max-width:720px){
+  .home16-head-actions{flex-wrap:wrap;justify-content:flex-end}
+  .cvhm-toggle{order:-1}
+  .cvhm-toggle button{min-height:26px;padding:0 8px;font-size:9.5px}
+  .cvhm-board{grid-template-columns:1fr;gap:7px}
+  .cvhm-market{padding:7px;border-radius:14px}
+  .cvhm-treemap{height:220px;border-radius:10px}
+  .cvhm-market-head{margin-bottom:5px}
+  .cvhm-tile{border-width:1.5px;border-radius:6px}
+  .cvhm-tile.is-large .cvhm-copy{padding:8px}
+  .cvhm-tile.is-large .cvhm-name{font-size:11px}
+  .cvhm-tile.is-large .cvhm-change{font-size:15px}
+  .cvhm-name{font-size:8.5px}.cvhm-change{font-size:10.5px}.cvhm-price{font-size:7.5px}
+  .cvhm-logo{left:8px;top:7px;width:29px;height:29px;padding:5px;border-radius:9px}
+  .cvhm-logo img{max-width:20px;max-height:18px}
+  .cvhm-legend small{flex-basis:100%;margin-left:0}
+}
+@media(max-width:370px){
+  .cvhm-treemap{height:205px}
+  .cvhm-market-head span{display:none}
+  .cvhm-tile.is-small .cvhm-price{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .cvhm-tile{transition:none}
+}

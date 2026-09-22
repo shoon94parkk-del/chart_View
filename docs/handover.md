@@ -127,3 +127,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Accessibility: detail watch/compare actions have explicit names and the interactive chart readout uses a polite live status.
 - Remaining validation caveat: automated responsive/browser suites can verify 360/390/430-class behavior, but physical iOS/Samsung Internet device testing is still a release QA task rather than a code gap.
 
+
+## 2026-09-22 Home heatmap V57
+- Home `주요 종목 오늘 시황` now supports Card/Heatmap switching.
+- V57 is standalone/direct-loaded, so rollback does not require rebuilding the legacy frontend bundle.
+- Heatmap uses shared Home SWR data; do not replace it with per-tile quote fetches.
+- True market cap comes from `static/data/valuation_cache.json`; old `regularMarketVolume -> marketCap` behavior was incorrect.
+- Rollback branch: `backup/pre-home-heatmap-20260922`.
