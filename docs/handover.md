@@ -199,3 +199,9 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Removed its 2026-09-17 and 2026-09-21 manual PICK records from ranking history and recommendation performance history.
 - Those two dates now remain two-stock user-final selections; no replacement stock was invented.
 - Validator accepts 1–3 consecutively ranked picks for `user_final_selection`; GPT-reviewed TOP3 remains exactly three.
+
+
+## Intekplus correction post-refresh verification
+- Validate GPT TOP3 workflow passed after source-aware validator alignment.
+- The automatic `data: refresh GPT TOP3 track record` commit preserved the correction: Intekplus exists only on 2026-09-14; 2026-09-17 and 2026-09-21 remain two-name manual selections.
+- This note intentionally triggers a final exact-revision production verification on top of the bot-generated data refresh.
