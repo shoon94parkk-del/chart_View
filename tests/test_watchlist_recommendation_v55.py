@@ -64,6 +64,8 @@ def test_watchlist_entry_is_cache_first_and_does_not_start_full_refresh():
     assert 'const ENTRY_REFRESH_THROTTLE_MS = 60 * 1000' in js
     assert 'function render({ refreshQuotes = false } = {})' in js
     assert 'render({ refreshQuotes: false })' in js
+    assert 'setTimeout(refreshCurrentQuotesQuietly, 0)' in js
+    assert 'let quietQuotePromise = null' in js
     assert 'async function refreshCurrentQuotesQuietly()' in js
     assert 'async function refreshReturnsQuietly()' in js
     assert 'function refreshWatchlistOnEntry()' in js
