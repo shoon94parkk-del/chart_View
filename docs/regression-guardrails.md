@@ -116,6 +116,6 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Card and Heatmap must continue to apply the exact same shared live rows in one render pass.
 - Visitor tracking is anonymous-browser counting only: random local ID -> salted daily hash. Do not collect IP, email, phone, precise location, or account identity for this dashboard.
 - `/api/admin/usage` requires `X-ChartView-Admin` with `CHARTVIEW_ADMIN_TOKEN`; never expose the token in HTML/JS/repo.
-- Admin usage counts are current-instance memory and may reset on deploy/restart; never present them as durable analytics unless persistent storage is added.
+- Daily unique-browser totals use Render Key Value with process-memory fallback, so normal app deploys/restarts do not reset today's total. Active-now/Home-active counts remain current-process heartbeat state. Treat the metric as an anonymous-browser estimate, not an exact person count.
 
 - Automation/Playwright browsers must not contribute to visitor counts; `visitor_v66.js` exits when `navigator.webdriver` is true.
