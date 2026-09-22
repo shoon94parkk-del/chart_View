@@ -41,29 +41,48 @@ def validate(day: dict, by_symbol: dict[str, dict] | None = None, by_name: dict[
     errors: list[str] = []
     analysis = day.get("analysis") or {}
     date = str(day.get("tradeDate") or "")
-    if analysis.get("sourceType") != "gpt_screener_review":
-        errors.append(f"{date}: analysis.sourceType must be gpt_screener_review")
-    if analysis.get("status") != "complete" or not analysis.get("model") or not analysis.get("candidateTradeDate"):
-        errors.append(f"{date}: completed GPT model and candidateTradeDate are required")
-    if analysis.get("candidateTradeDate") != date:
-        errors.append(f"{date}: candidateTradeDate must match tradeDate")
-    weights = (day.get("scorePolicy") or {}).get("weights") or {}
-    if number(weights.get("companyGrowth")) <= number(weights.get("technical")):
-        errors.append(f"{date}: companyGrowth weight must exceed technical weight")
+    source_type = str(analysis.get("sourceType") or "")
     picks = day.get("top3") or []
-    if len(picks) != 3 or [number(pick.get("rank")) for pick in picks] != [1, 2, 3]:
-        errors.append(f"{date}: exactly ranked TOP3 is required")
+
+    if source_type == "user_final_selection":
+        if analysis.get("status") != "complete" or not analysis.get("model") or not analysis.get("candidateTradeDate"):
+            errors.append(f"{date}: completed user final selection metadata is required")
+        if analysis.get("candidateTradeDate") != date:
+            errors.append(f"{date}: candidateTradeDate must match tradeDate")
+        actual_ranks = [int(number(pick.get("rank"))) for pick in picks]
+        if not (1 <= len(picks) <= 3) or actual_ranks != list(range(1, len(picks) + 1)):
+            errors.append(f"{date}: user final selection must contain ranked 1..3 picks")
+    else:
+        if source_type != "gpt_screener_review":
+            errors.append(f"{date}: analysis.sourceType must be gpt_screener_review")
+        if analysis.get("status") != "complete" or not analysis.get("model") or not analysis.get("candidateTradeDate"):
+            errors.append(f"{date}: completed GPT model and candidateTradeDate are required")
+        if analysis.get("candidateTradeDate") != date:
+            errors.append(f"{date}: candidateTradeDate must match tradeDate")
+        weights = (day.get("scorePolicy") or {}).get("weights") or {}
+        if number(weights.get("companyGrowth")) <= number(weights.get("technical")):
+            errors.append(f"{date}: companyGrowth weight must exceed technical weight")
+        if len(picks) != 3 or [number(pick.get("rank")) for pick in picks] != [1, 2, 3]:
+            errors.append(f"{date}: exactly ranked TOP3 is required")
+
     for pick in picks:
-        missing = [key for key in REQUIRED_SCORES if key not in pick]
         symbol = str(pick.get("symbol") or "").upper()
         code = str(pick.get("code") or "")
         name = str(pick.get("name") or "")
-        if missing or not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
-            errors.append(f"{date}: incomplete pick {pick.get('rank')}")
-            continue
-        total = sum(number(pick.get(key)) for key in REQUIRED_SCORES)
-        if round(total) != round(number(pick.get("totalScore"))):
-            errors.append(f"{date}: score total mismatch for {symbol}")
+
+        if source_type == "user_final_selection":
+            if not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
+                errors.append(f"{date}: incomplete user-final pick {pick.get('rank')}")
+                continue
+        else:
+            missing = [key for key in REQUIRED_SCORES if key not in pick]
+            if missing or not pick.get("reason") or not symbol or number(pick.get("close")) <= 0:
+                errors.append(f"{date}: incomplete pick {pick.get('rank')}")
+                continue
+            total = sum(number(pick.get(key)) for key in REQUIRED_SCORES)
+            if round(total) != round(number(pick.get("totalScore"))):
+                errors.append(f"{date}: score total mismatch for {symbol}")
+
         if code and code != symbol.split(".", 1)[0]:
             errors.append(f"{date}: code/symbol mismatch for {name}: code={code}, symbol={symbol}")
 
