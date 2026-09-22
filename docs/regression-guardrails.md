@@ -128,3 +128,12 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Korean current quote surfaces must bind the installed realtime_korea patch, not a pre-patch imported function reference.
 
 - Persistent analytics uses only salted anonymous daily browser hashes in Render Key Value; do not store raw browser IDs or identifying profile data.
+
+
+## Context-aware sharing
+- Public sharing must never emit the retired `chart-view-bsg6.onrender.com` host.
+- The document canonical URL is the public-host source of truth for share links; do not add another stale hard-coded production URL if it can be avoided.
+- Sharing from AI PICK must include `tab=screener&view=ai-picks` and reopen the PICK ledger on receipt.
+- Sharing an open stock detail must include `tab=chart&view=detail&symbol=<ticker>`; include name when available.
+- Sharing a normal app screen must preserve its active tab rather than always returning recipients to Home.
+- UTM parameters may be appended, but they must not replace or erase route parameters.
