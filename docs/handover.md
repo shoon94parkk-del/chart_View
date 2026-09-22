@@ -163,3 +163,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - This restores the more balanced first Korean layout: Samsung Electronics/SK hynix stay largest, while the other representative names receive materially more readable area.
 - Browser heatmap cache key moved to V61.
 - Rollback branch: `backup/pre-kr-heatmap-v61-20260922`.
+
+
+## 2026-09-22 Macro policy + sparkline V62
+- Current Fed policy card: `FEDTARGET` from FRED daily `DFEDTARL/DFEDTARU`; separate EFFR card: `DFF`.
+- Do not restore monthly `FEDFUNDS` as a “current policy rate”.
+- Macro collection is still GitHub-Action precomputed every 6 hours, so runtime latency is unchanged.
+- Macro mini charts are inline SVG from cached chart_data; no Lightweight Charts dependency.
+- Traffic light combines inflation/Fed/labor/financial-stress/liquidity descriptively and does not predict FOMC decisions.
+- Rollback: `backup/pre-macro-fed-signal-v62-20260922`.
