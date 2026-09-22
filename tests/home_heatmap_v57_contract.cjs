@@ -15,7 +15,7 @@ test('heatmap is additive and does not block Home with historical calls', () => 
   assert.match(js, /\/api\/heatmap/);
   assert.doesNotMatch(js, /\/api\/compare/);
   assert.doesNotMatch(js, /location\.reload/);
-  assert.match(js, /REFRESH_MS\s*=\s*60_000/);
+  assert.match(js, /REFRESH_MS\\s*=\\s*300_000/);
   assert.match(js, /document\.visibilityState !== 'visible'/);
 });
 
@@ -53,12 +53,12 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
   assert.doesNotMatch(generator, /"marketCap": meta\.get\("regularMarketVolume"\)/);
 });
 
-test('template loads V64 synchronized heatmap assets', () => {
+test('template loads V65 live-parity heatmap assets', () => {
   assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v61a/);
-  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v64a/);
+  assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260922v65a/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v64'/);
-  assert.match(js, /version: 'v64'/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v65'/);
+  assert.match(js, /version: 'v65'/);
   assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
   assert.match(js, /cvhm-empty/);
@@ -70,4 +70,23 @@ test('heatmap prefers the freshest shared Home snapshot instead of a stale priva
   assert.match(js, /Equal timestamps prefer Home/);
   assert.match(js, /scheduleRefresh\(0\)/);
   assert.doesNotMatch(js, /requestIdleCallback/);
+});
+
+test('card and heatmap share the same live quote rows', () => {
+  assert.match(js, /LIVE_QUOTE_POLL_MS\s*=\s*5_000/);
+  assert.match(js, /home-major-live-v65/);
+  assert.match(js, /function syncMajorCards\(rows\)/);
+  assert.match(js, /syncMajorCards\(rows\)/);
+  assert.match(js, /function quoteCacheMerge\(data\)/);
+  assert.match(js, /refreshLiveQuotes\(true\)/);
+  assert.match(js, /openMarketSymbols/);
+});
+
+test('global quote cache no longer adds a 60 second delay', () => {
+  const market = fs.readFileSync(path.join(ROOT, 'market_service.py'), 'utf8');
+  assert.match(market, /QUOTE_CACHE_TTL_SECONDS = 5\.0/);
+  const start = market.indexOf('def fetch_quote_snapshot');
+  const end = market.indexOf('def fetch_history_series', start);
+  const block = market.slice(start, end);
+  assert.match(block, /now - cached\[0\] < QUOTE_CACHE_TTL_SECONDS/);
 });
