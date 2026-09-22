@@ -1121,7 +1121,7 @@ async def _refresh_home_snapshot(force: bool = False):
                     "name": row.get("name") or ticker,
                     "change": row.get("change"),
                     "price": row.get("price"),
-                    "marketCap": row.get("marketCap") or 0,
+                    "marketCap": row.get("marketCap") or (previous_rows.get(ticker) or {}).get("marketCap") or 0,
                     "asOf": row.get("asOf"),
                     "stale": False,
                 })
