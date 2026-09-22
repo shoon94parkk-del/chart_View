@@ -143,9 +143,9 @@ const freshSnapshot = {
       await page.waitForFunction(() => document.querySelectorAll('[data-watch-card]').length === 12, null, {timeout:10000});
       await page.waitForFunction(() => document.querySelectorAll('[data-watch-live-line]').length === 12, null, {timeout:10000});
       await page.waitForFunction(() => [...document.querySelectorAll('[data-live-day-change]')].every(el => el.textContent.includes('+1.23%')), null, {timeout:10000});
-      await page.waitForFunction(() => window.ChartViewLiveQuotes?.version === 'v64', null, {timeout:5000});
+      await page.waitForFunction(() => window.ChartViewLiveQuotes?.version === 'v66', null, {timeout:5000});
 
-      // Home V65 may have already populated these quotes, so wait for the Watchlist mode tick
+      // Home server-live may have already populated these quotes, so wait for the Watchlist mode tick
       // before asserting its one-shot bootstrap request.
       await delay(1500);
       assert.ok(bootstrapRequests.length >= 1, `${profile.name}: missing watchlist all-symbol bootstrap`);
