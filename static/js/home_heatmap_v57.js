@@ -2,8 +2,8 @@
   'use strict';
 
   const HOME_SNAPSHOT_KEY = 'chartview-home-snapshot-v17';
-  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v66';
-  const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v33';
+  const HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v67';
+  const QUOTE_CACHE_KEY = 'chartview-watchlist-quotes-v34';
   const VIEW_KEY = 'chartview-home-major-view-v57';
   const REFRESH_MS = 300_000;
   const LIVE_QUOTE_POLL_MS = 5_000;
