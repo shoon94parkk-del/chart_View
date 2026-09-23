@@ -366,7 +366,11 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
 
 @singleflight
 def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
-    """Current quote using today's intraday chart and the prior trading close."""
+    """Return one internally consistent quote snapshot.
+
+    Price and percent change are derived from the SAME daily series. This avoids
+    mixing an intraday/overnight price with a stale prior-session percentage.
+    """
     symbol = symbol.strip().upper()
     if not symbol:
         return None
@@ -378,39 +382,21 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
 
     value = None
     try:
-        # 5-minute bars give much fresher futures/FX/yield values than the 5-day daily meta.
-        result = _chart_result(symbol, period="1d", interval="5m")
-        meta = result.get("meta", {})
-        closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-        good = [_positive(v) for v in closes if _positive(v) is not None]
-        current = good[-1] if good else _positive(meta.get("regularMarketPrice"))
+        # Daily bars are the authority for the regular-session price/change pair.
+        # period=1mo gives enough completed sessions across weekends/holidays.
+        daily = _chart_result(symbol, period="1mo", interval="1d")
+        meta = daily.get("meta", {})
+        timestamps = daily.get("timestamp") or []
+        closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+        bars = []
+        for ts, close in zip(timestamps, closes):
+            px = _positive(close)
+            if px is not None and ts is not None:
+                bars.append((int(ts), px))
 
-        # Reliability rule: never derive day change from intraday chartPreviousClose.
-        # Yahoo can carry the wrong session baseline across US overnight/pre-market boundaries.
-        # Resolve the previous *completed regular-session close* from daily bars every time.
-        daily = _chart_result(symbol, period="5d", interval="1d")
-        daily_meta = daily.get("meta", {})
-        daily_closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-        daily_good = [_positive(v) for v in daily_closes if _positive(v) is not None]
-        regular_price = _positive(meta.get("regularMarketPrice"))
-        if current is None:
-            current = regular_price or _positive(daily_meta.get("regularMarketPrice")) or (daily_good[-1] if daily_good else None)
-
-        previous = None
-        if len(daily_good) >= 2:
-            last_daily = daily_good[-1]
-            # If the current quote is effectively today's completed close, compare it with
-            # the preceding daily close. Otherwise (pre/after-hours), the last daily close
-            # itself is the baseline.
-            ref = regular_price or current
-            same_as_last_close = ref is not None and abs(ref - last_daily) <= max(0.01, last_daily * 0.0005)
-            previous = daily_good[-2] if same_as_last_close else last_daily
-        elif daily_good:
-            previous = daily_good[-1]
-        if previous is None:
-            previous = _positive(daily_meta.get("previousClose")) or _positive(meta.get("previousClose"))
-        if not meta:
-            meta = daily_meta
+        current = bars[-1][1] if bars else _positive(meta.get("regularMarketPrice"))
+        previous = bars[-2][1] if len(bars) >= 2 else _positive(meta.get("previousClose"))
+        asof_ts = bars[-1][0] if bars else meta.get("regularMarketTime")
 
         if current is not None:
             change = ((current - previous) / previous * 100) if previous else None
@@ -419,11 +405,12 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
                 "ticker": symbol,
                 "name": _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or detail.get("shortName") or symbol,
                 "price": round(float(current), 4),
+                "previousClose": round(float(previous), 4) if previous is not None else None,
                 "change": round(float(change), 2) if change is not None else None,
-                "asOf": datetime.fromtimestamp(int(meta["regularMarketTime"]), tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
+                "asOf": datetime.fromtimestamp(int(asof_ts), tz=timezone.utc).isoformat() if asof_ts else None,
                 "marketCap": _number(detail.get("marketCap")),
                 "currency": meta.get("currency") or detail.get("currency"),
-                "source": "Yahoo Chart 5m",
+                "source": "Yahoo Chart daily atomic snapshot",
             }
     except Exception as exc:
         print(f"[MarketData] quote failed {symbol}: {exc}")
