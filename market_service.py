@@ -452,7 +452,12 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
             intraday = _chart_result(symbol, period="5d", interval="5m")
             meta = intraday.get("meta", {})
             current, previous, asof_ts, session_date, previous_session_date = _session_snapshot_from_intraday(intraday)
-            source = "Yahoo Chart 5m regular-session atomic snapshot"
+            # Use Yahoo's official prior regular-session close for the baseline.
+            # The last 5m bar can differ slightly from the official closing auction.
+            official_previous = _positive(meta.get("previousClose"))
+            if official_previous is not None:
+                previous = official_previous
+            source = "Yahoo Chart 5m + official previousClose atomic snapshot"
 
         # Fallback for continuous-session assets or sparse intraday symbols.
         if current is None or previous is None:
