@@ -16,6 +16,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import requests
 from request_coalescing import singleflight
@@ -365,12 +366,72 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
 
 
 @singleflight
-def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
-    """Return one internally consistent quote snapshot.
+def _session_snapshot_from_intraday(result: dict[str, Any]) -> tuple[float | None, float | None, int | None, str | None, str | None]:
+    """Derive current/last regular-session price and prior close from 5m bars.
 
-    Price and percent change are derived from the SAME daily series. This avoids
-    mixing an intraday/overnight price with a stale prior-session percentage.
+    Yahoo's daily chart can lag by one completed U.S. session. Intraday bars with
+    includePrePost=false are grouped by the exchange-local session date, so the
+    price and comparison close always come from adjacent actual sessions.
     """
+    meta = result.get("meta", {})
+    timestamps = result.get("timestamp") or []
+    closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+    tz_name = meta.get("exchangeTimezoneName") or meta.get("timezone") or "UTC"
+    try:
+        tz = ZoneInfo(str(tz_name))
+    except Exception:
+        tz = timezone.utc
+
+    sessions: dict[str, list[tuple[int, float]]] = {}
+    for ts, close in zip(timestamps, closes):
+        px = _positive(close)
+        if px is None or ts is None:
+            continue
+        stamp = int(ts)
+        session_date = datetime.fromtimestamp(stamp, tz=timezone.utc).astimezone(tz).date().isoformat()
+        sessions.setdefault(session_date, []).append((stamp, px))
+
+    ordered = sorted((day, bars) for day, bars in sessions.items() if bars)
+    if len(ordered) < 2:
+        return None, None, None, None, None
+
+    current_day, current_bars = ordered[-1]
+    previous_day, previous_bars = ordered[-2]
+    current_ts, current = current_bars[-1]
+    previous = previous_bars[-1][1]
+    return current, previous, current_ts, current_day, previous_day
+
+
+def _daily_snapshot(result: dict[str, Any]) -> tuple[float | None, float | None, int | None, str | None, str | None]:
+    meta = result.get("meta", {})
+    timestamps = result.get("timestamp") or []
+    closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+    rows = [(int(ts), px) for ts, close in zip(timestamps, closes) if ts is not None and (px := _positive(close)) is not None]
+    if len(rows) >= 2:
+        current_ts, current = rows[-1]
+        previous_ts, previous = rows[-2]
+        tz_name = meta.get("exchangeTimezoneName") or meta.get("timezone") or "UTC"
+        try:
+            tz = ZoneInfo(str(tz_name))
+        except Exception:
+            tz = timezone.utc
+        current_day = datetime.fromtimestamp(current_ts, tz=timezone.utc).astimezone(tz).date().isoformat()
+        previous_day = datetime.fromtimestamp(previous_ts, tz=timezone.utc).astimezone(tz).date().isoformat()
+        return current, previous, current_ts, current_day, previous_day
+    current = _positive(meta.get("regularMarketPrice"))
+    previous = _positive(meta.get("previousClose")) or _positive(meta.get("chartPreviousClose"))
+    asof = int(meta["regularMarketTime"]) if meta.get("regularMarketTime") else None
+    return current, previous, asof, None, None
+
+
+def _uses_regular_session_bars(symbol: str) -> bool:
+    # Stocks and cash indices use explicit exchange sessions. Futures, FX and
+    # Treasury yield symbols have different session boundaries and stay on daily.
+    return not (symbol.endswith("=F") or symbol.endswith("=X") or symbol in {"^TNX"})
+
+
+def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
+    """Return a price/change pair from one coherent market session."""
     symbol = symbol.strip().upper()
     if not symbol:
         return None
@@ -382,21 +443,26 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
 
     value = None
     try:
-        # Daily bars are the authority for the regular-session price/change pair.
-        # period=1mo gives enough completed sessions across weekends/holidays.
-        daily = _chart_result(symbol, period="1mo", interval="1d")
-        meta = daily.get("meta", {})
-        timestamps = daily.get("timestamp") or []
-        closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-        bars = []
-        for ts, close in zip(timestamps, closes):
-            px = _positive(close)
-            if px is not None and ts is not None:
-                bars.append((int(ts), px))
+        meta: dict[str, Any] = {}
+        current = previous = None
+        asof_ts = None
+        session_date = previous_session_date = None
+        source = "Yahoo Chart daily atomic snapshot"
 
-        current = bars[-1][1] if bars else _positive(meta.get("regularMarketPrice"))
-        previous = bars[-2][1] if len(bars) >= 2 else _positive(meta.get("previousClose"))
-        asof_ts = bars[-1][0] if bars else meta.get("regularMarketTime")
+        if _uses_regular_session_bars(symbol):
+            intraday = _chart_result(symbol, period="5d", interval="5m")
+            meta = intraday.get("meta", {})
+            current, previous, asof_ts, session_date, previous_session_date = _session_snapshot_from_intraday(intraday)
+            source = "Yahoo Chart 5m regular-session atomic snapshot"
+
+        # Fallback for continuous-session assets or sparse intraday symbols.
+        if current is None or previous is None:
+            daily = _chart_result(symbol, period="1mo", interval="1d")
+            daily_meta = daily.get("meta", {})
+            current, previous, asof_ts, session_date, previous_session_date = _daily_snapshot(daily)
+            if not meta:
+                meta = daily_meta
+            source = "Yahoo Chart daily atomic snapshot"
 
         if current is not None:
             change = ((current - previous) / previous * 100) if previous else None
@@ -408,9 +474,11 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
                 "previousClose": round(float(previous), 4) if previous is not None else None,
                 "change": round(float(change), 2) if change is not None else None,
                 "asOf": datetime.fromtimestamp(int(asof_ts), tz=timezone.utc).isoformat() if asof_ts else None,
+                "sessionDate": session_date,
+                "previousSessionDate": previous_session_date,
                 "marketCap": _number(detail.get("marketCap")),
                 "currency": meta.get("currency") or detail.get("currency"),
-                "source": "Yahoo Chart daily atomic snapshot",
+                "source": source,
             }
     except Exception as exc:
         print(f"[MarketData] quote failed {symbol}: {exc}")
