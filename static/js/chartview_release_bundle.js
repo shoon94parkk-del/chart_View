@@ -3704,12 +3704,12 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function saveMarketLocal(data) {
-    try { localStorage.setItem('chartview-market-now-v21', JSON.stringify(data)); } catch (_) {}
+    try { localStorage.setItem('chartview-market-now-v22', JSON.stringify(data)); } catch (_) {}
   }
 
   function readMarketLocal() {
     try {
-      const raw = localStorage.getItem('chartview-market-now-v21');
+      const raw = localStorage.getItem('chartview-market-now-v22');
       return raw ? JSON.parse(raw) : null;
     } catch (_) { return null; }
   }
