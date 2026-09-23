@@ -37,3 +37,17 @@ test('usage dashboard is token protected and not linked from public UI', () => {
 test('automated browser visits are not counted as users', () => {
   assert.match(visitor, /if \(navigator\.webdriver\) return/);
 });
+
+
+test('closed markets are refreshed so disk snapshots cannot survive a deploy', () => {
+  assert.match(main, /HOME_LIVE_CLOSED_REFRESH_SEC = 300\.0/);
+  assert.match(main, /def _all_home_markets/);
+  assert.match(main, /_refresh_home_live\(_all_home_markets\(\)\)/);
+  assert.match(main, /interval = HOME_LIVE_ACTIVE_REFRESH_SEC if market in open_markets else HOME_LIVE_CLOSED_REFRESH_SEC/);
+});
+
+test('heatmap client cache is invalidated with the reliability release', () => {
+  assert.match(heat, /chartview-home-heatmap-v67/);
+  assert.match(heat, /chartview-watchlist-quotes-v34/);
+  assert.match(html, /home_heatmap_v57\.js\?v=20260923v67/);
+});
