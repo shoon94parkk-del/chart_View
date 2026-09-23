@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-22T18:45:00+09:00",
+  "updated": "2026-09-23T19:18:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -301,6 +301,68 @@
             "technical": 28
           },
           "reason": "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-23",
+      "status": "사용자 확정 2종목 — 2026-09-23 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-09-23",
+        "analyzedAt": "2026-09-23T19:18:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2-new-pick-exclusion",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "007660",
+          "symbol": "007660.KS",
+          "name": "이수페타시스",
+          "close": 118900,
+          "previousClose": 112900,
+          "changePct": 5.31,
+          "totalScore": 91,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 6,
+            "catalystRisk": 8,
+            "technical": 27
+          },
+          "reason": "AI 가속기·네트워크용 초고다층 PCB의 고부가 Multi-Lam 확대, CAPA 증설과 ASP 상승이 실적 성장으로 연결."
+        },
+        {
+          "rank": 2,
+          "code": "009150",
+          "symbol": "009150.KS",
+          "name": "삼성전기",
+          "close": 1507000,
+          "previousClose": 1486000,
+          "changePct": 1.41,
+          "totalScore": 92,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 7,
+            "catalystRisk": 10,
+            "technical": 25
+          },
+          "reason": "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결."
         }
       ]
     }
