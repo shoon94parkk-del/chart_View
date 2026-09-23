@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-23T16:06:24+09:00",
+  "updated": "2026-09-23T19:18:42+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -305,6 +305,42 @@
       "grade": "사용자 확정",
       "reason": "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체.",
       "score": 88,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-23",
+      "rank": 1,
+      "symbol": "007660.KS",
+      "code": "007660",
+      "name": "이수페타시스",
+      "recommendedPrice": 118900.0,
+      "currentPrice": 118900.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-23",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "AI 가속기·네트워크용 초고다층 PCB의 고부가 Multi-Lam 확대, CAPA 증설과 ASP 상승이 실적 성장으로 연결.",
+      "score": 91,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-23",
+      "rank": 2,
+      "symbol": "009150.KS",
+      "code": "009150",
+      "name": "삼성전기",
+      "recommendedPrice": 1507000.0,
+      "currentPrice": 1507000.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-23",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결.",
+      "score": 92,
       "analysisSource": "사용자 최종 선택"
     }
   ]
