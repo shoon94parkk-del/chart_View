@@ -32,7 +32,7 @@ def test_sp500_uses_adjacent_actual_regular_sessions(monkeypatch):
     assert row["change"] == 0.0
     assert row["sessionDate"] == "2026-09-22"
     assert row["previousSessionDate"] == "2026-09-21"
-    assert "5m regular-session" in row["source"]
+    assert "official previousClose" in row["source"]
 
 
 def test_meta_does_not_reuse_prior_sessions_large_gain(monkeypatch):
