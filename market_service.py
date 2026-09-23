@@ -365,7 +365,6 @@ def _naver_valuation(symbol: str) -> dict[str, Any]:
 
 
 
-@singleflight
 def _session_snapshot_from_intraday(result: dict[str, Any]) -> tuple[float | None, float | None, int | None, str | None, str | None]:
     """Derive current/last regular-session price and prior close from 5m bars.
 
