@@ -64,6 +64,7 @@ HOME_MAJOR_TICKERS = [
 HOME_SNAPSHOT_LOCK = asyncio.Lock()
 
 HOME_LIVE_ACTIVE_REFRESH_SEC = 5.0
+HOME_LIVE_CLOSED_REFRESH_SEC = 300.0
 HOME_LIVE_IDLE_CHECK_SEC = 30.0
 VISITOR_HEARTBEAT_SEC = 20
 VISITOR_ACTIVE_WINDOW_SEC = 45
@@ -187,6 +188,18 @@ def _open_home_markets(now_utc: datetime | None = None) -> dict[str, list[str]]:
     if _market_is_open(us, 9, 30, 16, 0):
         markets["US"] = [ticker for ticker in HOME_MAJOR_TICKERS if not ticker.endswith((".KS", ".KQ"))]
     return markets
+
+
+def _all_home_markets() -> dict[str, list[str]]:
+    """All Home quote groups, including closed markets.
+
+    Closed markets still need periodic refreshes so the final regular-session
+    close replaces any older disk/local cache after the bell or a deploy.
+    """
+    return {
+        "KR": [ticker for ticker in HOME_MAJOR_TICKERS if ticker.endswith((".KS", ".KQ"))],
+        "US": [ticker for ticker in HOME_MAJOR_TICKERS if not ticker.endswith((".KS", ".KQ"))],
+    }
 
 
 def _today_kst() -> str:
@@ -346,27 +359,27 @@ async def _home_live_worker() -> None:
     global HOME_LIVE_WAKE_EVENT
     if HOME_LIVE_WAKE_EVENT is None:
         HOME_LIVE_WAKE_EVENT = asyncio.Event()
+    all_markets = _all_home_markets()
     while True:
-        markets = _open_home_markets()
+        open_markets = _open_home_markets()
         _, _, active_home = _visitor_counts()
         timeout = HOME_LIVE_IDLE_CHECK_SEC
 
-        if markets and active_home > 0:
+        if active_home > 0:
             now = time.time()
             due = {}
-            wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC
-            for market, tickers in markets.items():
+            wait_for = HOME_LIVE_CLOSED_REFRESH_SEC
+            for market, tickers in all_markets.items():
+                interval = HOME_LIVE_ACTIVE_REFRESH_SEC if market in open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
                 age = now - float(HOME_LIVE_CACHE["marketUpdatedEpoch"].get(market) or 0)
-                if age >= HOME_LIVE_ACTIVE_REFRESH_SEC:
+                if age >= interval:
                     due[market] = tickers
                 else:
-                    wait_for = min(wait_for, max(0.5, HOME_LIVE_ACTIVE_REFRESH_SEC - age))
+                    wait_for = min(wait_for, max(0.5, interval - age))
             if due:
                 await _refresh_home_live(due)
-                wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC
+                wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC if open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
             timeout = wait_for
-        elif not markets:
-            timeout = 60.0
 
         try:
             await asyncio.wait_for(HOME_LIVE_WAKE_EVENT.wait(), timeout=timeout)
@@ -392,6 +405,8 @@ async def startup_event():
     _seed_home_live_from_snapshot(snapshot)
     HOME_LIVE_WAKE_EVENT = asyncio.Event()
     asyncio.create_task(_home_live_worker())
+    # Replace disk-seeded quotes immediately, even while KR/US markets are closed.
+    asyncio.create_task(_refresh_home_live(_all_home_markets()))
     asyncio.create_task(_analytics_redis_client())
     asyncio.create_task(_refresh_home_snapshot(force=True))
     asyncio.create_task(_refresh_market_now(force=True))
@@ -589,7 +604,9 @@ async def visitor_activity(request: Request):
 
 @app.get("/api/home-live")
 async def home_live_snapshot():
-    """Return only Render's current in-memory Home quote snapshot; never calls providers."""
+    """Return the shared Home quote snapshot, warming it once if only disk data exists."""
+    if not HOME_LIVE_CACHE.get("updatedAt"):
+        await _refresh_home_live(_all_home_markets())
     updated = HOME_LIVE_CACHE.get("updatedAt")
     age = None
     if updated:
