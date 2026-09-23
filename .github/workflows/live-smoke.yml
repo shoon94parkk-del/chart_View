@@ -63,6 +63,39 @@ jobs:
           print('health OK')
           PY
 
+          echo 'Market data integrity:'
+          curl -fsSL "$BASE/api/market-now?fresh=1" -o /tmp/market-now.json
+          curl -fsSL "$BASE/api/home-live" -o /tmp/home-live.json
+          python - <<'PY'
+          import json, math
+          market=json.load(open('/tmp/market-now.json'))
+          home=json.load(open('/tmp/home-live.json'))
+
+          def rows(payload):
+              return {x.get('ticker'): x for x in payload.get('results', []) if x.get('ticker')}
+
+          m=rows(market)
+          h=rows(home)
+          for ticker in ('^GSPC','^IXIC'):
+              r=m[ticker]
+              assert r.get('sessionDate') and r.get('previousSessionDate'), r
+              assert r['sessionDate'] > r['previousSessionDate'], r
+              assert r.get('previousClose') not in (None,0), r
+              calc=(float(r['price'])/float(r['previousClose'])-1)*100
+              assert math.isclose(calc, float(r['change']), abs_tol=0.015), (ticker, calc, r)
+
+          us=('NVDA','AAPL','MSFT','GOOGL','AMZN','TSM','META','AVGO','TSLA','AMD')
+          latest=m['^GSPC']['sessionDate']
+          for ticker in us:
+              r=h[ticker]
+              assert r.get('sessionDate') == latest, (ticker, latest, r)
+              assert r.get('previousSessionDate') and r['sessionDate'] > r['previousSessionDate'], r
+              assert r.get('previousClose') not in (None,0), r
+              calc=(float(r['price'])/float(r['previousClose'])-1)*100
+              assert math.isclose(calc, float(r['change']), abs_tol=0.015), (ticker, calc, r)
+          print('market integrity OK', latest)
+          PY
+
           echo 'Search correctness:'
           for q in '삼성전자' '테크윙' 'AAPL' '애플' 'TSLA'; do
             curl -fsSL --get --data-urlencode "q=$q" -w " query=$q time=%{time_total}s\n" "$BASE/api/search" -o "/tmp/search-${q}.json"
