@@ -384,20 +384,33 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         closes = ((result.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
         good = [_positive(v) for v in closes if _positive(v) is not None]
         current = good[-1] if good else _positive(meta.get("regularMarketPrice"))
-        previous = _positive(meta.get("chartPreviousClose")) or _positive(meta.get("previousClose"))
 
-        # Some symbols can have sparse intraday bars. Fall back to daily bars only as needed.
-        if current is None or previous is None:
-            daily = _chart_result(symbol, period="5d", interval="1d")
-            daily_meta = daily.get("meta", {})
-            daily_closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
-            daily_good = [_positive(v) for v in daily_closes if _positive(v) is not None]
-            if current is None:
-                current = _positive(daily_meta.get("regularMarketPrice")) or (daily_good[-1] if daily_good else None)
-            if previous is None:
-                previous = (daily_good[-2] if len(daily_good) > 1 else None) or _positive(daily_meta.get("previousClose")) or _positive(daily_meta.get("chartPreviousClose"))
-            if not meta:
-                meta = daily_meta
+        # Reliability rule: never derive day change from intraday chartPreviousClose.
+        # Yahoo can carry the wrong session baseline across US overnight/pre-market boundaries.
+        # Resolve the previous *completed regular-session close* from daily bars every time.
+        daily = _chart_result(symbol, period="5d", interval="1d")
+        daily_meta = daily.get("meta", {})
+        daily_closes = ((daily.get("indicators", {}).get("quote") or [{}])[0].get("close") or [])
+        daily_good = [_positive(v) for v in daily_closes if _positive(v) is not None]
+        regular_price = _positive(meta.get("regularMarketPrice"))
+        if current is None:
+            current = regular_price or _positive(daily_meta.get("regularMarketPrice")) or (daily_good[-1] if daily_good else None)
+
+        previous = None
+        if len(daily_good) >= 2:
+            last_daily = daily_good[-1]
+            # If the current quote is effectively today's completed close, compare it with
+            # the preceding daily close. Otherwise (pre/after-hours), the last daily close
+            # itself is the baseline.
+            ref = regular_price or current
+            same_as_last_close = ref is not None and abs(ref - last_daily) <= max(0.01, last_daily * 0.0005)
+            previous = daily_good[-2] if same_as_last_close else last_daily
+        elif daily_good:
+            previous = daily_good[-1]
+        if previous is None:
+            previous = _positive(daily_meta.get("previousClose")) or _positive(meta.get("previousClose"))
+        if not meta:
+            meta = daily_meta
 
         if current is not None:
             change = ((current - previous) / previous * 100) if previous else None
