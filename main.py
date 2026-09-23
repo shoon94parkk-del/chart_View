@@ -351,6 +351,22 @@ async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
                     HOME_LIVE_CACHE["marketUpdatedAt"][market] = now_iso
                     HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now_epoch
             HOME_LIVE_CACHE["lastError"] = "; ".join(errors[:4]) if errors else None
+            if "US" in markets and "US" not in _open_home_markets():
+                audit_symbols = {"META", "AMD", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "TSM", "AVGO", "TSLA"}
+                audit = {
+                    ticker: {
+                        "price": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("price"),
+                        "previousClose": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("previousClose"),
+                        "change": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("change"),
+                        "sessionDate": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("sessionDate"),
+                        "previousSessionDate": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("previousSessionDate"),
+                        "asOf": HOME_LIVE_CACHE["quotes"].get(ticker, {}).get("asOf"),
+                    }
+                    for ticker in audit_symbols
+                    if ticker in HOME_LIVE_CACHE["quotes"]
+                }
+                if audit:
+                    print("[HOME_AUDIT] " + json.dumps(audit, ensure_ascii=False, sort_keys=True))
         finally:
             HOME_LIVE_CACHE["refreshing"] = False
 
@@ -976,9 +992,12 @@ async def _refresh_market_now(force: bool = False):
                     "ticker": ticker,
                     "name": row.get("name") or ticker,
                     "price": row.get("price"),
+                    "previousClose": row.get("previousClose"),
                     "change": row.get("change"),
                     "currency": row.get("currency"),
                     "asOf": row.get("asOf"),
+                    "sessionDate": row.get("sessionDate"),
+                    "previousSessionDate": row.get("previousSessionDate"),
                     "stale": False,
                     "source": row.get("source") or "Yahoo Chart",
                 })
@@ -997,6 +1016,9 @@ async def _refresh_market_now(force: bool = False):
             }
             MARKET_NOW_CACHE["data"] = data
             MARKET_NOW_CACHE["timestamp"] = time.time()
+            audit = {row.get("ticker"): row for row in results if row.get("ticker") in {"^GSPC", "^IXIC"}}
+            if audit:
+                print("[MARKET_AUDIT] " + json.dumps(audit, ensure_ascii=False, sort_keys=True))
             return data
         finally:
             MARKET_NOW_CACHE["refreshing"] = False
