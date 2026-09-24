@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T23:11:38.927120+00:00",
+  "generatedAt": "2026-09-24T01:27:54.250799+00:00",
   "source": "github-actions-daily-change-v67",
   "heatmap": {
     "results": [
@@ -8,7 +8,7 @@
         "name": "삼성전자",
         "price": 286500.0,
         "change": 3.62,
-        "marketCap": 1868187293450240.0,
+        "marketCap": 1874753895792640.0,
         "asOf": "2026-09-23T20:20:21+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -18,7 +18,7 @@
         "name": "SK하이닉스",
         "price": 1863000.0,
         "change": 1.25,
-        "marketCap": 1332397639467008.0,
+        "marketCap": 1321749878669312.0,
         "asOf": "2026-09-23T20:20:23+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -28,7 +28,7 @@
         "name": "삼성바이오로직스",
         "price": 1373000.0,
         "change": -1.29,
-        "marketCap": 64020388249600.0,
+        "marketCap": 63233440350208.0,
         "asOf": "2026-09-23T20:20:24+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -38,7 +38,7 @@
         "name": "현대차",
         "price": 357000.0,
         "change": -0.97,
-        "marketCap": 94914851373056.0,
+        "marketCap": 92558348779520.0,
         "asOf": "2026-09-23T20:20:23+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -48,7 +48,7 @@
         "name": "기아",
         "price": 116200.0,
         "change": -1.94,
-        "marketCap": 46133472657408.0,
+        "marketCap": 44850904825856.0,
         "asOf": "2026-09-23T20:20:21+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -58,7 +58,7 @@
         "name": "LG에너지솔루션",
         "price": 352000.0,
         "change": 0.43,
-        "marketCap": 83420998795264.0,
+        "marketCap": 82250997694464.0,
         "asOf": "2026-09-23T20:20:19+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -68,7 +68,7 @@
         "name": "NAVER",
         "price": 196000.0,
         "change": -2.49,
-        "marketCap": 29826043871232.0,
+        "marketCap": 29166904803328.0,
         "asOf": "2026-09-23T20:20:20+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -78,7 +78,7 @@
         "name": "셀트리온",
         "price": 178100.0,
         "change": -0.22,
-        "marketCap": 41072499621888.0,
+        "marketCap": 40682643259392.0,
         "asOf": "2026-09-23T20:20:21+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
@@ -87,8 +87,8 @@
         "ticker": "NVDA",
         "name": "NVIDIA Corporation",
         "price": 225.51,
-        "change": -1.4681,
-        "marketCap": 5526523478016.0,
+        "change": -0.8224,
+        "marketCap": 5445389910016.0,
         "asOf": "2026-09-23T20:00:00+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -97,8 +97,8 @@
         "ticker": "AAPL",
         "name": "Apple Inc.",
         "price": 337.02,
-        "change": -0.8035,
-        "marketCap": 4958372495360.0,
+        "change": -0.5782,
+        "marketCap": 4918530277376.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -107,8 +107,8 @@
         "ticker": "MSFT",
         "name": "Microsoft Corporation",
         "price": 500.59,
-        "change": 0.5201,
-        "marketCap": 3697921753088.0,
+        "change": -0.2033,
+        "marketCap": 3717153947648.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -117,8 +117,8 @@
         "ticker": "GOOGL",
         "name": "Alphabet Inc.",
         "price": 337.83,
-        "change": -3.796,
-        "marketCap": 4294663995392.0,
+        "change": -4.8286,
+        "marketCap": 4131638738944.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -127,8 +127,8 @@
         "ticker": "AMZN",
         "name": "Amazon.com, Inc.",
         "price": 249.27,
-        "change": -2.2394,
-        "marketCap": 2750293999616.0,
+        "change": -3.5519,
+        "marketCap": 2688704315392.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -137,8 +137,8 @@
         "ticker": "TSM",
         "name": "Taiwan Semiconductor Manufactur",
         "price": 446.57,
-        "change": -1.2013,
-        "marketCap": 2344286158848.0,
+        "change": 0.3212,
+        "marketCap": 2316123766784.0,
         "asOf": "2026-09-23T20:00:03+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -147,8 +147,8 @@
         "ticker": "META",
         "name": "Meta Platforms, Inc.",
         "price": 744.1,
-        "change": 1.0182,
-        "marketCap": 1876480229376.0,
+        "change": 0.3845,
+        "marketCap": 1895599308800.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -157,8 +157,8 @@
         "ticker": "AVGO",
         "name": "Broadcom Inc.",
         "price": 354.99,
-        "change": -2.6197,
-        "marketCap": 1740179111936.0,
+        "change": -2.1149,
+        "marketCap": 1694590828544.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -167,8 +167,8 @@
         "ticker": "TSLA",
         "name": "Tesla, Inc.",
         "price": 380.12,
-        "change": 0.322,
-        "marketCap": 1496483495936.0,
+        "change": 1.2843,
+        "marketCap": 1501301964800.0,
         "asOf": "2026-09-23T20:00:00+00:00",
         "source": "Yahoo daily close",
         "stale": false
@@ -177,8 +177,8 @@
         "ticker": "AMD",
         "name": "Advanced Micro Devices, Inc.",
         "price": 614.61,
-        "change": -1.4685,
-        "marketCap": 1018288996352.0,
+        "change": -0.1478,
+        "marketCap": 1003335450624.0,
         "asOf": "2026-09-23T20:00:01+00:00",
         "source": "Yahoo daily close",
         "stale": false
