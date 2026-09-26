@@ -141,3 +141,6 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - 전체 히트맵 응답에서 `source=precomputed-us-heatmap` 또는 legacy heatmap.json의 price/change가 사용자 표시값으로 노출되면 회귀다.
 - 홈/전체 히트맵 중복 종목은 price와 change가 동일해야 한다. provider 갱신 시점 차이보다 Home 표시 스냅샷 정합성을 우선한다.
 - 전체 히트맵 refresh 실패 시 오래된 legacy 시세를 fallback하지 않는다. 이전 canonical provider/Home 값만 stale fallback으로 허용한다.
+
+- `/api/home-live` must never await provider I/O or call `fetch_quote_snapshot` on the request path. It returns shared memory immediately and may only wake the background worker.
+- `/api/home-live` remains `Cache-Control: no-store`; clients may poll the lightweight shared snapshot but must not receive a proxy-stale copy.
