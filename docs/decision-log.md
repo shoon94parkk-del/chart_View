@@ -177,3 +177,8 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 ## 2026-09-27 — 홈/전체 히트맵 시세 소스 통일
 미국 전체 히트맵의 legacy heatmap.json이 2025-12-23 가격/등락률을 포함해 현재 홈 시세와 충돌하는 문제가 확인됐다. legacy 파일은 종목 목록/시총 weight만 유지하고 시세 필드는 무시한다. 전체 히트맵은 한국/미국 모두 canonical fetch_quote_snapshot 경로로 60종목을 백그라운드 갱신하며, Home과 중복되는 18종목은 실제 Home UI가 읽는 HOME_SNAPSHOT_CACHE를 최종 오버레이한다.
+
+### Home live reads are non-blocking cache reads
+**Context:** Apps in Toss now reads the shared Home snapshot roughly every 10 seconds while visible. The old cold-start fallback awaited provider refresh inside `/api/home-live`, allowing a user cache read to become provider work.
+
+**Decision:** `/api/home-live` is a pure shared-memory read. If the cache is not warmed it only wakes the existing activity-gated worker; startup/worker code owns provider refresh. The response is no-store so freshness is controlled by Render memory rather than intermediary browser caching.
