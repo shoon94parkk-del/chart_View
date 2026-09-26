@@ -433,6 +433,7 @@ async def startup_event():
     ping_thread.start()
     snapshot = _seed_home_snapshot_from_disk()
     _seed_home_live_from_snapshot(snapshot)
+    _seed_full_heatmap_from_local()
     HOME_LIVE_WAKE_EVENT = asyncio.Event()
     asyncio.create_task(_home_live_worker())
     # Replace disk-seeded quotes immediately, even while KR/US markets are closed.
@@ -1087,8 +1088,9 @@ def _load_full_heatmap_us_rows():
         pass
 
     rows = []
-    sectors = payload.get("sectors") or {}
-    for sector in sectors.values():
+    sectors = payload.get("sectors") or []
+    sector_iter = sectors.values() if isinstance(sectors, dict) else sectors if isinstance(sectors, list) else []
+    for sector in sector_iter:
         sector_rows = sector if isinstance(sector, list) else (sector.get("stocks") or sector.get("data") or [])
         for row in sector_rows:
             if not isinstance(row, dict):
@@ -1126,6 +1128,69 @@ def _load_valuation_market_caps():
     except Exception as exc:
         print(f"[FULL_HEATMAP] valuation cache unavailable: {exc}")
         return {}
+
+
+def _seed_full_heatmap_from_local():
+    """Build the full heatmap immediately from precomputed local caches."""
+    try:
+        sources = _load_home_insight_sources()
+        screener = sources.get("screener") or {}
+        valuation = sources.get("valuation") or {}
+        stock_by_symbol = {
+            str(row.get("symbol") or "").upper(): row
+            for row in (screener.get("stocks") or [])
+            if isinstance(row, dict) and row.get("symbol")
+        }
+        valuation_quotes = valuation.get("quotes") or {}
+        live_quotes = HOME_LIVE_CACHE.get("quotes") or {}
+
+        kr_rows = []
+        for ticker in FULL_HEATMAP_KR_TICKERS:
+            screen = stock_by_symbol.get(ticker) or {}
+            val = valuation_quotes.get(ticker) or {}
+            price = screen.get("price")
+            change = screen.get("change1d")
+            live = live_quotes.get(ticker) or {}
+            if live.get("price") is not None and live.get("change") is not None:
+                price = live.get("price")
+                change = live.get("change")
+            market_cap = val.get("marketCap")
+            if price is None or change is None or market_cap is None:
+                continue
+            kr_rows.append({
+                "ticker": ticker,
+                "name": screen.get("name") or val.get("shortName") or ticker,
+                "market": "KR",
+                "price": price,
+                "change": change,
+                "marketCap": market_cap,
+                "asOf": live.get("asOf") or screener.get("tradeDate") or screener.get("updated"),
+                "source": live.get("source") or "screener+valuation-cache",
+                "stale": False,
+            })
+
+        us_rows = _load_full_heatmap_us_rows()
+        for row in us_rows:
+            live = live_quotes.get(row.get("ticker")) or {}
+            if live.get("price") is not None and live.get("change") is not None:
+                row["price"] = live.get("price")
+                row["change"] = live.get("change")
+                row["asOf"] = live.get("asOf") or row.get("asOf")
+                row["source"] = live.get("source") or row.get("source")
+
+        data = {
+            "results": kr_rows + us_rows,
+            "generatedAt": datetime.now(KST).isoformat(),
+            "source": "local-precomputed-full-heatmap",
+            "counts": {"KR": len(kr_rows), "US": len(us_rows)},
+        }
+        if data["results"]:
+            FULL_HEATMAP_CACHE["data"] = data
+            FULL_HEATMAP_CACHE["timestamp"] = time.time()
+        return data
+    except Exception as exc:
+        print(f"[FULL_HEATMAP] local seed failed: {exc}")
+        return None
 
 
 async def _refresh_full_heatmap(force: bool = False):
@@ -1199,17 +1264,22 @@ async def full_heatmap_data(fresh: bool = False):
     Home intentionally stays on the 18-name snapshot. This endpoint expands only
     the full view, using 20 Korean large caps plus the top 40 precomputed US names.
     """
-    data = FULL_HEATMAP_CACHE.get("data")
-    if fresh or not data:
+    data = FULL_HEATMAP_CACHE.get("data") or _seed_full_heatmap_from_local()
+    if fresh:
         try:
-            data = await _refresh_full_heatmap(force=bool(fresh))
+            data = await _refresh_full_heatmap(force=True) or data
         except Exception as exc:
             print(f"[FULL_HEATMAP] refresh failed: {exc}")
-            data = data or {"results": [], "counts": {"KR": 0, "US": 0}}
-    else:
+    elif data:
         age = time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)
         if age >= FULL_HEATMAP_TTL and not FULL_HEATMAP_CACHE.get("refreshing"):
             asyncio.create_task(_refresh_full_heatmap(force=False))
+    else:
+        try:
+            data = await asyncio.wait_for(_refresh_full_heatmap(force=True), timeout=8)
+        except Exception as exc:
+            print(f"[FULL_HEATMAP] fallback refresh failed: {exc}")
+            data = {"results": [], "counts": {"KR": 0, "US": 0}}
 
     payload = dict(data or {"results": [], "counts": {"KR": 0, "US": 0}})
     payload["cacheAgeSec"] = round(max(0.0, time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)), 1)
