@@ -67,8 +67,9 @@ HOME_SNAPSHOT_LOCK = asyncio.Lock()
 # Expanded heatmap cache used only by the dedicated full-screen heatmap.
 # Keep Home lightweight while allowing a denser view on demand.
 FULL_HEATMAP_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
-FULL_HEATMAP_TTL = 300
+FULL_HEATMAP_TTL = 60
 FULL_HEATMAP_LOCK = asyncio.Lock()
+FULL_HEATMAP_REFRESH_CONCURRENCY = 12
 FULL_HEATMAP_US_LIMIT = 40
 FULL_HEATMAP_KR_TICKERS = [
     "005930.KS", "000660.KS", "207940.KS", "005380.KS", "000270.KS",
@@ -438,6 +439,8 @@ async def startup_event():
     asyncio.create_task(_home_live_worker())
     # Replace disk-seeded quotes immediately, even while KR/US markets are closed.
     asyncio.create_task(_refresh_home_live(_all_home_markets()))
+    # Warm the full 60-name heatmap in the background from the same canonical quote path.
+    asyncio.create_task(_refresh_full_heatmap(force=True))
     asyncio.create_task(_analytics_redis_client())
     asyncio.create_task(_refresh_home_snapshot(force=True))
     asyncio.create_task(_refresh_market_now(force=True))
@@ -1065,13 +1068,17 @@ async def market_now(fresh: bool = False):
     return payload
 
 def _load_full_heatmap_us_rows():
-    """Load the precomputed US heatmap and keep only the largest names by market cap."""
+    """Load the US heatmap universe/weights only.
+
+    static/data/heatmap.json is legacy layout metadata. Its price/change fields
+    must never be treated as current market data.
+    """
     path = os.path.join(os.path.dirname(__file__), "static", "data", "heatmap.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as exc:
-        print(f"[FULL_HEATMAP] US cache unavailable: {exc}")
+        print(f"[FULL_HEATMAP] US universe unavailable: {exc}")
         return []
 
     quote_names = {}
@@ -1097,19 +1104,13 @@ def _load_full_heatmap_us_rows():
                 continue
             ticker = str(row.get("ticker") or "").strip().upper()
             market_cap = row.get("marketCap")
-            change = row.get("change")
-            if not ticker or market_cap is None or change is None:
+            if not ticker or market_cap is None:
                 continue
             rows.append({
                 "ticker": ticker,
                 "name": quote_names.get(ticker) or ticker,
                 "market": "US",
-                "price": row.get("price"),
-                "change": change,
                 "marketCap": market_cap,
-                "asOf": payload.get("updated"),
-                "source": "precomputed-us-heatmap",
-                "stale": False,
             })
     rows.sort(key=lambda row: float(row.get("marketCap") or 0), reverse=True)
     return rows[:FULL_HEATMAP_US_LIMIT]
@@ -1130,8 +1131,62 @@ def _load_valuation_market_caps():
         return {}
 
 
+def _home_heatmap_rows_by_ticker():
+    """Canonical rows currently visible on Home, for exact Home/full parity."""
+    rows = {}
+    snapshot = HOME_SNAPSHOT_CACHE.get("data") or {}
+    for row in ((snapshot.get("heatmap") or {}).get("results") or []):
+        if isinstance(row, dict) and row.get("ticker"):
+            rows[str(row["ticker"]).upper()] = row
+
+    # HOME_LIVE_CACHE is fresher during open markets; prefer it when complete.
+    for ticker, row in (HOME_LIVE_CACHE.get("quotes") or {}).items():
+        if not isinstance(row, dict):
+            continue
+        if row.get("price") is None or row.get("change") is None:
+            continue
+        rows[str(ticker).upper()] = row
+    return rows
+
+
+def _overlay_home_quotes_on_full(data):
+    """Make overlapping Home/full symbols use the exact same quote values."""
+    if not data:
+        return data
+    home_rows = _home_heatmap_rows_by_ticker()
+    results = []
+    for row in (data.get("results") or []):
+        ticker = str(row.get("ticker") or "").upper()
+        live = home_rows.get(ticker)
+        if live and live.get("price") is not None and live.get("change") is not None:
+            merged = dict(row)
+            for key in ("name", "price", "change", "asOf", "sessionDate", "previousSessionDate", "source"):
+                if live.get(key) is not None:
+                    merged[key] = live.get(key)
+            merged["stale"] = bool(live.get("stale", False))
+            merged["quoteBasis"] = "home-canonical"
+            results.append(merged)
+        else:
+            results.append(row)
+    payload = dict(data)
+    payload["results"] = results
+    return payload
+
+
+async def _fetch_full_heatmap_quotes(tickers):
+    """Fetch current quotes with bounded concurrency so one refresh cannot fan out wildly."""
+    semaphore = asyncio.Semaphore(FULL_HEATMAP_REFRESH_CONCURRENCY)
+
+    async def one(ticker):
+        async with semaphore:
+            return await asyncio.to_thread(fetch_quote_snapshot, ticker)
+
+    fetched = await asyncio.gather(*[one(ticker) for ticker in tickers], return_exceptions=True)
+    return dict(zip(tickers, fetched))
+
+
 def _seed_full_heatmap_from_local():
-    """Build the full heatmap immediately from precomputed local caches."""
+    """Fast cold-start seed without trusting legacy US price/change values."""
     try:
         sources = _load_home_insight_sources()
         screener = sources.get("screener") or {}
@@ -1142,51 +1197,63 @@ def _seed_full_heatmap_from_local():
             if isinstance(row, dict) and row.get("symbol")
         }
         valuation_quotes = valuation.get("quotes") or {}
-        live_quotes = HOME_LIVE_CACHE.get("quotes") or {}
+        home_rows = _home_heatmap_rows_by_ticker()
 
         kr_rows = []
         for ticker in FULL_HEATMAP_KR_TICKERS:
             screen = stock_by_symbol.get(ticker) or {}
             val = valuation_quotes.get(ticker) or {}
-            price = screen.get("price")
-            change = screen.get("change1d")
-            live = live_quotes.get(ticker) or {}
-            if live.get("price") is not None and live.get("change") is not None:
-                price = live.get("price")
-                change = live.get("change")
+            live = home_rows.get(ticker) or {}
+            price = live.get("price") if live.get("price") is not None else screen.get("price")
+            change = live.get("change") if live.get("change") is not None else screen.get("change1d")
             market_cap = val.get("marketCap")
             if price is None or change is None or market_cap is None:
                 continue
             kr_rows.append({
                 "ticker": ticker,
-                "name": screen.get("name") or val.get("shortName") or ticker,
+                "name": live.get("name") or screen.get("name") or val.get("shortName") or ticker,
                 "market": "KR",
                 "price": price,
                 "change": change,
                 "marketCap": market_cap,
                 "asOf": live.get("asOf") or screener.get("tradeDate") or screener.get("updated"),
+                "sessionDate": live.get("sessionDate"),
+                "previousSessionDate": live.get("previousSessionDate"),
                 "source": live.get("source") or "screener+valuation-cache",
-                "stale": False,
+                "quoteBasis": "home-canonical" if live else "daily-cache",
+                "stale": bool(live.get("stale", False)) if live else True,
             })
 
-        us_rows = _load_full_heatmap_us_rows()
-        for row in us_rows:
-            live = live_quotes.get(row.get("ticker")) or {}
-            if live.get("price") is not None and live.get("change") is not None:
-                row["price"] = live.get("price")
-                row["change"] = live.get("change")
-                row["asOf"] = live.get("asOf") or row.get("asOf")
-                row["source"] = live.get("source") or row.get("source")
+        # For US, only seed symbols that already have a verified current Home quote.
+        # The legacy heatmap file supplies universe/weights, never quote values.
+        us_rows = []
+        for meta in _load_full_heatmap_us_rows():
+            live = home_rows.get(meta.get("ticker")) or {}
+            if live.get("price") is None or live.get("change") is None:
+                continue
+            us_rows.append({
+                **meta,
+                "name": live.get("name") or meta.get("name"),
+                "price": live.get("price"),
+                "change": live.get("change"),
+                "asOf": live.get("asOf"),
+                "sessionDate": live.get("sessionDate"),
+                "previousSessionDate": live.get("previousSessionDate"),
+                "source": live.get("source") or "home-canonical",
+                "quoteBasis": "home-canonical",
+                "stale": bool(live.get("stale", False)),
+            })
 
         data = {
             "results": kr_rows + us_rows,
             "generatedAt": datetime.now(KST).isoformat(),
-            "source": "local-precomputed-full-heatmap",
+            "source": "canonical-seed-no-legacy-quotes",
             "counts": {"KR": len(kr_rows), "US": len(us_rows)},
+            "complete": len(kr_rows) >= len(FULL_HEATMAP_KR_TICKERS) and len(us_rows) >= FULL_HEATMAP_US_LIMIT,
         }
         if data["results"]:
             FULL_HEATMAP_CACHE["data"] = data
-            FULL_HEATMAP_CACHE["timestamp"] = time.time()
+            FULL_HEATMAP_CACHE["timestamp"] = 0.0
         return data
     except Exception as exc:
         print(f"[FULL_HEATMAP] local seed failed: {exc}")
@@ -1196,95 +1263,115 @@ def _seed_full_heatmap_from_local():
 async def _refresh_full_heatmap(force: bool = False):
     now = time.time()
     cached = FULL_HEATMAP_CACHE.get("data")
-    if cached and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
-        return cached
+    if cached and cached.get("complete") and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+        return _overlay_home_quotes_on_full(cached)
 
     async with FULL_HEATMAP_LOCK:
         now = time.time()
         cached = FULL_HEATMAP_CACHE.get("data")
-        if cached and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
-            return cached
+        if cached and cached.get("complete") and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+            return _overlay_home_quotes_on_full(cached)
 
         FULL_HEATMAP_CACHE["refreshing"] = True
         try:
             previous = {
-                row.get("ticker"): row
+                str(row.get("ticker") or "").upper(): row
                 for row in ((cached or {}).get("results") or [])
                 if isinstance(row, dict) and row.get("ticker")
             }
             market_caps = _load_valuation_market_caps()
-            fetched = await asyncio.gather(
-                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in FULL_HEATMAP_KR_TICKERS],
-                return_exceptions=True,
-            )
+            us_meta_rows = _load_full_heatmap_us_rows()
+            us_meta = {row["ticker"]: row for row in us_meta_rows}
+            all_tickers = list(dict.fromkeys(FULL_HEATMAP_KR_TICKERS + [row["ticker"] for row in us_meta_rows]))
+            fetched = await _fetch_full_heatmap_quotes(all_tickers)
 
-            kr_rows = []
-            for ticker, row in zip(FULL_HEATMAP_KR_TICKERS, fetched):
-                if isinstance(row, Exception) or not row:
-                    old = previous.get(ticker)
-                    if old:
-                        kr_rows.append({**old, "stale": True})
+            results = []
+            for ticker in all_tickers:
+                item = fetched.get(ticker)
+                old = previous.get(ticker)
+                market = "KR" if ticker in FULL_HEATMAP_KR_TICKERS else "US"
+                meta = us_meta.get(ticker) or {}
+                market_cap = (
+                    (item.get("marketCap") if isinstance(item, dict) else None)
+                    or market_caps.get(ticker)
+                    or meta.get("marketCap")
+                    or (old or {}).get("marketCap")
+                )
+
+                if isinstance(item, Exception) or not item or item.get("price") is None or item.get("change") is None:
+                    # Preserve only previously canonical rows. Never fall back to
+                    # legacy heatmap.json price/change values.
+                    if old and old.get("quoteBasis") in {"provider-canonical", "home-canonical"}:
+                        results.append({**old, "stale": True})
                     continue
-                market_cap = row.get("marketCap") or market_caps.get(ticker) or (previous.get(ticker) or {}).get("marketCap") or 0
                 if not market_cap:
                     continue
-                kr_rows.append({
+
+                results.append({
                     "ticker": ticker,
-                    "name": row.get("name") or ticker,
-                    "market": "KR",
-                    "price": row.get("price"),
-                    "change": row.get("change"),
+                    "name": item.get("name") or meta.get("name") or (old or {}).get("name") or ticker,
+                    "market": market,
+                    "price": item.get("price"),
+                    "change": item.get("change"),
                     "marketCap": market_cap,
-                    "asOf": row.get("asOf"),
-                    "source": row.get("source") or "quote-snapshot",
+                    "asOf": item.get("asOf"),
+                    "sessionDate": item.get("sessionDate"),
+                    "previousSessionDate": item.get("previousSessionDate"),
+                    "source": item.get("source") or "quote-snapshot",
+                    "quoteBasis": "provider-canonical",
                     "stale": False,
                 })
 
-            us_rows = _load_full_heatmap_us_rows()
-            if not us_rows and cached:
-                us_rows = [row for row in (cached.get("results") or []) if row.get("market") == "US"]
-
+            kr_count = sum(1 for row in results if row.get("market") == "KR")
+            us_count = sum(1 for row in results if row.get("market") == "US")
             data = {
-                "results": kr_rows + us_rows,
+                "results": results,
                 "generatedAt": datetime.now(KST).isoformat(),
-                "source": "full-heatmap-cache",
-                "counts": {"KR": len(kr_rows), "US": len(us_rows)},
+                "source": "canonical-provider-full-heatmap",
+                "counts": {"KR": kr_count, "US": us_count},
+                "complete": kr_count >= len(FULL_HEATMAP_KR_TICKERS) and us_count >= FULL_HEATMAP_US_LIMIT,
             }
-            FULL_HEATMAP_CACHE["data"] = data
-            FULL_HEATMAP_CACHE["timestamp"] = time.time()
-            return data
+            if results:
+                FULL_HEATMAP_CACHE["data"] = data
+                FULL_HEATMAP_CACHE["timestamp"] = time.time()
+            return _overlay_home_quotes_on_full(data)
         finally:
             FULL_HEATMAP_CACHE["refreshing"] = False
 
 
 @app.get("/api/heatmap/full")
 async def full_heatmap_data(fresh: bool = False):
-    """Expanded heatmap for the dedicated full-screen view.
-
-    Home intentionally stays on the 18-name snapshot. This endpoint expands only
-    the full view, using 20 Korean large caps plus the top 40 precomputed US names.
-    """
+    """Expanded heatmap using one canonical quote definition for both markets."""
     data = FULL_HEATMAP_CACHE.get("data") or _seed_full_heatmap_from_local()
+    needs_refresh = (
+        not data
+        or not data.get("complete")
+        or time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0) >= FULL_HEATMAP_TTL
+    )
+
     if fresh:
         try:
             data = await _refresh_full_heatmap(force=True) or data
         except Exception as exc:
-            print(f"[FULL_HEATMAP] refresh failed: {exc}")
-    elif data:
-        age = time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)
-        if age >= FULL_HEATMAP_TTL and not FULL_HEATMAP_CACHE.get("refreshing"):
-            asyncio.create_task(_refresh_full_heatmap(force=False))
-    else:
-        try:
-            data = await asyncio.wait_for(_refresh_full_heatmap(force=True), timeout=8)
-        except Exception as exc:
-            print(f"[FULL_HEATMAP] fallback refresh failed: {exc}")
-            data = {"results": [], "counts": {"KR": 0, "US": 0}}
+            print(f"[FULL_HEATMAP] foreground refresh failed: {exc}")
+    elif needs_refresh and not FULL_HEATMAP_CACHE.get("refreshing"):
+        asyncio.create_task(_refresh_full_heatmap(force=False))
 
-    payload = dict(data or {"results": [], "counts": {"KR": 0, "US": 0}})
+    payload = _overlay_home_quotes_on_full(data or {"results": [], "counts": {"KR": 0, "US": 0}})
+    counts = {
+        "KR": sum(1 for row in (payload.get("results") or []) if row.get("market") == "KR"),
+        "US": sum(1 for row in (payload.get("results") or []) if row.get("market") == "US"),
+    }
+    payload["counts"] = counts
+    payload["complete"] = counts["KR"] >= len(FULL_HEATMAP_KR_TICKERS) and counts["US"] >= FULL_HEATMAP_US_LIMIT
     payload["cacheAgeSec"] = round(max(0.0, time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)), 1)
-    payload["refreshing"] = bool(FULL_HEATMAP_CACHE.get("refreshing"))
-    payload["cacheMode"] = "stale-while-revalidate"
+    payload["refreshing"] = bool(FULL_HEATMAP_CACHE.get("refreshing") or (needs_refresh and not fresh))
+    payload["cacheMode"] = "canonical-stale-while-revalidate"
+    payload["dataContract"] = {
+        "change": "percent change versus previous trading close from the canonical quote provider path",
+        "legacyHeatmapJson": "universe/market-cap layout only; price/change ignored",
+        "homeParity": "overlapping Home/full tickers are overlaid from the same Home canonical quote cache",
+    }
     return payload
 
 
