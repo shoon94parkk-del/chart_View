@@ -137,3 +137,7 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Sharing an open stock detail must include `tab=chart&view=detail&symbol=<ticker>`; include name when available.
 - Sharing a normal app screen must preserve its active tab rather than always returning recipients to Home.
 - UTM parameters may be appended, but they must not replace or erase route parameters.
+
+- 전체 히트맵 응답에서 `source=precomputed-us-heatmap` 또는 legacy heatmap.json의 price/change가 사용자 표시값으로 노출되면 회귀다.
+- 홈/전체 히트맵 중복 종목은 price와 change가 동일해야 한다. provider 갱신 시점 차이보다 Home 표시 스냅샷 정합성을 우선한다.
+- 전체 히트맵 refresh 실패 시 오래된 legacy 시세를 fallback하지 않는다. 이전 canonical provider/Home 값만 stale fallback으로 허용한다.
