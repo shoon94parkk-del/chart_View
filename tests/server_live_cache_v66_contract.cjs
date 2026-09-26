@@ -47,15 +47,15 @@ test('closed markets are refreshed so disk snapshots cannot survive a deploy', (
 });
 
 test('heatmap client cache is invalidated with the reliability release', () => {
-  assert.match(heat, /chartview-home-heatmap-v67/);
-  assert.match(heat, /chartview-watchlist-quotes-v34/);
+  assert.match(heat, /chartview-home-heatmap-v68/);
+  assert.match(heat, /chartview-watchlist-quotes-v35/);
   assert.match(html, /home_heatmap_v57\.js\?v=20260923v68/);
 });
 
 
 test('bundled market cache is invalidated for session-correct quotes', () => {
   const bundle = fs.readFileSync('static/js/chartview_release_bundle.js', 'utf8');
-  assert.match(bundle, /chartview-market-now-v22/);
-  assert.doesNotMatch(bundle, /chartview-market-now-v21/);
-  assert.match(html, /chartview_release_bundle\.js\?v=20260923marketfix3/);
+  assert.match(bundle, /chartview-market-now-v23/);
+  assert.doesNotMatch(bundle, /chartview-market-now-v22/);
+  assert.match(html, /chartview_release_bundle\.js\?v=eb2f35328985/);
 });
