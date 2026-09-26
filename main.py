@@ -1132,20 +1132,23 @@ def _load_valuation_market_caps():
 
 
 def _home_heatmap_rows_by_ticker():
-    """Canonical rows currently visible on Home, for exact Home/full parity."""
+    """Rows that Home heatmap actually displays, for exact Home/full parity."""
     rows = {}
-    snapshot = HOME_SNAPSHOT_CACHE.get("data") or {}
-    for row in ((snapshot.get("heatmap") or {}).get("results") or []):
-        if isinstance(row, dict) and row.get("ticker"):
-            rows[str(row["ticker"]).upper()] = row
 
-    # HOME_LIVE_CACHE is fresher during open markets; prefer it when complete.
+    # Live memory is a fallback when Home snapshot is not ready yet.
     for ticker, row in (HOME_LIVE_CACHE.get("quotes") or {}).items():
         if not isinstance(row, dict):
             continue
         if row.get("price") is None or row.get("change") is None:
             continue
         rows[str(ticker).upper()] = row
+
+    # Home UI reads HOME_SNAPSHOT_CACHE. Let that snapshot win so overlapping
+    # symbols are byte-for-byte aligned with the values visible on Home.
+    snapshot = HOME_SNAPSHOT_CACHE.get("data") or {}
+    for row in ((snapshot.get("heatmap") or {}).get("results") or []):
+        if isinstance(row, dict) and row.get("ticker"):
+            rows[str(row["ticker"]).upper()] = row
     return rows
 
 
