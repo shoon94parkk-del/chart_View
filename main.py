@@ -638,17 +638,19 @@ async def visitor_activity(request: Request):
 
 @app.get("/api/home-live")
 async def home_live_snapshot():
-    """Return the shared Home quote snapshot, warming it once if only disk data exists."""
-    if not HOME_LIVE_CACHE.get("updatedAt"):
-        await _refresh_home_live(_all_home_markets())
+    """Return shared memory immediately; provider refresh belongs only to the server worker."""
     updated = HOME_LIVE_CACHE.get("updatedAt")
+    if not updated and HOME_LIVE_WAKE_EVENT is not None:
+        # Never make a user's cache read wait for provider I/O. Activity heartbeat
+        # wakes the same worker; startup also warms the cache in the background.
+        HOME_LIVE_WAKE_EVENT.set()
     age = None
     if updated:
         try:
             age = max(0.0, (datetime.now(timezone.utc) - datetime.fromisoformat(updated)).total_seconds())
         except Exception:
             age = None
-    return {
+    payload = {
         "results": _home_live_results(),
         "updatedAt": updated,
         "marketUpdatedAt": dict(HOME_LIVE_CACHE.get("marketUpdatedAt") or {}),
@@ -656,6 +658,7 @@ async def home_live_snapshot():
         "refreshing": bool(HOME_LIVE_CACHE.get("refreshing")),
         "source": "Render shared memory · server-driven V66",
     }
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/admin/usage")
