@@ -64,6 +64,19 @@ HOME_MAJOR_TICKERS = [
 ]
 HOME_SNAPSHOT_LOCK = asyncio.Lock()
 
+# Expanded heatmap cache used only by the dedicated full-screen heatmap.
+# Keep Home lightweight while allowing a denser view on demand.
+FULL_HEATMAP_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
+FULL_HEATMAP_TTL = 300
+FULL_HEATMAP_LOCK = asyncio.Lock()
+FULL_HEATMAP_US_LIMIT = 40
+FULL_HEATMAP_KR_TICKERS = [
+    "005930.KS", "000660.KS", "207940.KS", "005380.KS", "000270.KS",
+    "373220.KS", "035420.KS", "068270.KS", "051910.KS", "006400.KS",
+    "055550.KS", "105560.KS", "035720.KS", "086790.KS", "066570.KS",
+    "003550.KS", "003670.KS", "009150.KS", "018260.KS", "028260.KS",
+]
+
 HOME_LIVE_ACTIVE_REFRESH_SEC = 5.0
 HOME_LIVE_CLOSED_REFRESH_SEC = 300.0
 HOME_LIVE_IDLE_CHECK_SEC = 30.0
@@ -1049,6 +1062,161 @@ async def market_now(fresh: bool = False):
     payload["refreshing"] = bool(MARKET_NOW_CACHE.get("refreshing"))
     payload["cacheMode"] = "stale-while-revalidate"
     return payload
+
+def _load_full_heatmap_us_rows():
+    """Load the precomputed US heatmap and keep only the largest names by market cap."""
+    path = os.path.join(os.path.dirname(__file__), "static", "data", "heatmap.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except Exception as exc:
+        print(f"[FULL_HEATMAP] US cache unavailable: {exc}")
+        return []
+
+    quote_names = {}
+    try:
+        valuation_path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
+        with open(valuation_path, "r", encoding="utf-8") as f:
+            valuation_payload = json.load(f)
+        quote_names = {
+            ticker: (row or {}).get("shortName")
+            for ticker, row in (valuation_payload.get("quotes") or {}).items()
+            if isinstance(row, dict)
+        }
+    except Exception:
+        pass
+
+    rows = []
+    sectors = payload.get("sectors") or {}
+    for sector in sectors.values():
+        sector_rows = sector if isinstance(sector, list) else (sector.get("stocks") or sector.get("data") or [])
+        for row in sector_rows:
+            if not isinstance(row, dict):
+                continue
+            ticker = str(row.get("ticker") or "").strip().upper()
+            market_cap = row.get("marketCap")
+            change = row.get("change")
+            if not ticker or market_cap is None or change is None:
+                continue
+            rows.append({
+                "ticker": ticker,
+                "name": quote_names.get(ticker) or ticker,
+                "market": "US",
+                "price": row.get("price"),
+                "change": change,
+                "marketCap": market_cap,
+                "asOf": payload.get("updated"),
+                "source": "precomputed-us-heatmap",
+                "stale": False,
+            })
+    rows.sort(key=lambda row: float(row.get("marketCap") or 0), reverse=True)
+    return rows[:FULL_HEATMAP_US_LIMIT]
+
+
+def _load_valuation_market_caps():
+    path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        return {
+            ticker: (row or {}).get("marketCap")
+            for ticker, row in (payload.get("quotes") or {}).items()
+            if isinstance(row, dict)
+        }
+    except Exception as exc:
+        print(f"[FULL_HEATMAP] valuation cache unavailable: {exc}")
+        return {}
+
+
+async def _refresh_full_heatmap(force: bool = False):
+    now = time.time()
+    cached = FULL_HEATMAP_CACHE.get("data")
+    if cached and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+        return cached
+
+    async with FULL_HEATMAP_LOCK:
+        now = time.time()
+        cached = FULL_HEATMAP_CACHE.get("data")
+        if cached and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+            return cached
+
+        FULL_HEATMAP_CACHE["refreshing"] = True
+        try:
+            previous = {
+                row.get("ticker"): row
+                for row in ((cached or {}).get("results") or [])
+                if isinstance(row, dict) and row.get("ticker")
+            }
+            market_caps = _load_valuation_market_caps()
+            fetched = await asyncio.gather(
+                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in FULL_HEATMAP_KR_TICKERS],
+                return_exceptions=True,
+            )
+
+            kr_rows = []
+            for ticker, row in zip(FULL_HEATMAP_KR_TICKERS, fetched):
+                if isinstance(row, Exception) or not row:
+                    old = previous.get(ticker)
+                    if old:
+                        kr_rows.append({**old, "stale": True})
+                    continue
+                market_cap = row.get("marketCap") or market_caps.get(ticker) or (previous.get(ticker) or {}).get("marketCap") or 0
+                if not market_cap:
+                    continue
+                kr_rows.append({
+                    "ticker": ticker,
+                    "name": row.get("name") or ticker,
+                    "market": "KR",
+                    "price": row.get("price"),
+                    "change": row.get("change"),
+                    "marketCap": market_cap,
+                    "asOf": row.get("asOf"),
+                    "source": row.get("source") or "quote-snapshot",
+                    "stale": False,
+                })
+
+            us_rows = _load_full_heatmap_us_rows()
+            if not us_rows and cached:
+                us_rows = [row for row in (cached.get("results") or []) if row.get("market") == "US"]
+
+            data = {
+                "results": kr_rows + us_rows,
+                "generatedAt": datetime.now(KST).isoformat(),
+                "source": "full-heatmap-cache",
+                "counts": {"KR": len(kr_rows), "US": len(us_rows)},
+            }
+            FULL_HEATMAP_CACHE["data"] = data
+            FULL_HEATMAP_CACHE["timestamp"] = time.time()
+            return data
+        finally:
+            FULL_HEATMAP_CACHE["refreshing"] = False
+
+
+@app.get("/api/heatmap/full")
+async def full_heatmap_data(fresh: bool = False):
+    """Expanded heatmap for the dedicated full-screen view.
+
+    Home intentionally stays on the 18-name snapshot. This endpoint expands only
+    the full view, using 20 Korean large caps plus the top 40 precomputed US names.
+    """
+    data = FULL_HEATMAP_CACHE.get("data")
+    if fresh or not data:
+        try:
+            data = await _refresh_full_heatmap(force=bool(fresh))
+        except Exception as exc:
+            print(f"[FULL_HEATMAP] refresh failed: {exc}")
+            data = data or {"results": [], "counts": {"KR": 0, "US": 0}}
+    else:
+        age = time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)
+        if age >= FULL_HEATMAP_TTL and not FULL_HEATMAP_CACHE.get("refreshing"):
+            asyncio.create_task(_refresh_full_heatmap(force=False))
+
+    payload = dict(data or {"results": [], "counts": {"KR": 0, "US": 0}})
+    payload["cacheAgeSec"] = round(max(0.0, time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0)), 1)
+    payload["refreshing"] = bool(FULL_HEATMAP_CACHE.get("refreshing"))
+    payload["cacheMode"] = "stale-while-revalidate"
+    return payload
+
 
 @app.get("/api/heatmap")
 async def heatmap_data(fresh: bool = False):
