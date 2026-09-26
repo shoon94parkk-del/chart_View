@@ -1073,6 +1073,19 @@ def _load_full_heatmap_us_rows():
         print(f"[FULL_HEATMAP] US cache unavailable: {exc}")
         return []
 
+    quote_names = {}
+    try:
+        valuation_path = os.path.join(os.path.dirname(__file__), "static", "data", "valuation_cache.json")
+        with open(valuation_path, "r", encoding="utf-8") as f:
+            valuation_payload = json.load(f)
+        quote_names = {
+            ticker: (row or {}).get("shortName")
+            for ticker, row in (valuation_payload.get("quotes") or {}).items()
+            if isinstance(row, dict)
+        }
+    except Exception:
+        pass
+
     rows = []
     sectors = payload.get("sectors") or {}
     for sector in sectors.values():
@@ -1087,7 +1100,7 @@ def _load_full_heatmap_us_rows():
                 continue
             rows.append({
                 "ticker": ticker,
-                "name": ticker,
+                "name": quote_names.get(ticker) or ticker,
                 "market": "US",
                 "price": row.get("price"),
                 "change": change,
