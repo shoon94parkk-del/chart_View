@@ -1337,7 +1337,28 @@ async def _refresh_full_heatmap(force: bool = False):
             if results:
                 FULL_HEATMAP_CACHE["data"] = data
                 FULL_HEATMAP_CACHE["timestamp"] = time.time()
-            return _overlay_home_quotes_on_full(data)
+
+            overlaid = _overlay_home_quotes_on_full(data)
+            home_rows = _home_heatmap_rows_by_ticker()
+            full_rows = {
+                str(row.get("ticker") or "").upper(): row
+                for row in (overlaid.get("results") or [])
+                if isinstance(row, dict) and row.get("ticker")
+            }
+            mismatches = []
+            for ticker in HOME_MAJOR_TICKERS:
+                home_row = home_rows.get(ticker)
+                full_row = full_rows.get(ticker)
+                if not home_row or not full_row:
+                    continue
+                if home_row.get("change") != full_row.get("change") or home_row.get("price") != full_row.get("price"):
+                    mismatches.append(ticker)
+            print(
+                f"[FULL_HEATMAP_AUDIT] parity={'ok' if not mismatches else 'mismatch'} "
+                f"mismatches={mismatches[:5]} KR={data['counts']['KR']} US={data['counts']['US']} "
+                f"complete={data['complete']}"
+            )
+            return overlaid
         finally:
             FULL_HEATMAP_CACHE["refreshing"] = False
 
