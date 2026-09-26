@@ -174,3 +174,6 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Decision:** V68 derives the public base from the existing canonical link and serializes only stable routing state into the share URL. AI PICK uses `?tab=screener&view=ai-picks`; stock detail uses the existing detail deep-link contract; other screens preserve their active tab. The receiver remains the existing V3 route/deep-link implementation.
 
 **Rollback:** `backup/pre-context-share-v68-20260923`.
+
+## 2026-09-27 — 홈/전체 히트맵 시세 소스 통일
+미국 전체 히트맵의 legacy heatmap.json이 2025-12-23 가격/등락률을 포함해 현재 홈 시세와 충돌하는 문제가 확인됐다. legacy 파일은 종목 목록/시총 weight만 유지하고 시세 필드는 무시한다. 전체 히트맵은 한국/미국 모두 canonical fetch_quote_snapshot 경로로 60종목을 백그라운드 갱신하며, Home과 중복되는 18종목은 실제 Home UI가 읽는 HOME_SNAPSHOT_CACHE를 최종 오버레이한다.

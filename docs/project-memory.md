@@ -198,3 +198,5 @@ A user-visible change is complete only when:
 - Public share links no longer use the retired `chart-view-bsg6` host. `promo_v1.js` reads the document canonical URL, whose production source of truth is `chart-view-pkv8.onrender.com`.
 - Share URLs preserve the current app screen: main tab, AI PICK ledger (`tab=screener&view=ai-picks`), and stock detail (`tab=chart&view=detail&symbol=...&name=...`).
 - The existing router remains authoritative for receiving deep links; sharing does not create a second routing system.
+
+- 2026-09-27 전체 히트맵 데이터 정합성: `static/data/heatmap.json`은 미국 종목 universe/시총 배치 메타데이터로만 사용하고 price/change를 절대 시세로 사용하지 않는다. 전체 60종목 가격·등락률은 `fetch_quote_snapshot()` 공통 경로에서 갱신한다. 홈과 겹치는 18종목은 HOME_SNAPSHOT_CACHE 값을 최종 우선하여 홈/전체 화면 수치가 일치해야 한다.
