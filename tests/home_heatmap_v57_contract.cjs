@@ -57,7 +57,7 @@ test('template loads V66 server-live heatmap assets', () => {
   assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v61a/);
   assert.match(html, /\/static\/js\/home_heatmap_v57\.js\?v=20260923v68/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v66'/);
+  assert.match(js, /HEATMAP_CACHE_KEY = 'chartview-home-heatmap-v68'/);
   assert.match(js, /version: 'v66'/);
   assert.match(js, /rect\.height >= 0\.25/);
   assert.match(js, /stripNav\.hidden = next === 'heatmap'/);
