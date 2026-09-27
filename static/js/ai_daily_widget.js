@@ -111,7 +111,14 @@
     else setTimeout(run,1200);
   }
 
-  // Ledger assets are loaded only when the user opens the full history.
+  function isLedgerDeepLink(){
+    const params=new URLSearchParams(window.location.search);
+    return params.get('tab')==='screener'&&params.get('view')==='ai-picks';
+  }
+
+  // Root Home keeps the heavy ledger lazy, while an explicit shared/deep link
+  // must load it immediately so the requested screen is actually available.
+  if(isLedgerDeepLink())installAiLedgerAssets();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleMount,{once:true});
   else scheduleMount();
   window.addEventListener('pageshow',(event)=>{
