@@ -258,3 +258,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - refresh는 `chartview-compare-refresh` 전용 2-thread executor를 사용해 foreground/default executor를 막지 않는다.
 - provider 실패 시 마지막 정상 차트를 유지한다. 최초 실패 응답만 30초 negative cache한다.
 - 정규장에는 Home live refresh가 5초, 장외에는 300초이므로 성능 감사는 정규장 재검증을 별도로 수행한다.
+
+
+## 2026-09-28 — P0 compare request fast path
+- `get_compare_cache()` is provider-free and may be called on the event loop.
+- `/api/compare` returns cached/SWR values without entering the shared `asyncio.to_thread` queue.
+- Only real cache misses use worker threads and provider I/O.
+- Response fields `cacheHits` and `providerFetches` are available for production verification.
