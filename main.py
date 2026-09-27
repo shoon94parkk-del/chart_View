@@ -36,6 +36,7 @@ _install_korea_realtime(_market_service)
 fetch_compare_stock = _market_service.fetch_compare_stock
 get_compare_cache = _market_service.get_compare_cache
 fetch_valuation_snapshot = _market_service.fetch_valuation_snapshot
+get_valuation_cache = _market_service.get_valuation_cache
 fetch_quote_snapshot = _market_service.fetch_quote_snapshot
 fetch_history_series = _market_service.fetch_history_series
 from valuation_band_service import fetch_valuation_bands
@@ -2075,14 +2076,39 @@ async def home_snapshot(fresh: bool = False):
 @app.get("/api/valuation")
 async def valuation_data(tickers: str):
     ticker_list = validated_tickers(tickers)
-    fetched = await asyncio.gather(*[asyncio.to_thread(fetch_valuation_snapshot, t) for t in ticker_list], return_exceptions=True)
-    stocks, errors = [], []
-    for ticker, item in zip(ticker_list, fetched):
+    by_ticker, errors = {}, []
+    missing = []
+    cache_hits = 0
+
+    for ticker in ticker_list:
+        hit, item = get_valuation_cache(ticker)
+        if not hit:
+            missing.append(ticker)
+            continue
+        cache_hits += 1
+        if item:
+            by_ticker[ticker] = item
+        else:
+            errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
+
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_valuation_snapshot, t) for t in missing],
+        return_exceptions=True,
+    )
+    for ticker, item in zip(missing, fetched):
         if isinstance(item, Exception): errors.append({"ticker": ticker, "message": str(item)})
-        elif item: stocks.append(item)
+        elif item: by_ticker[ticker] = item
         else: errors.append({"ticker": ticker, "message": "밸류에이션 데이터를 가져오지 못했습니다."})
-    return {"stocks": stocks, "errors": errors, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-  "source": "Yahoo Finance Chart + Fundamentals"}
+
+    stocks = [by_ticker[t] for t in ticker_list if t in by_ticker]
+    return {
+        "stocks": stocks,
+        "errors": errors,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "source": "Yahoo Finance Chart + Fundamentals",
+        "cacheHits": cache_hits,
+        "providerFetches": len(missing),
+    }
 
 
 @app.get("/api/valuation-bands")
