@@ -48,3 +48,22 @@ def test_failed_background_refresh_keeps_last_good_compare(monkeypatch):
 
     assert market._compare_cache[key] == (original_timestamp, cached)
     assert key not in market._compare_refreshing
+
+
+def test_compare_cache_peek_returns_good_value_without_provider(monkeypatch):
+    market._compare_cache.clear()
+    market._compare_refreshing.clear()
+    _, key = _stale_key("AAPL")
+    cached = {"ticker": "AAPL", "data": [{"time": 1, "value": 0.0}]}
+    market._compare_cache[key] = (time.time(), cached)
+
+    monkeypatch.setattr(
+        market,
+        "_load_compare_stock",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("peek must not call provider")),
+    )
+
+    hit, value = market.get_compare_cache("AAPL", "1mo", None, None)
+
+    assert hit is True
+    assert value is cached
