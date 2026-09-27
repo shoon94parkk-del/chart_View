@@ -451,7 +451,7 @@ def _admin_token_ok(request: Request) -> bool:
 
 @app.on_event("startup")
 async def startup_event():
-    """Serve cached data immediately and keep live Home quotes warm only for active Home visitors."""
+    """Prioritize user-visible caches before launching bulk background refresh work."""
     global HOME_LIVE_WAKE_EVENT
     ping_thread = threading.Thread(target=self_ping_worker, daemon=True)
     ping_thread.start()
@@ -460,15 +460,33 @@ async def startup_event():
     _seed_full_heatmap_from_local()
     HOME_LIVE_WAKE_EVENT = asyncio.Event()
     asyncio.create_task(_home_live_worker())
-    # Warm the default Toss analysis screens first on the isolated background pool.
-    asyncio.create_task(_warm_default_app_analysis())
-    # Replace disk-seeded quotes immediately, even while KR/US markets are closed.
+
+    # P0: avoid a deploy-time provider thundering herd. Render keeps the previous
+    # revision serving traffic while this process warms the request paths that
+    # would otherwise make the first visitor wait on Yahoo/provider I/O.
+    critical_started = time.perf_counter()
+    market_ready = analysis_ready = False
+    try:
+        market_data = await asyncio.wait_for(_refresh_market_now(force=True), timeout=12.0)
+        market_ready = bool((market_data or {}).get("results"))
+    except Exception as exc:
+        print(f"[STARTUP_WARM] market-now failed: {exc}")
+    try:
+        await asyncio.wait_for(_warm_default_app_analysis(), timeout=12.0)
+        analysis_ready = True
+    except Exception as exc:
+        print(f"[STARTUP_WARM] default-analysis failed: {exc}")
+    print(
+        f"[STARTUP_WARM] marketReady={market_ready} analysisReady={analysis_ready} "
+        f"elapsedMs={int((time.perf_counter()-critical_started)*1000)}"
+    )
+
+    # Start the larger provider jobs only after the critical caches are ready.
+    # Disk-seeded Home/full-heatmap data remains usable while these refresh.
     asyncio.create_task(_refresh_home_live(_all_home_markets()))
-    # Warm the full 60-name heatmap in the background from the same canonical quote path.
     asyncio.create_task(_refresh_full_heatmap(force=True))
     asyncio.create_task(_analytics_redis_client())
     asyncio.create_task(_refresh_home_snapshot(force=True))
-    asyncio.create_task(_refresh_market_now(force=True))
 
 
 @app.get("/")
