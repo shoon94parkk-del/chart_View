@@ -34,11 +34,14 @@ _cache_lock = threading.Lock()
 _compare_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 _compare_refreshing: set[str] = set()
 _valuation_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_valuation_refreshing: set[str] = set()
 _quote_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 QUOTE_CACHE_TTL_SECONDS = 5.0
 COMPARE_CACHE_FRESH_TTL_SECONDS = 300.0
 COMPARE_CACHE_FAILURE_TTL_SECONDS = 30.0
+VALUATION_CACHE_FRESH_TTL_SECONDS = 300.0
 _COMPARE_REFRESH_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chartview-compare-refresh")
+_VALUATION_REFRESH_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="chartview-valuation-refresh")
 _auth_lock = threading.Lock()
 _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 
@@ -598,14 +601,52 @@ def fetch_history_series(symbol: str, period: str = "6mo") -> list[dict[str, Any
         rows.append({"time": date, "value": round(value, 4)})
     return rows
 
-@singleflight
-def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
+def _refresh_valuation_cache(symbol: str) -> None:
+    try:
+        fetch_valuation_snapshot(symbol, force=True)
+    finally:
+        with _cache_lock:
+            _valuation_refreshing.discard(symbol)
+
+
+def _schedule_valuation_refresh(symbol: str) -> None:
+    with _cache_lock:
+        if symbol in _valuation_refreshing:
+            return
+        _valuation_refreshing.add(symbol)
+    try:
+        _VALUATION_REFRESH_EXECUTOR.submit(_refresh_valuation_cache, symbol)
+    except Exception:
+        with _cache_lock:
+            _valuation_refreshing.discard(symbol)
+        raise
+
+
+def get_valuation_cache(symbol: str) -> tuple[bool, dict[str, Any] | None]:
+    """Return the last successful valuation immediately, refreshing stale data off-path."""
     symbol = symbol.strip().upper()
+    if not symbol:
+        return True, None
     now = time.time()
     with _cache_lock:
         cached = _valuation_cache.get(symbol)
-        if cached and now - cached[0] < 300:
-            return cached[1]
+    if not cached:
+        return False, None
+    age = max(0.0, now - cached[0])
+    value = cached[1]
+    if age >= VALUATION_CACHE_FRESH_TTL_SECONDS:
+        _schedule_valuation_refresh(symbol)
+    return True, value
+
+
+@singleflight
+def fetch_valuation_snapshot(symbol: str, force: bool = False) -> dict[str, Any]:
+    symbol = symbol.strip().upper()
+    if not force:
+        hit, value = get_valuation_cache(symbol)
+        if hit and value is not None:
+            return value
+    now = time.time()
 
     chart_meta: dict[str, Any] = {}
     last_close: float | None = None
@@ -789,5 +830,5 @@ def fetch_valuation_snapshot(symbol: str) -> dict[str, Any]:
     with _cache_lock:
         if symbol not in _valuation_cache and len(_valuation_cache) >= 256:
             _valuation_cache.pop(min(_valuation_cache, key=lambda k: _valuation_cache[k][0]))
-        _valuation_cache[symbol] = (now, data)
+        _valuation_cache[symbol] = (time.time(), data)
     return data
