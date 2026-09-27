@@ -182,3 +182,6 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 **Context:** Apps in Toss now reads the shared Home snapshot roughly every 10 seconds while visible. The old cold-start fallback awaited provider refresh inside `/api/home-live`, allowing a user cache read to become provider work.
 
 **Decision:** `/api/home-live` is a pure shared-memory read. If the cache is not warmed it only wakes the existing activity-gated worker; startup/worker code owns provider refresh. The response is no-store so freshness is controlled by Render memory rather than intermediary browser caching.
+
+## 2026-09-28 — foreground API와 background market refresh를 격리
+실서비스 성능 감사에서 차트 7.1초, 관심종목 4.2초, 컨센서스 3.9초, 밴드 3.8초 등 첫 요청 지연이 확인됐다. 동시에 startup/Home/full-heatmap refresh가 수십 개 `asyncio.to_thread` 작업을 기본 executor에 넣고 있어 foreground provider 호출과 경쟁할 수 있었다. 배경 시세 갱신은 6-thread 전용 executor로 분리하고, heartbeat Redis write는 비동기 후처리한다. 관심종목 시세는 Home 공용 캐시를 우선 재사용한다.

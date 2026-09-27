@@ -69,7 +69,8 @@ HOME_SNAPSHOT_LOCK = asyncio.Lock()
 FULL_HEATMAP_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
 FULL_HEATMAP_TTL = 60
 FULL_HEATMAP_LOCK = asyncio.Lock()
-FULL_HEATMAP_REFRESH_CONCURRENCY = 12
+FULL_HEATMAP_REFRESH_CONCURRENCY = 6
+BACKGROUND_MARKET_EXECUTOR = ThreadPoolExecutor(max_workers=6, thread_name_prefix="chartview-bg-market")
 FULL_HEATMAP_US_LIMIT = 40
 FULL_HEATMAP_KR_TICKERS = [
     "005930.KS", "000660.KS", "207940.KS", "005380.KS", "000270.KS",
@@ -108,6 +109,11 @@ ET = ZoneInfo("America/New_York")
 # the full Korean screener JSON.
 HOME_INSIGHTS_SOURCE_CACHE = {"data": None, "timestamp": 0.0}
 HOME_INSIGHTS_SOURCE_TTL = 300
+
+async def _background_market_call(fn, *args):
+    """Run low-priority market refresh work away from foreground request threads."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(BACKGROUND_MARKET_EXECUTOR, fn, *args)
 
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
@@ -343,7 +349,7 @@ async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
                     symbols.append(ticker)
                     market_by_symbol[ticker] = market
             fetched = await asyncio.gather(
-                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in symbols],
+                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in symbols],
                 return_exceptions=True,
             )
             now_epoch = time.time()
@@ -627,7 +633,7 @@ async def visitor_activity(request: Request):
     if not visitor_id or len(visitor_id) > 128 or not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", visitor_id):
         raise HTTPException(400, "유효한 방문자 식별자가 필요합니다.")
     _record_visitor(visitor_id, surface)
-    await _persist_daily_visitor(visitor_id)
+    asyncio.create_task(_persist_daily_visitor(visitor_id))
     if HOME_LIVE_WAKE_EVENT is not None and surface == "home":
         HOME_LIVE_WAKE_EVENT.set()
     return {
@@ -708,28 +714,51 @@ async def quote_snapshots(tickers: str):
         raise HTTPException(400, "종목은 1개 이상 20개 이하로 입력해주세요.")
     if any(not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", t) for t in symbols):
         raise HTTPException(400, "유효한 종목코드 또는 티커를 입력해주세요.")
+
+    now = time.time()
+    open_markets = _open_home_markets()
+    shared_quotes = HOME_LIVE_CACHE.get("quotes") or {}
+    shared = {}
+    missing = []
+    for ticker in symbols:
+        if ticker in HOME_MAJOR_TICKERS:
+            market = "KR" if ticker.endswith((".KS", ".KQ")) else "US"
+            updated_epoch = float((HOME_LIVE_CACHE.get("marketUpdatedEpoch") or {}).get(market) or 0)
+            max_age = 15.0 if market in open_markets else 600.0
+            row = shared_quotes.get(ticker)
+            if row and updated_epoch and now - updated_epoch <= max_age:
+                shared[ticker] = dict(row)
+                continue
+        missing.append(ticker)
+
     fetched = await asyncio.gather(
-        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in symbols],
+        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in missing],
         return_exceptions=True,
     )
-    results, errors = [], []
-    for ticker, item in zip(symbols, fetched):
+    by_ticker = dict(shared)
+    errors = []
+    for ticker, item in zip(missing, fetched):
         if isinstance(item, Exception):
             errors.append({"ticker": ticker, "message": str(item)})
         elif item:
-            results.append(item)
+            by_ticker[ticker] = item
         else:
             errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
+
+    results = [by_ticker[ticker] for ticker in symbols if ticker in by_ticker]
     return {
         "results": results,
         "errors": errors,
         "fetchedAt": datetime.now(timezone.utc).isoformat(),
-        "source": "Yahoo Chart 5m with daily fallback",
+        "source": "Render shared Home cache + Yahoo Chart fallback",
+        "sharedCacheHits": len(shared),
+        "providerFetches": len(missing),
         "dataContract": {
             "price": "latest available provider quote or latest close fallback",
             "change": "percent change versus previous trading close",
             "asOf": "provider market timestamp when available",
             "currency": "provider currency",
+            "cache": "fresh shared Home quote reused for overlapping major symbols; provider fallback otherwise",
             "missingValue": "null/omitted; zero is not used as a missing-value substitute",
         },
     }
@@ -998,7 +1027,7 @@ async def _refresh_market_now(force: bool = False):
                 if isinstance(row, dict) and row.get("ticker")
             }
             fetched = await asyncio.gather(
-                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
+                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
                 return_exceptions=True,
             )
             results, errors = [], []
@@ -1185,7 +1214,7 @@ async def _fetch_full_heatmap_quotes(tickers):
 
     async def one(ticker):
         async with semaphore:
-            return await asyncio.to_thread(fetch_quote_snapshot, ticker)
+            return await _background_market_call(fetch_quote_snapshot, ticker)
 
     fetched = await asyncio.gather(*[one(ticker) for ticker in tickers], return_exceptions=True)
     return dict(zip(tickers, fetched))
@@ -1859,7 +1888,7 @@ async def _refresh_home_snapshot(force: bool = False):
                 if isinstance(row, dict) and row.get("ticker")
             }
             fetched = await asyncio.gather(
-                *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in HOME_MAJOR_TICKERS],
+                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in HOME_MAJOR_TICKERS],
                 return_exceptions=True,
             )
             results = []

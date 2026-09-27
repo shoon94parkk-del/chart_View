@@ -202,3 +202,6 @@ A user-visible change is complete only when:
 - 2026-09-27 전체 히트맵 데이터 정합성: `static/data/heatmap.json`은 미국 종목 universe/시총 배치 메타데이터로만 사용하고 price/change를 절대 시세로 사용하지 않는다. 전체 60종목 가격·등락률은 `fetch_quote_snapshot()` 공통 경로에서 갱신한다. 홈과 겹치는 18종목은 HOME_SNAPSHOT_CACHE 값을 최종 우선하여 홈/전체 화면 수치가 일치해야 한다.
 
 - 2026-09-27 Home live request path is non-blocking: `/api/home-live` only returns `HOME_LIVE_CACHE` and may wake the server worker. It never awaits or directly performs provider refresh on a user request. Response is `Cache-Control: no-store`; freshness lives in Render memory, not browser/proxy cache.
+
+- 2026-09-28 성능 감사 결과: Toss 앱 shell은 대체로 0.11~0.14초로 빠르며 주요 지연은 backend/provider 대기였다. 백그라운드 Home/heatmap/market refresh와 foreground API가 기본 asyncio thread pool을 공유해 사용자 요청이 밀릴 수 있어, market background work는 전용 6-thread executor로 분리한다.
+- `/api/quotes`는 Home 공용 시세가 신선한 대표종목이면 동일한 값을 즉시 재사용하고, 미보유/오래된 종목만 provider fallback을 수행한다. `/api/activity`의 Redis 방문자 기록은 응답을 막지 않고 background task로 저장한다.

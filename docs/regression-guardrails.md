@@ -144,3 +144,7 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 
 - `/api/home-live` must never await provider I/O or call `fetch_quote_snapshot` on the request path. It returns shared memory immediately and may only wake the background worker.
 - `/api/home-live` remains `Cache-Control: no-store`; clients may poll the lightweight shared snapshot but must not receive a proxy-stale copy.
+
+- Home/full-heatmap/market-now 백그라운드 provider refresh는 foreground request와 기본 thread pool을 공유하지 않는다. 전용 `BACKGROUND_MARKET_EXECUTOR`를 사용한다.
+- `/api/activity` heartbeat는 Redis 영속화 완료를 기다리지 않는다. 메모리 기록 후 즉시 응답하고 persistent count는 background task로 저장한다.
+- `/api/quotes`는 신선한 `HOME_LIVE_CACHE` 대표종목을 다시 provider에서 조회하지 않는다. 공용 시세 재사용 후 누락/오래된 종목만 fallback 조회한다.
