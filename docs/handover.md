@@ -265,3 +265,9 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - `/api/compare` returns cached/SWR values without entering the shared `asyncio.to_thread` queue.
 - Only real cache misses use worker threads and provider I/O.
 - Response fields `cacheHits` and `providerFetches` are available for production verification.
+
+## 2026-09-28 — P0 startup warm priority
+- Startup awaits market-now (12s cap) and default analysis (12s cap) before readiness.
+- Bulk Home live/full heatmap/Home snapshot refreshes start only after those critical caches.
+- This intentionally shifts provider cost into deploy startup and prevents the first visitor from paying it.
+- STARTUP_WARM logs marketReady, analysisReady, and total warm time for deploy verification.

@@ -196,3 +196,6 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 ## 2026-09-28 — P0 compare cache hit request fast path
 Production audit after SWR deployment still measured /api/compare at about 4.1s even though startup prewarm succeeded. The endpoint was sending every ticker, including memory-cache hits, through asyncio.to_thread and the shared foreground executor. /api/compare now peeks the in-memory SWR cache synchronously and sends only true misses to worker threads. Response diagnostics expose cacheHits and providerFetches.
+
+## 2026-09-28 — P0 startup provider priority
+Production audit exposed a 7s Home cold load with /api/market-now at 6.6s. Startup was launching market-now, default analysis, Home live, Home snapshot, and full heatmap refreshes together on the same provider/background capacity. Critical first-user caches now warm in a bounded sequence (market-now, then default chart/valuation) before bulk Home/full-heatmap refresh jobs start. Render keeps the previous revision live during startup, so deploy latency is preferred over first-user latency.
