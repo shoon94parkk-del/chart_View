@@ -514,6 +514,7 @@ def _uses_regular_session_bars(symbol: str) -> bool:
     return not (symbol.endswith("=F") or symbol.endswith("=X") or symbol in {"^TNX"})
 
 
+@singleflight
 def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
     """Return a price/change pair from one coherent market session."""
     symbol = symbol.strip().upper()
