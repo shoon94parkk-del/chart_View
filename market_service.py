@@ -264,6 +264,35 @@ def _schedule_compare_refresh(key: str, symbol: str, period: str, start: str | N
         raise
 
 
+def get_compare_cache(symbol: str, period: str = "1mo", start: str | None = None, end: str | None = None) -> tuple[bool, dict[str, Any] | None]:
+    """Return an immediately usable compare cache entry without provider I/O.
+
+    The boolean distinguishes a cache miss from a cached provider miss (None).
+    Successful stale values schedule refresh on the dedicated compare executor.
+    """
+    symbol = symbol.strip().upper()
+    if not symbol:
+        return True, None
+
+    interval, key = _compare_request_parts(symbol, period, start, end)
+    now = time.time()
+    with _cache_lock:
+        cached = _compare_cache.get(key)
+
+    if not cached:
+        return False, None
+
+    age = max(0.0, now - cached[0])
+    cached_value = cached[1]
+    if cached_value is not None:
+        if age >= COMPARE_CACHE_FRESH_TTL_SECONDS:
+            _schedule_compare_refresh(key, symbol, period, start, end, interval)
+        return True, cached_value
+    if age < COMPARE_CACHE_FAILURE_TTL_SECONDS:
+        return True, None
+    return False, None
+
+
 @singleflight
 def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = None, end: str | None = None) -> dict[str, Any] | None:
     """Return charts cache-first; refresh stale successful data in the background."""
@@ -271,21 +300,14 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
     if not symbol:
         return None
 
+    cache_hit, cached_value = get_compare_cache(symbol, period, start, end)
+    if cache_hit:
+        return cached_value
+
     interval, key = _compare_request_parts(symbol, period, start, end)
     now = time.time()
     with _cache_lock:
         cached = _compare_cache.get(key)
-
-    if cached:
-        age = max(0.0, now - cached[0])
-        cached_value = cached[1]
-        if cached_value is not None:
-            if age >= COMPARE_CACHE_FRESH_TTL_SECONDS:
-                _schedule_compare_refresh(key, symbol, period, start, end, interval)
-            # SWR: every previously successful chart is returned immediately.
-            return cached_value
-        if age < COMPARE_CACHE_FAILURE_TTL_SECONDS:
-            return None
 
     value = _load_compare_stock(symbol, period, start, end, interval)
     if value is not None:

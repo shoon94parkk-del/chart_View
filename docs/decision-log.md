@@ -192,3 +192,7 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 ## 2026-09-28 — P0 compare stale-while-revalidate
 실서비스 감사에서 기본 차트는 prewarm 직후 빠르지만 5분 TTL이 지난 첫 요청이 Yahoo Chart provider를 직접 기다리며 약 4초까지 느려졌다. `fetch_compare_stock()`은 마지막 정상 차트를 즉시 반환하고, 300초 이상 지난 값은 전용 2-thread refresh executor에서 갱신한다. provider 실패는 정상 캐시를 덮어쓰지 않으며, 최초 실패만 30초 negative cache한다. 이 구조의 목표는 정규장/장외의 Home polling 부하와 무관하게 이미 조회된 차트의 사용자 경로를 provider I/O에서 분리하는 것이다.
+
+
+## 2026-09-28 — P0 compare cache hit request fast path
+Production audit after SWR deployment still measured /api/compare at about 4.1s even though startup prewarm succeeded. The endpoint was sending every ticker, including memory-cache hits, through asyncio.to_thread and the shared foreground executor. /api/compare now peeks the in-memory SWR cache synchronously and sends only true misses to worker threads. Response diagnostics expose cacheHits and providerFetches.

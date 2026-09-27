@@ -34,6 +34,7 @@ from realtime_korea import install_patch as _install_korea_realtime
 # Bind the canonical Korean realtime path before local function aliases are made.
 _install_korea_realtime(_market_service)
 fetch_compare_stock = _market_service.fetch_compare_stock
+get_compare_cache = _market_service.get_compare_cache
 fetch_valuation_snapshot = _market_service.fetch_valuation_snapshot
 fetch_quote_snapshot = _market_service.fetch_quote_snapshot
 fetch_history_series = _market_service.fetch_history_series
@@ -796,9 +797,25 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
                 raise ValueError("reversed range")
         except ValueError:
             raise HTTPException(400, "조회 날짜와 시작일·종료일 순서를 확인해주세요.")
-    fetched = await asyncio.gather(*[asyncio.to_thread(fetch_compare_stock, t, period, start, end) for t in ticker_list], return_exceptions=True)
     by_ticker, errors = {}, []
-    for ticker, item in zip(ticker_list, fetched):
+    missing = []
+    cache_hits = 0
+    for ticker in ticker_list:
+        hit, item = get_compare_cache(ticker, period, start, end)
+        if not hit:
+            missing.append(ticker)
+            continue
+        cache_hits += 1
+        if item:
+            by_ticker[ticker] = item
+        else:
+            errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
+
+    fetched = await asyncio.gather(
+        *[asyncio.to_thread(fetch_compare_stock, t, period, start, end) for t in missing],
+        return_exceptions=True,
+    )
+    for ticker, item in zip(missing, fetched):
         if isinstance(item, Exception): errors.append({"ticker": ticker, "message": str(item)})
         elif item: by_ticker[ticker] = item
         else: errors.append({"ticker": ticker, "message": "시세 데이터를 가져오지 못했습니다."})
@@ -809,6 +826,8 @@ async def compare_stocks(tickers: str, period: str = "1mo", start: str = None, e
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "fetchedAt": datetime.now(timezone.utc).isoformat(),
         "source": "Yahoo Finance Chart",
+        "cacheHits": cache_hits,
+        "providerFetches": len(missing),
         "comparisonBasis": {
             "returnFormula": "(last_adjusted_or_close - first_adjusted_or_close) / first * 100",
             "priceBasis": "provider adjusted close when available; otherwise close",

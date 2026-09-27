@@ -17,9 +17,12 @@ def test_compare_cache_uses_stale_while_revalidate():
     assert "COMPARE_CACHE_FRESH_TTL_SECONDS = 300.0" in MARKET
     assert 'ThreadPoolExecutor(max_workers=2, thread_name_prefix="chartview-compare-refresh")' in MARKET
     assert "def _schedule_compare_refresh(" in MARKET
-    start = MARKET.index("def fetch_compare_stock")
-    block = MARKET[start:start + 2400]
+    start = MARKET.index("def get_compare_cache")
+    block = MARKET[start:start + 2600]
     assert "age >= COMPARE_CACHE_FRESH_TTL_SECONDS" in block
     assert "_schedule_compare_refresh(" in block
-    assert "return cached_value" in block
+    assert "return True, cached_value" in block
     assert "COMPARE_CACHE_FAILURE_TTL_SECONDS" in block
+    fetch_start = MARKET.index("def fetch_compare_stock")
+    fetch_block = MARKET[fetch_start:fetch_start + 1000]
+    assert "get_compare_cache(symbol, period, start, end)" in fetch_block
