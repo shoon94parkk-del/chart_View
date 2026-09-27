@@ -173,17 +173,23 @@
     return true;
   }
 
+  function scheduleDataStatus(force = false) {
+    const run = () => installDataStatus(force);
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
+    else setTimeout(run, force ? 700 : 1800);
+  }
+
   function boot() {
     let attempts = 0;
     const timer = setInterval(() => {
       attempts += 1;
       installFilterSheet();
       installScreenerKpis();
-      installDataStatus();
       if (attempts >= 60) clearInterval(timer);
     }, 250);
+    scheduleDataStatus(false);
     document.addEventListener('click', (event) => {
-      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => installDataStatus(true), 350);
+      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) scheduleDataStatus(true);
       if (event.target.closest('[data-tab="screener"], [data-app-mode="discover"]')) setTimeout(() => { installFilterSheet(); installScreenerKpis(); }, 250);
     });
   }

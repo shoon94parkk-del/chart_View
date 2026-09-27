@@ -211,3 +211,7 @@ A live audit after removing the deploy-time warmer improved Home to 1.67s, but a
 
 ## 2026-09-28 — P0 valuation stale-while-revalidate
 The corrected production audit measured valuation Cold at 4.65s while SPA re-entry was 91ms. The default valuation cache used a hard 300s TTL, so startup prewarm expired and the first user after five minutes paid Yahoo Chart/Fundamentals latency. Valuation now returns the last successful memory value immediately, refreshes stale entries on a dedicated single-worker executor, and /api/valuation bypasses the shared worker queue for cache hits. Response diagnostics expose cacheHits and providerFetches.
+
+
+## 2026-09-28 — Original Chart View Home first-paint P0
+Fresh Chromium measurement of the original Chart View showed Home at ~1.5–2.7s while internal screens were usually ~0.05–0.2s. First paint was competing with non-critical Home work: duplicate AI bootstrap on initial pageshow, profile-sync status, DATA STATUS macro lookup, and immediate heatmap geometry refresh. These tasks are now deferred until idle/after first paint. Home snapshot and heatmap share the v18 local cache so geometry can render from the Home snapshot before a background refresh.

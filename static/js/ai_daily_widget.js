@@ -105,9 +105,25 @@
     }
   });
 
-  installAiLedgerAssets();
-  addStyle();
-  mount();
-  document.addEventListener('DOMContentLoaded',()=>mount());
-  window.addEventListener('pageshow',()=>{cachedHomeData=null;mount();});
+  function scheduleMount(){
+    const run=()=>{addStyle();mount();};
+    if('requestIdleCallback' in window)window.requestIdleCallback(run,{timeout:2200});
+    else setTimeout(run,1200);
+  }
+
+  function isLedgerDeepLink(){
+    const params=new URLSearchParams(window.location.search);
+    return params.get('tab')==='screener'&&params.get('view')==='ai-picks';
+  }
+
+  // Root Home keeps the heavy ledger lazy, while an explicit shared/deep link
+  // must load it immediately so the requested screen is actually available.
+  if(isLedgerDeepLink())installAiLedgerAssets();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleMount,{once:true});
+  else scheduleMount();
+  window.addEventListener('pageshow',(event)=>{
+    if(!event.persisted)return;
+    cachedHomeData=null;
+    scheduleMount();
+  });
 })();
