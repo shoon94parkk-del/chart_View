@@ -18,7 +18,7 @@ on:
       - '.github/workflows/build-frontend-release.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: frontend-release-${{ github.ref }}
@@ -40,20 +40,8 @@ jobs:
           node-version: '20'
       - name: Install test runner
         run: python -m pip install --disable-pip-version-check -q pytest
-      - name: Generate committed release bundle and asset keys
-        run: python scripts/build_frontend_bundle.py
-      - name: Commit generated release files
-        if: github.event_name == 'pull_request'
-        run: |
-          if git diff --quiet -- static/js/chartview_release_bundle.js static/css/chartview_release_bundle.css templates/index.html; then
-            echo "Generated release files already current"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/js/chartview_release_bundle.js static/css/chartview_release_bundle.css templates/index.html
-          git commit -m "build: regenerate frontend release bundle"
-          git push origin HEAD:${{ github.head_ref }}
+      - name: Verify committed release bundle and asset keys
+        run: python scripts/build_frontend_bundle.py --check
       - name: JavaScript syntax
         run: |
           node --check static/js/screener.js
