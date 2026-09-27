@@ -203,3 +203,7 @@ Production audit exposed a 7s Home cold load with /api/market-now at 6.6s. Start
 
 ## 2026-09-28 — P0 remove deploy-time provider herd
 Production logs showed the legacy 5-minute snapshot warmer forcing /api/market-now?fresh=1 and /api/home-snapshot?fresh=1; the Home snapshot force refresh took 11.1s. At the same time startup launched Home live, Home snapshot, and full heatmap refreshes. Even cache-only /api/compare requests then waited several seconds. The package no longer auto-starts the self-request warmer, startup no longer launches bulk provider refreshes, and fetch_quote_snapshot is singleflight-coalesced so overlapping demand-driven refreshes for the same ticker share one provider call.
+
+
+## 2026-09-28 — P0 response-first stale refresh
+A live audit after removing the deploy-time warmer improved Home to 1.67s, but a cache-only compare request still took 2.30s. Render request logs showed the first Home navigation immediately scheduling stale market-now and Home snapshot provider refreshes; those background jobs began before cached HTTP responses had fully drained. Stale market-now refresh is now delayed 3s, Home snapshot refresh 6s, and the first active Home session gets a 5s live-quote grace. Latency-sensitive background work is capped at 2 threads, while large Home snapshot/full-heatmap refreshes are serialized on a separate 1-thread bulk executor.
