@@ -271,3 +271,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Bulk Home live/full heatmap/Home snapshot refreshes start only after those critical caches.
 - This intentionally shifts provider cost into deploy startup and prevents the first visitor from paying it.
 - STARTUP_WARM logs marketReady, analysisReady, and total warm time for deploy verification.
+
+
+## 2026-09-28 — P0 provider-herd removal
+- Removed automatic snapshot_warmer startup from market_service package import.
+- Startup warms only market-now + default analysis, then analytics; no immediate Home/full-heatmap provider fan-out.
+- Home live remains active-user driven; Home snapshot/full heatmap remain endpoint SWR.
+- fetch_quote_snapshot is singleflight-coalesced to deduplicate overlapping Home/live/heatmap ticker work.
