@@ -190,7 +190,7 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
     now = time.time()
     with _cache_lock:
         cached = _compare_cache.get(key)
-        if cached and now - cached[0] < 60:
+        if cached and now - cached[0] < 300:
             return cached[1]
 
     try:

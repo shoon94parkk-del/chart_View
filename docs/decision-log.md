@@ -185,3 +185,6 @@ See `docs/handover.md`, `docs/app-release-stage12.md`, `docs/data-definitions.md
 
 ## 2026-09-28 — foreground API와 background market refresh를 격리
 실서비스 성능 감사에서 차트 7.1초, 관심종목 4.2초, 컨센서스 3.9초, 밴드 3.8초 등 첫 요청 지연이 확인됐다. 동시에 startup/Home/full-heatmap refresh가 수십 개 `asyncio.to_thread` 작업을 기본 executor에 넣고 있어 foreground provider 호출과 경쟁할 수 있었다. 배경 시세 갱신은 6-thread 전용 executor로 분리하고, heartbeat Redis write는 비동기 후처리한다. 관심종목 시세는 Home 공용 캐시를 우선 재사용한다.
+
+## 2026-09-28 — 기본 차트/밸류에이션을 서버에서 미리 warm
+1차 성능 격리 후 홈·관심·컨센서스·밴드는 1초 아래로 내려왔지만 기본 차트 cold 4.35초, valuation cold 2.84초가 남았다. Toss 기본 선택 3종목의 1mo compare/valuation을 서버 시작 시 background executor에서 미리 warm하고 compare TTL을 300초로 확장한다. 사용자별 prefetch로 provider 호출을 늘리지 않고 서버 1회 warm 결과를 모든 사용자와 공유한다.
