@@ -13,8 +13,9 @@ test('Home clients read Render memory instead of triggering provider quote fetch
   assert.match(heat, /fetch\(LIVE_ENDPOINT/);
   assert.doesNotMatch(heat, /\/api\/quotes\?tickers=/);
   assert.match(main, /async def _home_live_worker/);
-  assert.match(main, /active_home > 0/);
+  assert.match(main, /is_active_home/);
   assert.match(main, /HOME_LIVE_ACTIVE_REFRESH_SEC = 5\.0/);
+  assert.match(main, /HOME_LIVE_FIRST_VISITOR_GRACE_SEC = 5\.0/);
 });
 
 test('anonymous heartbeat is global and privacy-light', () => {

@@ -54,9 +54,10 @@ CACHE_EXPIRE = 3600 * 6  # 6시간 캐시
 
 # HOME V17 shared stale-while-revalidate snapshot.
 # One successful load is reused by every visitor; refresh happens in the background.
-HOME_SNAPSHOT_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
+HOME_SNAPSHOT_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False, "scheduled": False}
 HOME_SNAPSHOT_TTL = 60
 HOME_SNAPSHOT_REFRESH_GUARD = 8
+HOME_SNAPSHOT_REFRESH_DELAY_SEC = 6.0
 HOME_MAJOR_TICKERS = [
     "005930.KS", "000660.KS", "207940.KS", "005380.KS",
     "000270.KS", "373220.KS", "035420.KS", "068270.KS",
@@ -70,8 +71,9 @@ HOME_SNAPSHOT_LOCK = asyncio.Lock()
 FULL_HEATMAP_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
 FULL_HEATMAP_TTL = 60
 FULL_HEATMAP_LOCK = asyncio.Lock()
-FULL_HEATMAP_REFRESH_CONCURRENCY = 6
-BACKGROUND_MARKET_EXECUTOR = ThreadPoolExecutor(max_workers=6, thread_name_prefix="chartview-bg-market")
+FULL_HEATMAP_REFRESH_CONCURRENCY = 2
+BACKGROUND_MARKET_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chartview-bg-market")
+BULK_MARKET_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="chartview-bulk-market")
 FULL_HEATMAP_US_LIMIT = 40
 FULL_HEATMAP_KR_TICKERS = [
     "005930.KS", "000660.KS", "207940.KS", "005380.KS", "000270.KS",
@@ -84,6 +86,7 @@ DEFAULT_APP_ANALYSIS_TICKERS = ["005930.KS", "NVDA", "AAPL"]
 HOME_LIVE_ACTIVE_REFRESH_SEC = 5.0
 HOME_LIVE_CLOSED_REFRESH_SEC = 300.0
 HOME_LIVE_IDLE_CHECK_SEC = 30.0
+HOME_LIVE_FIRST_VISITOR_GRACE_SEC = 5.0
 VISITOR_HEARTBEAT_SEC = 20
 VISITOR_ACTIVE_WINDOW_SEC = 45
 HOME_LIVE_CACHE = {
@@ -113,9 +116,15 @@ HOME_INSIGHTS_SOURCE_CACHE = {"data": None, "timestamp": 0.0}
 HOME_INSIGHTS_SOURCE_TTL = 300
 
 async def _background_market_call(fn, *args):
-    """Run low-priority market refresh work away from foreground request threads."""
+    """Run latency-sensitive refresh work on a small isolated pool."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(BACKGROUND_MARKET_EXECUTOR, fn, *args)
+
+
+async def _bulk_market_call(fn, *args):
+    """Serialize large snapshot/heatmap refresh work away from user-visible refreshes."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(BULK_MARKET_EXECUTOR, fn, *args)
 
 
 async def _warm_default_app_analysis():
@@ -414,13 +423,23 @@ async def _home_live_worker() -> None:
     if HOME_LIVE_WAKE_EVENT is None:
         HOME_LIVE_WAKE_EVENT = asyncio.Event()
     all_markets = _all_home_markets()
+    was_active_home = False
     while True:
         open_markets = _open_home_markets()
         _, _, active_home = _visitor_counts()
+        is_active_home = active_home > 0
         timeout = HOME_LIVE_IDLE_CHECK_SEC
 
-        if active_home > 0:
+        if is_active_home:
             now = time.time()
+            # First Home visit gets the seeded cache immediately. If a market has
+            # usable seeded rows, give navigation a short grace before provider I/O.
+            if not was_active_home:
+                cached_quotes = HOME_LIVE_CACHE.get("quotes") or {}
+                for market, tickers in all_markets.items():
+                    if any(ticker in cached_quotes for ticker in tickers):
+                        HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now
+
             due = {}
             wait_for = HOME_LIVE_CLOSED_REFRESH_SEC
             for market, tickers in all_markets.items():
@@ -433,8 +452,9 @@ async def _home_live_worker() -> None:
             if due:
                 await _refresh_home_live(due)
                 wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC if open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
-            timeout = wait_for
+            timeout = max(HOME_LIVE_FIRST_VISITOR_GRACE_SEC if not was_active_home else 0.5, wait_for)
 
+        was_active_home = is_active_home
         try:
             await asyncio.wait_for(HOME_LIVE_WAKE_EVENT.wait(), timeout=timeout)
         except asyncio.TimeoutError:
@@ -1053,9 +1073,10 @@ STOCK_DATABASE = [
 
 
 MARKET_NOW_TICKERS = ["^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
-MARKET_NOW_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
+MARKET_NOW_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False, "scheduled": False}
 MARKET_NOW_TTL = 60
 MARKET_NOW_REFRESH_GUARD = 8
+MARKET_NOW_REFRESH_DELAY_SEC = 3.0
 MARKET_NOW_LOCK = asyncio.Lock()
 
 
@@ -1127,9 +1148,26 @@ async def _refresh_market_now(force: bool = False):
             MARKET_NOW_CACHE["refreshing"] = False
 
 
+def _schedule_market_now_refresh(delay: float = MARKET_NOW_REFRESH_DELAY_SEC) -> bool:
+    """Queue stale refresh after the current navigation burst has been served."""
+    if MARKET_NOW_CACHE.get("refreshing") or MARKET_NOW_CACHE.get("scheduled"):
+        return False
+    MARKET_NOW_CACHE["scheduled"] = True
+
+    async def runner():
+        try:
+            await asyncio.sleep(delay)
+            await _refresh_market_now(force=False)
+        finally:
+            MARKET_NOW_CACHE["scheduled"] = False
+
+    asyncio.create_task(runner())
+    return True
+
+
 @app.get("/api/market-now")
 async def market_now(fresh: bool = False):
-    """Return shared market cache immediately; revalidate stale data in the background."""
+    """Return shared market cache first; refresh stale data after a short response-first grace."""
     data = MARKET_NOW_CACHE.get("data")
     if fresh:
         try:
@@ -1143,12 +1181,13 @@ async def market_now(fresh: bool = False):
             print(f"[MARKET NOW] first refresh failed: {exc}")
     else:
         age = time.time() - MARKET_NOW_CACHE.get("timestamp", 0)
-        if age >= MARKET_NOW_TTL and not MARKET_NOW_CACHE.get("refreshing"):
-            asyncio.create_task(_refresh_market_now(force=False))
+        if age >= MARKET_NOW_TTL:
+            _schedule_market_now_refresh()
 
     payload = dict(data or {"results": [], "errors": []})
     payload["cacheAgeSec"] = round(max(0.0, time.time() - MARKET_NOW_CACHE.get("timestamp", 0)), 1)
     payload["refreshing"] = bool(MARKET_NOW_CACHE.get("refreshing"))
+    payload["refreshScheduled"] = bool(MARKET_NOW_CACHE.get("scheduled"))
     payload["cacheMode"] = "stale-while-revalidate"
     return payload
 
@@ -1267,7 +1306,7 @@ async def _fetch_full_heatmap_quotes(tickers):
 
     async def one(ticker):
         async with semaphore:
-            return await _background_market_call(fetch_quote_snapshot, ticker)
+            return await _bulk_market_call(fetch_quote_snapshot, ticker)
 
     fetched = await asyncio.gather(*[one(ticker) for ticker in tickers], return_exceptions=True)
     return dict(zip(tickers, fetched))
@@ -1941,7 +1980,7 @@ async def _refresh_home_snapshot(force: bool = False):
                 if isinstance(row, dict) and row.get("ticker")
             }
             fetched = await asyncio.gather(
-                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in HOME_MAJOR_TICKERS],
+                *[_bulk_market_call(fetch_quote_snapshot, ticker) for ticker in HOME_MAJOR_TICKERS],
                 return_exceptions=True,
             )
             results = []
@@ -1988,9 +2027,26 @@ async def _refresh_home_snapshot(force: bool = False):
             HOME_SNAPSHOT_CACHE["refreshing"] = False
 
 
+def _schedule_home_snapshot_refresh(delay: float = HOME_SNAPSHOT_REFRESH_DELAY_SEC) -> bool:
+    """Serve the disk/memory snapshot first, then refresh on the bulk lane."""
+    if HOME_SNAPSHOT_CACHE.get("refreshing") or HOME_SNAPSHOT_CACHE.get("scheduled"):
+        return False
+    HOME_SNAPSHOT_CACHE["scheduled"] = True
+
+    async def runner():
+        try:
+            await asyncio.sleep(delay)
+            await _refresh_home_snapshot(force=False)
+        finally:
+            HOME_SNAPSHOT_CACHE["scheduled"] = False
+
+    asyncio.create_task(runner())
+    return True
+
+
 @app.get("/api/home-snapshot")
 async def home_snapshot(fresh: bool = False):
-    """Return the last successful Home snapshot immediately and revalidate behind it."""
+    """Return the last successful Home snapshot immediately and revalidate after navigation settles."""
     data = HOME_SNAPSHOT_CACHE.get("data") or _seed_home_snapshot_from_disk()
     if fresh:
         try:
@@ -2004,12 +2060,13 @@ async def home_snapshot(fresh: bool = False):
             print(f"[HOME] first refresh failed: {exc}")
     else:
         age = time.time() - HOME_SNAPSHOT_CACHE.get("timestamp", 0)
-        if age >= HOME_SNAPSHOT_TTL and not HOME_SNAPSHOT_CACHE.get("refreshing"):
-            asyncio.create_task(_refresh_home_snapshot(force=False))
+        if age >= HOME_SNAPSHOT_TTL:
+            _schedule_home_snapshot_refresh()
 
     payload = dict(data or {"heatmap": {"results": []}, "macro": None})
     payload["cacheAgeSec"] = round(max(0.0, time.time() - HOME_SNAPSHOT_CACHE.get("timestamp", 0)), 1)
     payload["refreshing"] = bool(HOME_SNAPSHOT_CACHE.get("refreshing"))
+    payload["refreshScheduled"] = bool(HOME_SNAPSHOT_CACHE.get("scheduled"))
     payload["cacheMode"] = "stale-while-revalidate"
     return payload
 

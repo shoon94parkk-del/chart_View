@@ -23,8 +23,10 @@ def test_home_live_endpoint_is_memory_only():
 
 def test_background_worker_is_activity_gated():
     source = inspect.getsource(main._home_live_worker)
-    assert "active_home > 0" in source
+    assert "is_active_home" in source
     assert "HOME_LIVE_ACTIVE_REFRESH_SEC" in source
+    assert "HOME_LIVE_FIRST_VISITOR_GRACE_SEC" in source
+    assert "if not was_active_home" in source
     assert "_refresh_home_live(due)" in source
 
 
