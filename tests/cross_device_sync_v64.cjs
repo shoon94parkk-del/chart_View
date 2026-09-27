@@ -49,11 +49,12 @@ const freshSnapshot = {
       const page = await context.newPage();
       const bootstrapRequests = [];
       let homeLiveRequests = 0;
+      let slowHeatmapResolved = false;
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
-        localStorage.setItem('chartview-home-heatmap-v65', JSON.stringify(staleHeat));
-        localStorage.removeItem('chartview-home-snapshot-v17');
+        localStorage.setItem('chartview-home-heatmap-v68', JSON.stringify(staleHeat));
+        localStorage.removeItem('chartview-home-snapshot-v18');
         const now = Date.now();
         const quotes = {};
         for (const row of watchlist) {
@@ -64,12 +65,13 @@ const freshSnapshot = {
             updatedAt: now,
           };
         }
-        localStorage.setItem('chartview-watchlist-quotes-v33', JSON.stringify({updatedAt:now,quotes}));
+        localStorage.setItem('chartview-watchlist-quotes-v35', JSON.stringify({updatedAt:now,quotes}));
       }, {watchlist, staleHeat});
 
       await page.route('**/api/home-snapshot*', route => route.fulfill(json(freshSnapshot)));
       await page.route('**/api/heatmap*', async route => {
         await delay(3000);
+        slowHeatmapResolved = true;
         await route.fulfill(json({results:heatRows,generatedAt:freshSnapshot.generatedAt,source:'test'}));
       });
       await page.route('**/api/activity', route => route.fulfill(json({ok:true,heartbeatSec:20,activeVisitors:1,activeHomeVisitors:1})));
@@ -126,7 +128,8 @@ const freshSnapshot = {
 
       // The slow geometry endpoint is deliberately delayed. Live quote parity must not wait for it.
       const samsungChange = page.locator('[data-cvhm-symbol="005930.KS"] .cvhm-change');
-      await samsungChange.waitFor({timeout:1500});
+      await samsungChange.waitFor({timeout:5000});
+      assert.equal(slowHeatmapResolved, false, `${profile.name}: Home heatmap waited for the delayed geometry endpoint`);
 
       // A single fast quote batch must drive both Card and Heatmap to the exact same live value.
       await page.waitForFunction(() => window.ChartViewHomeHeatmap?.version === 'v66', null, {timeout:5000});
