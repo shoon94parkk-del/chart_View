@@ -78,6 +78,7 @@ FULL_HEATMAP_KR_TICKERS = [
     "055550.KS", "105560.KS", "035720.KS", "086790.KS", "066570.KS",
     "003550.KS", "003670.KS", "009150.KS", "018260.KS", "028260.KS",
 ]
+DEFAULT_APP_ANALYSIS_TICKERS = ["005930.KS", "NVDA", "AAPL"]
 
 HOME_LIVE_ACTIVE_REFRESH_SEC = 5.0
 HOME_LIVE_CLOSED_REFRESH_SEC = 300.0
@@ -114,6 +115,21 @@ async def _background_market_call(fn, *args):
     """Run low-priority market refresh work away from foreground request threads."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(BACKGROUND_MARKET_EXECUTOR, fn, *args)
+
+
+async def _warm_default_app_analysis():
+    """Warm the Toss default chart/valuation set without blocking startup readiness."""
+    started = time.perf_counter()
+    work = []
+    for ticker in DEFAULT_APP_ANALYSIS_TICKERS:
+        work.append(_background_market_call(fetch_compare_stock, ticker, "1mo", None, None))
+        work.append(_background_market_call(fetch_valuation_snapshot, ticker))
+    results = await asyncio.gather(*work, return_exceptions=True)
+    failures = sum(1 for item in results if isinstance(item, Exception) or not item)
+    print(
+        f"[ANALYSIS_WARM] defaults={len(DEFAULT_APP_ANALYSIS_TICKERS)} "
+        f"jobs={len(results)} failures={failures} elapsedMs={int((time.perf_counter()-started)*1000)}"
+    )
 
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
@@ -443,6 +459,8 @@ async def startup_event():
     _seed_full_heatmap_from_local()
     HOME_LIVE_WAKE_EVENT = asyncio.Event()
     asyncio.create_task(_home_live_worker())
+    # Warm the default Toss analysis screens first on the isolated background pool.
+    asyncio.create_task(_warm_default_app_analysis())
     # Replace disk-seeded quotes immediately, even while KR/US markets are closed.
     asyncio.create_task(_refresh_home_live(_all_home_markets()))
     # Warm the full 60-name heatmap in the background from the same canonical quote path.
