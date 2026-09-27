@@ -278,3 +278,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Startup warms only market-now + default analysis, then analytics; no immediate Home/full-heatmap provider fan-out.
 - Home live remains active-user driven; Home snapshot/full heatmap remain endpoint SWR.
 - fetch_quote_snapshot is singleflight-coalesced to deduplicate overlapping Home/live/heatmap ticker work.
+
+
+## 2026-09-28 — P0 response-first refresh
+- market-now stale cache returns first; provider refresh is scheduled 3s later.
+- Home snapshot stale cache returns first; its 18-symbol refresh is scheduled 6s later.
+- First active Home session serves seeded quotes for a 5s grace before live provider refresh.
+- Latency-sensitive background executor: 2 workers. Bulk snapshot/full heatmap executor: 1 worker.
+- Goal: prevent stale revalidation from delaying cache-only /api/compare and other navigation requests.
