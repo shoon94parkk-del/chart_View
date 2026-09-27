@@ -205,13 +205,17 @@
   }
 
   function saveHomeLocal(snapshot) {
-    try { localStorage.setItem('chartview-home-snapshot-v17', JSON.stringify(snapshot)); } catch (_) {}
+    try { localStorage.setItem('chartview-home-snapshot-v18', JSON.stringify(snapshot)); } catch (_) {}
   }
 
   function readHomeLocal() {
     try {
-      const raw = localStorage.getItem('chartview-home-snapshot-v17');
-      return raw ? JSON.parse(raw) : null;
+      const raw = localStorage.getItem('chartview-home-snapshot-v18') || localStorage.getItem('chartview-home-snapshot-v17');
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && !localStorage.getItem('chartview-home-snapshot-v18')) {
+        try { localStorage.setItem('chartview-home-snapshot-v18', JSON.stringify(parsed)); } catch (_) {}
+      }
+      return parsed;
     } catch (_) { return null; }
   }
 
