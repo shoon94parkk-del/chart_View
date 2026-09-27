@@ -28,7 +28,8 @@ def test_noncritical_home_features_wait_until_after_first_paint():
     assert "installDataStatus();" not in boot.split("document.addEventListener('click'", 1)[0]
 
 
-def test_ai_pick_does_not_double_fetch_on_initial_pageshow():
+def test_ai_pick_stays_lazy_on_home_but_supports_explicit_deep_link():
     assert "if(!event.persisted)return;" in AI
-    tail = AI[AI.index("function scheduleMount()"):]
-    assert "installAiLedgerAssets();" not in tail
+    assert "function isLedgerDeepLink()" in AI
+    assert "params.get('tab')==='screener'&&params.get('view')==='ai-picks'" in AI
+    assert "if(isLedgerDeepLink())installAiLedgerAssets();" in AI
