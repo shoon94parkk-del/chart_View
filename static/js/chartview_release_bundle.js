@@ -4277,17 +4277,23 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     return true;
   }
 
+  function scheduleDataStatus(force = false) {
+    const run = () => installDataStatus(force);
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
+    else setTimeout(run, force ? 700 : 1800);
+  }
+
   function boot() {
     let attempts = 0;
     const timer = setInterval(() => {
       attempts += 1;
       installFilterSheet();
       installScreenerKpis();
-      installDataStatus();
       if (attempts >= 60) clearInterval(timer);
     }, 250);
+    scheduleDataStatus(false);
     document.addEventListener('click', (event) => {
-      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(() => installDataStatus(true), 350);
+      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) scheduleDataStatus(true);
       if (event.target.closest('[data-tab="screener"], [data-app-mode="discover"]')) setTimeout(() => { installFilterSheet(); installScreenerKpis(); }, 250);
     });
   }
@@ -7484,13 +7490,17 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function saveHomeLocal(snapshot) {
-    try { localStorage.setItem('chartview-home-snapshot-v17', JSON.stringify(snapshot)); } catch (_) {}
+    try { localStorage.setItem('chartview-home-snapshot-v18', JSON.stringify(snapshot)); } catch (_) {}
   }
 
   function readHomeLocal() {
     try {
-      const raw = localStorage.getItem('chartview-home-snapshot-v17');
-      return raw ? JSON.parse(raw) : null;
+      const raw = localStorage.getItem('chartview-home-snapshot-v18') || localStorage.getItem('chartview-home-snapshot-v17');
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && !localStorage.getItem('chartview-home-snapshot-v18')) {
+        try { localStorage.setItem('chartview-home-snapshot-v18', JSON.stringify(parsed)); } catch (_) {}
+      }
+      return parsed;
     } catch (_) { return null; }
   }
 

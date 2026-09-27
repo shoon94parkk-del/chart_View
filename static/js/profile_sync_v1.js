@@ -245,6 +245,12 @@
     document.addEventListener('chartview:watchlist-change', queueAutoSave);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { init(); }, { once: true });
-  else init();
+  function scheduleInit() {
+    const run = () => init();
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
+    else window.setTimeout(run, 1800);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleInit, { once: true });
+  else scheduleInit();
 })();

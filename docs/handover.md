@@ -293,3 +293,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Stale values return immediately and refresh on chartview-valuation-refresh (1 worker).
 - /api/valuation reads cache hits synchronously and offloads only true misses.
 - Response diagnostics: cacheHits / providerFetches.
+
+
+## 2026-09-28 — Original Home first-paint P0
+- Home snapshot cache key is v18; v17 is read once for migration.
+- Home heatmap uses the shared snapshot immediately, delays geometry refresh, and avoids forcing a second /api/home-live on card insertion.
+- profile-sync/status and DATA STATUS /api/macro are idle work, not first-paint work.
+- AI PICK mounts after first paint, does not preload ledger assets, and only refetches on persisted bfcache pageshow.
+- Re-run a fresh-browser production audit after deployment; target Home median <=1.2s and no repeated >2s spikes under ordinary off-market load.

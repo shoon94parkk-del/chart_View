@@ -491,7 +491,7 @@
     }
   }
 
-  function scheduleRefresh(delay = 180) {
+  function scheduleRefresh(delay = 1400) {
     if (refreshKickTimer) clearTimeout(refreshKickTimer);
     refreshKickTimer = setTimeout(() => {
       refreshKickTimer = null;
@@ -503,7 +503,13 @@
     ensureShell();
     render(cachedPayload());
     refreshServerLive(true);
-    scheduleRefresh();
+    // Geometry is non-critical for first paint because the shared Home snapshot
+    // already contains rows. Give market-now/home-live priority on a fresh visit.
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => scheduleRefresh(0), { timeout: 1800 });
+    } else {
+      scheduleRefresh();
+    }
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -513,7 +519,9 @@
             requestAnimationFrame(() => {
               ensureShell();
               render(cachedPayload());
-              refreshServerLive(true);
+              // The startup request already stamped lastQuotePollAt; do not force
+              // a second /api/home-live when the Home card is inserted.
+              refreshServerLive(false);
             });
             return;
           }
