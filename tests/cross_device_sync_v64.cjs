@@ -53,8 +53,8 @@ const freshSnapshot = {
 
       await page.addInitScript(({watchlist, staleHeat}) => {
         localStorage.setItem('chartview-watchlist-v1', JSON.stringify(watchlist));
-        localStorage.setItem('chartview-home-heatmap-v65', JSON.stringify(staleHeat));
-        localStorage.removeItem('chartview-home-snapshot-v17');
+        localStorage.setItem('chartview-home-heatmap-v68', JSON.stringify(staleHeat));
+        localStorage.removeItem('chartview-home-snapshot-v18');
         const now = Date.now();
         const quotes = {};
         for (const row of watchlist) {
@@ -65,7 +65,7 @@ const freshSnapshot = {
             updatedAt: now,
           };
         }
-        localStorage.setItem('chartview-watchlist-quotes-v33', JSON.stringify({updatedAt:now,quotes}));
+        localStorage.setItem('chartview-watchlist-quotes-v35', JSON.stringify({updatedAt:now,quotes}));
       }, {watchlist, staleHeat});
 
       await page.route('**/api/home-snapshot*', route => route.fulfill(json(freshSnapshot)));
