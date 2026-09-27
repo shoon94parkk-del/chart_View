@@ -67,3 +67,47 @@ def test_compare_cache_peek_returns_good_value_without_provider(monkeypatch):
 
     assert hit is True
     assert value is cached
+
+
+def test_stale_valuation_returns_immediately_and_schedules_refresh(monkeypatch):
+    market._valuation_cache.clear()
+    market._valuation_refreshing.clear()
+    cached = {"ticker": "AAPL", "forwardPE": 25.0}
+    market._valuation_cache["AAPL"] = (time.time() - market.VALUATION_CACHE_FRESH_TTL_SECONDS - 1, cached)
+
+    scheduled = []
+    monkeypatch.setattr(market, "_schedule_valuation_refresh", lambda symbol: scheduled.append(symbol))
+
+    hit, value = market.get_valuation_cache("AAPL")
+
+    assert hit is True
+    assert value is cached
+    assert scheduled == ["AAPL"]
+
+
+def test_fresh_valuation_cache_does_not_schedule_refresh(monkeypatch):
+    market._valuation_cache.clear()
+    market._valuation_refreshing.clear()
+    cached = {"ticker": "NVDA", "forwardPE": 30.0}
+    market._valuation_cache["NVDA"] = (time.time(), cached)
+
+    scheduled = []
+    monkeypatch.setattr(market, "_schedule_valuation_refresh", lambda symbol: scheduled.append(symbol))
+
+    hit, value = market.get_valuation_cache("NVDA")
+
+    assert hit is True
+    assert value is cached
+    assert scheduled == []
+
+
+def test_valuation_endpoint_has_cache_hit_fast_path():
+    from pathlib import Path
+
+    source = Path("main.py").read_text(encoding="utf-8")
+    start = source.index('async def valuation_data(')
+    block = source[start:start + 2200]
+    assert "get_valuation_cache(ticker)" in block
+    assert "cacheHits" in block
+    assert "providerFetches" in block
+    assert "asyncio.to_thread(fetch_valuation_snapshot, t) for t in missing" in block
