@@ -207,3 +207,7 @@ Production logs showed the legacy 5-minute snapshot warmer forcing /api/market-n
 
 ## 2026-09-28 — P0 response-first stale refresh
 A live audit after removing the deploy-time warmer improved Home to 1.67s, but a cache-only compare request still took 2.30s. Render request logs showed the first Home navigation immediately scheduling stale market-now and Home snapshot provider refreshes; those background jobs began before cached HTTP responses had fully drained. Stale market-now refresh is now delayed 3s, Home snapshot refresh 6s, and the first active Home session gets a 5s live-quote grace. Latency-sensitive background work is capped at 2 threads, while large Home snapshot/full-heatmap refreshes are serialized on a separate 1-thread bulk executor.
+
+
+## 2026-09-28 — P0 valuation stale-while-revalidate
+The corrected production audit measured valuation Cold at 4.65s while SPA re-entry was 91ms. The default valuation cache used a hard 300s TTL, so startup prewarm expired and the first user after five minutes paid Yahoo Chart/Fundamentals latency. Valuation now returns the last successful memory value immediately, refreshes stale entries on a dedicated single-worker executor, and /api/valuation bypasses the shared worker queue for cache hits. Response diagnostics expose cacheHits and providerFetches.
