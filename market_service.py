@@ -14,6 +14,7 @@ import math
 import os
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -31,9 +32,13 @@ _names_lock = threading.Lock()
 _names: dict[str, str] | None = None
 _cache_lock = threading.Lock()
 _compare_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
+_compare_refreshing: set[str] = set()
 _valuation_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 _quote_cache: dict[str, tuple[float, dict[str, Any] | None]] = {}
 QUOTE_CACHE_TTL_SECONDS = 5.0
+COMPARE_CACHE_FRESH_TTL_SECONDS = 300.0
+COMPARE_CACHE_FAILURE_TTL_SECONDS = 30.0
+_COMPARE_REFRESH_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chartview-compare-refresh")
 _auth_lock = threading.Lock()
 _auth_state: dict[str, Any] = {"cookies": None, "crumb": None, "timestamp": 0.0}
 
@@ -175,24 +180,18 @@ def _chart_result(symbol: str, *, period: str = "5d", interval: str = "1d", star
     return result
 
 
-@singleflight
-def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = None, end: str | None = None) -> dict[str, Any] | None:
-    symbol = symbol.strip().upper()
-    if not symbol:
-        return None
-
+def _compare_request_parts(symbol: str, period: str, start: str | None, end: str | None) -> tuple[str, str]:
     interval_map = {
         "1d": "5m", "5d": "1d", "1mo": "1d",
-        "3mo": "1d", "6mo": "1d", "1y": "1d", "max": "1d",
+        "3mo": "1d", "6mo": "1d", "ytd": "1d", "1y": "1d",
+        "2y": "1d", "5y": "1d", "10y": "1d", "max": "1d",
     }
     interval = "1d" if start and end else interval_map.get(period, "1d")
     key = f"{symbol}|{period}|{start or ''}|{end or ''}|{interval}"
-    now = time.time()
-    with _cache_lock:
-        cached = _compare_cache.get(key)
-        if cached and now - cached[0] < 300:
-            return cached[1]
+    return interval, key
 
+
+def _load_compare_stock(symbol: str, period: str, start: str | None, end: str | None, interval: str) -> dict[str, Any] | None:
     try:
         result = _chart_result(symbol, period=period, interval=interval, start=start, end=end)
         meta = result.get("meta", {})
@@ -205,38 +204,102 @@ def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = No
         price_basis = "adjusted_close" if values is adjusted else "close"
         points = [(int(ts), float(value)) for ts, value in zip(timestamps, values) if _positive(value) is not None]
         if not points:
-            value = None
-        else:
-            first = points[0][1]
-            line_data = [{"time": ts, "value": round((close - first) / first * 100, 2), "price": round(close, 4)} for ts, close in points]
-            last_close = points[-1][1]
-            price = _positive(meta.get("regularMarketPrice")) or last_close
-            name = _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or symbol
-            value = {
-                "ticker": symbol,
-                "name": name,
-                "price": round(float(price), 2),
-                "return": round((last_close - first) / first * 100, 2),
-                "data": line_data,
-                "currency": meta.get("currency"),
-                "source": "Yahoo Chart",
-                "priceBasis": price_basis,
-                "quoteSource": "Yahoo Chart",
-                "quoteAsOf": datetime.fromtimestamp(meta["regularMarketTime"], tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
-                "requestedPeriod": period,
-                "startDate": datetime.fromtimestamp(points[0][0], tz=timezone.utc).date().isoformat(),
-                "endDate": datetime.fromtimestamp(points[-1][0], tz=timezone.utc).date().isoformat(),
-                "observations": len(points),
-            }
+            return None
+
+        first = points[0][1]
+        line_data = [{"time": ts, "value": round((close - first) / first * 100, 2), "price": round(close, 4)} for ts, close in points]
+        last_close = points[-1][1]
+        price = _positive(meta.get("regularMarketPrice")) or last_close
+        name = _local_names().get(symbol) or meta.get("shortName") or meta.get("longName") or symbol
+        return {
+            "ticker": symbol,
+            "name": name,
+            "price": round(float(price), 2),
+            "return": round((last_close - first) / first * 100, 2),
+            "data": line_data,
+            "currency": meta.get("currency"),
+            "source": "Yahoo Chart",
+            "priceBasis": price_basis,
+            "quoteSource": "Yahoo Chart",
+            "quoteAsOf": datetime.fromtimestamp(meta["regularMarketTime"], tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
+            "requestedPeriod": period,
+            "startDate": datetime.fromtimestamp(points[0][0], tz=timezone.utc).date().isoformat(),
+            "endDate": datetime.fromtimestamp(points[-1][0], tz=timezone.utc).date().isoformat(),
+            "observations": len(points),
+        }
     except Exception as exc:
         print(f"[MarketData] chart failed {symbol}: {exc}")
-        value = None
+        return None
 
+
+def _store_compare_cache(key: str, value: dict[str, Any] | None, timestamp: float | None = None) -> None:
+    stamped = time.time() if timestamp is None else timestamp
     with _cache_lock:
         if key not in _compare_cache and len(_compare_cache) >= 64:
             _compare_cache.pop(min(_compare_cache, key=lambda k: _compare_cache[k][0]))
-        _compare_cache[key] = (now, value)
-    return value
+        _compare_cache[key] = (stamped, value)
+
+
+def _refresh_compare_cache(key: str, symbol: str, period: str, start: str | None, end: str | None, interval: str) -> None:
+    try:
+        value = _load_compare_stock(symbol, period, start, end, interval)
+        # Never replace the last known-good chart with a provider failure.
+        if value is not None:
+            _store_compare_cache(key, value)
+    finally:
+        with _cache_lock:
+            _compare_refreshing.discard(key)
+
+
+def _schedule_compare_refresh(key: str, symbol: str, period: str, start: str | None, end: str | None, interval: str) -> None:
+    with _cache_lock:
+        if key in _compare_refreshing:
+            return
+        _compare_refreshing.add(key)
+    try:
+        _COMPARE_REFRESH_EXECUTOR.submit(_refresh_compare_cache, key, symbol, period, start, end, interval)
+    except Exception:
+        with _cache_lock:
+            _compare_refreshing.discard(key)
+        raise
+
+
+@singleflight
+def fetch_compare_stock(symbol: str, period: str = "1mo", start: str | None = None, end: str | None = None) -> dict[str, Any] | None:
+    """Return charts cache-first; refresh stale successful data in the background."""
+    symbol = symbol.strip().upper()
+    if not symbol:
+        return None
+
+    interval, key = _compare_request_parts(symbol, period, start, end)
+    now = time.time()
+    with _cache_lock:
+        cached = _compare_cache.get(key)
+
+    if cached:
+        age = max(0.0, now - cached[0])
+        cached_value = cached[1]
+        if cached_value is not None:
+            if age >= COMPARE_CACHE_FRESH_TTL_SECONDS:
+                _schedule_compare_refresh(key, symbol, period, start, end, interval)
+            # SWR: every previously successful chart is returned immediately.
+            return cached_value
+        if age < COMPARE_CACHE_FAILURE_TTL_SECONDS:
+            return None
+
+    value = _load_compare_stock(symbol, period, start, end, interval)
+    if value is not None:
+        _store_compare_cache(key, value, now)
+        return value
+
+    # Negative-cache only misses; do not destroy an older successful value.
+    if not cached:
+        _store_compare_cache(key, None, now)
+        return None
+    if cached[1] is not None:
+        return cached[1]
+    _store_compare_cache(key, None, now)
+    return None
 
 
 def _ensure_yahoo_auth(force: bool = False) -> tuple[dict[str, str], str] | None:

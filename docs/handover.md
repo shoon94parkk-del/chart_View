@@ -251,3 +251,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Current-screen share is supported for all main tabs; AI PICK shares `tab=screener&view=ai-picks`; open stock detail shares symbol/name.
 - `window.ChartViewShare` exposes the V68 URL builder/share action for regression testing.
 - Rollback: `backup/pre-context-share-v68-20260923`.
+
+
+## 2026-09-28 — P0 차트 SWR
+- `/api/compare`의 성공 캐시는 300초 이후에도 즉시 반환하고 background refresh한다.
+- refresh는 `chartview-compare-refresh` 전용 2-thread executor를 사용해 foreground/default executor를 막지 않는다.
+- provider 실패 시 마지막 정상 차트를 유지한다. 최초 실패 응답만 30초 negative cache한다.
+- 정규장에는 Home live refresh가 5초, 장외에는 300초이므로 성능 감사는 정규장 재검증을 별도로 수행한다.
