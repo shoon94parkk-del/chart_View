@@ -481,12 +481,10 @@ async def startup_event():
         f"elapsedMs={int((time.perf_counter()-critical_started)*1000)}"
     )
 
-    # Start the larger provider jobs only after the critical caches are ready.
-    # Disk-seeded Home/full-heatmap data remains usable while these refresh.
-    asyncio.create_task(_refresh_home_live(_all_home_markets()))
-    asyncio.create_task(_refresh_full_heatmap(force=True))
+    # Do not fan out Home/full-heatmap provider work at deploy time.
+    # Home live refresh is demand-driven by active Home visitors; Home snapshot
+    # and full heatmap already use stale-while-revalidate on their own endpoints.
     asyncio.create_task(_analytics_redis_client())
-    asyncio.create_task(_refresh_home_snapshot(force=True))
 
 
 @app.get("/")
