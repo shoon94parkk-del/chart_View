@@ -39,3 +39,17 @@ def test_startup_prioritizes_blocking_user_caches_before_bulk_refreshes():
     assert '[STARTUP_WARM]' in block
     assert 'asyncio.create_task(_refresh_market_now(force=True))' not in block
     assert 'asyncio.create_task(_warm_default_app_analysis())' not in block
+
+
+def test_startup_does_not_launch_bulk_provider_refreshes():
+    start = MAIN.index('async def startup_event():')
+    block = MAIN[start:start + 3600]
+    assert 'asyncio.create_task(_refresh_home_live(_all_home_markets()))' not in block
+    assert 'asyncio.create_task(_refresh_full_heatmap(force=True))' not in block
+    assert 'asyncio.create_task(_refresh_home_snapshot(force=True))' not in block
+    assert 'asyncio.create_task(_analytics_redis_client())' in block
+
+
+def test_quote_snapshot_requests_are_singleflight_coalesced():
+    marker = '@singleflight\ndef fetch_quote_snapshot'
+    assert marker in MARKET
