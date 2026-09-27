@@ -286,3 +286,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - First active Home session serves seeded quotes for a 5s grace before live provider refresh.
 - Latency-sensitive background executor: 2 workers. Bulk snapshot/full heatmap executor: 1 worker.
 - Goal: prevent stale revalidation from delaying cache-only /api/compare and other navigation requests.
+
+
+## 2026-09-28 — P0 valuation SWR
+- Valuation memory cache keeps the last successful value beyond the 300s freshness window.
+- Stale values return immediately and refresh on chartview-valuation-refresh (1 worker).
+- /api/valuation reads cache hits synchronously and offloads only true misses.
+- Response diagnostics: cacheHits / providerFetches.
