@@ -34,3 +34,10 @@ def test_snapshot_warmer_starts_only_once_on_render(monkeypatch):
     assert args == ("https://example.onrender.com",)
     assert name == "chartview-snapshot-warmer"
     assert daemon is True
+
+
+def test_market_service_package_does_not_autostart_snapshot_warmer():
+    from pathlib import Path
+    init_source = Path('market_service/__init__.py').read_text(encoding='utf-8')
+    assert 'start_snapshot_warmer()' not in init_source
+    assert 'from snapshot_warmer import start_snapshot_warmer' not in init_source
