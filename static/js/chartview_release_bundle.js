@@ -7340,7 +7340,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const price = n(value);
     if (price === null) return '-';
     if (/\.(KS|KQ)$/.test(symbol)) return `₩${Math.round(price).toLocaleString('ko-KR')}`;
-    return `${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    return `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
   }
 
   function homeChangeClass(value) {
@@ -7736,7 +7736,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const metrics = compactMetrics(data);
     const price = n(data.quote?.price) ?? n(data.valuation?.price);
     const isKR = /\.(KS|KQ)$/.test(symbol);
-    const priceText = price === null ? '-' : isKR ? `₩${Math.round(price).toLocaleString('ko-KR')}` : `${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    const priceText = price === null ? '-' : isKR ? `₩${Math.round(price).toLocaleString('ko-KR')}` : `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
     const watched = typeof window.__isWatchlisted === 'function' && window.__isWatchlisted(symbol);
     const monthClass = metrics.monthReturn === null ? '' : metrics.monthReturn >= 0 ? 'pos' : 'neg';
     const epsClass = metrics.eps30 === null ? '' : metrics.eps30 >= 0 ? 'pos' : 'neg';
