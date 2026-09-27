@@ -199,3 +199,7 @@ Production audit after SWR deployment still measured /api/compare at about 4.1s 
 
 ## 2026-09-28 — P0 startup provider priority
 Production audit exposed a 7s Home cold load with /api/market-now at 6.6s. Startup was launching market-now, default analysis, Home live, Home snapshot, and full heatmap refreshes together on the same provider/background capacity. Critical first-user caches now warm in a bounded sequence (market-now, then default chart/valuation) before bulk Home/full-heatmap refresh jobs start. Render keeps the previous revision live during startup, so deploy latency is preferred over first-user latency.
+
+
+## 2026-09-28 — P0 remove deploy-time provider herd
+Production logs showed the legacy 5-minute snapshot warmer forcing /api/market-now?fresh=1 and /api/home-snapshot?fresh=1; the Home snapshot force refresh took 11.1s. At the same time startup launched Home live, Home snapshot, and full heatmap refreshes. Even cache-only /api/compare requests then waited several seconds. The package no longer auto-starts the self-request warmer, startup no longer launches bulk provider refreshes, and fetch_quote_snapshot is singleflight-coalesced so overlapping demand-driven refreshes for the same ticker share one provider call.
