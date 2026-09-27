@@ -28,17 +28,19 @@ def test_compare_cache_uses_stale_while_revalidate():
     assert "get_compare_cache(symbol, period, start, end)" in fetch_block
 
 
-def test_startup_prioritizes_blocking_user_caches_before_bulk_refreshes():
+def test_startup_prioritizes_blocking_user_caches_without_bulk_refreshes():
     start = MAIN.index('async def startup_event():')
     block = MAIN[start:start + 3600]
     market_pos = block.index('await asyncio.wait_for(_refresh_market_now(force=True), timeout=12.0)')
     analysis_pos = block.index('await asyncio.wait_for(_warm_default_app_analysis(), timeout=12.0)')
-    home_live_pos = block.index('asyncio.create_task(_refresh_home_live(_all_home_markets()))')
-    full_heatmap_pos = block.index('asyncio.create_task(_refresh_full_heatmap(force=True))')
-    assert market_pos < analysis_pos < home_live_pos < full_heatmap_pos
+    analytics_pos = block.index('asyncio.create_task(_analytics_redis_client())')
+    assert market_pos < analysis_pos < analytics_pos
     assert '[STARTUP_WARM]' in block
     assert 'asyncio.create_task(_refresh_market_now(force=True))' not in block
     assert 'asyncio.create_task(_warm_default_app_analysis())' not in block
+    assert 'asyncio.create_task(_refresh_home_live(_all_home_markets()))' not in block
+    assert 'asyncio.create_task(_refresh_full_heatmap(force=True))' not in block
+    assert 'asyncio.create_task(_refresh_home_snapshot(force=True))' not in block
 
 
 def test_startup_does_not_launch_bulk_provider_refreshes():
