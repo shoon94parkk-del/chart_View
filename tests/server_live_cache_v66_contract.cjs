@@ -39,11 +39,13 @@ test('automated browser visits are not counted as users', () => {
 });
 
 
-test('closed markets are refreshed so disk snapshots cannot survive a deploy', () => {
+test('closed markets remain demand-refreshed without deploy-time provider fanout', () => {
   assert.match(main, /HOME_LIVE_CLOSED_REFRESH_SEC = 300\.0/);
   assert.match(main, /def _all_home_markets/);
-  assert.match(main, /_refresh_home_live\(_all_home_markets\(\)\)/);
+  assert.match(main, /all_markets = _all_home_markets\(\)/);
+  assert.match(main, /for market, tickers in all_markets\.items\(\)/);
   assert.match(main, /interval = HOME_LIVE_ACTIVE_REFRESH_SEC if market in open_markets else HOME_LIVE_CLOSED_REFRESH_SEC/);
+  assert.doesNotMatch(main, /asyncio\.create_task\(_refresh_home_live\(_all_home_markets\(\)\)\)/);
 });
 
 test('heatmap client cache is invalidated with the reliability release', () => {
