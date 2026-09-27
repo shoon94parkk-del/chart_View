@@ -205,3 +205,5 @@ A user-visible change is complete only when:
 
 - 2026-09-28 성능 감사 결과: Toss 앱 shell은 대체로 0.11~0.14초로 빠르며 주요 지연은 backend/provider 대기였다. 백그라운드 Home/heatmap/market refresh와 foreground API가 기본 asyncio thread pool을 공유해 사용자 요청이 밀릴 수 있어, market background work는 전용 6-thread executor로 분리한다.
 - `/api/quotes`는 Home 공용 시세가 신선한 대표종목이면 동일한 값을 즉시 재사용하고, 미보유/오래된 종목만 provider fallback을 수행한다. `/api/activity`의 Redis 방문자 기록은 응답을 막지 않고 background task로 저장한다.
+
+- 2026-09-28 차트/밸류에이션 첫 진입 개선: Toss 기본 비교 종목(삼성전자·NVIDIA·Apple)의 1개월 차트와 밸류에이션을 서버 시작 직후 전용 background executor에서 미리 계산한다. compare memory TTL은 60초→300초로 늘려 1일/1개월 이상 차트의 첫 클릭이 provider cold fetch에 걸리지 않게 한다.
