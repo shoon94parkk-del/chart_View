@@ -27,4 +27,6 @@ def test_current_client_assets_are_cache_busted():
     html = (ROOT / 'templates/index.html').read_text(encoding='utf-8')
     for name in ('personalized_news_v40.js','news_readability_v41_2.js','my_hub_v41.js','resilience_v41_3.js','single_detail_v40.js','detail_visibility_v40_1.js','home_polish_v41_4.js'):
         assert f'/static/js/{name}?v=' in boot
-    assert '/static/js/home_watchlist_boot_v32c.js?v=' in html
+    startup = (ROOT / 'static/js/chartview_boot_bundle.js').read_text(encoding='utf-8')
+    assert '/* --- static/js/home_watchlist_boot_v32c.js --- */' in startup
+    assert '/static/js/chartview_boot_bundle.js?v=' in html

@@ -8,7 +8,9 @@ def test_recommendation_watchlist_module_exists_and_is_loaded():
     module = ROOT / 'static/js/recommendation_watchlist_v55.js'
     assert module.exists()
     html = (ROOT / 'templates/index.html').read_text(encoding='utf-8')
-    assert '/static/js/recommendation_watchlist_v55.js?v=20260917v56' in html
+    boot = (ROOT / 'static/js/chartview_boot_bundle.js').read_text(encoding='utf-8')
+    assert '/* --- static/js/recommendation_watchlist_v55.js --- */' in boot
+    assert '/static/js/chartview_boot_bundle.js?v=' in html
 
 
 def test_watchlist_keeps_one_month_return_contract():

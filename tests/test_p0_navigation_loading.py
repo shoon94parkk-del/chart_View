@@ -71,9 +71,12 @@ def test_home_news_prefers_direct_relations():
 
 
 
-def test_chart_asset_key_tracks_hidden_loading_guard():
+def test_chart_asset_is_embedded_in_single_boot_bundle():
     html = read("templates/index.html")
-    assert "/static/js/chart.js?v=20260921p1a03" in html
+    boot = read("static/js/chartview_boot_bundle.js")
+    assert "/* --- static/js/chart.js --- */" in boot
+    assert "/static/js/chartview_boot_bundle.js?v=" in html
+    assert "/static/js/chart.js?v=" not in html
 
 
 
