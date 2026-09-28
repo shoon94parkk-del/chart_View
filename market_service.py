@@ -540,13 +540,32 @@ def fetch_quote_snapshot(symbol: str) -> dict[str, Any] | None:
         if _uses_regular_session_bars(symbol):
             intraday = _chart_result(symbol, period="5d", interval="5m")
             meta = intraday.get("meta", {})
-            current, previous, asof_ts, session_date, previous_session_date = _session_snapshot_from_intraday(intraday)
-            # Use Yahoo's official prior regular-session close for the baseline.
-            # The last 5m bar can differ slightly from the official closing auction.
-            official_previous = _positive(meta.get("previousClose"))
-            if official_previous is not None:
-                previous = official_previous
-            source = "Yahoo Chart 5m + official previousClose atomic snapshot"
+            bar_current, bar_previous, bar_asof_ts, session_date, previous_session_date = _session_snapshot_from_intraday(intraday)
+
+            # Prefer the provider's current regular-market quote from the same
+            # chart response. 5m bars only advance when a bar closes, so using
+            # the last bar as "current" makes a continuously open screen look
+            # several minutes stale even though Yahoo already exposes a fresher
+            # regularMarketPrice/regularMarketTime in meta.
+            meta_current = _positive(meta.get("regularMarketPrice"))
+            meta_asof_ts = int(meta["regularMarketTime"]) if meta.get("regularMarketTime") else None
+            current = meta_current if meta_current is not None else bar_current
+            asof_ts = meta_asof_ts or bar_asof_ts
+            previous = _positive(meta.get("previousClose")) or bar_previous
+
+            if meta_asof_ts:
+                tz_name = meta.get("exchangeTimezoneName") or meta.get("timezone") or "UTC"
+                try:
+                    tz = ZoneInfo(str(tz_name))
+                except Exception:
+                    tz = timezone.utc
+                session_date = datetime.fromtimestamp(meta_asof_ts, tz=timezone.utc).astimezone(tz).date().isoformat()
+
+            source = (
+                "Yahoo Chart regularMarketPrice + official previousClose"
+                if meta_current is not None
+                else "Yahoo Chart 5m + official previousClose atomic snapshot"
+            )
 
         # Fallback for continuous-session assets or sparse intraday symbols.
         if current is None or previous is None:
