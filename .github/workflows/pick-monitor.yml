@@ -5,6 +5,12 @@ on:
     paths:
       - "scripts/build_pick_monitor.py"
       - "tests/test_pick_monitor.py"
+      - "tests/test_pick_monitor_reviews.py"
+      - "tests/test_pick_monitor_ui.py"
+      - "scripts/apply_pick_monitor_reviews.py"
+      - "static/data/pick_monitor_reviews.json"
+      - "static/js/ai_pick_ledger_v52.js"
+      - "static/css/ai_pick_ledger_v52.css"
       - "static/data/ai_daily_rankings.json"
       - "static/data/pick_monitor.json"
       - "static/data/pick_monitor_history.json"
@@ -14,6 +20,12 @@ on:
     paths:
       - "scripts/build_pick_monitor.py"
       - "tests/test_pick_monitor.py"
+      - "tests/test_pick_monitor_reviews.py"
+      - "tests/test_pick_monitor_ui.py"
+      - "scripts/apply_pick_monitor_reviews.py"
+      - "static/data/pick_monitor_reviews.json"
+      - "static/js/ai_pick_ledger_v52.js"
+      - "static/css/ai_pick_ledger_v52.css"
       - "static/data/ai_daily_rankings.json"
       - "static/data/pick_monitor.json"
       - "static/data/pick_monitor_history.json"
@@ -28,5 +40,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install pytest
-      - run: python -m pytest -q tests/test_pick_monitor.py
+      - run: python -m pytest -q tests/test_pick_monitor.py tests/test_pick_monitor_reviews.py tests/test_pick_monitor_ui.py
       - run: python scripts/build_pick_monitor.py --check
+      - run: python scripts/apply_pick_monitor_reviews.py --check

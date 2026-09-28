@@ -159,3 +159,11 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - `EXIT` must never be generated without explicit user finalization.
 - Missing legacy thesis details are marked incomplete rather than inferred.
 
+## PICK monitoring P1 evidence/UI
+- KEEP/WATCH/SELL_REVIEW must come from a completed evidence review; do not infer KEEP merely because no bad headline was found.
+- Evidence used for a post-PICK state must be verified, linkable, and dated on or after the PICK date.
+- One ordinary negative signal can produce WATCH, not SELL_REVIEW. SELL_REVIEW requires one material verified fact or two independent negative signals.
+- The monitor UI must say `매도검토`, never present it as an automatic sell order, and must surface the evidence and last review date.
+- Unreviewed PICKs remain visibly `검토 대기`.
+- The existing AI PICK performance ledger remains intact; PICK monitoring is an additional view, not a replacement.
+

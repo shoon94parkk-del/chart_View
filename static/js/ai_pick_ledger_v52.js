@@ -5,6 +5,8 @@
   const state = {
     rows: [],
     days: [],
+    monitorPicks: [],
+    monitorStatus: 'all',
     loaded: false,
     loading: false,
     visibleCount: PAGE_SIZE,
@@ -53,8 +55,34 @@
     return `
       <div class="discovery-subnav" role="tablist" aria-label="종목 발굴 보기">
         <button type="button" class="discovery-subtab active" data-discovery-view="screener" role="tab" aria-selected="true">시장 스크리너</button>
+        <button type="button" class="discovery-subtab" data-discovery-view="pick-monitor" role="tab" aria-selected="false">PICK 점검</button>
         <button type="button" class="discovery-subtab" data-discovery-view="ai-picks" role="tab" aria-selected="false">AI PICK 기록</button>
       </div>
+      <section class="ai-monitor-panel" data-discovery-panel="pick-monitor" hidden aria-label="기존 PICK 사후관리">
+        <div class="ai-ledger-head">
+          <div>
+            <span class="ai-ledger-eyebrow">PICK POST-MONITOR</span>
+            <h2>기존 PICK 점검</h2>
+            <p>추천 당시 투자논리와 최신 검증 근거를 비교합니다. 매도검토는 자동 매도 확정이 아니며 사용자 확인이 필요합니다.</p>
+          </div>
+          <span class="ai-ledger-data-date" data-monitor-date>점검 데이터 불러오는 중</span>
+        </div>
+        <div class="ai-monitor-kpis" data-monitor-kpis aria-label="PICK 점검 상태 요약"></div>
+        <div class="ai-monitor-tools">
+          <select class="ai-ledger-select" data-monitor-status aria-label="PICK 상태 필터">
+            <option value="all">상태 전체</option>
+            <option value="SELL_REVIEW">🔴 매도검토</option>
+            <option value="WATCH">🟡 경계</option>
+            <option value="KEEP">🟢 유지</option>
+            <option value="PENDING_REVIEW">⚪ 검토 대기</option>
+            <option value="EXIT">종료</option>
+          </select>
+          <span class="ai-monitor-policy">가격·차트만으로 매도검토하지 않음</span>
+        </div>
+        <div class="ai-monitor-content" data-monitor-content>
+          <div class="ai-ledger-empty">PICK 점검 데이터를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="ai-ledger-panel" data-discovery-panel="ai-picks" hidden aria-label="AI PICK 누적 기록">
         <div class="ai-ledger-head">
           <div>
@@ -132,6 +160,10 @@
       state.sort = event.currentTarget.value;
       resetAndRender();
     });
+    holder.querySelector('[data-monitor-status]')?.addEventListener('change', (event) => {
+      state.monitorStatus = event.currentTarget.value;
+      renderMonitor();
+    });
     holder.querySelector('[data-ledger-more]')?.addEventListener('click', () => {
       state.visibleCount += PAGE_SIZE;
       renderRows();
@@ -164,7 +196,7 @@
 
   function openView(view) {
     if (!installShell()) return;
-    state.activeView = view === 'ai-picks' ? 'ai-picks' : 'screener';
+    state.activeView = view === 'ai-picks' || view === 'pick-monitor' ? view : 'screener';
     const tab = document.getElementById('screener-tab');
     tab?.querySelectorAll('[data-discovery-view]').forEach((button) => {
       const active = button.dataset.discoveryView === state.activeView;
@@ -174,7 +206,7 @@
     tab?.querySelectorAll('[data-discovery-panel]').forEach((panel) => {
       panel.hidden = panel.dataset.discoveryPanel !== state.activeView;
     });
-    if (state.activeView === 'ai-picks') {
+    if (state.activeView === 'ai-picks' || state.activeView === 'pick-monitor') {
       openMainScreener();
       loadLedger();
     }
@@ -195,12 +227,15 @@
     const content = document.querySelector('[data-ledger-content]');
     if (content) content.innerHTML = '<div class="ai-ledger-empty">AI PICK 기록을 불러오는 중입니다.</div>';
     try {
-      const [recData, dailyData] = await Promise.all([
+      const [recData, dailyData, monitorData] = await Promise.all([
         fetchJson('/static/data/ai_recommendations.json?v=ledger52'),
         fetchJson('/static/data/ai_daily_rankings.json?v=ledger52'),
+        fetchJson('/static/data/pick_monitor.json?v=monitor1'),
       ]);
       state.rows = Array.isArray(recData?.recommendations) ? recData.recommendations : [];
       state.days = Array.isArray(dailyData?.days) ? dailyData.days : [];
+      state.monitorPicks = Array.isArray(monitorData?.picks) ? monitorData.picks : [];
+      state.monitorUpdated = monitorData?.generatedAt || monitorData?.reviewSourceUpdated || '';
       state.loaded = true;
       state.visibleCount = PAGE_SIZE;
       renderAll();
@@ -306,9 +341,98 @@
     more.textContent = `더 보기 · ${Math.min(PAGE_SIZE, rows.length - visible.length).toLocaleString('ko-KR')}개`;
   }
 
+  function monitorStatusMeta(status) {
+    const map = {
+      SELL_REVIEW: { label: '매도검토', icon: '🔴', cls: 'sell-review', order: 0 },
+      WATCH: { label: '경계', icon: '🟡', cls: 'watch', order: 1 },
+      PENDING_REVIEW: { label: '검토 대기', icon: '⚪', cls: 'pending', order: 2 },
+      KEEP: { label: '유지', icon: '🟢', cls: 'keep', order: 3 },
+      EXIT: { label: '종료', icon: '✓', cls: 'exit', order: 4 },
+    };
+    return map[status] || map.PENDING_REVIEW;
+  }
+
+  function recommendationForPick(pick) {
+    return state.rows.find((row) =>
+      String(row.recommendedDate || '') === String(pick.pickDate || '') &&
+      String(row.code || String(row.symbol || '').split('.')[0] || '') === String(pick.code || '')
+    ) || null;
+  }
+
+  function monitorRows() {
+    let rows = [...state.monitorPicks];
+    if (state.monitorStatus !== 'all') rows = rows.filter((row) => row.status === state.monitorStatus);
+    rows.sort((a, b) => {
+      const statusDiff = monitorStatusMeta(a.status).order - monitorStatusMeta(b.status).order;
+      if (statusDiff) return statusDiff;
+      return dateValue(b.pickDate) - dateValue(a.pickDate) || Number(a.rank || 99) - Number(b.rank || 99);
+    });
+    return rows;
+  }
+
+  function evidenceMarkup(pick) {
+    const evidence = Array.isArray(pick?.monitor?.evidence) ? pick.monitor.evidence : [];
+    if (!evidence.length) return '<p class="ai-monitor-muted">추천 이후 검증 가능한 신규 근거를 아직 확보하지 못했습니다.</p>';
+    return `<div class="ai-monitor-evidence">${evidence.slice(0, 4).map((item) => {
+      const title = item.sourceTitle || item.sourceUrl || '근거';
+      const fact = item.fact || '';
+      const date = item.publishedAt || '';
+      return `<a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener noreferrer"><span>${esc(date)}</span><strong>${esc(title)}</strong><small>${esc(fact)}</small></a>`;
+    }).join('')}</div>`;
+  }
+
+  function monitorCardMarkup(pick) {
+    const meta = monitorStatusMeta(pick.status);
+    const rec = recommendationForPick(pick);
+    const thesis = pick?.originalThesis?.summary || (Array.isArray(pick?.originalThesis?.pillars) ? pick.originalThesis.pillars.join(' · ') : '') || '추천 당시 투자논리 기록 없음';
+    const reviewReason = pick?.monitor?.reason || '최신 검토 대기';
+    const reviewed = pick?.monitor?.lastReviewedTradeDate || String(pick?.monitor?.lastReviewedAt || '').slice(0, 10);
+    return `
+      <article class="ai-monitor-card ai-monitor-${meta.cls}">
+        <div class="ai-monitor-card-head">
+          <div><strong>${esc(pick.name || pick.symbol || '-')}</strong><small>${esc(pick.code || '')} · ${esc(pick.pickDate || '-')} PICK</small></div>
+          <span class="ai-monitor-status ai-monitor-status-${meta.cls}">${meta.icon} ${meta.label}</span>
+        </div>
+        <div class="ai-monitor-metrics">
+          <span>추천가 <b>${price(pick.pickPrice)}</b></span>
+          <span>최근가 <b>${price(rec?.currentPrice)}</b></span>
+          <span>수익률 <b class="${cls(rec?.returnPct)}">${pct(rec?.returnPct)}</b></span>
+          <span>시세기준 <b>${esc(rec?.lastUpdatedTradeDate || '-')}</b></span>
+        </div>
+        <div class="ai-monitor-block"><b>추천 당시 논리</b><p>${esc(thesis)}</p></div>
+        <div class="ai-monitor-block"><b>최근 점검</b><p>${esc(reviewReason)}</p></div>
+        <div class="ai-monitor-block"><b>검증 근거</b>${evidenceMarkup(pick)}</div>
+        <div class="ai-monitor-foot"><span>마지막 검토 ${esc(reviewed || '대기')}</span>${pick.needsUserReview ? '<strong>사용자 확인 필요</strong>' : ''}</div>
+      </article>`;
+  }
+
+  function renderMonitor() {
+    const host = document.querySelector('[data-monitor-content]');
+    const kpis = document.querySelector('[data-monitor-kpis]');
+    const date = document.querySelector('[data-monitor-date]');
+    if (!host || !kpis) return;
+
+    const counts = { KEEP: 0, WATCH: 0, SELL_REVIEW: 0, PENDING_REVIEW: 0, EXIT: 0 };
+    state.monitorPicks.forEach((row) => { counts[row.status] = (counts[row.status] || 0) + 1; });
+    kpis.innerHTML = `
+      <div class="ai-monitor-kpi keep"><span>🟢 유지</span><b>${counts.KEEP || 0}</b></div>
+      <div class="ai-monitor-kpi watch"><span>🟡 경계</span><b>${counts.WATCH || 0}</b></div>
+      <div class="ai-monitor-kpi sell-review"><span>🔴 매도검토</span><b>${counts.SELL_REVIEW || 0}</b></div>
+      <div class="ai-monitor-kpi pending"><span>⚪ 검토 대기</span><b>${counts.PENDING_REVIEW || 0}</b></div>`;
+    if (date) date.textContent = state.monitorUpdated ? `${String(state.monitorUpdated).slice(0, 10)} 점검 기준` : '점검일 미확인';
+
+    const rows = monitorRows();
+    if (!rows.length) {
+      host.innerHTML = '<div class="ai-ledger-empty">해당 상태의 PICK이 없습니다.</div>';
+      return;
+    }
+    host.innerHTML = rows.map(monitorCardMarkup).join('');
+  }
+
   function renderAll() {
     renderKpis();
     renderRows();
+    renderMonitor();
   }
 
   function resetAndRender() {
