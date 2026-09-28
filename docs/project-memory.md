@@ -207,3 +207,13 @@ A user-visible change is complete only when:
 - `/api/quotes`는 Home 공용 시세가 신선한 대표종목이면 동일한 값을 즉시 재사용하고, 미보유/오래된 종목만 provider fallback을 수행한다. `/api/activity`의 Redis 방문자 기록은 응답을 막지 않고 background task로 저장한다.
 
 - 2026-09-28 차트/밸류에이션 첫 진입 개선: Toss 기본 비교 종목(삼성전자·NVIDIA·Apple)의 1개월 차트와 밸류에이션을 서버 시작 직후 전용 background executor에서 미리 계산한다. compare memory TTL은 60초→300초로 늘려 1일/1개월 이상 차트의 첫 클릭이 provider cold fetch에 걸리지 않게 한다.
+
+## PICK post-publication monitoring P0
+- Added 2026-09-28: published PICKs are registered in `static/data/pick_monitor.json` with a stable `tradeDate:code` pickId.
+- Historical `ai_daily_rankings.json` remains the immutable publication source; monitoring state is stored separately.
+- Legacy rows use only the already-published `reason` as their baseline and are marked `legacy_baseline`; missing invalidation criteria must never be invented.
+- New rows may carry a structured `monitoring` object with thesis pillars, invalidation criteria, catalysts, and key metrics.
+- State machine: `PENDING_REVIEW -> KEEP/WATCH/SELL_REVIEW -> EXIT`. `EXIT` requires explicit user finalization.
+- Price/technical deterioration alone cannot create `SELL_REVIEW`; the policy requires one material verified fact or two independent weakening signals.
+- `scripts/build_pick_monitor.py` adds newly published PICKs while preserving existing review/exit state and writes append-only registration/baseline events to `pick_monitor_history.json`.
+

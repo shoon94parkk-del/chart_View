@@ -1,0 +1,32 @@
+name: PICK monitor regression
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_pick_monitor.py"
+      - "tests/test_pick_monitor.py"
+      - "static/data/ai_daily_rankings.json"
+      - "static/data/pick_monitor.json"
+      - "static/data/pick_monitor_history.json"
+      - ".github/workflows/pick-monitor.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_pick_monitor.py"
+      - "tests/test_pick_monitor.py"
+      - "static/data/ai_daily_rankings.json"
+      - "static/data/pick_monitor.json"
+      - "static/data/pick_monitor_history.json"
+      - ".github/workflows/pick-monitor.yml"
+
+jobs:
+  pick-monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pytest
+      - run: python -m pytest -q tests/test_pick_monitor.py
+      - run: python scripts/build_pick_monitor.py --check

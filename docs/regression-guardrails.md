@@ -151,3 +151,11 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 
 - Toss 기본 분석 세트(005930.KS, NVDA, AAPL)의 1mo compare와 valuation은 startup background warm을 유지한다. 이 prewarm은 foreground/default executor가 아니라 BACKGROUND_MARKET_EXECUTOR를 사용해야 한다.
 - compare cache TTL은 300초를 유지한다. 1d 5m 차트에도 5분 캐시는 해상도와 일치하며, Home 실시간 시세와 역할을 분리한다.
+
+## PICK monitoring
+- Never rewrite historical `ai_daily_rankings.json` merely to change a post-publication monitoring state.
+- Synchronizing a PICK baseline must preserve an existing `KEEP`, `WATCH`, `SELL_REVIEW`, or `EXIT` state.
+- Price decline, RSI, moving-average breaks, volume decline, foreign selling, or a single target-price cut cannot independently trigger `SELL_REVIEW`.
+- `EXIT` must never be generated without explicit user finalization.
+- Missing legacy thesis details are marked incomplete rather than inferred.
+

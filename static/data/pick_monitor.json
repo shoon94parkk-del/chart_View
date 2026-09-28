@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-28T12:44:00+09:00",
+  "source": "static/data/ai_daily_rankings.json",
+  "sourceUpdated": "2026-09-23T19:18:00+09:00",
+  "policy": {
+    "automaticExitAllowed": false,
+    "userConfirmationRequiredForExit": true,
+    "technicalOnlyCanTriggerSellReview": false,
+    "sellReviewEvidenceRule": "one_major_fact_or_two_independent_weakening_signals",
+    "priceDropAloneCanTriggerSellReview": false
+  },
+  "picks": [
+    {
+      "pickId": "2026-09-14:012450",
+      "code": "012450",
+      "symbol": "012450.KS",
+      "name": "한화에어로스페이스",
+      "pickDate": "2026-09-14",
+      "rank": 1,
+      "pickPrice": 1137000,
+      "changePctAtPick": 5.18,
+      "scoreAtPick": 91,
+      "gradeAtPick": "A 후보",
+      "originalThesis": {
+        "summary": "유럽 방산 수출의 장기 확장성과 실적 성장.",
+        "pillars": [
+          "유럽 방산 수출의 장기 확장성과 실적 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-14:272210",
+      "code": "272210",
+      "symbol": "272210.KS",
+      "name": "한화시스템",
+      "pickDate": "2026-09-14",
+      "rank": 2,
+      "pickPrice": 75000,
+      "changePctAtPick": 5.78,
+      "scoreAtPick": 88,
+      "gradeAtPick": "A 후보",
+      "originalThesis": {
+        "summary": "방산·우주 사업의 구조적 성장과 실적 개선.",
+        "pillars": [
+          "방산·우주 사업의 구조적 성장과 실적 개선."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-14:064290",
+      "code": "064290",
+      "symbol": "064290.KQ",
+      "name": "인텍플러스",
+      "pickDate": "2026-09-14",
+      "rank": 3,
+      "pickPrice": 44850,
+      "changePctAtPick": -8.19,
+      "scoreAtPick": 86,
+      "gradeAtPick": "B 눌림대기",
+      "originalThesis": {
+        "summary": "첨단 패키징 검사장비 성장과 실적 레버리지.",
+        "pillars": [
+          "첨단 패키징 검사장비 성장과 실적 레버리지."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-15:121600",
+      "code": "121600",
+      "symbol": "121600.KQ",
+      "name": "나노신소재",
+      "pickDate": "2026-09-15",
+      "rank": 1,
+      "pickPrice": 50800,
+      "changePctAtPick": 3.25,
+      "scoreAtPick": 88,
+      "gradeAtPick": "A 성장우선",
+      "originalThesis": {
+        "summary": "CNT 도전재와 AI/HBM용 CMP Slurry 성장.",
+        "pillars": [
+          "CNT 도전재와 AI/HBM용 CMP Slurry 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-15:023160",
+      "code": "023160",
+      "symbol": "023160.KQ",
+      "name": "태광",
+      "pickDate": "2026-09-15",
+      "rank": 2,
+      "pickPrice": 27300,
+      "changePctAtPick": -3.7,
+      "scoreAtPick": 87,
+      "gradeAtPick": "A 성장우선",
+      "originalThesis": {
+        "summary": "LNG·플랜트·조선 피팅 수요 확대.",
+        "pillars": [
+          "LNG·플랜트·조선 피팅 수요 확대."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-15:033640",
+      "code": "033640",
+      "symbol": "033640.KQ",
+      "name": "네패스",
+      "pickDate": "2026-09-15",
+      "rank": 3,
+      "pickPrice": 23900,
+      "changePctAtPick": 7.66,
+      "scoreAtPick": 84,
+      "gradeAtPick": "B 성장우선/추격주의",
+      "originalThesis": {
+        "summary": "AI/HBM 첨단 패키징 국산화 성장.",
+        "pillars": [
+          "AI/HBM 첨단 패키징 국산화 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-16:003160",
+      "code": "003160",
+      "symbol": "003160.KS",
+      "name": "디아이",
+      "pickDate": "2026-09-16",
+      "rank": 1,
+      "pickPrice": 31400,
+      "changePctAtPick": 5.72,
+      "scoreAtPick": 92,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "HBM4 Wafer Tester 수주와 차세대 검사장비 성장.",
+        "pillars": [
+          "HBM4 Wafer Tester 수주와 차세대 검사장비 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-16:204620",
+      "code": "204620",
+      "symbol": "204620.KQ",
+      "name": "글로벌텍스프리",
+      "pickDate": "2026-09-16",
+      "rank": 2,
+      "pickPrice": 5880,
+      "changePctAtPick": 2.98,
+      "scoreAtPick": 85,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "외국인 관광객 및 리테일 소비 확대 수혜.",
+        "pillars": [
+          "외국인 관광객 및 리테일 소비 확대 수혜."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-16:000660",
+      "code": "000660",
+      "symbol": "000660.KS",
+      "name": "SK하이닉스",
+      "pickDate": "2026-09-16",
+      "rank": 3,
+      "pickPrice": 1759000,
+      "changePctAtPick": 4.08,
+      "scoreAtPick": 88,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "HBM4와 AI 서버 메모리 수요의 구조적 성장.",
+        "pillars": [
+          "HBM4와 AI 서버 메모리 수요의 구조적 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-17:251970",
+      "code": "251970",
+      "symbol": "251970.KQ",
+      "name": "펌텍코리아",
+      "pickDate": "2026-09-17",
+      "rank": 1,
+      "pickPrice": 61900,
+      "changePctAtPick": 0.98,
+      "scoreAtPick": 0,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "K-뷰티 글로벌 성장에 따른 화장품 용기 수요 확대와 생산능력 확장.",
+        "pillars": [
+          "K-뷰티 글로벌 성장에 따른 화장품 용기 수요 확대와 생산능력 확장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-17:039030",
+      "code": "039030",
+      "symbol": "039030.KQ",
+      "name": "이오테크닉스",
+      "pickDate": "2026-09-17",
+      "rank": 2,
+      "pickPrice": 462500,
+      "changePctAtPick": -1.18,
+      "scoreAtPick": 0,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI/HBM 및 첨단 패키징 확대에 따른 레이저 공정 장비 성장.",
+        "pillars": [
+          "AI/HBM 및 첨단 패키징 확대에 따른 레이저 공정 장비 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-18:010120",
+      "code": "010120",
+      "symbol": "010120.KS",
+      "name": "LS ELECTRIC",
+      "pickDate": "2026-09-18",
+      "rank": 1,
+      "pickPrice": 211500,
+      "changePctAtPick": 4.7,
+      "scoreAtPick": 92,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI 데이터센터·북미 전력망 투자 확대와 초고압 변압기 수주잔고 증가가 실적 성장으로 연결되는 전력 인프라 성장주.",
+        "pillars": [
+          "AI 데이터센터·북미 전력망 투자 확대와 초고압 변압기 수주잔고 증가가 실적 성장으로 연결되는 전력 인프라 성장주."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-21:005930",
+      "code": "005930",
+      "symbol": "005930.KS",
+      "name": "삼성전자",
+      "pickDate": "2026-09-21",
+      "rank": 1,
+      "pickPrice": 274500,
+      "changePctAtPick": 5.17,
+      "scoreAtPick": 91,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "HBM4·HBM4E와 메모리 업황 개선이 실적 성장으로 연결되는 AI 메모리 핵심 업체.",
+        "pillars": [
+          "HBM4·HBM4E와 메모리 업황 개선이 실적 성장으로 연결되는 AI 메모리 핵심 업체."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-21:298040",
+      "code": "298040",
+      "symbol": "298040.KS",
+      "name": "효성중공업",
+      "pickDate": "2026-09-21",
+      "rank": 2,
+      "pickPrice": 2916000,
+      "changePctAtPick": 0.03,
+      "scoreAtPick": 90,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체.",
+        "pillars": [
+          "북미 초고압 변압기·전력망 투자 확대와 대규모 수주잔고가 중장기 실적으로 전환되는 전력 인프라 업체."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-22:089030",
+      "code": "089030",
+      "symbol": "089030.KQ",
+      "name": "테크윙",
+      "pickDate": "2026-09-22",
+      "rank": 1,
+      "pickPrice": 47600,
+      "changePctAtPick": -0.83,
+      "scoreAtPick": 90,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "HBM Cube Prober 고객 확대와 메모리 테스트 장비 성장성이 실적에 연결되는 가운데 기술적 과열 부담이 낮은 반도체 검사장비 업체.",
+        "pillars": [
+          "HBM Cube Prober 고객 확대와 메모리 테스트 장비 성장성이 실적에 연결되는 가운데 기술적 과열 부담이 낮은 반도체 검사장비 업체."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-22:086390",
+      "code": "086390",
+      "symbol": "086390.KQ",
+      "name": "유니테스트",
+      "pickDate": "2026-09-22",
+      "rank": 2,
+      "pickPrice": 12290,
+      "changePctAtPick": -4.43,
+      "scoreAtPick": 89,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "HBM4 wafer tester 수주와 메모리 테스트 장비 실적 회복이 확인되는 가운데 밸류에이션 부담이 상대적으로 낮은 테스트 장비 업체.",
+        "pillars": [
+          "HBM4 wafer tester 수주와 메모리 테스트 장비 실적 회복이 확인되는 가운데 밸류에이션 부담이 상대적으로 낮은 테스트 장비 업체."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-22:417840",
+      "code": "417840",
+      "symbol": "417840.KQ",
+      "name": "저스템",
+      "pickDate": "2026-09-22",
+      "rank": 3,
+      "pickPrice": 16140,
+      "changePctAtPick": 7.96,
+      "scoreAtPick": 88,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체.",
+        "pillars": [
+          "반도체 FOUP·EFEM 습도 및 오염 제어 장비의 수주 확대와 고객 CAPEX가 실적 성장으로 연결되는 공정 환경 제어 업체."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-23:007660",
+      "code": "007660",
+      "symbol": "007660.KS",
+      "name": "이수페타시스",
+      "pickDate": "2026-09-23",
+      "rank": 1,
+      "pickPrice": 118900,
+      "changePctAtPick": 5.31,
+      "scoreAtPick": 91,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI 가속기·네트워크용 초고다층 PCB의 고부가 Multi-Lam 확대, CAPA 증설과 ASP 상승이 실적 성장으로 연결.",
+        "pillars": [
+          "AI 가속기·네트워크용 초고다층 PCB의 고부가 Multi-Lam 확대, CAPA 증설과 ASP 상승이 실적 성장으로 연결."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-23:009150",
+      "code": "009150",
+      "symbol": "009150.KS",
+      "name": "삼성전기",
+      "pickDate": "2026-09-23",
+      "rank": 2,
+      "pickPrice": 1507000,
+      "changePctAtPick": 1.41,
+      "scoreAtPick": 92,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결.",
+        "pillars": [
+          "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    }
+  ]
+}
