@@ -97,9 +97,13 @@
     const tab = activeTabId();
     const route = { tab, view: '', symbol: '', name: '' };
     if (tab === 'screener') {
+      const pickManagementButton = document.querySelector('[data-pick-monitor-tab].active');
+      const pickManagementPanel = document.getElementById('pick-management-direct');
       const aiButton = document.querySelector('#screener-tab [data-discovery-view="ai-picks"].active');
       const aiPanel = document.querySelector('#screener-tab [data-discovery-panel="ai-picks"]');
-      if (aiButton || (aiPanel && !aiPanel.hidden)) route.view = 'ai-picks';
+      if (pickManagementButton || (pickManagementPanel && !pickManagementPanel.hidden) || aiButton || (aiPanel && !aiPanel.hidden)) {
+        route.view = 'ai-picks';
+      }
     }
     return route;
   }
