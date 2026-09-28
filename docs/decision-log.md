@@ -227,3 +227,7 @@ Regular-market Chromium runs still showed Home at 1.86–4.63s even after deferr
 
 ## 2026-09-28 — Original boot CSS bundle P0
 Regular-market Chromium resource timing showed a 9.68s Home outlier even after the single JavaScript boot bundle. During that run the JS boot bundle took ~7.0s and the release CSS bundle ~6.6s while Render CPU remained near idle, indicating startup request/transfer tail latency rather than server compute saturation. The eight initial stylesheet requests are therefore consolidated into one content-addressed chartview_boot_bundle.css. home_summary_v54 is moved into the JS boot bundle, and promo/ui-continuity loaders explicitly avoid re-requesting helpers already embedded in the boot bundle.
+
+## 2026-09-28 — Separate published PICK history from post-publication sell monitoring
+Decision: keep `ai_daily_rankings.json` immutable as the publication record and add a separate PICK monitor ledger/history. Legacy picks are seeded from their published reason only. Monitoring uses `PENDING_REVIEW/KEEP/WATCH/SELL_REVIEW/EXIT`, with automatic exit prohibited and technical/price weakness insufficient on its own for a sell-review state. This separation prevents later monitoring from rewriting what was actually recommended at the time.
+
