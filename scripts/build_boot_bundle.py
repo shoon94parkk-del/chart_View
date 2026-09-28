@@ -40,6 +40,7 @@ DATA_ATTRS = """data-fast-screener data-valuation-meta data-investment-ideas dat
 LEGACY_START = re.compile(r'\s*<script defer src="/static/js/chart\.js\?v=[^"]+"></script>')
 LEGACY_END = re.compile(r'<script src="/static/js/p2_revisit_v1\.js\?v=[^"]+"></script>')
 RELEASE_REF = re.compile(r'/static/js/chartview_release_bundle\.js\?v=[^"\s]+')
+AI_REF = re.compile(r'/static/js/ai_daily_widget\.js\?v=[^"\s]+')
 BOOT_REF = re.compile(r'/static/js/chartview_boot_bundle\.js\?v=[^"\s]+')
 
 def read(path: str) -> str:
@@ -56,9 +57,13 @@ def render_bundle() -> str:
 
 def render_template(current: str, token: str) -> str:
     release = RELEASE_REF.search(current)
+    ai = AI_REF.search(current)
     if not release:
         raise SystemExit("release bundle version reference missing")
+    if not ai:
+        raise SystemExit("AI widget version reference missing")
     release_ref = release.group(0)
+    ai_ref = ai.group(0)
 
     if BOOT_REF.search(current):
         return BOOT_REF.sub(f"/static/js/chartview_boot_bundle.js?v={token}", current, count=1)
@@ -71,6 +76,7 @@ def render_template(current: str, token: str) -> str:
     replacement = f"""
     <!-- Keep one release-bundle version reference for the existing generated-bundle verifier. -->
     <meta data-chartview-release-bundle-version="{release_ref}">
+    <meta data-ai-daily-widget-version="{ai_ref}">
     <script defer src="/static/js/chartview_boot_bundle.js?v={token}"
         {DATA_ATTRS}></script>"""
     return current[:start.start()] + replacement + current[end.end():]
