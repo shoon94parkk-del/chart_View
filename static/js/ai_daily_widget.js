@@ -95,8 +95,8 @@
   }
 
   function openLedgerWhenReady(attempt=0){
-    if(typeof window.__openAiPickLedger==='function'){
-      window.__openAiPickLedger();
+    if(typeof window.__openPickManagement==='function'){
+      window.__openPickManagement();
       return;
     }
     if(attempt<40)setTimeout(()=>openLedgerWhenReady(attempt+1),120);
@@ -106,11 +106,7 @@
     const link=event.target.closest('#ai-daily-section .ai-daily-more');
     if(!link)return;
     event.preventDefault();
-    if(typeof window.__openAiPickLedger==='function') window.__openAiPickLedger();
-    else {
-      installAiLedgerAssets();
-      openLedgerWhenReady();
-    }
+    openLedgerWhenReady();
   });
 
   function scheduleMount(){
@@ -123,9 +119,8 @@
     return params.get('tab')==='screener'&&params.get('view')==='ai-picks';
   }
 
-  // Root Home keeps the heavy ledger lazy, while an explicit shared/deep link
-  // must load it immediately so the requested screen is actually available.
-  if(isLedgerDeepLink())installAiLedgerAssets();
+  // Historical ai-picks deep links now resolve to the top-level PICK management screen.
+  if(isLedgerDeepLink())setTimeout(()=>openLedgerWhenReady(),80);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleMount,{once:true});
   else scheduleMount();
   window.addEventListener('pageshow',(event)=>{

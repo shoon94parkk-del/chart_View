@@ -53,4 +53,7 @@ def test_hidden_watchlist_does_not_fetch_quotes_on_home_boot():
 def test_ai_pick_stays_lazy_on_home_but_supports_explicit_deep_link():
     assert "function isLedgerDeepLink()" in AI
     assert "params.get('tab')==='screener'&&params.get('view')==='ai-picks'" in AI
-    assert "if(isLedgerDeepLink())installAiLedgerAssets();" in AI
+    assert "if(isLedgerDeepLink())setTimeout(()=>openLedgerWhenReady(),80);" in AI
+    assert "window.__openPickManagement" in AI
+    click_region = AI[AI.index("document.addEventListener('click'"):AI.index("function scheduleMount")]
+    assert "installAiLedgerAssets()" not in click_region
