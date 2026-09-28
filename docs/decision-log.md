@@ -248,3 +248,7 @@ The detail screen may explicitly request `/api/quotes?fresh=true`. Fresh mode by
 
 ## 2026-09-28 — Shared quote freshness is ticker-scoped
 A production screenshot showed Samsung Electronics and SK hynix frozen at 13:37 while non-major Korean watchlist rows were current at 18:23. The shared Home cache had market-level freshness: another successful Korean refresh could make stale major-stock rows look reusable. Cache eligibility is now ticker-scoped, provider fallback repairs the shared row, stale disk seeds do not advance freshness, and the Korean live window covers NXT through 20:00 KST.
+
+
+## 2026-09-29 — Popular screener technical signals
+The daily Korean screener now downloads one year of daily history and publishes explicit fields used by the Toss one-tap popular filters: MACD bullish/cross-up, 20/60 golden cross, price>20MA>60MA trend, 52-week high distance/near-high, and Bollinger upper breakout. These are deterministic end-of-day technical observations, not recommendation labels. Existing RSI, volume ratio, returns, moving averages and technical score remain unchanged.

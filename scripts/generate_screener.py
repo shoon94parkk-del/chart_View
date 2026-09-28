@@ -11,7 +11,7 @@ import requests
 import yfinance as yf
 
 KST=timezone(timedelta(hours=9)); OUT=Path('static/data/screener.json'); META_OUT=Path('static/data/screener_meta.json')
-BATCH_SIZE=80; PERIOD='8mo'; MIN_ROWS=120; MIN_EXACT_COVERAGE=0.90
+BATCH_SIZE=80; PERIOD='1y'; MIN_ROWS=120; MIN_EXACT_COVERAGE=0.90
 
 def finite(value,digits=2):
     try:
@@ -21,10 +21,15 @@ def finite(value,digits=2):
     except (TypeError,ValueError): return None
 
 def expected_trade_date(now=None):
-    """Expected Korean regular-session date for post-close weekday runs.
-    Holiday truth is ultimately established by market data; weekend is deterministic.
+    """Expected latest completed Korean regular-session date.
+    Before the post-close window, today's daily bar is not final, so code pushes
+    and manual runs validate against the previous weekday instead of publishing
+    an intraday pseudo-close. Holiday truth is ultimately established by market data.
     """
-    day=(now or datetime.now(KST)).date()
+    local=now or datetime.now(KST)
+    day=local.date()
+    if day.weekday()<5 and (local.hour, local.minute)<(16, 0):
+        day-=timedelta(days=1)
     while day.weekday()>=5: day-=timedelta(days=1)
     return day.isoformat()
 
@@ -91,9 +96,17 @@ def build_row(meta,frame):
     if len(close)<MIN_ROWS:return None
     ma20s,ma60s,ma120s=close.rolling(20).mean(),close.rolling(60).mean(),close.rolling(120).mean(); e12,e26=close.ewm(span=12,adjust=False).mean(),close.ewm(span=26,adjust=False).mean(); macds=e12-e26; sigs=macds.ewm(span=9,adjust=False).mean(); std=close.rolling(20).std(ddof=0); upper=ma20s+2*std; lower=ma20s-2*std
     price,prev=finite(close.iloc[-1],0),finite(close.iloc[-2],0); ma20,ma60,ma120=finite(ma20s.iloc[-1],0),finite(ma60s.iloc[-1],0),finite(ma120s.iloc[-1],0); rsi=rsi14(close); macd,signal,pm,ps=finite(macds.iloc[-1],2),finite(sigs.iloc[-1],2),finite(macds.iloc[-2],2),finite(sigs.iloc[-2],2); mid,up,lo=finite(ma20s.iloc[-1],0),finite(upper.iloc[-1],0),finite(lower.iloc[-1],0)
+    prev_ma20,prev_ma60=finite(ma20s.iloc[-2],4),finite(ma60s.iloc[-2],4)
     v20=volume.tail(20).mean(); vr=finite(volume.iloc[-1]/v20,2) if v20 and v20>0 else None; avg=finite((close.tail(20)*volume.tail(20)).mean(),0); change=finite((price/prev-1)*100,2) if price and prev else None; r5,r20,r60=pct_from(close,5),pct_from(close,20),pct_from(close,60)
+    high52=finite(close.tail(252).max(),0); distance52=finite((price/high52-1)*100,2) if price and high52 else None
+    macd_bullish=bool(macd is not None and signal is not None and macd>signal)
+    macd_cross_up=bool(macd_bullish and pm is not None and ps is not None and pm<=ps)
+    golden_cross=bool(ma20 is not None and ma60 is not None and prev_ma20 is not None and prev_ma60 is not None and ma20>ma60 and prev_ma20<=prev_ma60)
+    trend2060=bool(price and ma20 and ma60 and price>ma20>ma60)
+    near52=bool(price and high52 and price>=high52*.97)
+    bb_breakout=bool(price and up and price>up)
     score,breakdown=_technical_score(rsi,macd,signal,pm,ps,price,ma20,ma60,mid,up,vr,r5,r20); dt=close.index[-1]; dt=dt.date().isoformat() if hasattr(dt,'date') else str(dt)[:10]
-    return {'code':meta['code'],'symbol':meta['symbol'],'name':meta['name'],'market':meta['market'],'date':dt,'price':price,'previousClose':prev,'change1d':change,'rsi14':rsi,'macd':macd,'macdSignal':signal,'volumeRatio':vr,'avgValue20':avg,'ma20':ma20,'ma60':ma60,'ma120':ma120,'bbMid':mid,'bbUpper':up,'bbLower':lo,'above20':bool(ma20 and price>ma20),'above60':bool(ma60 and price>ma60),'cross20':bool(pd.notna(ma20s.iloc[-2]) and close.iloc[-2]<=ma20s.iloc[-2] and close.iloc[-1]>ma20s.iloc[-1]),'aligned':bool(ma20 and ma60 and ma120 and price>ma20>ma60>ma120),'ret5':r5,'ret20':r20,'ret60':r60,'technicalScore':score,'technicalBreakdown':breakdown,'score':score}
+    return {'code':meta['code'],'symbol':meta['symbol'],'name':meta['name'],'market':meta['market'],'date':dt,'price':price,'previousClose':prev,'change1d':change,'rsi14':rsi,'macd':macd,'macdSignal':signal,'macdBullish':macd_bullish,'macdCrossUp':macd_cross_up,'volumeRatio':vr,'avgValue20':avg,'ma20':ma20,'ma60':ma60,'ma120':ma120,'bbMid':mid,'bbUpper':up,'bbLower':lo,'bbBreakout':bb_breakout,'above20':bool(ma20 and price>ma20),'above60':bool(ma60 and price>ma60),'cross20':bool(pd.notna(ma20s.iloc[-2]) and close.iloc[-2]<=ma20s.iloc[-2] and close.iloc[-1]>ma20s.iloc[-1]),'trend2060':trend2060,'goldenCross2060':golden_cross,'aligned':bool(ma20 and ma60 and ma120 and price>ma20>ma60>ma120),'high52':high52,'distance52HighPct':distance52,'near52High':near52,'ret5':r5,'ret20':r20,'ret60':r60,'technicalScore':score,'technicalBreakdown':breakdown,'score':score}
 
 def process_group(group):
     symbols=[x['symbol'] for x in group]
