@@ -232,7 +232,10 @@ def _open_home_markets(now_utc: datetime | None = None) -> dict[str, list[str]]:
     markets = {}
     kr = now_utc.astimezone(KST)
     us = now_utc.astimezone(ET)
-    if _market_is_open(kr, 9, 0, 15, 30):
+    # Korean current quotes can continue changing on Nextrade (NXT) before/after
+    # the KRX regular session. Treat the integrated KR quote window as 08:00-20:00
+    # so Home/watchlist do not freeze at the 15:30 KRX close.
+    if _market_is_open(kr, 8, 0, 20, 0):
         markets["KR"] = [ticker for ticker in HOME_MAJOR_TICKERS if ticker.endswith((".KS", ".KQ"))]
     if _market_is_open(us, 9, 30, 16, 0):
         markets["US"] = [ticker for ticker in HOME_MAJOR_TICKERS if not ticker.endswith((".KS", ".KQ"))]
