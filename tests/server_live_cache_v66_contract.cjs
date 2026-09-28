@@ -6,6 +6,7 @@ const main = fs.readFileSync('main.py', 'utf8');
 const heat = fs.readFileSync('static/js/home_heatmap_v57.js', 'utf8');
 const visitor = fs.readFileSync('static/js/visitor_v66.js', 'utf8');
 const html = fs.readFileSync('templates/index.html', 'utf8');
+const boot = fs.readFileSync('static/js/chartview_boot_bundle.js', 'utf8');
 const admin = fs.readFileSync('templates/admin_usage.html', 'utf8');
 
 test('Home clients read Render memory instead of triggering provider quote fetches', () => {
@@ -19,7 +20,8 @@ test('Home clients read Render memory instead of triggering provider quote fetch
 });
 
 test('anonymous heartbeat is global and privacy-light', () => {
-  assert.match(html, /\/static\/js\/visitor_v66\.js\?v=20260922v66a/);
+  assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
+  assert.match(boot, /\/\* --- static\/js\/visitor_v66\.js --- \*\//);
   assert.match(visitor, /chartview-anon-visitor-v66/);
   assert.match(visitor, /\/api\/activity/);
   assert.match(visitor, /HEARTBEAT_MS = 20_000/);
@@ -52,7 +54,8 @@ test('closed markets remain demand-refreshed without deploy-time provider fanout
 test('heatmap client cache is invalidated with the reliability release', () => {
   assert.match(heat, /chartview-home-heatmap-v68/);
   assert.match(heat, /chartview-watchlist-quotes-v35/);
-  assert.match(html, /home_heatmap_v57\.js\?v=[^"\\s]+/);
+  assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
+  assert.match(boot, /\/\* --- static\/js\/home_heatmap_v57\.js --- \*\//);
 });
 
 
