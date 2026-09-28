@@ -12522,6 +12522,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     tab.classList.add('pick-management-active');
     panel.hidden = false;
     setOuterActive(nav, button);
+    try {
+      history.replaceState({ ...(history.state || {}), chartView: true, tab: 'screener', view: 'ai-picks', scrollY: 0 }, '', location.href);
+    } catch (_) { }
     window.scrollTo({top:0,behavior:'smooth'});
     load().catch((error) => {
       console.error('[PICK management]', error);
