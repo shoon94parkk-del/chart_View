@@ -95,6 +95,7 @@ HOME_LIVE_CACHE = {
     "updatedAt": None,
     "marketUpdatedAt": {"KR": None, "US": None},
     "marketUpdatedEpoch": {"KR": 0.0, "US": 0.0},
+    "quoteUpdatedEpoch": {},
     "refreshing": False,
     "lastError": None,
     "source": "render-memory-v66",
@@ -391,6 +392,7 @@ async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
                     errors.append(f"{ticker}: empty quote")
                     continue
                 HOME_LIVE_CACHE["quotes"][ticker] = item
+                HOME_LIVE_CACHE["quoteUpdatedEpoch"][ticker] = now_epoch
                 good_markets.add(market_by_symbol[ticker])
 
             if good_markets:
@@ -433,27 +435,25 @@ async def _home_live_worker() -> None:
 
         if is_active_home:
             now = time.time()
-            # First Home visit gets the seeded cache immediately. If a market has
-            # usable seeded rows, give navigation a short grace before provider I/O.
+            # Seeded disk rows are display-only stale-first data. A new Home session
+            # gets a short navigation grace, but must never mark an entire market
+            # fresh merely because one seeded row exists.
             if not was_active_home:
-                cached_quotes = HOME_LIVE_CACHE.get("quotes") or {}
+                timeout = HOME_LIVE_FIRST_VISITOR_GRACE_SEC
+            else:
+                due = {}
+                wait_for = HOME_LIVE_CLOSED_REFRESH_SEC
                 for market, tickers in all_markets.items():
-                    if any(ticker in cached_quotes for ticker in tickers):
-                        HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now
-
-            due = {}
-            wait_for = HOME_LIVE_CLOSED_REFRESH_SEC
-            for market, tickers in all_markets.items():
-                interval = HOME_LIVE_ACTIVE_REFRESH_SEC if market in open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
-                age = now - float(HOME_LIVE_CACHE["marketUpdatedEpoch"].get(market) or 0)
-                if age >= interval:
-                    due[market] = tickers
-                else:
-                    wait_for = min(wait_for, max(0.5, interval - age))
-            if due:
-                await _refresh_home_live(due)
-                wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC if open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
-            timeout = max(HOME_LIVE_FIRST_VISITOR_GRACE_SEC if not was_active_home else 0.5, wait_for)
+                    interval = HOME_LIVE_ACTIVE_REFRESH_SEC if market in open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
+                    age = now - float(HOME_LIVE_CACHE["marketUpdatedEpoch"].get(market) or 0)
+                    if age >= interval:
+                        due[market] = tickers
+                    else:
+                        wait_for = min(wait_for, max(0.5, interval - age))
+                if due:
+                    await _refresh_home_live(due)
+                    wait_for = HOME_LIVE_ACTIVE_REFRESH_SEC if open_markets else HOME_LIVE_CLOSED_REFRESH_SEC
+                timeout = max(0.5, wait_for)
 
         was_active_home = is_active_home
         try:
@@ -779,7 +779,7 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
     for ticker in symbols:
         if not fresh and ticker in HOME_MAJOR_TICKERS:
             market = "KR" if ticker.endswith((".KS", ".KQ")) else "US"
-            updated_epoch = float((HOME_LIVE_CACHE.get("marketUpdatedEpoch") or {}).get(market) or 0)
+            updated_epoch = float((HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}).get(ticker) or 0)
             max_age = 15.0 if market in open_markets else 600.0
             row = shared_quotes.get(ticker)
             if row and updated_epoch and now - updated_epoch <= max_age:
@@ -798,6 +798,9 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
             errors.append({"ticker": ticker, "message": str(item)})
         elif item:
             by_ticker[ticker] = item
+            if ticker in HOME_MAJOR_TICKERS:
+                HOME_LIVE_CACHE["quotes"][ticker] = item
+                HOME_LIVE_CACHE["quoteUpdatedEpoch"][ticker] = time.time()
         else:
             errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
 
@@ -815,7 +818,7 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
             "change": "percent change versus previous trading close",
             "asOf": "provider market timestamp when available",
             "currency": "provider currency",
-            "cache": "fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+            "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
             "missingValue": "null/omitted; zero is not used as a missing-value substitute",
         },
     }
