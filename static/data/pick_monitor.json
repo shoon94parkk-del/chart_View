@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T12:44:00+09:00",
+  "generatedAt": "2026-09-28T13:22:00+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-09-23T19:18:00+09:00",
   "policy": {
@@ -33,15 +33,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "orders": "OK",
+          "customer": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 한화에어로스페이스 컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/ibk/company/c1050001.aspx?cmp_cd=012450",
+            "fact": "2026년 매출 컨센서스 32조4104억원, 영업이익 4조6454억원으로 1개월 전 대비 모두 소폭 상향.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "추천 이후 확인된 컨센서스에서 2026년 매출·영업이익 추정치가 유지 또는 소폭 상향되어 유럽 방산 수출·실적 성장 논리가 훼손됐다고 볼 근거가 확인되지 않았습니다.",
+        "reviewKey": "2026-09-28T13:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -223,15 +241,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "industry": "OK",
+          "consensus": "WATCH"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 네패스 기업현황·컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/company/c1010001.aspx?cmp_cd=033640",
+            "fact": "2026년 매출 컨센서스 6132억원(+17.6% YoY), 영업이익 586억원으로 수익성 개선이 예상되며 9월 23일 컨센서스가 유지됨.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "추천 이후 9월 23일 기준 컨센서스는 2026년 매출 성장과 영업이익 개선을 예상하고 있어 첨단 후공정·전자재료 성장 논리는 현재까지 유지로 판단합니다. 다만 추정기관 수가 적어 추가 확인이 필요합니다.",
+        "reviewKey": "2026-09-28T13:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -375,15 +410,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "orders": "OK",
+          "capacity": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-28",
+            "sourceTitle": "펌텍코리아, 수주에 증설까지…K-뷰티 호황 직수혜",
+            "sourceUrl": "https://v.daum.net/v/20260928083409305",
+            "fact": "유안타증권은 6공장 가동과 고객 다변화를 근거로 3분기 매출 +26%, 영업이익 +51%를 전망.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "capacity_and_earnings",
+            "category": "capacity"
+          }
+        ],
+        "reason": "9월 28일 새 분석에서 6공장 가동과 수주 흐름 지속, 3분기 매출·영업이익 성장 전망이 확인되어 K-뷰티 용기 수요와 CAPA 확대라는 기존 논리가 강화됐습니다.",
+        "reviewKey": "2026-09-28T13:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -451,15 +504,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "orders": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 LS ELECTRIC 컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/samsung/company/c1050001.aspx?cmp_cd=010120",
+            "fact": "2026년 매출 컨센서스 6조5415억원, 영업이익 7200억원으로 1개월 전 대비 각각 소폭 상향.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "9월 23일 컨센서스에서 2026년 매출·영업이익 추정치가 한 달 전보다 소폭 상향되어 북미 전력 인프라·수주잔고의 실적 전환 논리는 유지로 판단합니다.",
+        "reviewKey": "2026-09-28T13:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -717,15 +787,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "customer": "OK",
+          "industry": "OK",
+          "pricing": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-28",
+            "sourceTitle": "삼성전기, 환율 하락에도 역대급 실적 예고…AI 서버 부품 질주",
+            "sourceUrl": "https://www.newspim.com/news/view/20260928000102",
+            "fact": "KB증권은 3분기 매출 3조8310억원, 영업이익 6601억원을 전망했고 AI 서버용 MLCC·FC-BGA의 공급 부족·판가 상승·제품 믹스 개선을 근거로 제시.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_and_pricing",
+            "category": "earnings"
+          }
+        ],
+        "reason": "9월 28일 새 전망에서 AI 서버용 MLCC·FC-BGA 수요와 가격·제품 믹스 개선으로 3분기 영업이익 눈높이가 올라가 기존 AI 부품 성장 논리가 강화됐습니다.",
+        "reviewKey": "2026-09-28T13:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -733,5 +821,6 @@
         "exitPrice": null
       }
     }
-  ]
+  ],
+  "reviewSourceUpdated": "2026-09-28T13:20:00+09:00"
 }
