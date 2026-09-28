@@ -997,8 +997,9 @@
     // current quotes in the background; never start the expensive 1-month
     // history refresh before the user opens Watchlist.
     render({ refreshQuotes: false });
-    // Home already receives live prices from /api/home-live. Do not revalidate
-    // hidden Watchlist quotes until the user actually opens Watchlist.
+    // First paint gets priority, but Home watchlist prices must still converge
+    // to the latest quote without requiring a Watchlist visit.
+    setTimeout(refreshCurrentQuotesQuietly, 2200);
     setTimeout(renderHomeShortcut, 500);
     setTimeout(renderHomeShortcut, 1800);
     document.addEventListener('chartview:watchlist-change', renderHomeShortcut);
