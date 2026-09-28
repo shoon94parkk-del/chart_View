@@ -504,12 +504,9 @@
     render(cachedPayload());
     refreshServerLive(true);
     // Geometry is non-critical for first paint because the shared Home snapshot
-    // already contains rows. Give market-now/home-live priority on a fresh visit.
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => scheduleRefresh(0), { timeout: 1800 });
-    } else {
-      scheduleRefresh();
-    }
+    // already contains rows. requestIdleCallback can fire too early during
+    // network waits, so enforce a real grace period.
+    scheduleRefresh(3200);
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
