@@ -241,3 +241,7 @@ Decision: add a deterministic review layer between web research and the persiste
 - Yahoo-backed U.S. stocks and cash indices now prefer chart metadata `regularMarketPrice` + `regularMarketTime` from the same provider response instead of treating the last closed 5-minute bar as the current quote.
 - The 5-minute bar remains only a fallback when current quote metadata is absent.
 - Market-now SWR freshness is tightened from 60s to 12s with a 5s refresh guard; refresh remains response-first/background so Home navigation does not wait on provider I/O.
+
+
+## 2026-09-28 — Canonical live quote parity across Home and detail
+The detail screen may explicitly request `/api/quotes?fresh=true`. Fresh mode bypasses the shared Home snapshot so navigation cannot regress to an older Home-cache timestamp; it calls the canonical provider path instead (Naver/KRX/Koscom for Korean equities via realtime_korea, Yahoo regularMarketPrice-first for U.S. symbols). Normal Home/watchlist requests keep the shared-cache fast path.
