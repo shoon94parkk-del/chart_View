@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T13:22:00+09:00",
+  "generatedAt": "2026-09-28T18:56:12+09:00",
   "source": "static/data/ai_daily_rankings.json",
-  "sourceUpdated": "2026-09-23T19:18:00+09:00",
+  "sourceUpdated": "2026-09-28T18:41:00+09:00",
   "policy": {
     "automaticExitAllowed": false,
     "userConfirmationRequiredForExit": true,
@@ -89,15 +89,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "orders": "OK",
+          "industry": "OK",
+          "consensus": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 한화시스템 기업현황·컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/shinhan/company/c1010001.aspx?cmp_cd=272210",
+            "fact": "9월 23일 기준 최근 리포트에서 한국투자·다올·유진·유안타 등 주요 증권사의 매수 의견과 목표주가가 유지되고 있으며 2026년 상반기 방산·ICT 매출 성장이 확인됨.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "consensus_and_growth",
+            "category": "earnings"
+          }
+        ],
+        "reason": "추천 이후 9월 21~23일 최신 컨센서스와 리포트에서 방산·ICT 성장 전망이 유지되고 주요 증권사의 매수 의견도 유지돼 기존 투자논리 훼손 근거가 확인되지 않았습니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -127,15 +145,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "orders": "OK",
+          "earnings": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-21",
+            "sourceTitle": "인텍플러스 수주 급증·믹스 개선·비용 감소 삼박자",
+            "sourceUrl": "https://alphasquare.co.kr/home/stock-issue?code=064290&type=report",
+            "fact": "iM증권이 9월 21일 인텍플러스에 대해 수주 급증, 제품 믹스 개선, 비용 감소를 핵심 근거로 제시하고 목표주가 84,000원을 제시함.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "orders_and_mix",
+            "category": "orders"
+          }
+        ],
+        "reason": "추천 이후 9월 21일 iM증권이 수주 급증·제품 믹스 개선·비용 감소를 동시에 확인해 첨단 패키징 검사장비의 실적 레버리지 논리가 강화됐습니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -169,11 +204,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "추천일 이후 상태를 바꿀 만큼 새로운 펀더멘털 근거를 충분히 확인하지 못했습니다. 최근 주가 강세만으로 KEEP/WATCH 판단을 만들지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -203,15 +241,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "valuation": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 태광 컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/ibk/company/c1010001.aspx?cmp_cd=023160",
+            "fact": "9월 23일 기준 컨센서스는 목표주가 48,000원, 2026년 EPS 3,653원, PER 7.23배 수준으로 집계됨.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "current_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "9월 23일 현재 컨센서스에서 2026년 EPS와 밸류에이션 전망이 유지되고 있어 LNG·플랜트·조선 피팅 성장 논리의 훼손 신호는 확인되지 않았습니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -300,11 +355,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "HBM4 Wafer Tester 양산 공급 등 기존 성장 근거는 확인되지만 추천일 이후 새로 발생한 검증 가능한 펀더멘털 이벤트가 충분하지 않아 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -338,11 +396,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "관광객 증가와 택스리펀드 성장 논리는 유지되는 모습이지만 추천일 이후 새로 발생한 회사별 핵심 펀더멘털 근거가 충분하지 않아 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -372,15 +433,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "industry": "OK",
+          "hbm": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 SK하이닉스 기업현황",
+            "sourceUrl": "https://comp.wisereport.co.kr/company/c1010001.aspx?cmp_cd=000660&cn=",
+            "fact": "9월 23일 기준 2026년 EPS 컨센서스 약 35만원, Forward 12M EPS 약 42만원 수준이며 AI 관련 메모리 수요가 실적 성장을 주도하는 전망이 유지됨.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "9월 23일 최신 컨센서스에서 2026년 이익 추정치가 매우 높은 수준으로 유지되고 AI/HBM 중심 실적 성장 전제가 훼손됐다는 근거는 확인되지 않았습니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -470,11 +548,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "상반기 레이저 장비 실적 개선은 확인되지만 추천일 이후 새 펀더멘털 이벤트가 충분히 확인되지 않았습니다. 주가·수급만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -559,15 +640,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "hbm": "OK",
+          "pricing": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "삼성전자, 메모리 반도체 업황 개선 기대감에 증권가의 긍정적 평가 확산",
+            "sourceUrl": "https://eureka.hankyung.com/invest/detail?board_id=19721&expanded=",
+            "fact": "9월 23일 유안타증권 등은 HBM4 판매 본격화와 DRAM·NAND 가격 상승을 근거로 3분기 실적 전망과 목표주가를 상향 또는 긍정적으로 유지함.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "hbm_and_pricing",
+            "category": "earnings"
+          }
+        ],
+        "reason": "추천 이후 9월 23일 리포트에서 HBM4 판매 본격화와 메모리 가격 상승을 근거로 3분기 실적 전망이 상향돼 기존 HBM·메모리 업황 개선 논리가 유지·강화됐습니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -597,15 +696,32 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
-        "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "earnings": "OK",
+          "orders": "OK",
+          "industry": "OK"
+        },
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-23",
+            "sourceTitle": "기업모니터 효성중공업 컨센서스",
+            "sourceUrl": "https://comp.wisereport.co.kr/company/c1050001.aspx?cmp_cd=298040&cn=",
+            "fact": "9월 23일 2026년 매출 컨센서스 7조2079억원, 영업이익 1조1297억원으로 1개월 전 대비 모두 소폭 상향됨.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "earnings_consensus",
+            "category": "earnings"
+          }
+        ],
+        "reason": "추천 이후 9월 23일 컨센서스에서 2026년 매출·영업이익 추정치가 한 달 전 대비 소폭 상향돼 북미 전력 인프라와 데이터센터 수주 성장 논리는 유지됩니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -639,11 +755,15 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING",
+          "technical": "OK"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "추천 이후 주가·수급의 개선은 확인되지만 이는 기술적 근거입니다. Cube Prober 고객 확대를 새로 검증할 펀더멘털 자료가 충분하지 않아 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -677,11 +797,15 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING",
+          "technical": "OK"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "추천 이후 주가 상승과 수급 개선은 확인되지만 새 수주·고객·실적 공시 등 펀더멘털 근거가 충분하지 않아 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -715,11 +839,15 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING",
+          "technical": "OK"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "추천 이후 주가·외국인 수급 개선은 확인되지만 가격·수급만으로 상태를 바꾸지 않습니다. 신규 수주·고객·실적 근거가 추가 확인될 때까지 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -753,11 +881,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-28T18:41:00+09:00",
+        "lastReviewedTradeDate": "2026-09-28",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "추천 직후라 추천일 이후 새롭게 확인된 AI PCB 수주·CAPA·실적 근거가 아직 충분하지 않습니다. 하루 주가 변동만으로 상태를 변경하지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-28T18:41:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -820,6 +951,83 @@
         "exitDate": null,
         "exitPrice": null
       }
+    },
+    {
+      "pickId": "2026-09-28:066570",
+      "code": "066570",
+      "symbol": "066570.KS",
+      "name": "LG전자",
+      "pickDate": "2026-09-28",
+      "rank": 1,
+      "pickPrice": 214500,
+      "changePctAtPick": 2.63,
+      "scoreAtPick": 93,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI 데이터센터 냉각/HVAC와 고부가 전장·B2B 사업 확대가 실적 성장으로 연결되는 가운데 AI 인프라 수요가 신규 성장축으로 부각.",
+        "pillars": [
+          "AI 데이터센터 냉각/HVAC와 고부가 전장·B2B 사업 확대가 실적 성장으로 연결되는 가운데 AI 인프라 수요가 신규 성장축으로 부각."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-28:218410",
+      "code": "218410",
+      "symbol": "218410.KQ",
+      "name": "RFHIC",
+      "pickDate": "2026-09-28",
+      "rank": 2,
+      "pickPrice": 57300,
+      "changePctAtPick": -2.22,
+      "scoreAtPick": 92,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "GaN RF 반도체 경쟁력과 5G·방산/레이더 수요 확대가 매출·이익 성장으로 이어질 가능성이 높고 최근 실적 개선도 확인.",
+        "pillars": [
+          "GaN RF 반도체 경쟁력과 5G·방산/레이더 수요 확대가 매출·이익 성장으로 이어질 가능성이 높고 최근 실적 개선도 확인."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": null,
+        "lastReviewedTradeDate": null,
+        "thesisChecks": {},
+        "evidence": [],
+        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
     }
-  ]
+  ],
+  "reviewSourceUpdated": "2026-09-28T18:41:00+09:00"
 }

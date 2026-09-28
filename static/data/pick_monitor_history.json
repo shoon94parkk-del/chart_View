@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-28T13:22:00+09:00",
+  "updated": "2026-09-28T18:56:12+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -179,6 +179,130 @@
       "to": "KEEP",
       "reviewKey": "2026-09-28T13:20:00+09:00",
       "reason": "9월 28일 새 전망에서 AI 서버용 MLCC·FC-BGA 수요와 가격·제품 믹스 개선으로 3분기 영업이익 눈높이가 올라가 기존 AI 부품 성장 논리가 강화됐습니다."
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-09-28:066570",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-09-28:218410",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-14:272210",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "추천 이후 9월 21~23일 최신 컨센서스와 리포트에서 방산·ICT 성장 전망이 유지되고 주요 증권사의 매수 의견도 유지돼 기존 투자논리 훼손 근거가 확인되지 않았습니다."
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-14:064290",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "추천 이후 9월 21일 iM증권이 수주 급증·제품 믹스 개선·비용 감소를 동시에 확인해 첨단 패키징 검사장비의 실적 레버리지 논리가 강화됐습니다."
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-15:121600",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-15:023160",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "9월 23일 현재 컨센서스에서 2026년 EPS와 밸류에이션 전망이 유지되고 있어 LNG·플랜트·조선 피팅 성장 논리의 훼손 신호는 확인되지 않았습니다."
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-16:003160",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-16:204620",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-16:000660",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "9월 23일 최신 컨센서스에서 2026년 이익 추정치가 매우 높은 수준으로 유지되고 AI/HBM 중심 실적 성장 전제가 훼손됐다는 근거는 확인되지 않았습니다."
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-17:039030",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-21:005930",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "추천 이후 9월 23일 리포트에서 HBM4 판매 본격화와 메모리 가격 상승을 근거로 3분기 실적 전망이 상향돼 기존 HBM·메모리 업황 개선 논리가 유지·강화됐습니다."
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-21:298040",
+      "at": "2026-09-28T18:56:12+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-28T18:41:00+09:00",
+      "reason": "추천 이후 9월 23일 컨센서스에서 2026년 매출·영업이익 추정치가 한 달 전 대비 소폭 상향돼 북미 전력 인프라와 데이터센터 수주 성장 논리는 유지됩니다."
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-22:089030",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-22:086390",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-22:417840",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-23:007660",
+      "at": "2026-09-28T18:56:12+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-28T18:41:00+09:00"
     }
   ]
 }
