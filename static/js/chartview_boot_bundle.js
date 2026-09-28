@@ -11303,6 +11303,14 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     catch(e){s.innerHTML='<span style="color:#8b95a1;font-size:13px">PICK 데이터를 불러오지 못했습니다.</span>';console.error('[ChartView PICK home]',e);}
   }
 
+  function openLedgerWhenReady(attempt=0){
+    if(typeof window.__openAiPickLedger==='function'){
+      window.__openAiPickLedger();
+      return;
+    }
+    if(attempt<40)setTimeout(()=>openLedgerWhenReady(attempt+1),120);
+  }
+
   document.addEventListener('click',(event)=>{
     const link=event.target.closest('#ai-daily-section .ai-daily-more');
     if(!link)return;
@@ -11310,7 +11318,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if(typeof window.__openAiPickLedger==='function') window.__openAiPickLedger();
     else {
       installAiLedgerAssets();
-      setTimeout(()=>window.__openAiPickLedger?.(),120);
+      openLedgerWhenReady();
     }
   });
 
