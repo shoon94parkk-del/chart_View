@@ -9,7 +9,7 @@ import time
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ("static/js/chartview_release_bundle.js", "static/css/chartview_release_bundle.css", "static/js/ai_daily_widget.js")
+ASSETS = ("static/js/chartview_release_bundle.js", "static/js/chartview_release_deferred.js", "static/css/chartview_release_bundle.css", "static/js/ai_daily_widget.js")
 
 
 def get(base, path):
