@@ -6,6 +6,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const live = fs.readFileSync(path.join(ROOT, 'static/js/live_quotes_v56.js'), 'utf8');
 const html = fs.readFileSync(path.join(ROOT, 'templates/index.html'), 'utf8');
+const boot = fs.readFileSync(path.join(ROOT, 'static/js/chartview_boot_bundle.js'), 'utf8');
 const css = fs.readFileSync(path.join(ROOT, 'static/css/live_quotes_v56.css'), 'utf8');
 
 test('live quote layer only refreshes lightweight current quotes', () => {
@@ -42,10 +43,10 @@ test('DOM observer does not react to price text mutations', () => {
 
 test('template loads rollback-safe additive live assets', () => {
   assert.match(html, /\/static\/css\/live_quotes_v56\.css\?v=/);
-  assert.match(html, /\/static\/js\/live_quotes_v56\.js\?v=/);
-  const bundle = html.indexOf('/static/js/chartview_release_bundle.js');
-  const liveIndex = html.indexOf('/static/js/live_quotes_v56.js');
-  const legacyPatch = html.indexOf('/static/js/ux_patch.js');
+  assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
+  const bundle = boot.indexOf('/* --- static/js/chartview_release_bundle.js --- */');
+  const liveIndex = boot.indexOf('/* --- static/js/live_quotes_v56.js --- */');
+  const legacyPatch = boot.indexOf('/* --- static/js/ux_patch.js --- */');
   assert.ok(bundle >= 0 && liveIndex > bundle && legacyPatch > liveIndex);
   assert.match(css, /prefers-reduced-motion/);
 });
@@ -56,7 +57,8 @@ test('all watchlist cards keep a today-change slot even before a fresh quote arr
   assert.match(live, /lastMode = ''/);
   assert.match(live, /setTimeout\(\(\) => tick\(false\), 0\)/);
   assert.match(live, /version: 'v66'/);
-  assert.match(html, /\/static\/js\/live_quotes_v56\.js\?v=20260922v66a/);
+  assert.match(boot, /\/\* --- static\/js\/live_quotes_v56\.js --- \*\//);
+  assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
 });
 
 test('watchlist layer does not poll Home quotes after V66', () => {
