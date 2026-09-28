@@ -29,6 +29,7 @@ BOOT_SCRIPTS = [
     "static/js/profile_sync_v1.js",
     "static/js/recommendation_watchlist_v55.js",
     "static/js/promo_v1.js",
+    "static/js/pick_monitor_visible_tab_v1.js",
 ]
 
 BOOT_STYLES = [
