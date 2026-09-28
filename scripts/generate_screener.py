@@ -21,10 +21,15 @@ def finite(value,digits=2):
     except (TypeError,ValueError): return None
 
 def expected_trade_date(now=None):
-    """Expected Korean regular-session date for post-close weekday runs.
-    Holiday truth is ultimately established by market data; weekend is deterministic.
+    """Expected latest completed Korean regular-session date.
+    Before the post-close window, today's daily bar is not final, so code pushes
+    and manual runs validate against the previous weekday instead of publishing
+    an intraday pseudo-close. Holiday truth is ultimately established by market data.
     """
-    day=(now or datetime.now(KST)).date()
+    local=now or datetime.now(KST)
+    day=local.date()
+    if day.weekday()<5 and (local.hour, local.minute)<(16, 0):
+        day-=timedelta(days=1)
     while day.weekday()>=5: day-=timedelta(days=1)
     return day.isoformat()
 
