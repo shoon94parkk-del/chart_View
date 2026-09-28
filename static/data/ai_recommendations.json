@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-28T16:02:56+09:00",
+  "updated": "2026-09-28T18:54:44+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -340,6 +340,42 @@
       "statusLabel": "성과 추적 중",
       "grade": "사용자 확정",
       "reason": "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결.",
+      "score": 92,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-28",
+      "rank": 1,
+      "symbol": "066570.KS",
+      "code": "066570",
+      "name": "LG전자",
+      "recommendedPrice": 214500.0,
+      "currentPrice": 214500.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-28",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "AI 데이터센터 냉각/HVAC와 고부가 전장·B2B 사업 확대가 실적 성장으로 연결되는 가운데 AI 인프라 수요가 신규 성장축으로 부각.",
+      "score": 93,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-28",
+      "rank": 2,
+      "symbol": "218410.KQ",
+      "code": "218410",
+      "name": "RFHIC",
+      "recommendedPrice": 57300.0,
+      "currentPrice": 57300.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-28",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "GaN RF 반도체 경쟁력과 5G·방산/레이더 수요 확대가 매출·이익 성장으로 이어질 가능성이 높고 최근 실적 개선도 확인.",
       "score": 92,
       "analysisSource": "사용자 최종 선택"
     }
