@@ -54,3 +54,26 @@ def test_initial_p1_state_does_not_invent_sell_signals():
     assert statuses.count("PENDING_REVIEW") == 14
     assert statuses.count("WATCH") == 0
     assert statuses.count("SELL_REVIEW") == 0
+
+
+VISIBLE_JS = (ROOT / "static/js/pick_monitor_visible_tab_v1.js").read_text(encoding="utf-8")
+TEMPLATE = (ROOT / "templates/index.html").read_text(encoding="utf-8")
+
+
+def test_pick_monitor_has_visible_top_level_discovery_tab():
+    assert "PICK 점검" in VISIBLE_JS
+    assert 'data-app-context="discover"' in VISIBLE_JS
+    assert "repeat(3,minmax(0,1fr))" in VISIBLE_JS
+    assert "pick_monitor.json" in VISIBLE_JS
+    assert "ai_recommendations.json" in VISIBLE_JS
+
+
+def test_visible_pick_monitor_is_loaded_after_boot_bundle():
+    assert "/static/js/pick_monitor_visible_tab_v1.js?v=20260928-visible-tab-v1" in TEMPLATE
+    assert TEMPLATE.index("chartview_boot_bundle.js") < TEMPLATE.index("pick_monitor_visible_tab_v1.js")
+
+
+def test_visible_pick_monitor_keeps_sell_review_safe():
+    assert "매도검토는 자동 매도 확정이 아닙니다." in VISIBLE_JS
+    assert "가격·차트만으로 매도검토하지 않음" in VISIBLE_JS
+    assert "사용자 확인 필요" in VISIBLE_JS
