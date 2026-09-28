@@ -37,7 +37,7 @@ def test_stale_snapshot_refresh_is_response_first():
     market = block('def _schedule_market_now_refresh(', 'def _load_full_heatmap_us_rows(')
     home = block('def _schedule_home_snapshot_refresh(', '@app.get("/api/fwd-per")')
     assert 'await asyncio.sleep(delay)' in market
-    assert 'MARKET_NOW_REFRESH_DELAY_SEC = 3.0' in SOURCE
+    assert 'MARKET_NOW_REFRESH_DELAY_SEC = 0.75' in SOURCE
     assert 'await asyncio.sleep(delay)' in home
     assert 'HOME_SNAPSHOT_REFRESH_DELAY_SEC = 6.0' in SOURCE
     assert 'refreshScheduled' in market
