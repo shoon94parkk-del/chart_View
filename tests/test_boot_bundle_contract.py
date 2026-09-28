@@ -57,3 +57,6 @@ def test_bundled_optional_helpers_do_not_reload_themselves():
     assert "if (window.__CHARTVIEW_BOOT_BUNDLE__)" in promo
     assert "if (window.__CHARTVIEW_BOOT_BUNDLE__) return;" in continuity
     assert BOOT.index("/* --- static/js/home_summary_v54.js --- */") < BOOT.index("/* --- static/js/ui_continuity_v53.js --- */")
+    ai = (ROOT / "static/js/ai_daily_widget.js").read_text(encoding="utf-8")
+    assert "function openLedgerWhenReady(attempt=0)" in ai
+    assert "if(attempt<40)setTimeout(()=>openLedgerWhenReady(attempt+1),120)" in ai
