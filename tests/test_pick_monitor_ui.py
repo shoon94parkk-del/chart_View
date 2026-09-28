@@ -68,9 +68,13 @@ def test_pick_monitor_has_visible_top_level_discovery_tab():
     assert "ai_recommendations.json" in VISIBLE_JS
 
 
-def test_visible_pick_monitor_is_loaded_after_boot_bundle():
-    assert "/static/js/pick_monitor_visible_tab_v1.js?v=20260928-visible-tab-v1" in TEMPLATE
-    assert TEMPLATE.index("chartview_boot_bundle.js") < TEMPLATE.index("pick_monitor_visible_tab_v1.js")
+def test_visible_pick_monitor_is_part_of_single_boot_bundle():
+    build = (ROOT / "scripts/build_boot_bundle.py").read_text(encoding="utf-8")
+    boot = (ROOT / "static/js/chartview_boot_bundle.js").read_text(encoding="utf-8")
+    assert '"static/js/pick_monitor_visible_tab_v1.js"' in build
+    assert "/* --- static/js/pick_monitor_visible_tab_v1.js --- */" in boot
+    assert "PICK 점검" in boot
+    assert "pick_monitor_visible_tab_v1.js?v=" not in TEMPLATE
 
 
 def test_visible_pick_monitor_keeps_sell_review_safe():
