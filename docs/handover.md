@@ -334,3 +334,9 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Korean current prices remain on realtime_korea.py.
 - MARKET_NOW_TTL=12s and refresh remains stale-while-revalidate; /api/market-now must stay non-blocking on normal cached reads.
 - Frontend live polling is intentionally separate from first Home paint.
+
+
+## 2026-09-28 — Home/detail quote parity
+- `/api/quotes?fresh=true` bypasses HOME_LIVE_CACHE and uses the canonical provider quote path.
+- Keep the default `fresh=false` path for Home/watchlist first-paint performance.
+- Korean stocks still resolve through realtime_korea.py; do not add another Korean quote provider.
