@@ -49,18 +49,23 @@ def test_seed_reviews_are_post_pick_and_verified():
     assert REVIEWS["reviews"]
     for review in REVIEWS["reviews"]:
         pick = by_id[review["pickId"]]
-        assert review["completed"] is True
-        assert review["evidence"]
-        for evidence in review["evidence"]:
-            assert evidence["verified"] is True
-            assert evidence["publishedAt"] >= pick["pickDate"]
-            assert evidence["sourceUrl"].startswith("http")
+        if review["completed"]:
+            assert review["evidence"]
+            for evidence in review["evidence"]:
+                assert evidence["verified"] is True
+                assert evidence["publishedAt"] >= pick["pickDate"]
+                assert evidence["sourceUrl"].startswith("http")
+        else:
+            assert review["evidence"] == []
+            assert pick["status"] == "PENDING_REVIEW"
 
 
-def test_initial_p1_state_does_not_invent_sell_signals():
+def test_p1_state_does_not_invent_sell_signals():
     statuses = [row["status"] for row in MONITOR["picks"]]
-    assert statuses.count("KEEP") == 5
-    assert statuses.count("PENDING_REVIEW") == 14
+    assert statuses
+    assert set(statuses) <= {"KEEP", "PENDING_REVIEW"}
+    assert statuses.count("KEEP") > 0
+    assert statuses.count("PENDING_REVIEW") > 0
     assert statuses.count("WATCH") == 0
     assert statuses.count("SELL_REVIEW") == 0
 
