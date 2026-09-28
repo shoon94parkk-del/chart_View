@@ -7,6 +7,7 @@ const css = fs.readFileSync('static/css/style.css', 'utf8');
 const main = fs.readFileSync('main.py', 'utf8');
 const generator = fs.readFileSync('scripts/generate_macro_cache.py', 'utf8');
 const html = fs.readFileSync('templates/index.html', 'utf8');
+const bootCss = fs.readFileSync('static/css/chartview_boot_bundle.css', 'utf8');
 const boot = fs.readFileSync('static/js/chartview_boot_bundle.js', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/update-macro-cache.yml', 'utf8');
 
@@ -49,7 +50,8 @@ test('macro sparkline is physically clipped to its card', () => {
 });
 
 test('macro assets are cache-busted', () => {
-  assert.match(html, /\/static\/css\/style\.css\?v=20260922v63a/);
+  assert.match(html, /\/static\/css\/chartview_boot_bundle\.css\?v=/);
+  assert.match(bootCss, /\/\* --- static\/css\/style\.css --- \*\//);
   assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
   assert.match(boot, /\/\* --- static\/js\/macro\.js --- \*\//);
 });
