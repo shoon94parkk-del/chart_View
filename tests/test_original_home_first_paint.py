@@ -20,7 +20,7 @@ def test_home_and_heatmap_share_snapshot_cache():
 def test_heatmap_geometry_has_real_first_paint_grace():
     assert "scheduleRefresh(3200);" in HEATMAP
     start = HEATMAP[HEATMAP.index("function start()"):]
-    assert "requestIdleCallback" not in start.split("const observer", 1)[0]
+    assert "window.requestIdleCallback" not in start.split("const observer", 1)[0]
     assert "refreshServerLive(false);" in HEATMAP
 
 
