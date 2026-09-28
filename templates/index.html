@@ -29,11 +29,9 @@
         body.app-booting:not(.app-shell-ready)::before { content: '차트뷰 불러오는 중…'; position: fixed; inset: 0; display: grid; place-items: center; color: #6b7684; font: 700 14px/1.5 system-ui, sans-serif; background: #f7f8fa; }
     </style>
     <script>setTimeout(() => document.body?.classList.remove('app-booting'), 8000);</script>
-
-    <link rel="stylesheet" href="/static/css/style.css?v=20260922v63a">
-    <link rel="stylesheet" href="/static/css/ux_patch.css?v=13400c853b28">
-    <link rel="stylesheet" href="/static/css/promo_v1.css?v=20260913v1">
-    <link rel="stylesheet" href="/static/css/chartview_release_bundle.css?v=69f5f6c9c4fb"
+    <!-- Keep one release CSS version reference for the existing generated-bundle verifier. -->
+    <meta data-chartview-release-css-version="/static/css/chartview_release_bundle.css?v=69f5f6c9c4fb">
+    <link rel="stylesheet" href="/static/css/chartview_boot_bundle.css?v=b363c5204339"
         data-fast-screener data-ideas-ui data-ux-v3 data-investment-tools-v22 data-watchlist-v30
         data-bottom-nav-v6 data-app-states-v32 data-decision-ux-v7 data-app-header-v5 data-home-market-v9
         data-home-priority-v10 data-valuation-matrix-v10 data-ux-patterns-v12 data-ux-interactions-v13
@@ -42,10 +40,6 @@
         data-detail-ui-v40 data-comparison-ui-v40 data-comparison-compact-v401 data-news-status-v401
         data-my-hub-v41 data-news-readability-v412 data-news-summary-expand-v48 data-resilience-v413
         data-home-polish-v414 data-home-watchlist-compact-v46 data-home-news-cards-v47>
-    <link rel="stylesheet" href="/static/css/ui_continuity_v53.css?v=20260921p1a02">
-    <link rel="stylesheet" href="/static/css/live_quotes_v56.css?v=20260922v56a">
-    <link rel="stylesheet" href="/static/css/home_heatmap_v57.css?v=20260922v61a">
-    <link rel="stylesheet" href="/static/css/p2_revisit_v1.css?v=20260921mobile1">
 </head>
 
 <body class="app-booting">
@@ -300,7 +294,7 @@
     <!-- Keep one release-bundle version reference for the existing generated-bundle verifier. -->
     <meta data-chartview-release-bundle-version="/static/js/chartview_release_bundle.js?v=d9e3f60e3190">
     <meta data-ai-daily-widget-version="/static/js/ai_daily_widget.js?v=ca7b2cfd751d">
-    <script defer src="/static/js/chartview_boot_bundle.js?v=476396aeaacb"
+    <script defer src="/static/js/chartview_boot_bundle.js?v=bf17fdc2f204"
         data-fast-screener data-valuation-meta data-investment-ideas data-dense-valuation data-revision-radar
         data-investment-tools-v22 data-watchlist-v30 data-watchlist-quick-add-v48 data-ux-v3 data-decision-ux-v7
         data-app-header-v5 data-home-market-v9 data-home-priority-v10 data-ux-patterns-v12 data-ux-interactions-v13

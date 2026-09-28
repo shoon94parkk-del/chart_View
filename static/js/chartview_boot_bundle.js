@@ -11337,6 +11337,91 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 })();
 ;
 
+/* --- static/js/home_summary_v54.js --- */
+(() => {
+  'use strict';
+
+  const HOME_WATCHLIST_VISIBLE = 4;
+  let queued = false;
+
+  function compactHomeWatchlist() {
+    const section = document.getElementById('home-watchlist-v30');
+    if (!section) return false;
+
+    const cards = [...section.querySelectorAll('[data-home-watch-open]')];
+    cards.forEach((card, index) => {
+      const hidden = index >= HOME_WATCHLIST_VISIBLE;
+      if (card.hidden !== hidden) card.hidden = hidden;
+      const ariaHidden = hidden ? 'true' : 'false';
+      if (card.getAttribute('aria-hidden') !== ariaHidden) card.setAttribute('aria-hidden', ariaHidden);
+      if (hidden && card.style.display !== 'none') card.style.display = 'none';
+      else if (!hidden && card.style.display) card.style.removeProperty('display');
+    });
+
+    const more = section.querySelector('[data-home-watch-all]');
+    if (more) {
+      if (more.textContent !== '더보기 →') more.textContent = '더보기 →';
+      if (more.getAttribute('aria-label') !== '관심종목 전체보기') more.setAttribute('aria-label', '관심종목 전체보기');
+    }
+    return true;
+  }
+
+  function equalizeHomePicks() {
+    const section = document.getElementById('ai-daily-section');
+    if (!section) return false;
+    section.querySelectorAll('.ai-daily-rank').forEach((rank) => rank.remove());
+    return true;
+  }
+
+  function installStyle() {
+    if (document.getElementById('home-summary-v54-style')) return;
+    const style = document.createElement('style');
+    style.id = 'home-summary-v54-style';
+    style.textContent = `
+      #home-tab .ai-daily-card summary{
+        grid-template-areas:'name score' 'price arrow' !important;
+      }
+      @media(max-width:700px){
+        #home-tab .ai-daily-card summary{
+          grid-template-areas:'name score arrow' 'price score arrow' !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function sync() {
+    queued = false;
+    installStyle();
+    compactHomeWatchlist();
+    equalizeHomePicks();
+  }
+
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(sync);
+  }
+
+  function boot() {
+    sync();
+    const home = document.getElementById('home-tab');
+    if (home && typeof MutationObserver !== 'undefined') {
+      new MutationObserver((mutations) => {
+        if (mutations.some((mutation) => mutation.addedNodes.length || mutation.removedNodes.length)) schedule();
+      }).observe(home, { childList: true, subtree: true });
+    }
+    document.addEventListener('chartview:watchlist-change', schedule);
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.app-bottom-btn[data-app-mode="home"]')) setTimeout(schedule, 50);
+    }, true);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+})();
+;
+
 /* --- static/js/ui_continuity_v53.js --- */
 /* ChartView UI continuity v53: naming and semantics only; feature logic stays in existing modules. */
 (() => {
@@ -11346,6 +11431,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   let queued = false;
 
   function ensureHomeSummaryV54() {
+    if (window.__CHARTVIEW_BOOT_BUNDLE__) return;
     if (document.querySelector('script[data-home-summary-v54]')) return;
     const script = document.createElement('script');
     script.src = '/static/js/home_summary_v54.js?v=20260917v54';
@@ -11876,6 +11962,10 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   }
 
   function loadAiDailyWidget() {
+    if (window.__CHARTVIEW_BOOT_BUNDLE__) {
+      if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
+      return;
+    }
     const existing = document.querySelector('script[src*="/static/js/ai_daily_widget.js"]');
     if (existing) {
       if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
