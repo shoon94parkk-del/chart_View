@@ -42,6 +42,7 @@ def test_noncritical_home_features_use_explicit_grace():
 def test_hidden_watchlist_does_not_fetch_quotes_on_home_boot():
     init = WATCH[WATCH.index("function init()"):]
     assert "setTimeout(refreshCurrentQuotesQuietly, 0);" not in init
+    assert "setTimeout(refreshCurrentQuotesQuietly, 2200);" in init
     assert "refreshCurrentQuotesQuietly();" in WATCH[WATCH.index("function refreshWatchlistOnEntry()"):WATCH.index("async function loadQuotes")]
 
     wrap = QUICK[QUICK.index("function wrapWatchlistRender"):QUICK.index("function attachObserver")]
