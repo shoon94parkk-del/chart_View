@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-28T18:54:44+09:00",
+  "updated": "2026-09-29T08:30:46+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -352,7 +352,7 @@
       "recommendedPrice": 214500.0,
       "currentPrice": 214500.0,
       "returnPct": 0.0,
-      "bestReturnPct": 0,
+      "bestReturnPct": 0.0,
       "lastUpdatedTradeDate": "2026-09-28",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
@@ -370,7 +370,7 @@
       "recommendedPrice": 57300.0,
       "currentPrice": 57300.0,
       "returnPct": 0.0,
-      "bestReturnPct": 0,
+      "bestReturnPct": 0.0,
       "lastUpdatedTradeDate": "2026-09-28",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
