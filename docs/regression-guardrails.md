@@ -167,3 +167,8 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Unreviewed PICKs remain visibly `검토 대기`.
 - The existing AI PICK performance ledger remains intact; PICK monitoring is an additional view, not a replacement.
 
+### Per-ticker live quote freshness
+- One successfully refreshed Korean ticker must never make every Korean cached ticker eligible for reuse. Cache-hit freshness is evaluated by ticker, not only by market.
+- A seeded Home snapshot may paint immediately but must not advance live freshness timestamps.
+- During the Korean NXT quote window (08:00–20:00 KST), Home/watchlist current-price paths must remain on active-market freshness rules; they must not fall back to the closed-market 5-minute cadence at 15:30.
+- If `/api/quotes` fetches a newer Home-major quote from the provider, it must update the shared in-memory row and that ticker's freshness timestamp.
