@@ -219,3 +219,7 @@ Fresh Chromium measurement of the original Chart View showed Home at ~1.5–2.7s
 
 ## 2026-09-28 — Original Home first-paint P0 v2
 Regular-market Chromium re-audit after P0 v1 still showed Home median 2.14s with a 4.63s outlier. requestIdleCallback was not a reliable first-paint boundary because it could fire while critical network work was still pending. Hidden Watchlist rendering also triggered /api/quotes before the user opened Watchlist. V2 replaces idle scheduling with explicit first-paint grace periods, delays below-fold news, initializes profile sync on Watchlist entry (8s fallback), and suppresses hidden Watchlist quote refresh until the tab is visible.
+
+
+## 2026-09-28 — Original Chart View single boot bundle
+Regular-market Chromium runs still showed Home at 1.86–4.63s even after deferring non-critical Home API work. Render CPU remained low, while the original page requested 17 JavaScript files at startup plus a 31-script release bundle. The initial browser path is therefore consolidated into one content-addressed chartview_boot_bundle.js request. The boot generator preserves the legacy execution semantics (the former non-defer p2 revisit script first, then the former defer sequence), while hidden version sentinels keep the existing release-bundle and AI-widget freshness verifier compatible.
