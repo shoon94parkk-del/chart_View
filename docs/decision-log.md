@@ -245,3 +245,6 @@ Decision: add a deterministic review layer between web research and the persiste
 
 ## 2026-09-28 — Canonical live quote parity across Home and detail
 The detail screen may explicitly request `/api/quotes?fresh=true`. Fresh mode bypasses the shared Home snapshot so navigation cannot regress to an older Home-cache timestamp; it calls the canonical provider path instead (Naver/KRX/Koscom for Korean equities via realtime_korea, Yahoo regularMarketPrice-first for U.S. symbols). Normal Home/watchlist requests keep the shared-cache fast path.
+
+## 2026-09-28 — Shared quote freshness is ticker-scoped
+A production screenshot showed Samsung Electronics and SK hynix frozen at 13:37 while non-major Korean watchlist rows were current at 18:23. The shared Home cache had market-level freshness: another successful Korean refresh could make stale major-stock rows look reusable. Cache eligibility is now ticker-scoped, provider fallback repairs the shared row, stale disk seeds do not advance freshness, and the Korean live window covers NXT through 20:00 KST.
