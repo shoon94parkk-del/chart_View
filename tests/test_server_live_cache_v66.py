@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+import asyncio
 import inspect
+import time
 
 import main
 
@@ -48,3 +50,75 @@ def test_admin_usage_requires_env_token(monkeypatch):
     source = inspect.getsource(main._admin_token_ok)
     assert "compare_digest" in source
     assert "X-ChartView-Admin" in source
+
+
+def test_shared_quote_cache_freshness_is_per_ticker(monkeypatch):
+    old_cache = {
+        "quotes": dict(main.HOME_LIVE_CACHE.get("quotes") or {}),
+        "marketUpdatedEpoch": dict(main.HOME_LIVE_CACHE.get("marketUpdatedEpoch") or {}),
+        "quoteUpdatedEpoch": dict(main.HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}),
+    }
+    try:
+        main.HOME_LIVE_CACHE["quotes"] = {
+            "005930.KS": {
+                "ticker": "005930.KS",
+                "price": 274000,
+                "change": -4.03,
+                "asOf": "2026-09-28T13:37:00+09:00",
+            }
+        }
+        main.HOME_LIVE_CACHE["marketUpdatedEpoch"] = {"KR": time.time(), "US": 0.0}
+        main.HOME_LIVE_CACHE["quoteUpdatedEpoch"] = {}
+        monkeypatch.setattr(main, "_open_home_markets", lambda *_args, **_kwargs: {"KR": ["005930.KS"]})
+        monkeypatch.setattr(main, "fetch_quote_snapshot", lambda ticker: {
+            "ticker": ticker,
+            "price": 280000,
+            "change": -2.0,
+            "asOf": "2026-09-28T15:30:00+09:00",
+        })
+
+        payload = asyncio.run(main.quote_snapshots("005930.KS"))
+        assert payload["sharedCacheHits"] == 0
+        assert payload["providerFetches"] == 1
+        assert payload["results"][0]["price"] == 280000
+        assert main.HOME_LIVE_CACHE["quoteUpdatedEpoch"]["005930.KS"] > 0
+    finally:
+        main.HOME_LIVE_CACHE["quotes"] = old_cache["quotes"]
+        main.HOME_LIVE_CACHE["marketUpdatedEpoch"] = old_cache["marketUpdatedEpoch"]
+        main.HOME_LIVE_CACHE["quoteUpdatedEpoch"] = old_cache["quoteUpdatedEpoch"]
+
+
+def test_individually_refreshed_quote_can_be_reused(monkeypatch):
+    old_cache = {
+        "quotes": dict(main.HOME_LIVE_CACHE.get("quotes") or {}),
+        "marketUpdatedEpoch": dict(main.HOME_LIVE_CACHE.get("marketUpdatedEpoch") or {}),
+        "quoteUpdatedEpoch": dict(main.HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}),
+    }
+    try:
+        main.HOME_LIVE_CACHE["quotes"] = {
+            "000660.KS": {
+                "ticker": "000660.KS",
+                "price": 1800000,
+                "change": -3.5,
+                "asOf": "2026-09-28T15:30:00+09:00",
+            }
+        }
+        main.HOME_LIVE_CACHE["marketUpdatedEpoch"] = {"KR": 0.0, "US": 0.0}
+        main.HOME_LIVE_CACHE["quoteUpdatedEpoch"] = {"000660.KS": time.time()}
+        monkeypatch.setattr(main, "_open_home_markets", lambda *_args, **_kwargs: {"KR": ["000660.KS"]})
+        monkeypatch.setattr(main, "fetch_quote_snapshot", lambda _ticker: (_ for _ in ()).throw(AssertionError("provider should not run")))
+
+        payload = asyncio.run(main.quote_snapshots("000660.KS"))
+        assert payload["sharedCacheHits"] == 1
+        assert payload["providerFetches"] == 0
+        assert payload["results"][0]["price"] == 1800000
+    finally:
+        main.HOME_LIVE_CACHE["quotes"] = old_cache["quotes"]
+        main.HOME_LIVE_CACHE["marketUpdatedEpoch"] = old_cache["marketUpdatedEpoch"]
+        main.HOME_LIVE_CACHE["quoteUpdatedEpoch"] = old_cache["quoteUpdatedEpoch"]
+
+
+def test_first_home_activation_does_not_mark_seeded_market_fresh():
+    source = inspect.getsource(main._home_live_worker)
+    assert 'HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now' not in source
+    assert "timeout = HOME_LIVE_FIRST_VISITOR_GRACE_SEC" in source
