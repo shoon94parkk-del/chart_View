@@ -234,3 +234,10 @@ Decision: keep `ai_daily_rankings.json` immutable as the publication record and 
 ## 2026-09-28 — P1 PICK review is evidence-driven and visible beside the existing ledger
 Decision: add a deterministic review layer between web research and the persistent PICK monitor. Research writes verified, dated evidence; code derives KEEP/WATCH/SELL_REVIEW using fixed rules. Evidence older than the PICK cannot change the state, price/technical weakness alone is excluded, and EXIT remains a user action. The web UI exposes this as a separate PICK 점검 view within the existing AI PICK discovery shell so performance history and thesis monitoring stay conceptually separate.
 
+
+
+## 2026-09-28 — P0 live quote freshness
+- Korean stocks continue to use the existing Naver/KRX/Koscom realtime path.
+- Yahoo-backed U.S. stocks and cash indices now prefer chart metadata `regularMarketPrice` + `regularMarketTime` from the same provider response instead of treating the last closed 5-minute bar as the current quote.
+- The 5-minute bar remains only a fallback when current quote metadata is absent.
+- Market-now SWR freshness is tightened from 60s to 12s with a 5s refresh guard; refresh remains response-first/background so Home navigation does not wait on provider I/O.
