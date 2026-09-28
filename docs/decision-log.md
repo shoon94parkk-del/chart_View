@@ -215,3 +215,7 @@ The corrected production audit measured valuation Cold at 4.65s while SPA re-ent
 
 ## 2026-09-28 — Original Chart View Home first-paint P0
 Fresh Chromium measurement of the original Chart View showed Home at ~1.5–2.7s while internal screens were usually ~0.05–0.2s. First paint was competing with non-critical Home work: duplicate AI bootstrap on initial pageshow, profile-sync status, DATA STATUS macro lookup, and immediate heatmap geometry refresh. These tasks are now deferred until idle/after first paint. Home snapshot and heatmap share the v18 local cache so geometry can render from the Home snapshot before a background refresh.
+
+
+## 2026-09-28 — Original Home first-paint P0 v2
+Regular-market Chromium re-audit after P0 v1 still showed Home median 2.14s with a 4.63s outlier. requestIdleCallback was not a reliable first-paint boundary because it could fire while critical network work was still pending. Hidden Watchlist rendering also triggered /api/quotes before the user opened Watchlist. V2 replaces idle scheduling with explicit first-paint grace periods, delays below-fold news, initializes profile sync on Watchlist entry (8s fallback), and suppresses hidden Watchlist quote refresh until the tab is visible.
