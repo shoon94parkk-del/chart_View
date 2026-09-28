@@ -11,6 +11,12 @@ def test_home_market_windows_are_split_by_exchange_hours():
     assert "KR" in kr_open and "US" not in kr_open
     assert len(kr_open["KR"]) == 8
 
+    kr_nxt_after = main._open_home_markets(datetime(2026, 9, 22, 9, 23, tzinfo=timezone.utc))
+    assert "KR" in kr_nxt_after
+
+    kr_closed = main._open_home_markets(datetime(2026, 9, 22, 11, 10, tzinfo=timezone.utc))
+    assert "KR" not in kr_closed
+
     us_open = main._open_home_markets(datetime(2026, 9, 22, 14, 0, tzinfo=timezone.utc))
     assert "US" in us_open and "KR" not in us_open
     assert len(us_open["US"]) == 10
