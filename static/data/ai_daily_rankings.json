@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-23T19:18:00+09:00",
+  "updated": "2026-09-28T18:41:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -363,6 +363,68 @@
             "technical": 25
           },
           "reason": "AI 서버용 MLCC와 FC-BGA 고부가 제품 확대 및 가격 인상 효과가 실적 성장으로 연결."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-28",
+      "status": "사용자 확정 2종목 — 2026-09-28 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-09-28",
+        "analyzedAt": "2026-09-28T18:41:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2-new-pick-exclusion",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "code": "066570",
+          "rank": 1,
+          "totalScore": 93,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 8,
+            "catalystRisk": 10,
+            "technical": 26
+          },
+          "reason": "AI 데이터센터 냉각/HVAC와 고부가 전장·B2B 사업 확대가 실적 성장으로 연결되는 가운데 AI 인프라 수요가 신규 성장축으로 부각.",
+          "symbol": "066570.KS",
+          "name": "LG전자",
+          "close": 214500,
+          "previousClose": 209000,
+          "changePct": 2.63
+        },
+        {
+          "code": "218410",
+          "rank": 2,
+          "totalScore": 92,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 8,
+            "catalystRisk": 9,
+            "technical": 26
+          },
+          "reason": "GaN RF 반도체 경쟁력과 5G·방산/레이더 수요 확대가 매출·이익 성장으로 이어질 가능성이 높고 최근 실적 개선도 확인.",
+          "symbol": "218410.KQ",
+          "name": "RFHIC",
+          "close": 57300,
+          "previousClose": 58600,
+          "changePct": -2.22
         }
       ]
     }
