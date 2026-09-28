@@ -1,0 +1,41 @@
+name: Apply PICK monitor reviews
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "static/data/pick_monitor_reviews.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pick-monitor-review-main
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/build_pick_monitor.py
+      - run: python scripts/apply_pick_monitor_reviews.py
+      - run: python scripts/build_pick_monitor.py --check
+      - run: python scripts/apply_pick_monitor_reviews.py --check
+      - name: Commit generated monitor state
+        shell: bash
+        run: |
+          if git diff --quiet -- static/data/pick_monitor.json static/data/pick_monitor_history.json; then
+            echo "No generated monitor changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/pick_monitor.json static/data/pick_monitor_history.json
+          git commit -m "data: apply PICK monitor reviews"
+          git push
