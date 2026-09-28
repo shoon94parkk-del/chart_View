@@ -327,3 +327,10 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - home_summary_v54.js is embedded before ui_continuity_v53.js.
 - promo_v1.js and ui_continuity_v53.js must not dynamically reload AI/home-summary helpers when window.__CHARTVIEW_BOOT_BUNDLE__ is present.
 - Re-measure production with fresh Chromium contexts; judge the change by median and worst-case Home latency, not only the best run.
+
+
+## 2026-09-28 — P0 live freshness
+- Do not regress U.S. current quotes back to the last closed 5m bar; prefer Yahoo chart meta regularMarketPrice/regularMarketTime.
+- Korean current prices remain on realtime_korea.py.
+- MARKET_NOW_TTL=12s and refresh remains stale-while-revalidate; /api/market-now must stay non-blocking on normal cached reads.
+- Frontend live polling is intentionally separate from first Home paint.
