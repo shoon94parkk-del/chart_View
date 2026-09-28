@@ -217,3 +217,12 @@ A user-visible change is complete only when:
 - Price/technical deterioration alone cannot create `SELL_REVIEW`; the policy requires one material verified fact or two independent weakening signals.
 - `scripts/build_pick_monitor.py` adds newly published PICKs while preserving existing review/exit state and writes append-only registration/baseline events to `pick_monitor_history.json`.
 
+## PICK post-publication monitoring P1
+- Added 2026-09-28: `static/data/pick_monitor_reviews.json` is the researched evidence input. `scripts/apply_pick_monitor_reviews.py` derives status deterministically from verified post-PICK evidence.
+- Status derivation: no valid completed evidence -> PENDING_REVIEW; completed review with no negative evidence -> KEEP; one non-major negative signal -> WATCH; one major negative fact or two independent negative signals -> SELL_REVIEW.
+- Evidence dated before the PICK is ignored for status changes. Price/technical moves alone are never qualifying negative evidence.
+- `EXIT` remains user-confirmed only and is never created by the review engine.
+- The AI PICK ledger now includes a separate `PICK 점검` view showing status counts, recommendation price, latest tracked price, return, original thesis, latest review reason, evidence links, and review date.
+- Initial P1 snapshot intentionally reviews only PICKs with verifiable post-PICK evidence; unreviewed names remain PENDING_REVIEW rather than being guessed.
+- Main-branch changes to `pick_monitor_reviews.json` trigger `.github/workflows/pick-monitor-review.yml`, which applies the deterministic engine and commits generated monitor/history only when output changed.
+
