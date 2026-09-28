@@ -7,9 +7,9 @@ import market_service as ms
 ET = ZoneInfo("America/New_York")
 
 
-def _chart(rows, *, tz="America/New_York", currency="USD"):
+def _chart(rows, *, tz="America/New_York", currency="USD", meta_extra=None):
     return {
-        "meta": {"currency": currency, "exchangeTimezoneName": tz},
+        "meta": {"currency": currency, "exchangeTimezoneName": tz, **(meta_extra or {})},
         "timestamp": [int(dt.timestamp()) for dt, _ in rows],
         "indicators": {"quote": [{"close": [px for _, px in rows]}]},
     }
@@ -87,3 +87,27 @@ def test_continuous_asset_uses_daily_fallback(monkeypatch):
     assert row["previousClose"] == 90.50
     assert row["change"] == round((90.02 - 90.50) / 90.50 * 100, 2)
     assert "daily atomic" in row["source"]
+
+
+def test_open_session_prefers_regular_market_meta_over_last_5m_bar(monkeypatch):
+    traded_at = datetime(2026, 9, 23, 10, 7, 31, tzinfo=ET)
+    data = _chart(
+        [
+            (_dt(2026, 9, 22), 736.60),
+            (datetime(2026, 9, 23, 10, 5, tzinfo=ET), 742.41),
+        ],
+        meta_extra={
+            "regularMarketPrice": 743.28,
+            "regularMarketTime": int(traded_at.timestamp()),
+            "previousClose": 736.60,
+        },
+    )
+    monkeypatch.setattr(ms, "_chart_result", lambda *a, **k: data)
+    ms._quote_cache.clear()
+    row = ms.fetch_quote_snapshot("META")
+    assert row["price"] == 743.28
+    assert row["previousClose"] == 736.60
+    assert row["change"] == round((743.28 - 736.60) / 736.60 * 100, 2)
+    assert row["sessionDate"] == "2026-09-23"
+    assert row["asOf"].startswith("2026-09-23T14:07:31")
+    assert "regularMarketPrice" in row["source"]
