@@ -6,6 +6,7 @@
   let queued = false;
 
   function ensureHomeSummaryV54() {
+    if (window.__CHARTVIEW_BOOT_BUNDLE__) return;
     if (document.querySelector('script[data-home-summary-v54]')) return;
     const script = document.createElement('script');
     script.src = '/static/js/home_summary_v54.js?v=20260917v54';
