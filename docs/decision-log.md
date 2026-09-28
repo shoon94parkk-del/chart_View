@@ -231,3 +231,6 @@ Regular-market Chromium resource timing showed a 9.68s Home outlier even after t
 ## 2026-09-28 — Separate published PICK history from post-publication sell monitoring
 Decision: keep `ai_daily_rankings.json` immutable as the publication record and add a separate PICK monitor ledger/history. Legacy picks are seeded from their published reason only. Monitoring uses `PENDING_REVIEW/KEEP/WATCH/SELL_REVIEW/EXIT`, with automatic exit prohibited and technical/price weakness insufficient on its own for a sell-review state. This separation prevents later monitoring from rewriting what was actually recommended at the time.
 
+## 2026-09-28 — P1 PICK review is evidence-driven and visible beside the existing ledger
+Decision: add a deterministic review layer between web research and the persistent PICK monitor. Research writes verified, dated evidence; code derives KEEP/WATCH/SELL_REVIEW using fixed rules. Evidence older than the PICK cannot change the state, price/technical weakness alone is excluded, and EXIT remains a user action. The web UI exposes this as a separate PICK 점검 view within the existing AI PICK discovery shell so performance history and thesis monitoring stay conceptually separate.
+
