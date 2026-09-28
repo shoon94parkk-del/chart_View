@@ -10,7 +10,9 @@ def read(path: str) -> str:
 
 def test_app_loads_shared_ui_continuity_layer():
     html = read("templates/index.html")
-    assert "/static/css/ui_continuity_v53.css?v=20260921p1a02" in html
+    boot_css = read("static/css/chartview_boot_bundle.css")
+    assert "/* --- static/css/ui_continuity_v53.css --- */" in boot_css
+    assert "/static/css/chartview_boot_bundle.css?v=" in html
     boot = read("static/js/chartview_boot_bundle.js")
     assert "/* --- static/js/ui_continuity_v53.js --- */" in boot
     assert "/static/js/chartview_boot_bundle.js?v=" in html
