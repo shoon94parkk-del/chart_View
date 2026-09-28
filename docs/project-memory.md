@@ -226,3 +226,8 @@ A user-visible change is complete only when:
 - Initial P1 snapshot intentionally reviews only PICKs with verifiable post-PICK evidence; unreviewed names remain PENDING_REVIEW rather than being guessed.
 - Main-branch changes to `pick_monitor_reviews.json` trigger `.github/workflows/pick-monitor-review.yml`, which applies the deterministic engine and commits generated monitor/history only when output changed.
 
+## 2026-09-28 — Per-ticker quote freshness + NXT session
+- `HOME_LIVE_CACHE` freshness is tracked per ticker via `quoteUpdatedEpoch`; market-level timestamps are scheduling/observability metadata only and must not authorize reuse of an individually stale quote.
+- Disk-seeded Home rows are stale-first display data. A first Home visitor gets a short grace period, but seeded rows never mark the whole market fresh.
+- Successful provider fallback through `/api/quotes` repairs that ticker's shared Home cache so Home, Watchlist, Heatmap, and Detail converge on the same newest row.
+- Korean current-quote live hours are treated as 08:00–20:00 KST to cover the NXT extended session instead of freezing live refresh at the 15:30 KRX close.
