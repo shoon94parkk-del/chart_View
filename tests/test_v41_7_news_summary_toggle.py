@@ -22,4 +22,6 @@ def test_news_summary_is_expandable_and_cache_busted():
     assert "chartview:v41-news-rendered" in js
     assert "news_readability_v41_2.css?v=" in boot
     assert "news_readability_v41_2.js?v=" in boot
-    assert "home_watchlist_boot_v32c.js?v=" in html
+    startup = (ROOT / "static/js/chartview_boot_bundle.js").read_text(encoding="utf-8")
+    assert "/* --- static/js/home_watchlist_boot_v32c.js --- */" in startup
+    assert "/static/js/chartview_boot_bundle.js?v=" in html
