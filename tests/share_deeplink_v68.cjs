@@ -22,7 +22,8 @@ const base = process.env.APP_URL || 'http://127.0.0.1:8080';
     assert.equal(response.status(), 200);
 
     await page.locator('#screener-tab.active').waitFor({ timeout: 20000 });
-    await page.locator('#screener-tab [data-discovery-view="ai-picks"].active').waitFor({ timeout: 20000 });
+    await page.locator('#pick-management-direct:not([hidden])').waitFor({ timeout: 20000 });
+    assert.equal(await page.locator('[data-pick-monitor-tab]').evaluate(el => el.classList.contains('active')), true);
     await page.waitForFunction(() => window.ChartViewShare?.version === 'v68', null, { timeout: 10000 });
 
     const pickUrl = new URL(await page.evaluate(() => window.ChartViewShare.buildUrl()));
