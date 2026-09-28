@@ -340,3 +340,9 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - `/api/quotes?fresh=true` bypasses HOME_LIVE_CACHE and uses the canonical provider quote path.
 - Keep the default `fresh=false` path for Home/watchlist first-paint performance.
 - Korean stocks still resolve through realtime_korea.py; do not add another Korean quote provider.
+
+
+## 2026-09-29 — Screener popular-filter data contract
+- scripts/generate_screener.py now uses PERIOD='1y' so 52-week-high proximity is available.
+- Do not rename macdBullish, macdCrossUp, goldenCross2060, trend2060, high52, distance52HighPct, near52High, bbBreakout without updating chart-view-toss presets/tests.
+- The generated screener remains exact-trade-date fail-closed and end-of-day; popular filters must not be described as intraday signals.
