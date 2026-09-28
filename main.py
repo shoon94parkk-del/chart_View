@@ -764,7 +764,7 @@ async def admin_usage_data(request: Request):
 
 
 @app.get("/api/quotes")
-async def quote_snapshots(tickers: str):
+async def quote_snapshots(tickers: str, fresh: bool = False):
     symbols = list(dict.fromkeys(t.strip().upper() for t in tickers.split(",") if t.strip()))
     if not symbols or len(symbols) > 20:
         raise HTTPException(400, "종목은 1개 이상 20개 이하로 입력해주세요.")
@@ -777,7 +777,7 @@ async def quote_snapshots(tickers: str):
     shared = {}
     missing = []
     for ticker in symbols:
-        if ticker in HOME_MAJOR_TICKERS:
+        if not fresh and ticker in HOME_MAJOR_TICKERS:
             market = "KR" if ticker.endswith((".KS", ".KQ")) else "US"
             updated_epoch = float((HOME_LIVE_CACHE.get("marketUpdatedEpoch") or {}).get(market) or 0)
             max_age = 15.0 if market in open_markets else 600.0
@@ -806,15 +806,16 @@ async def quote_snapshots(tickers: str):
         "results": results,
         "errors": errors,
         "fetchedAt": datetime.now(timezone.utc).isoformat(),
-        "source": "Render shared Home cache + Yahoo Chart fallback",
+        "source": "Render shared Home cache + canonical provider fallback",
         "sharedCacheHits": len(shared),
         "providerFetches": len(missing),
+        "freshRequested": bool(fresh),
         "dataContract": {
             "price": "latest available provider quote or latest close fallback",
             "change": "percent change versus previous trading close",
             "asOf": "provider market timestamp when available",
             "currency": "provider currency",
-            "cache": "fresh shared Home quote reused for overlapping major symbols; provider fallback otherwise",
+            "cache": "fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
             "missingValue": "null/omitted; zero is not used as a missing-value substitute",
         },
     }
