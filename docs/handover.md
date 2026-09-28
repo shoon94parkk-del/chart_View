@@ -301,3 +301,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - profile-sync/status and DATA STATUS /api/macro are idle work, not first-paint work.
 - AI PICK mounts after first paint, does not preload ledger assets, and only refetches on persisted bfcache pageshow.
 - Re-run a fresh-browser production audit after deployment; target Home median <=1.2s and no repeated >2s spikes under ordinary off-market load.
+
+
+## 2026-09-28 — Original Home first-paint P0 v2
+- Hidden Watchlist no longer requests quotes during Home boot; entry refresh owns revalidation.
+- Quick-add wrapper calls watchlist refresh only while Watchlist is active.
+- Personalized Home news waits 2.6s before observing the below-fold section.
+- Profile sync starts on Watchlist entry, with an 8s fallback.
+- Heatmap geometry/Data Status/AI PICK use explicit 2.6–3.2s grace instead of requestIdleCallback.
+- Generated release bundle is produced by scripts/build_frontend_bundle.py via a temporary branch-only workflow; do not hand-edit the bundle.

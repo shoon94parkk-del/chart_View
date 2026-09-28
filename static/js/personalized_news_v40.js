@@ -299,16 +299,21 @@
     section.dataset.newsV40Lazy = '1';
 
     const load = () => loadNews(false);
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
+    const observe = () => {
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          load();
+        }, { rootMargin: '100px 0px' });
+        observer.observe(section);
+      } else {
         load();
-      }, { rootMargin: '500px 0px' });
-      observer.observe(section);
-    } else {
-      setTimeout(load, 2200);
-    }
+      }
+    };
+    // News is below the first Home viewport. A hard grace period is more
+    // reliable than requestIdleCallback while critical network work is pending.
+    setTimeout(observe, 2600);
   }
 
   document.addEventListener('chartview:watchlist-change', () => setTimeout(() => loadNews(false), 40));

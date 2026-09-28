@@ -107,8 +107,7 @@
 
   function scheduleMount(){
     const run=()=>{addStyle();mount();};
-    if('requestIdleCallback' in window)window.requestIdleCallback(run,{timeout:2200});
-    else setTimeout(run,1200);
+    setTimeout(run,2600);
   }
 
   function isLedgerDeepLink(){

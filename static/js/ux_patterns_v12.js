@@ -175,8 +175,7 @@
 
   function scheduleDataStatus(force = false) {
     const run = () => installDataStatus(force);
-    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
-    else setTimeout(run, force ? 700 : 1800);
+    setTimeout(run, force ? 700 : 3200);
   }
 
   function boot() {

@@ -68,9 +68,8 @@ test('heatmap prefers the freshest shared Home snapshot instead of a stale priva
   assert.match(js, /function payloadTime\(payload\)/);
   assert.match(js, /payloadTime\(shared\) >= payloadTime\(own\) \? shared : own/);
   assert.match(js, /Equal timestamps prefer Home/);
-  assert.match(js, /scheduleRefresh\(0\)/);
-  assert.match(js, /requestIdleCallback/);
-  assert.match(js, /timeout: 1800/);
+  assert.match(js, /scheduleRefresh\(3200\)/);
+  assert.doesNotMatch(js, /window\.requestIdleCallback/);
   assert.match(js, /refreshServerLive\(false\)/);
 });
 

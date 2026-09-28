@@ -64,12 +64,15 @@ def test_watchlist_entry_is_cache_first_and_does_not_start_full_refresh():
     assert 'const ENTRY_REFRESH_THROTTLE_MS = 60 * 1000' in js
     assert 'function render({ refreshQuotes = false } = {})' in js
     assert 'render({ refreshQuotes: false })' in js
-    assert 'setTimeout(refreshCurrentQuotesQuietly, 0)' in js
+    init = js.split('function init()', 1)[1]
+    assert 'setTimeout(refreshCurrentQuotesQuietly, 0)' not in init
     assert 'let quietQuotePromise = null' in js
     assert 'async function refreshCurrentQuotesQuietly()' in js
     assert 'async function refreshReturnsQuietly()' in js
     assert 'function refreshWatchlistOnEntry()' in js
     assert 'window.__refreshWatchlistOnEntry = refreshWatchlistOnEntry' in js
     assert 'requestIdleCallback(runReturns' in js
-    assert 'setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0)' in quick
+    wrapper = quick.split('function wrapWatchlistRender', 1)[1].split('function attachObserver', 1)[0]
+    assert "classList.contains('active')" in wrapper
+    assert 'window.__refreshWatchlistOnEntry?.()' in wrapper
     assert "tab.querySelector('[data-watch-refresh]')?.addEventListener('click', () => loadQuotes(true))" in js

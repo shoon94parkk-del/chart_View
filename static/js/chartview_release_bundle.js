@@ -2395,7 +2395,9 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     // current quotes in the background; never start the expensive 1-month
     // history refresh before the user opens Watchlist.
     render({ refreshQuotes: false });
-    setTimeout(refreshCurrentQuotesQuietly, 0);
+    // First paint gets priority, but Home watchlist prices must still converge
+    // to the latest quote without requiring a Watchlist visit.
+    setTimeout(refreshCurrentQuotesQuietly, 2200);
     setTimeout(renderHomeShortcut, 500);
     setTimeout(renderHomeShortcut, 1800);
     document.addEventListener('chartview:watchlist-change', renderHomeShortcut);
@@ -2574,16 +2576,21 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
       return;
     }
     window.__watchlistInstantRenderV49 = true;
+    const refreshIfVisible = () => {
+      if (document.getElementById('watchlist-tab')?.classList.contains('active')) {
+        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+      }
+    };
     window.__renderWatchlist = function () {
       const grid = document.getElementById('watchlist-v30-grid');
       if (grid && grid.childElementCount) {
         schedule();
-        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+        refreshIfVisible();
         return grid;
       }
       const result = base.apply(this, arguments);
       schedule();
-      setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+      refreshIfVisible();
       return result;
     };
   }
@@ -4279,8 +4286,7 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
   function scheduleDataStatus(force = false) {
     const run = () => installDataStatus(force);
-    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
-    else setTimeout(run, force ? 700 : 1800);
+    setTimeout(run, force ? 700 : 3200);
   }
 
   function boot() {
@@ -5592,16 +5598,21 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     section.dataset.newsV40Lazy = '1';
 
     const load = () => loadNews(false);
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
+    const observe = () => {
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          load();
+        }, { rootMargin: '100px 0px' });
+        observer.observe(section);
+      } else {
         load();
-      }, { rootMargin: '500px 0px' });
-      observer.observe(section);
-    } else {
-      setTimeout(load, 2200);
-    }
+      }
+    };
+    // News is below the first Home viewport. A hard grace period is more
+    // reliable than requestIdleCallback while critical network work is pending.
+    setTimeout(observe, 2600);
   }
 
   document.addEventListener('chartview:watchlist-change', () => setTimeout(() => loadNews(false), 40));

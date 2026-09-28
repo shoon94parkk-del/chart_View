@@ -245,12 +245,17 @@
     document.addEventListener('chartview:watchlist-change', queueAutoSave);
   }
 
-  function scheduleInit() {
-    const run = () => init();
-    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2600 });
-    else window.setTimeout(run, 1800);
+  let initScheduled = false;
+  function scheduleInit(delay = 0) {
+    if (initScheduled) return;
+    initScheduled = true;
+    window.setTimeout(() => init(), delay);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleInit, { once: true });
-  else scheduleInit();
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.app-bottom-btn[data-app-mode="watchlist"]')) scheduleInit(0);
+  }, true);
+  const scheduleFallback = () => scheduleInit(8000);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleFallback, { once: true });
+  else scheduleFallback();
 })();
