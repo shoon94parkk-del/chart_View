@@ -157,16 +157,21 @@
       return;
     }
     window.__watchlistInstantRenderV49 = true;
+    const refreshIfVisible = () => {
+      if (document.getElementById('watchlist-tab')?.classList.contains('active')) {
+        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+      }
+    };
     window.__renderWatchlist = function () {
       const grid = document.getElementById('watchlist-v30-grid');
       if (grid && grid.childElementCount) {
         schedule();
-        setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+        refreshIfVisible();
         return grid;
       }
       const result = base.apply(this, arguments);
       schedule();
-      setTimeout(() => window.__refreshWatchlistOnEntry?.(), 0);
+      refreshIfVisible();
       return result;
     };
   }
