@@ -53,7 +53,8 @@ def test_activity_heartbeat_does_not_wait_for_redis():
 def test_quotes_reuse_fresh_shared_home_cache_before_provider():
     body = block('@app.get("/api/quotes")', '@app.get("/api/compare")')
     assert 'HOME_LIVE_CACHE.get("quotes")' in body
-    assert 'marketUpdatedEpoch' in body
+    assert 'quoteUpdatedEpoch' in body
+    assert 'marketUpdatedEpoch' not in body
     assert '"sharedCacheHits": len(shared)' in body
     assert '"providerFetches": len(missing)' in body
     assert 'asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in missing' in body
