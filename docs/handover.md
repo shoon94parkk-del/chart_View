@@ -310,3 +310,11 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - Profile sync starts on Watchlist entry, with an 8s fallback.
 - Heatmap geometry/Data Status/AI PICK use explicit 2.6–3.2s grace instead of requestIdleCallback.
 - Generated release bundle is produced by scripts/build_frontend_bundle.py via a temporary branch-only workflow; do not hand-edit the bundle.
+
+
+## 2026-09-28 — Original single boot bundle
+- Original Chart View now has one versioned /static/js/chartview_boot_bundle.js startup request instead of 17 JS requests.
+- scripts/build_boot_bundle.py is deterministic and must stay green with --check.
+- The existing release bundle is still generated independently and embedded into the boot bundle.
+- templates/index.html keeps non-loading meta version sentinels for chartview_release_bundle.js and ai_daily_widget.js so existing generated-asset checks remain valid.
+- CI validates release bundle freshness, boot bundle freshness, JavaScript syntax, and the one-startup-script contract.
