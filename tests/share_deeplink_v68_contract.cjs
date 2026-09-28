@@ -4,6 +4,7 @@ const fs = require('node:fs');
 
 const promo = fs.readFileSync('static/js/promo_v1.js', 'utf8');
 const html = fs.readFileSync('templates/index.html', 'utf8');
+const boot = fs.readFileSync('static/js/chartview_boot_bundle.js', 'utf8');
 const ux = fs.readFileSync('static/js/ux_v3.js', 'utf8');
 const ledger = fs.readFileSync('static/js/ai_pick_ledger_v52.js', 'utf8');
 
@@ -11,7 +12,8 @@ test('share uses current public canonical and never the retired Render host', ()
   assert.doesNotMatch(promo, /chart-view-bsg6\.onrender\.com/);
   assert.match(promo, /document\.querySelector\('link\[rel="canonical"\]'\)/);
   assert.match(promo, /chart-view-pkv8\.onrender\.com/);
-  assert.match(html, /\/static\/js\/promo_v1\.js\?v=20260923v68/);
+  assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=/);
+  assert.match(boot, /\/\* --- static\/js\/promo_v1\.js --- \*\//);
 });
 
 test('share URL preserves current app context', () => {
