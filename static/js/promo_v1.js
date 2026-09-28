@@ -56,6 +56,10 @@
   }
 
   function loadAiDailyWidget() {
+    if (window.__CHARTVIEW_BOOT_BUNDLE__) {
+      if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();
+      return;
+    }
     const existing = document.querySelector('script[src*="/static/js/ai_daily_widget.js"]');
     if (existing) {
       if (typeof window.__ensureAiDailyTop3 === 'function') window.__ensureAiDailyTop3();

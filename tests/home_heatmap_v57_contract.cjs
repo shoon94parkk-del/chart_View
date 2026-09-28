@@ -7,6 +7,7 @@ const ROOT = path.resolve(__dirname, '..');
 const js = fs.readFileSync(path.join(ROOT, 'static/js/home_heatmap_v57.js'), 'utf8');
 const css = fs.readFileSync(path.join(ROOT, 'static/css/home_heatmap_v57.css'), 'utf8');
 const html = fs.readFileSync(path.join(ROOT, 'templates/index.html'), 'utf8');
+const bootCss = fs.readFileSync(path.join(ROOT, 'static/css/chartview_boot_bundle.css'), 'utf8');
 const boot = fs.readFileSync(path.join(ROOT, 'static/js/chartview_boot_bundle.js'), 'utf8');
 const main = fs.readFileSync(path.join(ROOT, 'main.py'), 'utf8');
 const generator = fs.readFileSync(path.join(ROOT, 'scripts/generate_home_snapshot.py'), 'utf8');
@@ -55,7 +56,8 @@ test('persistent snapshot uses real valuation market cap, not trading volume', (
 });
 
 test('template loads V66 server-live heatmap assets', () => {
-  assert.match(html, /\/static\/css\/home_heatmap_v57\.css\?v=20260922v61a/);
+  assert.match(html, /\/static\/css\/chartview_boot_bundle\.css\?v=/);
+  assert.match(bootCss, /\/\* --- static\/css\/home_heatmap_v57\.css --- \*\//);
   assert.match(html, /\/static\/js\/chartview_boot_bundle\.js\?v=[^"\\s]+/);
   assert.match(boot, /\/\* --- static\/js\/home_heatmap_v57\.js --- \*\//);
   assert.match(css, /prefers-reduced-motion/);

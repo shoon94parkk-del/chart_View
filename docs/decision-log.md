@@ -223,3 +223,7 @@ Regular-market Chromium re-audit after P0 v1 still showed Home median 2.14s with
 
 ## 2026-09-28 — Original Chart View single boot bundle
 Regular-market Chromium runs still showed Home at 1.86–4.63s even after deferring non-critical Home API work. Render CPU remained low, while the original page requested 17 JavaScript files at startup plus a 31-script release bundle. The initial browser path is therefore consolidated into one content-addressed chartview_boot_bundle.js request. The boot generator preserves the legacy execution semantics (the former non-defer p2 revisit script first, then the former defer sequence), while hidden version sentinels keep the existing release-bundle and AI-widget freshness verifier compatible.
+
+
+## 2026-09-28 — Original boot CSS bundle P0
+Regular-market Chromium resource timing showed a 9.68s Home outlier even after the single JavaScript boot bundle. During that run the JS boot bundle took ~7.0s and the release CSS bundle ~6.6s while Render CPU remained near idle, indicating startup request/transfer tail latency rather than server compute saturation. The eight initial stylesheet requests are therefore consolidated into one content-addressed chartview_boot_bundle.css. home_summary_v54 is moved into the JS boot bundle, and promo/ui-continuity loaders explicitly avoid re-requesting helpers already embedded in the boot bundle.

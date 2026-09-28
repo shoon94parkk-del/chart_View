@@ -318,3 +318,12 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - The existing release bundle is still generated independently and embedded into the boot bundle.
 - templates/index.html keeps non-loading meta version sentinels for chartview_release_bundle.js and ai_daily_widget.js so existing generated-asset checks remain valid.
 - CI validates release bundle freshness, boot bundle freshness, JavaScript syntax, and the one-startup-script contract.
+
+
+## 2026-09-28 — Original boot CSS P0
+- Original startup now targets one JS boot request and one CSS boot request.
+- chartview_boot_bundle.css preserves the prior stylesheet order: style, ux patch, promo, release CSS, continuity, live quotes, heatmap, p2 revisit.
+- chartview_release_bundle.css remains independently generated and is embedded into the boot CSS; its template version is retained only as a non-loading meta sentinel.
+- home_summary_v54.js is embedded before ui_continuity_v53.js.
+- promo_v1.js and ui_continuity_v53.js must not dynamically reload AI/home-summary helpers when window.__CHARTVIEW_BOOT_BUNDLE__ is present.
+- Re-measure production with fresh Chromium contexts; judge the change by median and worst-case Home latency, not only the best run.
