@@ -447,6 +447,24 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     if sum_dimension_col and total_amount is None:
         return None
 
+    if kind == "segment":
+        # Some tables repeat the exact segment total on each descriptive
+        # sub-service/product row. Count that disclosed segment total once.
+        deduped = []
+        seen_segment_totals = set()
+        for row in rows:
+            key = (
+                row["name"],
+                round(float(row["revenue"]), 6),
+                None if row["share"] is None else round(float(row["share"]), 6),
+            )
+            if key in seen_segment_totals:
+                continue
+            seen_segment_totals.add(key)
+            deduped.append(row)
+        rows = deduped
+        explicit_share_count = sum(row["share"] is not None for row in rows)
+
     if kind == "category":
         segment_like = sum("부문" in row["name"] for row in rows)
         if segment_like and segment_like >= max(1, len(rows) // 2):
