@@ -1,0 +1,40 @@
+name: Samsung DART Targeted Viewer Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/samsung-dart-targeted.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Benchmark targeted DART viewer path
+        run: |
+          python - <<'PY'
+          import json,time
+          import dart_business_service as d
+          rcp='20260310002820'
+          t0=time.perf_counter()
+          docs=d._viewer_sections_web(rcp)
+          t1=time.perf_counter()
+          mix=d.extract_revenue_mix(docs,2025)
+          t2=time.perf_counter()
+          print('DOC_COUNT',len(docs))
+          print('FETCH_SEC',round(t1-t0,3))
+          print('PARSE_SEC',round(t2-t1,3))
+          print('TOTAL_SEC',round(t2-t0,3))
+          print('MIX',json.dumps(mix,ensure_ascii=False))
+          PY
