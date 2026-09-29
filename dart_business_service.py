@@ -229,6 +229,39 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     if len(rows) < 2:
         return None
 
+    # DART HTML can use rowspan for revenue/share cells. pandas.read_html
+    # forward-fills those cells into the following row, which can make an
+    # otherwise valid product mix exceed 100%. Only collapse an *adjacent*
+    # exact amount+share duplicate when doing so restores the explicit-share
+    # total to roughly 100%; otherwise keep failing closed.
+    if explicit_share_count:
+        raw_share_sum = sum(row["share"] for row in rows if row["share"] is not None)
+        if raw_share_sum > 105:
+            collapsed_rows = []
+            collapsed_count = 0
+            for row in rows:
+                previous = collapsed_rows[-1] if collapsed_rows else None
+                duplicated_span = bool(
+                    previous
+                    and row["share"] is not None
+                    and previous["share"] is not None
+                    and row["name"] != previous["name"]
+                    and abs(float(row["revenue"]) - float(previous["revenue"])) < 1e-9
+                    and abs(float(row["share"]) - float(previous["share"])) < 1e-9
+                )
+                if duplicated_span:
+                    collapsed_count += 1
+                    continue
+                collapsed_rows.append(row)
+            collapsed_share_sum = sum(
+                row["share"] for row in collapsed_rows if row["share"] is not None
+            )
+            if collapsed_count and 95 <= collapsed_share_sum <= 105:
+                rows = collapsed_rows
+                explicit_share_count = sum(row["share"] is not None for row in rows)
+            else:
+                return None
+
     # Aggregate duplicate product/segment rows (e.g. domestic/export split).
     grouped: dict[str, dict] = {}
     for row in rows:
