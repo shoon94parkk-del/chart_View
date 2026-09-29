@@ -172,3 +172,11 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - A seeded Home snapshot may paint immediately but must not advance live freshness timestamps.
 - During the Korean NXT quote window (08:00–20:00 KST), Home/watchlist current-price paths must remain on active-market freshness rules; they must not fall back to the closed-market 5-minute cadence at 15:30.
 - If `/api/quotes` fetches a newer Home-major quote from the provider, it must update the shared in-memory row and that ticker's freshness timestamp.
+
+### OpenDART performance / Samsung guardrail
+- Runtime DART requests must prefer the checked-in stock-code→corp-code cache; do not reintroduce cold-request downloads of the entire corpCode.xml archive.
+- After OpenDART identifies the latest annual report, fetch narrow DART viewer sections before considering a full-report document download.
+- Tables containing both a business division and a major-product list must attribute the disclosed revenue to the division, not to every listed product.
+- DART triangle-negative values (△) are negative. Internal-transaction elimination rows may reconcile disclosed segment shares above 100%; use them for validation but never expose them as revenue items.
+- Samsung Electronics 2025 annual-report sentinel: sourceMode=opendart-api, basis=사업부문별 매출, top item=DX 부문, share=56.3.
+- Performance sentinel: optimized cold path should remain under 15s in CI; warm in-process cache under 100ms.
