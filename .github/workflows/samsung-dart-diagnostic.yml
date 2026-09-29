@@ -21,52 +21,62 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -q -r requirements.txt
-      - name: Diagnose Samsung Electronics DART paths
+      - name: Diagnose Samsung DART search pagination
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           APP_URL: https://chart-view-pkv8.onrender.com
         run: |
           python - <<'PY'
-          import json, os, urllib.parse, urllib.request
-          from dart_business_service import fetch_business_report
+          import io, json, os, re, urllib.parse, urllib.request
+          from datetime import datetime, timedelta
+          from bs4 import BeautifulSoup
+          import dart_business_service as d
 
-          local=fetch_business_report('005930.KS','삼성전자')
-          print('=== LOCAL_PARSER_WITH_GITHUB_ENV ===')
-          print(json.dumps({
-              'hasDartApiKey': bool(os.environ.get('DART_API_KEY','').strip()),
-              'available': local.get('available'),
-              'reportFound': local.get('reportFound'),
-              'reportName': local.get('reportName'),
-              'reportYear': local.get('reportYear'),
-              'rceptDate': local.get('rceptDate'),
-              'source': local.get('source'),
-              'sourceMode': local.get('sourceMode'),
-              'basis': local.get('basis'),
-              'unit': local.get('unit'),
-              'topItem': local.get('topItem'),
-              'items': local.get('items'),
-              'reason': local.get('reason'),
-              'sourceUrl': local.get('sourceUrl'),
-          },ensure_ascii=False,indent=2))
+          print('HAS_DART_API_KEY=',bool(os.environ.get('DART_API_KEY','').strip()))
 
-          base=os.environ['APP_URL'].rstrip('/')
+          session=d._session()
+          end=datetime.now(d.KST).date()
+          start=end-timedelta(days=1100)
+
+          def page(page_no):
+              r=session.post(
+                  f"{d.DART_BASE}/dsab001/search.ax",
+                  data={
+                      'textCrpNm':'삼성전자',
+                      'currentPage':page_no,
+                      'maxResults':100,
+                      'sort':'date',
+                      'series':'desc',
+                      'finalReport':'Y',
+                      'startDate':start.strftime('%Y%m%d'),
+                      'endDate':end.strftime('%Y%m%d'),
+                  },
+                  timeout=d.REQUEST_TIMEOUT,
+              )
+              r.raise_for_status()
+              soup=BeautifulSoup(r.text,'lxml')
+              rows=[]
+              for tr in soup.select('table tbody tr'):
+                  cells=tr.find_all('td')
+                  if len(cells)<3: continue
+                  report=d._clean(cells[2].get_text(' ',strip=True))
+                  date=d._clean(cells[4].get_text(' ',strip=True)) if len(cells)>4 else ''
+                  link=cells[2].find('a',href=True)
+                  href=link.get('href','') if link else ''
+                  rows.append((date,report,href))
+              return rows,r.text
+
+          for p in range(1,6):
+              rows,html=page(p)
+              annual=[row for row in rows if '사업보고서' in row[1] and '분기보고서' not in row[1] and '반기보고서' not in row[1]]
+              print('PAGE',p,'ROWS',len(rows),'FIRST',rows[:2],'LAST',rows[-2:] if rows else [],'ANNUAL',annual[:8])
+              if annual:
+                  break
+
+          print('INTERNAL_SEARCH=',json.dumps(d._search_report_web('삼성전자','005930'),ensure_ascii=False))
+
           qs=urllib.parse.urlencode({'ticker':'005930.KS','name':'삼성전자'})
-          with urllib.request.urlopen(base+'/api/business-report?'+qs,timeout=60) as r:
+          with urllib.request.urlopen(os.environ['APP_URL'].rstrip('/')+'/api/business-report?'+qs,timeout=60) as r:
               live=json.loads(r.read().decode('utf-8'))
-          print('=== LIVE_RENDER_API ===')
-          print(json.dumps({
-              'available': live.get('available'),
-              'reportFound': live.get('reportFound'),
-              'reportName': live.get('reportName'),
-              'reportYear': live.get('reportYear'),
-              'rceptDate': live.get('rceptDate'),
-              'source': live.get('source'),
-              'sourceMode': live.get('sourceMode'),
-              'basis': live.get('basis'),
-              'unit': live.get('unit'),
-              'topItem': live.get('topItem'),
-              'items': live.get('items'),
-              'reason': live.get('reason'),
-              'sourceUrl': live.get('sourceUrl'),
-          },ensure_ascii=False,indent=2))
+          print('LIVE=',json.dumps(live,ensure_ascii=False))
           PY
