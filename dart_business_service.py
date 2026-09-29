@@ -172,7 +172,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         share = _number(raw.get(share_col)) if share_col else None
         if not label or amount is None or amount < 0:
             continue
-        if re.search(r"(합계|총계|계\s*$|매출액\s*합)", label):
+        compact_label = re.sub(r"\s+", "", label)
+        if re.fullmatch(r"(합계|총계|소계|계|매출액합계)", compact_label):
             total_amount = max(total_amount or 0, amount)
             continue
         if label in {"내수", "수출", "국내", "해외"}:
