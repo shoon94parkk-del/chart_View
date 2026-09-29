@@ -54,6 +54,20 @@ def test_persistent_cache_reuses_validated_receipt_after_process_memory_clears(m
     assert dart.fetch_business_report("005930.KS")["rceptNo"] == "20260310002820"
 
 
+def test_revalidated_static_row_wins_over_older_parser_output_for_same_receipt(monkeypatch):
+    old = dict(_row(), topItem={"name": "PU 단열재 사 업 부 문", "share": 96.2})
+    current = dict(_row(), topItem={"name": "PU 단열재 사업부문", "share": 96.2})
+    monkeypatch.setattr(dart, "_load_persistent", lambda code: (time.time(), old))
+    monkeypatch.setattr(dart, "_static_business_context", lambda code: current)
+    monkeypatch.setattr(dart, "_schedule_report_check", lambda *args: None)
+    monkeypatch.delenv("DART_STATIC_CACHE_BYPASS", raising=False)
+    with dart._CACHE_LOCK:
+        dart._CACHE.clear()
+    result = dart.fetch_business_report("005930.KS")
+    assert result["cacheMode"] == "static-precomputed"
+    assert result["topItem"]["name"] == "PU 단열재 사업부문"
+
+
 def test_receipt_check_skips_parsing_unchanged_report(monkeypatch):
     old = _row()
     monkeypatch.setenv("DART_API_KEY", "test-key")

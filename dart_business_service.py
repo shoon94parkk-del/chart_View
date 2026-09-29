@@ -1267,7 +1267,7 @@ def fetch_business_report(ticker: str, company_name: str = "", *,
         static_cached = _static_business_context(code)
         if static_cached:
             static_cached["cacheMode"] = "static-precomputed"
-        if persistent and static_cached and str(static_cached.get("rceptNo") or "") > str(persistent[1].get("rceptNo") or ""):
+        if persistent and static_cached and str(static_cached.get("rceptNo") or "") >= str(persistent[1].get("rceptNo") or ""):
             persistent = None
         if persistent or static_cached:
             checked_at, row = persistent if persistent else (0.0, static_cached)
