@@ -39,13 +39,13 @@ _CORP_CODES: tuple[float, dict[str, dict]] = (0.0, {})
 
 REPORT_TITLE_RE = re.compile(r"(?:^|\])\s*사업보고서(?:\s*\(|\s*$)")
 VIEW_NODE_RE = re.compile(
-    r"(?P<var>node\\d+)\\['text'\\]\\s*=\\s*[\\\"'](?P<title>.*?)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['rcpNo'\\]\\s*=\\s*[\\\"'](?P<rcp>\\d+)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['dcmNo'\\]\\s*=\\s*[\\\"'](?P<dcm>\\d+)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['eleId'\\]\\s*=\\s*[\\\"'](?P<ele>\\d+)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['offset'\\]\\s*=\\s*[\\\"'](?P<offset>\\d+)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['length'\\]\\s*=\\s*[\\\"'](?P<length>\\d+)[\\\"']\\s*;.*?"
-    r"(?P=var)\\['dtd'\\]\\s*=\\s*[\\\"'](?P<dtd>[^\\\"']+)[\\\"']",
+    r"(?P<var>node\d+)\['text'\]\s*=\s*[\"'](?P<title>.*?)[\"']\s*;.*?"
+    r"(?P=var)\['rcpNo'\]\s*=\s*[\"'](?P<rcp>\d+)[\"']\s*;.*?"
+    r"(?P=var)\['dcmNo'\]\s*=\s*[\"'](?P<dcm>\d+)[\"']\s*;.*?"
+    r"(?P=var)\['eleId'\]\s*=\s*[\"'](?P<ele>\d+)[\"']\s*;.*?"
+    r"(?P=var)\['offset'\]\s*=\s*[\"'](?P<offset>\d+)[\"']\s*;.*?"
+    r"(?P=var)\['length'\]\s*=\s*[\"'](?P<length>\d+)[\"']\s*;.*?"
+    r"(?P=var)\['dtd'\]\s*=\s*[\"'](?P<dtd>[^\"']+)[\"']",
     re.S,
 )
 
