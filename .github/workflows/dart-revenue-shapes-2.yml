@@ -1,0 +1,111 @@
+name: DART Revenue Shape Diagnostic 2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dart-revenue-shapes-2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Dump remaining revenue table shapes with retries
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import io,json,os,time
+          import pandas as pd
+          import dart_business_service as d
+
+          probes=[
+              ('373220','LG에너지솔루션'),
+              ('207940','삼성바이오로직스'),
+              ('000270','기아'),
+              ('035720','카카오'),
+              ('068270','셀트리온'),
+              ('005490','POSCO홀딩스'),
+          ]
+          key=os.environ['DART_API_KEY'].strip()
+
+          def get(session,url,params,tries=4,timeout=20):
+              last=None
+              for attempt in range(tries):
+                  try:
+                      r=session.get(url,params=params,timeout=timeout)
+                      r.raise_for_status()
+                      return r
+                  except Exception as exc:
+                      last=exc
+                      print('RETRY',attempt+1,type(exc).__name__,str(exc)[:100],flush=True)
+                      time.sleep(1.5*(attempt+1))
+              raise last
+
+          for code,name in probes:
+              print('\n===',code,name,'===',flush=True)
+              try:
+                  report=d._search_report_api(key,code)
+                  print('REPORT',json.dumps(report,ensure_ascii=False),flush=True)
+                  if not report:
+                      continue
+                  session=d._session()
+                  main=get(session,f"{d.DART_BASE}/dsaf001/main.do",{'rcpNo':report['rceptNo']},timeout=25)
+                  nodes=d._viewer_nodes(main.text)
+                  targets=[
+                      n for n in nodes
+                      if any(token in (n.get('title') or '') for token in (
+                          '주요 제품','주요제품','매출 및 수주','매출실적','매출 실적','사업부문','사업의 내용','영업수익','매출액'
+                      ))
+                  ]
+                  print('TARGETS',json.dumps([
+                      {k:n.get(k) for k in ('title','ele','offset','length')} for n in targets[:15]
+                  ],ensure_ascii=False),flush=True)
+                  printed=0
+                  for node in targets[:8]:
+                      try:
+                          rr=get(
+                              session,
+                              f"{d.DART_BASE}/report/viewer.do",
+                              {
+                                  'rcpNo':node['rcp'],'dcmNo':node['dcm'],'eleId':node['ele'],
+                                  'offset':node['offset'],'length':node['length'],'dtd':node['dtd'],
+                              },
+                              timeout=20,
+                          )
+                      except Exception as exc:
+                          print('VIEWER_FAIL',node.get('title'),type(exc).__name__,flush=True)
+                          continue
+                      try:
+                          tables=pd.read_html(io.StringIO(rr.text))
+                      except Exception:
+                          continue
+                      for idx,table in enumerate(tables):
+                          flat=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                          if '매출' not in flat and '영업수익' not in flat:
+                              continue
+                          print('TABLE_META',json.dumps({
+                              'section':node.get('title'),'index':idx,
+                              'shape':list(table.shape),'columns':[str(x) for x in table.columns],
+                          },ensure_ascii=False),flush=True)
+                          print(table.head(22).to_string(index=False)[:10000],flush=True)
+                          printed+=1
+                          if printed>=6:
+                              break
+                      if printed>=6:
+                          break
+                  print('PRINTED',printed,flush=True)
+              except Exception as exc:
+                  print('COMPANY_FAIL',code,name,type(exc).__name__,str(exc)[:300],flush=True)
+          PY
