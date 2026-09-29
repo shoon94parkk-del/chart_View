@@ -37,4 +37,30 @@ jobs:
                 'available=', bool(result.get('available')),
                 'mode=', result.get('sourceMode'),
                 'reason=', result.get('reason'))
+          if result.get('reportFound') and not result.get('available'):
+              import re, pandas as pd
+              from io import StringIO
+              import dart_business_service as d
+              session=d._session()
+              main=session.get(f"{d.DART_BASE}/dsaf001/main.do",params={'rcpNo':result['rceptNo']},timeout=d.REQUEST_TIMEOUT)
+              titles=[]
+              for m in d.VIEW_DOC_RE.finditer(main.text):
+                  title=d._clean(m.group('title'))
+                  if title:
+                      titles.append(title)
+              print('DART_NODE_TITLES=', json.dumps(titles[:120],ensure_ascii=False))
+              docs=d._viewer_sections_web(result['rceptNo'])
+              print('DART_SELECTED_DOCS=', len(docs))
+              for idx,html in enumerate(docs):
+                  try:
+                      tables=pd.read_html(StringIO(html))
+                  except Exception as exc:
+                      print('DOC',idx,'READ_HTML_FAIL',type(exc).__name__)
+                      continue
+                  for tidx,table in enumerate(tables):
+                      text=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                      if '매출' not in text:
+                          continue
+                      print('DART_TABLE',idx,tidx,'SHAPE',table.shape,'COLUMNS',json.dumps([str(x) for x in table.columns],ensure_ascii=False))
+                      print(table.head(12).to_string(index=False)[:5000])
           PY
