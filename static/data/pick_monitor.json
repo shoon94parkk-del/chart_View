@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T18:56:12+09:00",
+  "generatedAt": "2026-09-29T18:36:34+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-09-28T18:41:00+09:00",
   "policy": {
@@ -978,11 +978,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-29T18:31:41+09:00",
+        "lastReviewedTradeDate": "2026-09-29",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 AI 데이터센터 냉각/HVAC, 전장·B2B 성장 논리를 새로 검증할 중대한 펀더멘털 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-29T18:31:41+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -1016,11 +1019,14 @@
       "statusLabel": "검토 대기",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": null,
-        "lastReviewedTradeDate": null,
-        "thesisChecks": {},
+        "lastReviewedAt": "2026-09-29T18:31:41+09:00",
+        "lastReviewedTradeDate": "2026-09-29",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
         "evidence": [],
-        "reason": "기존 PICK 기준선 등록 완료. 최신 팩트 검증 전 상태입니다."
+        "reason": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 GaN 전력증폭기, 방산·통신 고객 확대 논리를 새로 검증할 수주·고객·실적 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-29T18:31:41+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -1029,5 +1035,5 @@
       }
     }
   ],
-  "reviewSourceUpdated": "2026-09-28T18:41:00+09:00"
+  "reviewSourceUpdated": "2026-09-29T18:31:41+09:00"
 }
