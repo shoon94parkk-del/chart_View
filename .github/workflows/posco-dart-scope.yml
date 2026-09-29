@@ -45,7 +45,17 @@ jobs:
                   scope_tokens=sum(token in flat for token in ('철강','인프라','이차전지','연결조정','친환경'))
                   if scope_tokens < 2:
                       continue
+                  promoted=d._promote_embedded_header(d._flatten_columns(table))
+                  pcols=list(promoted.columns)
+                  label_info=d._label_column(pcols)
+                  pair_info=d._repeated_revenue_metric_pair(promoted)
+                  share_info=d._share_column(pcols)
+                  amount_info=d._amount_column(pcols,allow_generic=bool(share_info))
                   parsed=d._extract_table(table,html,year)
+                  print('PARSER_STAGE',json.dumps({
+                      'table':ti,'promotedColumns':pcols,'label':label_info,
+                      'pair':pair_info,'share':share_info,'amount':amount_info,
+                  },ensure_ascii=False))
                   print('SCOPE_TABLE',json.dumps({
                       'doc':di,'table':ti,'shape':list(table.shape),
                       'columns':[str(x) for x in table.columns],
