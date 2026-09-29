@@ -194,7 +194,9 @@ def _label_column(columns: list[str]) -> tuple[str | None, str]:
 def _combined_amount_share_column(columns: list[str]) -> str | None:
     for col in columns:
         compact = re.sub(r"\s+", "", col)
-        if "매출" in compact and any(token in compact for token in ("비중", "비율", "%")):
+        has_amount = any(token in compact for token in ("매출액", "매출금액", "금액"))
+        has_share = any(token in compact for token in ("비중", "비율", "%"))
+        if has_amount and has_share:
             return col
     return None
 
