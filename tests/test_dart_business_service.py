@@ -142,3 +142,21 @@ def test_excludes_named_sales_total_rows():
     assert result is not None
     assert [row["name"] for row in result["items"]] == ["제품A", "제품B"]
 
+def test_normalizes_compound_dart_revenue_unit():
+    html = """
+    <html><body>
+      <p>(단위 : 천원, %)</p>
+      <table>
+        <thead><tr><th>품목</th><th>매출액</th><th>비중</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>600</td><td>60%</td></tr>
+          <tr><td>B</td><td>400</td><td>40%</td></tr>
+          <tr><td>합계</td><td>1000</td><td>100%</td></tr>
+        </tbody>
+      </table>
+    </body></html>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["unit"] == "천원"
+
