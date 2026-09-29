@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
 
 os.environ["DART_STATIC_CACHE_BYPASS"] = "1"
 
-from dart_business_service import fetch_business_report  # noqa: E402
+from dart_business_service import _CACHE, _CACHE_LOCK, fetch_business_report  # noqa: E402
 
 KST = timezone(timedelta(hours=9))
 OUT = Path("static/data/dart_business_context.json")
@@ -58,30 +58,72 @@ def main() -> None:
         except Exception:
             previous = {}
 
+    previous_companies = previous.get("companies") if isinstance(previous, dict) else {}
+    if not isinstance(previous_companies, dict):
+        previous_companies = {}
+
     companies = {}
     failures = []
     for ticker, name in COMPANIES:
         code = ticker.split(".", 1)[0]
-        started = time.perf_counter()
-        result = fetch_business_report(ticker, name)
-        elapsed = time.perf_counter() - started
+        result = None
+        elapsed = 0.0
+        for attempt in range(1, 4):
+            # A failed live DART request is cached by the service too. Clear
+            # only this company before retrying so a transient timeout does
+            # not become the result of every retry.
+            with _CACHE_LOCK:
+                _CACHE.pop(code, None)
+            started = time.perf_counter()
+            result = fetch_business_report(ticker, name)
+            elapsed += time.perf_counter() - started
+            if result.get("available") and result.get("sourceMode") == "opendart-api":
+                break
+            if attempt < 3:
+                time.sleep(1.25 * attempt)
+
         print(
             f"{ticker} {name}: available={result.get('available')} "
             f"basis={result.get('basis')} top={(result.get('topItem') or {}).get('name')} "
-            f"{elapsed:.2f}s",
+            f"attempts<=3 total={elapsed:.2f}s",
             flush=True,
         )
+
         if result.get("available") and result.get("sourceMode") == "opendart-api":
             companies[code] = stable_row(result, name)
         else:
-            failures.append({"ticker": ticker, "name": name, "reason": result.get("reason")})
+            previous_row = previous_companies.get(code)
+            same_report = bool(
+                previous_row
+                and result.get("rceptNo")
+                and previous_row.get("rceptNo") == result.get("rceptNo")
+            )
+            report_lookup_failed = not result.get("reportFound")
+            can_retain = bool(
+                isinstance(previous_row, dict)
+                and previous_row.get("available") is True
+                and previous_row.get("sourceMode") == "opendart-api"
+                and (same_report or report_lookup_failed)
+            )
+            if can_retain:
+                companies[code] = previous_row
+            failures.append({
+                "ticker": ticker,
+                "name": name,
+                "reason": result.get("reason"),
+                "retainedPrevious": can_retain,
+            })
         time.sleep(0.25)
 
-    if len(companies) < 10:
-        raise RuntimeError(f"too few validated DART rows: {len(companies)}; failures={failures}")
+    if len(companies) < len(COMPANIES):
+        missing = [ticker for ticker, _ in COMPANIES if ticker.split(".", 1)[0] not in companies]
+        raise RuntimeError(
+            f"validated DART cache incomplete: {len(companies)}/{len(COMPANIES)}; "
+            f"missing={missing}; failures={failures}"
+        )
 
-    previous_companies = previous.get("companies") if isinstance(previous, dict) else {}
-    changed = previous_companies != companies
+    previous_failures = previous.get("failures") if isinstance(previous, dict) else []
+    changed = previous_companies != companies or previous_failures != failures
     if not changed and OUT.exists():
         print("No validated DART business-context changes")
         return
