@@ -38,8 +38,8 @@ RELATION_PATTERNS = (
     ("고객·채택", re.compile(r"고객사로\s*(?:확보|선정|등록)|(?:제품|부품|장비).{0,15}채택", re.I)),
     ("계약", re.compile(r"계약(?:을|을\s*새로)?\s*(?:체결|맺|따냈|공시)", re.I)),
 )
-CLAUSE_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|[\n\r]+|[▲▶◆]")
-ROUNDUP_RE = re.compile(r"오늘의\s*특징주|특징주|주식마감|기업\s*공시|증시\s*마감|코스피|코스닥|상한가|종목\s*뉴스|뉴스톡톡|뉴스인사이드", re.I)
+CLAUSE_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|[\n\r]+|[▲▶◆]|\s+-\s+(?=[가-힣A-Za-z])")
+ROUNDUP_RE = re.compile(r"오늘의\s*특징주|특징주|주식마감|기업\s*공시|주요\s*공시|경제\s*브리핑|모닝.{0,10}브리핑|증시\s*마감|코스피|코스닥|상한가|종목\s*뉴스|뉴스톡톡|뉴스인사이드", re.I)
 SPECULATIVE_RE = re.compile(r"가능성|기대감?|전망|추정|관측|소문|거론|후보|예상|검토|논의", re.I)
 ENDED_RELATION_RE = re.compile(
     r"계약(?:을|이|의)?\s*(?:해지|종료)|"
@@ -153,7 +153,12 @@ def _company_mentioned(name: str, text: str) -> bool:
         return False
     if re.fullmatch(r"[A-Za-z0-9&.\-]+", name):
         return bool(re.search(rf"(?<![A-Za-z0-9]){re.escape(name)}(?![A-Za-z0-9])", text, re.I))
-    return name in text
+    # Korean particles may follow an issuer name, but another Hangul syllable
+    # usually means the name is only a prefix of a different company.
+    return bool(re.search(
+        rf"(?<![가-힣A-Za-z0-9]){re.escape(name)}(?=$|[^가-힣A-Za-z0-9]|[은는이가을를와과에의로도만])",
+        text,
+    ))
 
 
 def _unshadowed_company_mentioned(name: str, text: str, companies: list[dict]) -> bool:

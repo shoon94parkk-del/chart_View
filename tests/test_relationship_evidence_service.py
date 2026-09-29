@@ -150,3 +150,33 @@ def test_dedicated_story_can_show_explicit_customer_contract_without_prefix_matc
     rows = extract_direct_relations("동성화인텍", "033500.KQ", [item], companies)
     assert {row["counterpartyName"] for row in rows} == {"삼성중공업", "HD현대중공업"}
 
+
+def test_morning_economic_briefing_does_not_link_unrelated_disclosures():
+    item = {
+        "relationType": "direct",
+        "title": "[N2 모닝 경제 브리핑-9월 29일] 美 증시와 기업 소식",
+        "summarySeed": "수주 - 한화오션 : 자기주식 취득 결정 - 티케이지휴켐스 : 질산 공급 계약 체결 - 달바글로벌 : NH투자증권과 신탁계약 체결",
+        "url": "https://example.com/morning",
+    }
+    companies = COMPANIES + [
+        {"name": "티케이지휴켐스", "symbol": "069260.KS"},
+        {"name": "달바글로벌", "symbol": "483650.KS"},
+        {"name": "NH투자증권", "symbol": "005940.KS"},
+    ]
+    assert extract_direct_relations("한화오션", "042660.KS", [item], companies) == []
+
+
+def test_unlisted_longer_company_name_does_not_create_listed_prefix_relation():
+    item = {
+        "relationType": "direct",
+        "title": "동성화인텍, LNG 보냉재 계약 체결",
+        "summarySeed": "동성화인텍은 HD현대중공업 및 HD현대삼호와 공급계약을 체결했다.",
+        "url": "https://example.com/samho",
+    }
+    companies = COMPANIES + [
+        {"name": "HD현대", "symbol": "267250.KS"},
+        {"name": "HD현대중공업", "symbol": "329180.KS"},
+    ]
+    rows = extract_direct_relations("동성화인텍", "033500.KQ", [item], companies)
+    assert [row["counterpartyName"] for row in rows] == ["HD현대중공업"]
+
