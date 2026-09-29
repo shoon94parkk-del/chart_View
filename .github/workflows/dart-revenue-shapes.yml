@@ -1,0 +1,102 @@
+name: DART Revenue Shape Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dart-revenue-shapes.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Dump representative failed revenue tables
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import io,json,os,time
+          import pandas as pd
+          import dart_business_service as d
+
+          probes=[
+              ('000660','SK하이닉스'),
+              ('005380','현대차'),
+              ('006400','삼성SDI'),
+              ('035420','NAVER'),
+              ('068270','셀트리온'),
+              ('005490','POSCO홀딩스'),
+          ]
+          key=os.environ['DART_API_KEY'].strip()
+          for code,name in probes:
+              print('\n===',code,name,'===',flush=True)
+              report=d._search_report_api(key,code)
+              print('REPORT',json.dumps(report,ensure_ascii=False),flush=True)
+              if not report:
+                  continue
+              session=d._session()
+              main=session.get(
+                  f"{d.DART_BASE}/dsaf001/main.do",
+                  params={'rcpNo':report['rceptNo']},
+                  timeout=30,
+              )
+              main.raise_for_status()
+              nodes=d._viewer_nodes(main.text)
+              targets=[
+                  n for n in nodes
+                  if any(token in (n.get('title') or '') for token in (
+                      '주요 제품','주요제품','매출 및 수주','매출실적','매출 실적','사업부문','사업의 내용','영업수익','매출액'
+                  ))
+              ]
+              print('TARGETS',json.dumps([
+                  {k:n.get(k) for k in ('title','ele','offset','length')} for n in targets[:15]
+              ],ensure_ascii=False),flush=True)
+              printed=0
+              for node in targets[:8]:
+                  try:
+                      rr=session.get(
+                          f"{d.DART_BASE}/report/viewer.do",
+                          params={
+                              'rcpNo':node['rcp'],'dcmNo':node['dcm'],'eleId':node['ele'],
+                              'offset':node['offset'],'length':node['length'],'dtd':node['dtd'],
+                          },
+                          timeout=20,
+                      )
+                      rr.raise_for_status()
+                  except Exception as exc:
+                      print('VIEWER_FAIL',node.get('title'),type(exc).__name__,str(exc)[:120],flush=True)
+                      continue
+                  try:
+                      tables=pd.read_html(io.StringIO(rr.text))
+                  except Exception as exc:
+                      print('READ_FAIL',node.get('title'),type(exc).__name__,flush=True)
+                      continue
+                  for idx,table in enumerate(tables):
+                      flat=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                      if '매출' not in flat and '영업수익' not in flat:
+                          continue
+                      printed+=1
+                      print('TABLE_META',json.dumps({
+                          'section':node.get('title'),
+                          'index':idx,
+                          'shape':list(table.shape),
+                          'columns':[str(x) for x in table.columns],
+                      },ensure_ascii=False),flush=True)
+                      print(table.head(24).to_string(index=False)[:12000],flush=True)
+                      if printed>=8:
+                          break
+                  if printed>=8:
+                      break
+              print('PRINTED',printed,flush=True)
+          PY
