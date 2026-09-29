@@ -314,6 +314,30 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         (col for col in columns if any(word in re.sub(r"\s+", "", col) for word in ("품목", "제품", "서비스", "주요제품"))),
         None,
     )
+    if not segment_col:
+        # Some DART tables call the segment column simply "구분". Infer it
+        # from values such as "플랫폼 부문 / 콘텐츠 부문" rather than from
+        # the header text alone.
+        for col in columns:
+            values = [
+                _row_label(value)
+                for value in frame[col].head(40).tolist()
+                if _row_label(value)
+            ]
+            meaningful = [
+                value for value in values
+                if not _is_total_label(value)
+                and value not in {"매출액", "영업이익", "영업손익", "총자산", "자산"}
+            ]
+            if not meaningful:
+                continue
+            segment_like = [value for value in meaningful if "부문" in re.sub(r"\s+", "", value)]
+            if len(segment_like) >= 2 and len(segment_like) >= max(2, len(meaningful) // 2):
+                segment_col = col
+                label_col = col
+                kind = "segment"
+                break
+
     switched_product = False
     if kind == "segment" and segment_col and product_col:
         pairs = []
