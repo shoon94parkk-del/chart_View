@@ -2,6 +2,14 @@
 
 Append-only record of high-risk behavioral decisions. New work should add entries rather than rewrite history.
 
+## 2026-09-29 — Home chart load guard
+
+**Observed issue:** The production mobile verification intermittently found a Lightweight Charts script on a fresh Home visit. The old chart tab can briefly retain an active class during route setup, so that class alone is insufficient proof that Analysis is visible.
+
+**Decision:** Chart initialization and data loading now also require the chart tab to be unhidden and the installed bottom navigation to be on Analysis. The standalone legacy chart page, which has no bottom navigation, keeps its prior behavior. A mobile regression check deliberately gives the chart tab a stale active and visible state while Home remains selected, then verifies that no chart library is requested.
+
+**Protection:** `tests/mobile_smoke.cjs`, frontend and boot bundle freshness checks, exact-revision production mobile verification.
+
 ## 2026-09-22
 
 ### Live quotes are visible-surface polling only

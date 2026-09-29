@@ -62,6 +62,23 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
       assert.equal(await page.evaluate(() => window.__homeNavMismatchObserved), false, `${width}: Home body and bottom navigation diverged during fresh load`);
       assert.ok(await page.evaluate(() => window.scrollY <= 4), `${width}: fresh Home must start at the top`);
       assert.equal(await page.locator('script[data-lightweight-charts]').count(), 0, `${width}: chart library must not load on Home`);
+      const chartBlockedOnHome = await page.evaluate(async () => {
+        const tab = document.getElementById('chart-tab');
+        const wasActive = tab.classList.contains('active');
+        const wasHidden = tab.hidden;
+        const oldDisplay = tab.style.display;
+        tab.classList.add('active');
+        tab.hidden = false;
+        tab.style.display = 'block';
+        try { return await window.__ensureChartVisible(); }
+        finally {
+          tab.classList.toggle('active', wasActive);
+          tab.hidden = wasHidden;
+          tab.style.display = oldDisplay;
+        }
+      });
+      assert.equal(chartBlockedOnHome, false, `${width}: chart work must reject stale chart visibility while Home navigation is active`);
+      assert.equal(await page.locator('script[data-lightweight-charts]').count(), 0, `${width}: stale chart visibility must not load the library on Home`);
       if (width === 384) {
         await page.evaluate(() => history.replaceState({ chartView:true, tab:'screener', view:'ai-picks', scrollY:9999 }, '', '/'));
         await page.reload({ waitUntil:'domcontentloaded', timeout:60000 });
