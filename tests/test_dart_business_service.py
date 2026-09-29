@@ -1,6 +1,6 @@
 import pandas as pd
 
-from dart_business_service import extract_revenue_mix, _stock_code
+from dart_business_service import extract_revenue_mix, _stock_code, _viewer_nodes
 
 
 def test_extracts_top_revenue_product_and_share_from_explicit_sales_table():
@@ -60,3 +60,23 @@ def test_rejects_overseas_tickers():
         assert False, "expected ValueError"
     except ValueError:
         pass
+
+def test_parses_current_dart_assignment_style_viewer_nodes():
+    script = """
+    var node2 = {};
+    node2['text'] = "3. 주요 제품 및 서비스";
+    node2['id'] = "23";
+    node2['rcpNo'] = "20260515000361";
+    node2['dcmNo'] = "11381582";
+    node2['eleId'] = "23";
+    node2['offset'] = "456789";
+    node2['length'] = "12345";
+    node2['dtd'] = "dart4.xsd";
+    node1['children'].push(node2);
+    """
+    nodes = _viewer_nodes(script)
+    assert len(nodes) == 1
+    assert nodes[0]["title"] == "3. 주요 제품 및 서비스"
+    assert nodes[0]["rcp"] == "20260515000361"
+    assert nodes[0]["dcm"] == "11381582"
+    assert nodes[0]["ele"] == "23"
