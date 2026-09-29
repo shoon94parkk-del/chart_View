@@ -1,0 +1,40 @@
+name: DART Business Report Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'dart_business_service.py'
+      - 'tests/test_dart_business_service.py'
+      - '.github/workflows/dart-business-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser dependencies
+        run: pip install -q -r requirements.txt
+      - name: Probe latest SELVAS Healthcare business report
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          from dart_business_service import fetch_business_report
+          result=fetch_business_report('208370.KQ','셀바스헬스케어')
+          safe={k:v for k,v in result.items() if k not in {'raw'}}
+          print(json.dumps(safe,ensure_ascii=False,indent=2))
+          print('DART_SMOKE reportFound=', bool(result.get('reportFound')),
+                'available=', bool(result.get('available')),
+                'mode=', result.get('sourceMode'),
+                'reason=', result.get('reason'))
+          PY
