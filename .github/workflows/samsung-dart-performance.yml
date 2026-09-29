@@ -1,0 +1,143 @@
+name: Samsung DART Performance Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/samsung-dart-performance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Benchmark Samsung OpenDART and viewer paths
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import io, json, os, time, zipfile
+          import requests, pandas as pd
+          from bs4 import BeautifulSoup
+          import dart_business_service as d
+
+          key=os.environ['DART_API_KEY'].strip()
+          code='005930'
+          times={}
+          t0=time.perf_counter()
+
+          t=time.perf_counter()
+          corps=d._corp_codes(key)
+          times['corpCodesSec']=round(time.perf_counter()-t,3)
+          corp=corps[code]
+          print('CORP',corp)
+
+          t=time.perf_counter()
+          report=d._search_report_api(key,code)
+          times['reportSearchSec']=round(time.perf_counter()-t,3)
+          print('REPORT',json.dumps(report,ensure_ascii=False))
+
+          t=time.perf_counter()
+          response=requests.get(
+              f"{d.OPEN_DART_BASE}/document.xml",
+              params={'crtfc_key':key,'rcept_no':report['rceptNo']},
+              headers=d.HEADERS,
+              timeout=60,
+          )
+          response.raise_for_status()
+          times['documentDownloadSec']=round(time.perf_counter()-t,3)
+          times['documentBytes']=len(response.content)
+
+          t=time.perf_counter()
+          archive=zipfile.ZipFile(io.BytesIO(response.content))
+          members=[]
+          for info in archive.infolist():
+              members.append({'name':info.filename,'size':info.file_size,'compressed':info.compress_size})
+          times['zipInspectSec']=round(time.perf_counter()-t,3)
+          print('ZIP_MEMBERS',json.dumps(sorted(members,key=lambda x:x['size'],reverse=True)[:30],ensure_ascii=False))
+
+          t=time.perf_counter()
+          candidates=[]
+          for info in archive.infolist():
+              if info.file_size>25_000_000:
+                  continue
+              raw=archive.read(info.filename)
+              text=raw.decode('utf-8','ignore')
+              score=sum(text.count(token) for token in ('매출','사업부문','제품 및 서비스','주요 제품','부문별'))
+              if score:
+                  candidates.append({'name':info.filename,'size':info.file_size,'score':score,'text':text})
+          times['zipCandidateScanSec']=round(time.perf_counter()-t,3)
+          print('ZIP_CANDIDATES',json.dumps([{k:v for k,v in x.items() if k!='text'} for x in sorted(candidates,key=lambda x:(x['score'],x['size']),reverse=True)[:15]],ensure_ascii=False))
+
+          t=time.perf_counter()
+          mix=d.extract_revenue_mix([x['text'] for x in sorted(candidates,key=lambda x:(x['score'],x['size']),reverse=True)[:8]],2025)
+          times['zipParseSec']=round(time.perf_counter()-t,3)
+          print('ZIP_MIX',json.dumps(mix,ensure_ascii=False))
+
+          session=d._session()
+          t=time.perf_counter()
+          main=session.get(
+              f"{d.DART_BASE}/dsaf001/main.do",
+              params={'rcpNo':report['rceptNo']},
+              timeout=30,
+          )
+          main.raise_for_status()
+          nodes=d._viewer_nodes(main.text)
+          times['viewerIndexSec']=round(time.perf_counter()-t,3)
+          interesting=[
+              n for n in nodes
+              if any(token in (n.get('title') or '') for token in ('매출','제품','사업부문','사업의 내용','영업','부문'))
+          ]
+          print('VIEWER_NODES',json.dumps([{k:n.get(k) for k in ('title','ele','offset','length')} for n in interesting[:80]],ensure_ascii=False))
+
+          t=time.perf_counter()
+          docs=[]
+          for n in interesting[:20]:
+              try:
+                  rr=session.get(
+                      f"{d.DART_BASE}/report/viewer.do",
+                      params={
+                          'rcpNo':n['rcp'],'dcmNo':n['dcm'],'eleId':n['ele'],
+                          'offset':n['offset'],'length':n['length'],'dtd':n['dtd'],
+                      },
+                      timeout=20,
+                  )
+                  rr.raise_for_status()
+              except Exception as exc:
+                  print('VIEWER_FAIL',n.get('title'),type(exc).__name__)
+                  continue
+              if '매출' in rr.text:
+                  docs.append((n.get('title') or '',rr.text))
+          times['viewerDocsSec']=round(time.perf_counter()-t,3)
+          print('VIEWER_DOCS',[title for title,_ in docs])
+
+          t=time.perf_counter()
+          viewer_mix=d.extract_revenue_mix([html for _,html in docs],2025)
+          times['viewerParseSec']=round(time.perf_counter()-t,3)
+          print('VIEWER_MIX',json.dumps(viewer_mix,ensure_ascii=False))
+
+          for title,html in docs:
+              try:
+                  tables=pd.read_html(io.StringIO(html))
+              except Exception:
+                  continue
+              for idx,table in enumerate(tables):
+                  flat=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                  if '매출' not in flat:
+                      continue
+                  print('TABLE',title,idx,'SHAPE',table.shape,'COLS',json.dumps([str(x) for x in table.columns],ensure_ascii=False))
+                  print(table.head(18).to_string(index=False)[:8000])
+
+          times['totalSec']=round(time.perf_counter()-t0,3)
+          print('TIMINGS',json.dumps(times,ensure_ascii=False,indent=2))
+          PY
