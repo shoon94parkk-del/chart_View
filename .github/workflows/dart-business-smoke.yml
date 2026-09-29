@@ -48,11 +48,8 @@ jobs:
                   print('DART_MAIN_TOKEN',token,'POS',pos)
                   if pos>=0:
                       print(main.text[max(0,pos-2500):pos+8000])
-              titles=[]
-              for m in d.VIEW_DOC_RE.finditer(main.text):
-                  title=d._clean(m.group('title'))
-                  if title:
-                      titles.append(title)
+              nodes=d._viewer_nodes(main.text)
+              titles=[node.get('title') for node in nodes if node.get('title')]
               print('DART_NODE_TITLES=', json.dumps(titles[:120],ensure_ascii=False))
               docs=d._viewer_sections_web(result['rceptNo'])
               print('DART_SELECTED_DOCS=', len(docs))
