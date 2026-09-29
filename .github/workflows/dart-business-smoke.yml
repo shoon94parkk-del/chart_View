@@ -15,7 +15,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,46 +23,66 @@ jobs:
           python-version: '3.11'
       - name: Install parser dependencies
         run: pip install -q -r requirements.txt
-      - name: Probe latest SELVAS Healthcare business report
+      - name: Probe representative DART business reports
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           python - <<'PY'
           import json
-          from dart_business_service import fetch_business_report
-          result=fetch_business_report('208370.KQ','셀바스헬스케어')
-          safe={k:v for k,v in result.items() if k not in {'raw'}}
-          print(json.dumps(safe,ensure_ascii=False,indent=2))
-          print('DART_SMOKE reportFound=', bool(result.get('reportFound')),
-                'available=', bool(result.get('available')),
-                'mode=', result.get('sourceMode'),
-                'reason=', result.get('reason'))
-          if result.get('reportFound') and not result.get('available'):
-              import re, pandas as pd
-              from io import StringIO
-              import dart_business_service as d
+          import pandas as pd
+          from io import StringIO
+          import dart_business_service as d
+
+          probes=[
+              ('208370.KQ','셀바스헬스케어'),
+              ('196300.KQ','HLB펩'),
+          ]
+
+          def diagnose(result,label):
+              if not result.get('reportFound') or result.get('available'):
+                  return
               session=d._session()
-              main=session.get(f"{d.DART_BASE}/dsaf001/main.do",params={'rcpNo':result['rceptNo']},timeout=d.REQUEST_TIMEOUT)
-              for token in ('viewDoc(', 'dcmNo', 'treeNode', 'text:'):
-                  pos=main.text.find(token)
-                  print('DART_MAIN_TOKEN',token,'POS',pos)
-                  if pos>=0:
-                      print(main.text[max(0,pos-2500):pos+8000])
+              main=session.get(
+                  f"{d.DART_BASE}/dsaf001/main.do",
+                  params={'rcpNo':result['rceptNo']},
+                  timeout=d.REQUEST_TIMEOUT,
+              )
               nodes=d._viewer_nodes(main.text)
               titles=[node.get('title') for node in nodes if node.get('title')]
-              print('DART_NODE_TITLES=', json.dumps(titles[:120],ensure_ascii=False))
+              print(f'{label}_DART_NODE_TITLES=',json.dumps(titles[:120],ensure_ascii=False))
               docs=d._viewer_sections_web(result['rceptNo'])
-              print('DART_SELECTED_DOCS=', len(docs))
+              print(f'{label}_DART_SELECTED_DOCS=',len(docs))
               for idx,html in enumerate(docs):
                   try:
                       tables=pd.read_html(StringIO(html))
                   except Exception as exc:
-                      print('DOC',idx,'READ_HTML_FAIL',type(exc).__name__)
+                      print(label,'DOC',idx,'READ_HTML_FAIL',type(exc).__name__)
                       continue
                   for tidx,table in enumerate(tables):
-                      text=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
-                      if '매출' not in text:
+                      flat=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                      if '매출' not in flat and '매출액' not in flat and '판매' not in flat:
                           continue
-                      print('DART_TABLE',idx,tidx,'SHAPE',table.shape,'COLUMNS',json.dumps([str(x) for x in table.columns],ensure_ascii=False))
-                      print(table.head(12).to_string(index=False)[:5000])
+                      print(label,'DART_TABLE',idx,tidx,'SHAPE',table.shape,
+                            'COLUMNS',json.dumps([str(x) for x in table.columns],ensure_ascii=False))
+                      print(table.head(18).to_string(index=False)[:8000])
+
+          results={}
+          for ticker,name in probes:
+              result=d.fetch_business_report(ticker,name)
+              results[ticker]=result
+              safe={k:v for k,v in result.items() if k not in {'raw'}}
+              print('===',ticker,name,'===')
+              print(json.dumps(safe,ensure_ascii=False,indent=2))
+              print('DART_SMOKE',
+                    'ticker=',ticker,
+                    'reportFound=',bool(result.get('reportFound')),
+                    'available=',bool(result.get('available')),
+                    'mode=',result.get('sourceMode'),
+                    'reason=',result.get('reason'))
+              diagnose(result,ticker.replace('.','_'))
+
+          selvas=results['208370.KQ']
+          assert selvas.get('available') is True
+          assert (selvas.get('topItem') or {}).get('name') == '체성분분석기'
+          assert abs(float((selvas.get('topItem') or {}).get('share') or 0)-31.12) < 0.01
           PY
