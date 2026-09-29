@@ -364,3 +364,37 @@ def test_extracts_product_mix_from_domestic_export_total_rows():
     assert result["topItem"]["name"] == "RV"
     assert round(result["topItem"]["share"], 1) == 65.7
 
+def test_keeps_segment_basis_when_same_segment_revenue_is_repeated_across_subservices():
+    html = """
+    <table>
+      <thead><tr><th>구분</th><th>매출 유형</th><th>사업영역</th><th>주요 제품 및 서비스</th><th>매출액</th><th>비중</th></tr></thead>
+      <tbody>
+        <tr><td>플랫폼 부문</td><td>제품/용역</td><td>톡비즈</td><td>카카오톡, 선물하기</td><td>4318175</td><td>53.3%</td></tr>
+        <tr><td>플랫폼 부문</td><td>제품/용역</td><td>포털비즈</td><td>다음(Daum) 등</td><td>4318175</td><td>53.3%</td></tr>
+        <tr><td>플랫폼 부문</td><td>제품/용역</td><td>플랫폼 기타</td><td>카카오T, 카카오페이</td><td>4318175</td><td>53.3%</td></tr>
+        <tr><td>콘텐츠 부문</td><td>제품/용역</td><td>게임</td><td>모바일 및 PC 게임</td><td>3780973</td><td>46.7%</td></tr>
+        <tr><td>콘텐츠 부문</td><td>제품/용역</td><td>뮤직</td><td>음원 플랫폼</td><td>3780973</td><td>46.7%</td></tr>
+        <tr><td>합계</td><td>합계</td><td>합계</td><td>합계</td><td>8099148</td><td>100.0%</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["topItem"]["name"] == "플랫폼 부문"
+    assert result["topItem"]["share"] == 53.3
+
+
+def test_rejects_geography_only_revenue_categories():
+    html = """
+    <table>
+      <thead><tr><th>구분</th><th>매출액</th><th>비중</th></tr></thead>
+      <tbody>
+        <tr><td>국내외</td><td>9573</td><td>95.73%</td></tr>
+        <tr><td>기타</td><td>427</td><td>4.27%</td></tr>
+        <tr><td>합계</td><td>10000</td><td>100%</td></tr>
+      </tbody>
+    </table>
+    """
+    assert extract_revenue_mix([html], 2025) is None
+
