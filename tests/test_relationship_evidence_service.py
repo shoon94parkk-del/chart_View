@@ -69,3 +69,27 @@ def test_keeps_one_fresh_evidence_per_counterparty():
     rows = extract_direct_relations("테스트장비사 A", "123456.KQ", items, COMPANIES)
     assert len(rows) == 1
     assert rows[0]["url"].endswith("/new")
+
+def test_rejects_speculative_relationship_language_even_when_company_is_named():
+    items = [{
+        "relationType": "direct",
+        "title": "테스트장비사 A, 삼성전자 공급계약 가능성 거론",
+        "summarySeed": "삼성전자 공급계약 가능성이 시장에서 거론됐다.",
+        "source": "example.com",
+        "publishedAt": "2026-09-29T00:00:00+00:00",
+        "url": "https://example.com/speculative",
+    }]
+    assert extract_direct_relations("테스트장비사 A", "123456.KQ", items, COMPANIES) == []
+
+
+def test_rejects_ended_or_cancelled_relationships():
+    items = [{
+        "relationType": "direct",
+        "title": "테스트장비사 A, SK하이닉스 공급계약 해지",
+        "summarySeed": "SK하이닉스와의 공급계약을 해지했다.",
+        "source": "example.com",
+        "publishedAt": "2026-09-29T00:00:00+00:00",
+        "url": "https://example.com/ended",
+    }]
+    assert extract_direct_relations("테스트장비사 A", "123456.KQ", items, COMPANIES) == []
+
