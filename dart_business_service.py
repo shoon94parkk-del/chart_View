@@ -30,6 +30,7 @@ OPEN_DART_BASE = "https://opendart.fss.or.kr/api"
 CACHE_TTL = 7 * 24 * 3600
 REQUEST_TIMEOUT = 15
 CORP_CODE_CACHE_PATH = os.path.join("static", "data", "dart_corp_codes.json")
+BUSINESS_CONTEXT_CACHE_PATH = os.path.join("static", "data", "dart_business_context.json")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; ChartView/1.0; +https://chart-view-pkv8.onrender.com)",
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.7",
@@ -37,6 +38,7 @@ HEADERS = {
 _CACHE: dict[str, tuple[float, dict]] = {}
 _CACHE_LOCK = threading.Lock()
 _CORP_CODES: tuple[float, dict[str, dict]] = (0.0, {})
+_STATIC_BUSINESS_CONTEXT: tuple[float, dict] = (0.0, {})
 
 REPORT_TITLE_RE = re.compile(r"(?:^|\])\s*사업보고서(?:\s*\(|\s*$)")
 VIEW_NODE_RE = re.compile(
@@ -58,6 +60,41 @@ def _clean(value) -> str:
         return ""
     text = re.sub(r"\s+", " ", str(value)).strip()
     return "" if text.lower() in {"nan", "none"} else text
+
+
+def _static_business_context(code: str) -> dict | None:
+    global _STATIC_BUSINESS_CONTEXT
+    if os.environ.get("DART_STATIC_CACHE_BYPASS") == "1":
+        return None
+    try:
+        mtime = os.path.getmtime(BUSINESS_CONTEXT_CACHE_PATH)
+    except OSError:
+        return None
+    with _CACHE_LOCK:
+        if _STATIC_BUSINESS_CONTEXT[1] and _STATIC_BUSINESS_CONTEXT[0] == mtime:
+            payload = _STATIC_BUSINESS_CONTEXT[1]
+        else:
+            try:
+                import json
+                with open(BUSINESS_CONTEXT_CACHE_PATH, "r", encoding="utf-8") as handle:
+                    payload = json.load(handle)
+            except Exception:
+                return None
+            _STATIC_BUSINESS_CONTEXT = (mtime, payload)
+    updated = _clean(payload.get("updated")) if isinstance(payload, dict) else ""
+    if updated:
+        try:
+            updated_dt = datetime.fromisoformat(updated)
+            if updated_dt.tzinfo is None:
+                updated_dt = updated_dt.replace(tzinfo=KST)
+            if datetime.now(KST) - updated_dt.astimezone(KST) > timedelta(days=14):
+                return None
+        except Exception:
+            return None
+    row = (payload.get("companies") or {}).get(code) if isinstance(payload, dict) else None
+    if not isinstance(row, dict) or not row.get("available"):
+        return None
+    return dict(row)
 
 
 def _stock_code(ticker: str) -> str:
@@ -1072,6 +1109,14 @@ def fetch_business_report(ticker: str, company_name: str = "") -> dict:
         cached = _CACHE.get(cache_key)
         if cached and time.time() - cached[0] < CACHE_TTL:
             return cached[1]
+
+    static_cached = _static_business_context(code)
+    if static_cached:
+        static_cached["ticker"] = ticker
+        static_cached["cacheMode"] = "static-precomputed"
+        with _CACHE_LOCK:
+            _CACHE[cache_key] = (time.time(), static_cached)
+        return static_cached
 
     api_key = _clean(os.environ.get("DART_API_KEY"))
     report = None
