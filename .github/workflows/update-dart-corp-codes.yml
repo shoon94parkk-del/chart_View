@@ -1,0 +1,60 @@
+name: Update DART Corp Codes
+
+on:
+  schedule:
+    - cron: '30 18 * * 0'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_dart_corp_codes.py'
+      - '.github/workflows/update-dart-corp-codes.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dart-corp-codes
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependency
+        run: pip install -q requests
+      - name: Generate OpenDART corp-code cache
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python scripts/generate_dart_corp_codes.py
+      - name: Validate cache
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('static/data/dart_corp_codes.json').read_text(encoding='utf-8'))
+          rows=data.get('companies') or {}
+          assert len(rows)>=2000
+          assert rows.get('005930',{}).get('corpCode')=='00126380'
+          print('DART corp-code cache OK:',len(rows))
+          PY
+      - name: Commit cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/dart_corp_codes.json
+          if git diff --cached --quiet; then
+            echo "No DART corp-code changes"
+            exit 0
+          fi
+          git commit -m "data: refresh OpenDART corp codes"
+          git fetch origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
