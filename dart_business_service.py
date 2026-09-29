@@ -151,8 +151,7 @@ def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
         has_share = any(any(token in value for token in ("비중", "비율", "구성비")) for value in compact)
         if has_label and has_value:
             chosen = (depth, combined)
-            if has_share:
-                break
+            break
     if not chosen:
         return frame
 
@@ -318,7 +317,7 @@ def _metric_column(frame: pd.DataFrame, label_col: str | None) -> str | None:
 
 def _is_total_label(label: str, share: float | None = None) -> bool:
     compact = re.sub(r"\s+", "", label)
-    if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출|영업수익합계)", compact):
+    if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출|영업수익합계|연결조정후|연결조정후합계)", compact):
         return True
     if compact in {"영업수익", "매출액", "매출"} and share is not None and 95 <= share <= 105:
         return True
