@@ -1,4 +1,5 @@
 name: POSCO DART Revenue Scope Diagnostic
+# parser-rerun: repeated-metric-pair
 
 on:
   workflow_dispatch:
