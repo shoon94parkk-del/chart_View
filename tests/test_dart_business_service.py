@@ -398,3 +398,20 @@ def test_rejects_geography_only_revenue_categories():
     """
     assert extract_revenue_mix([html], 2025) is None
 
+def test_does_not_treat_separate_revenue_ratio_column_as_combined_amount_cell():
+    html = """
+    <table><tbody>
+      <tr><td>사업부문</td><td>사업부문</td><td>품 목</td><td>2025년 (제55기)</td><td>2025년 (제55기)</td></tr>
+      <tr><td>사업부문</td><td>사업부문</td><td>품 목</td><td>매출액</td><td>매출액 비율(%)</td></tr>
+      <tr><td>기초소재 사업</td><td>내화물 사업</td><td>내화물 제조</td><td>505309</td><td>17.2</td></tr>
+      <tr><td>기초소재 사업</td><td>라임화성 사업</td><td>생석회 등</td><td>859306</td><td>29.2</td></tr>
+      <tr><td>에너지소재 사업</td><td>에너지소재 사업</td><td>양극재, 음극재</td><td>1574083</td><td>53.6</td></tr>
+      <tr><td>합 계</td><td>합 계</td><td>-</td><td>2938698</td><td>100.0</td></tr>
+    </tbody></table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["topItem"]["name"] == "양극재, 음극재"
+    assert result["topItem"]["revenue"] == 1574083.0
+    assert result["topItem"]["share"] == 53.6
+
