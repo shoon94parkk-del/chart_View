@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'dart_business_service.py'
+      - 'static/data/dart_corp_codes.json'
       - '.github/workflows/samsung-dart-targeted.yml'
 
 permissions:
@@ -21,20 +23,36 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -q -r requirements.txt
-      - name: Benchmark targeted DART viewer path
+      - name: Benchmark optimized Samsung DART path
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           python - <<'PY'
           import json,time
+          from pathlib import Path
           import dart_business_service as d
-          rcp='20260310002820'
-          t0=time.perf_counter()
-          docs=d._viewer_sections_web(rcp)
-          t1=time.perf_counter()
-          mix=d.extract_revenue_mix(docs,2025)
-          t2=time.perf_counter()
-          print('DOC_COUNT',len(docs))
-          print('FETCH_SEC',round(t1-t0,3))
-          print('PARSE_SEC',round(t2-t1,3))
-          print('TOTAL_SEC',round(t2-t0,3))
-          print('MIX',json.dumps(mix,ensure_ascii=False))
+
+          assert Path(d.CORP_CODE_CACHE_PATH).exists(), d.CORP_CODE_CACHE_PATH
+          d._CACHE.clear()
+          d._CORP_CODES=(0.0,{})
+
+          t=time.perf_counter()
+          first=d.fetch_business_report('005930.KS','삼성전자')
+          first_sec=time.perf_counter()-t
+
+          t=time.perf_counter()
+          second=d.fetch_business_report('005930.KS','삼성전자')
+          warm_sec=time.perf_counter()-t
+
+          print('FIRST_SEC',round(first_sec,3))
+          print('WARM_SEC',round(warm_sec,4))
+          print('RESULT',json.dumps(first,ensure_ascii=False,indent=2))
+
+          assert first.get('sourceMode')=='opendart-api'
+          assert first.get('available') is True
+          assert first.get('basis')=='사업부문별 매출'
+          assert (first.get('topItem') or {}).get('name')=='DX 부문'
+          assert abs(float((first.get('topItem') or {}).get('share') or 0)-56.3)<0.01
+          assert first_sec < 15, first_sec
+          assert warm_sec < 0.1, warm_sec
           PY
