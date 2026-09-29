@@ -194,9 +194,7 @@ def _label_column(columns: list[str]) -> tuple[str | None, str]:
 def _combined_amount_share_column(columns: list[str]) -> str | None:
     for col in columns:
         compact = re.sub(r"\s+", "", col)
-        has_amount = any(token in compact for token in ("매출액", "매출금액", "금액"))
-        has_share = any(token in compact for token in ("비중", "비율", "%"))
-        if has_amount and has_share:
+        if re.search(r"(?:매출액|매출금액|금액)\((?:비중|비율|%)\)", compact):
             return col
     return None
 
@@ -304,6 +302,14 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     label_col, kind = _label_column(columns)
     share_col = _share_column(columns)
     combined_col = _combined_amount_share_column(columns)
+    if combined_col:
+        sample_values = [_clean(value) for value in frame[combined_col].head(20).tolist()]
+        has_true_combined_cell = any(
+            re.search(r"[0-9][0-9,.]*\s*\([^)]*[0-9][0-9,.]*\s*%\)", value)
+            for value in sample_values
+        )
+        if not has_true_combined_cell:
+            combined_col = None
 
     # When one business segment is repeated across multiple separately priced
     # products/services, the disclosed revenue belongs to the product rows.
