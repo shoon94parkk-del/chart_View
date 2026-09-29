@@ -1,0 +1,79 @@
+name: Live IDEA Evidence Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-idea-evidence-smoke.yml'
+      - 'relationship_evidence_service.py'
+      - 'dart_business_service.py'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify deployed revision and IDEA evidence APIs
+        env:
+          APP_URL: https://chart-view-pkv8.onrender.com
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.parse, urllib.request
+
+          base=os.environ['APP_URL'].rstrip('/')
+          expected=os.environ['EXPECTED_SHA']
+
+          def get(path, timeout=30):
+              with urllib.request.urlopen(base+path, timeout=timeout) as r:
+                  return r.status, json.loads(r.read().decode('utf-8'))
+
+          revision=None
+          for _ in range(24):
+              status, health=get('/health')
+              revision=health.get('revision')
+              if status==200 and revision==expected:
+                  break
+              time.sleep(5)
+          assert revision==expected, (revision, expected)
+
+          qs=urllib.parse.urlencode({'ticker':'196300.KQ','name':'HLB펩'})
+          status, report=get('/api/business-report?'+qs, 45)
+          assert status==200
+          assert report.get('stockCode')=='196300'
+          assert 'available' in report
+          assert 'source' in report
+
+          status, evidence=get('/api/relationship-evidence?'+qs, 30)
+          assert status==200
+          assert evidence.get('ticker')=='196300.KQ'
+          assert isinstance(evidence.get('relations'), list)
+          assert 'available' in evidence
+          for row in evidence.get('relations') or []:
+              assert row.get('counterpartyName')
+              assert row.get('relationLabel')
+              assert row.get('headline')
+              assert row.get('url')
+
+          print(json.dumps({
+              'revision':revision,
+              'businessReport':{
+                  'available':report.get('available'),
+                  'reportName':report.get('reportName'),
+                  'topItem':report.get('topItem'),
+              },
+              'relationshipEvidence':{
+                  'available':evidence.get('available'),
+                  'count':len(evidence.get('relations') or []),
+                  'reason':evidence.get('reason'),
+              },
+          },ensure_ascii=False,indent=2))
+          PY
