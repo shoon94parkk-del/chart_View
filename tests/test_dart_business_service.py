@@ -226,3 +226,91 @@ def test_triangle_marker_is_parsed_as_negative():
     assert _number("△301,146") == -301146
     assert _number("△8.9%") == -8.9
 
+def test_extracts_combined_amount_share_column_for_samsung_sdi():
+    html = """
+    <html><body>
+      <p>(단위 : 백만원)</p>
+      <table>
+        <thead><tr><th>사업부문</th><th>매출유형</th><th>품 목</th><th>구체적용도</th><th>주요상표 등</th><th>매출액(비율)</th></tr></thead>
+        <tbody>
+          <tr><td>에너지솔루션</td><td>제품 및 기타 매출</td><td>소형전지 등</td><td>전기자동차용, ESS용 배터리 등</td><td>PRiMX</td><td>12,384,169(93%)</td></tr>
+          <tr><td>전자재료</td><td>제품 및 기타 매출</td><td>EMC 등</td><td>반도체 소재, OLED 소재 등</td><td>스타콤 등</td><td>882,562(7%)</td></tr>
+        </tbody>
+      </table>
+    </body></html>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["topItem"]["name"] == "에너지솔루션"
+    assert result["topItem"]["share"] == 93.0
+    assert "소형전지" in result["topItem"]["detail"]
+
+
+def test_accepts_single_explicit_100pct_segment_for_sk_hynix():
+    html = """
+    <table>
+      <thead><tr><th>사업부문</th><th>매출유형</th><th>품목</th><th>구체적용도</th><th>주요상표등</th><th>매출액(비율)</th></tr></thead>
+      <tbody>
+        <tr><td>반도체 부문</td><td>제품 외</td><td>DRAM, NAND Flash 등</td><td>산업용 전자기기</td><td>SK하이닉스</td><td>97,146,675(100%)</td></tr>
+        <tr><td>합계</td><td>합계</td><td>합계</td><td>합계</td><td>합계</td><td>97,146,675(100%)</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["topItem"]["name"] == "반도체 부문"
+    assert result["topItem"]["share"] == 100.0
+    assert "DRAM" in result["topItem"]["detail"]
+
+
+def test_extracts_naver_service_mix_from_generic_amount_share_columns():
+    html = """
+    <table>
+      <thead>
+        <tr><th rowspan="2">구분</th><th colspan="2">제27기</th><th colspan="2">제26기</th></tr>
+        <tr><th>금액</th><th>비중</th><th>금액</th><th>비중</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>영업수익</td><td>12035007</td><td>100.0</td><td>10737719</td><td>100.0</td></tr>
+        <tr><td>- 서치플랫폼</td><td>4168936</td><td>34.6</td><td>3946166</td><td>36.8</td></tr>
+        <tr><td>- 커머스</td><td>3688407</td><td>30.6</td><td>2922977</td><td>27.2</td></tr>
+        <tr><td>- 핀테크</td><td>1690684</td><td>14.1</td><td>1508407</td><td>14.0</td></tr>
+        <tr><td>- 콘텐츠</td><td>1899173</td><td>15.8</td><td>1796421</td><td>16.7</td></tr>
+        <tr><td>- 엔터프라이즈</td><td>587807</td><td>4.9</td><td>563748</td><td>5.3</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["topItem"]["name"] == "서치플랫폼"
+    assert result["topItem"]["share"] == 34.6
+    assert sum(row["share"] for row in result["items"]) == 100.0
+
+
+def test_merges_split_hyundai_segment_tables_when_shares_reconcile_to_100():
+    manufacturing = """
+    <table><tbody>
+      <tr><td>구분</td><td>구분</td><td>2025년 (제58기)</td><td>2025년 (제58기)</td><td>2024년</td><td>2024년</td></tr>
+      <tr><td>구분</td><td>구분</td><td>금액</td><td>비중</td><td>금액</td><td>비중</td></tr>
+      <tr><td>차량 부문</td><td>매출액</td><td>145631818</td><td>78.2</td><td>136725011</td><td>78.1</td></tr>
+      <tr><td>차량 부문</td><td>영업이익</td><td>8470939</td><td>73.9</td><td>11411499</td><td>80.1</td></tr>
+      <tr><td>기타 부문</td><td>매출액</td><td>10389879</td><td>5.6</td><td>10059492</td><td>5.7</td></tr>
+    </tbody></table>
+    """
+    finance = """
+    <table><tbody>
+      <tr><td>구분</td><td>구분</td><td>2025년 (제58기)</td><td>2025년 (제58기)</td><td>2024년</td><td>2024년</td></tr>
+      <tr><td>구분</td><td>구분</td><td>금액</td><td>비중</td><td>금액</td><td>비중</td></tr>
+      <tr><td>금융 부문</td><td>매출액</td><td>30232775</td><td>16.2</td><td>28446650</td><td>16.2</td></tr>
+      <tr><td>금융 부문</td><td>영업이익</td><td>2164043</td><td>18.9</td><td>1795249</td><td>12.6</td></tr>
+    </tbody></table>
+    """
+    result = extract_revenue_mix([manufacturing, finance], 2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["topItem"]["name"] == "차량 부문"
+    assert result["topItem"]["share"] == 78.2
+    assert [row["name"] for row in result["items"][:3]] == ["차량 부문", "금융 부문", "기타 부문"]
+    assert round(sum(row["share"] for row in result["items"]), 1) == 100.0
+
