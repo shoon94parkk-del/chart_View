@@ -253,6 +253,26 @@ def _row_label(value: str) -> str:
     return text[:100]
 
 
+def _latest_period_amount_column(columns: list[str]) -> str | None:
+    for col in columns:
+        compact = re.sub(r"\s+", "", col)
+        if any(token in compact for token in ("비중", "비율", "구성비")):
+            continue
+        if re.search(r"(제\d+기|20\d{2}년|당기)", compact):
+            return col
+    return None
+
+
+def _sum_dimension_column(frame: pd.DataFrame, label_col: str | None) -> str | None:
+    for col in frame.columns:
+        if col == label_col:
+            continue
+        values = {re.sub(r"\s+", "", _clean(value)) for value in frame[col].head(40).tolist()}
+        if "합계" in values and ({"내수", "수출"} & values):
+            return col
+    return None
+
+
 def _metric_column(frame: pd.DataFrame, label_col: str | None) -> str | None:
     for col in frame.columns:
         if col == label_col:
@@ -283,15 +303,48 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     label_col, kind = _label_column(columns)
     share_col = _share_column(columns)
     combined_col = _combined_amount_share_column(columns)
+
+    # When one business segment is repeated across multiple separately priced
+    # products/services, the disclosed revenue belongs to the product rows.
+    # In that case switch from the segment label to the product label. When
+    # segment/product are one-to-one (Samsung Electronics), keep segment basis.
+    segment_col = next((col for col in columns if "부문" in re.sub(r"\s+", "", col)), None)
+    product_col = next(
+        (col for col in columns if any(word in re.sub(r"\s+", "", col) for word in ("품목", "제품", "서비스", "주요제품"))),
+        None,
+    )
+    switched_product = False
+    if kind == "segment" and segment_col and product_col:
+        pairs = []
+        for _, raw in frame.head(40).iterrows():
+            seg = _row_label(raw.get(segment_col))
+            prod = _row_label(raw.get(product_col))
+            if not seg or not prod or _is_total_label(seg) or _is_total_label(prod):
+                continue
+            pairs.append((seg, prod))
+        segment_names = {seg for seg, _ in pairs}
+        product_names = {prod for _, prod in pairs}
+        if pairs and len(product_names) > len(segment_names):
+            label_col = product_col
+            kind = "product"
+            switched_product = True
+
     amount_col = combined_col or _amount_column(columns, allow_generic=bool(share_col))
+    sum_dimension_col = None
+    if not amount_col and not share_col:
+        sum_dimension_col = _sum_dimension_column(frame, label_col)
+        if sum_dimension_col:
+            amount_col = _latest_period_amount_column(columns)
     if not label_col or not amount_col:
         return None
 
     generic_amount = combined_col is None and "매출" not in re.sub(r"\s+", "", amount_col)
-    metric_col = _metric_column(frame, label_col) if generic_amount else None
+    metric_col = _metric_column(frame, label_col) if generic_amount and not sum_dimension_col else None
 
     detail_col = None
-    if kind == "segment":
+    if switched_product:
+        detail_col = segment_col
+    elif kind == "segment":
         for col in columns:
             lowered = re.sub(r"\s+", "", col.lower())
             if any(word in lowered for word in ("품목", "제품", "서비스", "주요제품")):
@@ -311,7 +364,13 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
 
         if metric_col:
             metric = re.sub(r"\s+", "", _clean(raw.get(metric_col)))
+            metric = re.sub(r"^\d+[.)]?", "", metric)
             if metric not in {"매출액", "영업수익", "매출", "수익"}:
+                continue
+
+        if sum_dimension_col:
+            dimension = re.sub(r"\s+", "", _clean(raw.get(sum_dimension_col)))
+            if dimension not in {"합계", "계", "소계"}:
                 continue
 
         if combined_col:
@@ -351,6 +410,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         rows.append(row)
 
     if not rows:
+        return None
+    if sum_dimension_col and total_amount is None:
         return None
 
     if kind == "category":
@@ -530,9 +591,16 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
     if not complete_candidates:
         return None
 
-    structured = [row for row in complete_candidates if row.get("kind") in {"product", "segment"}]
-    if structured:
-        complete_candidates = structured
+    priority_groups = [
+        [row for row in complete_candidates if row.get("kind") == "product" and row.get("hasExplicitShare")],
+        [row for row in complete_candidates if row.get("kind") == "segment" and row.get("hasExplicitShare")],
+        [row for row in complete_candidates if row.get("kind") == "product"],
+        [row for row in complete_candidates if row.get("kind") == "segment"],
+    ]
+    for group in priority_groups:
+        if group:
+            complete_candidates = group
+            break
 
     best = max(complete_candidates, key=lambda x: x["score"])
     top = best["items"][0]
