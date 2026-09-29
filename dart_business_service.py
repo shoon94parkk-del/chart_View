@@ -145,6 +145,7 @@ def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
         )
         has_value = any(
             any(token in value for token in ("매출액", "금액", "영업수익"))
+            or bool(re.search(r"(?:^|/)매출(?:/|$)", value))
             for value in compact
         )
         has_share = any(any(token in value for token in ("비중", "비율", "구성비")) for value in compact)
@@ -189,6 +190,36 @@ def _label_column(columns: list[str]) -> tuple[str | None, str]:
             if any(re.sub(r"\s+", "", word.lower()) in lowered for word in words):
                 return col, kind
     return (columns[0], "category") if columns else (None, "category")
+
+
+def _repeated_revenue_metric_pair(frame: pd.DataFrame) -> tuple[str | None, str | None]:
+    groups: dict[str, list[str]] = {}
+    for col in frame.columns:
+        compact = re.sub(r"\s+", "", str(col))
+        if "매출" not in compact or any(token in compact for token in ("원가", "채권", "이익")):
+            continue
+        base = re.sub(r"_\d+$", "", compact)
+        groups.setdefault(base, []).append(col)
+    for cols in groups.values():
+        if len(cols) < 2:
+            continue
+        amount_col = None
+        share_col = None
+        for col in cols:
+            samples = [_clean(value) for value in frame[col].head(30).tolist()]
+            meaningful = [value for value in samples if value and value not in {"-", "—"}]
+            if not meaningful:
+                continue
+            percent_ratio = sum("%" in value for value in meaningful) / len(meaningful)
+            if percent_ratio >= 0.5:
+                share_col = share_col or col
+            else:
+                numeric_ratio = sum(_number(value) is not None for value in meaningful) / len(meaningful)
+                if numeric_ratio >= 0.5:
+                    amount_col = amount_col or col
+        if amount_col and share_col:
+            return amount_col, share_col
+    return None, None
 
 
 def _combined_amount_share_column(columns: list[str]) -> str | None:
@@ -301,6 +332,9 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     columns = list(frame.columns)
     label_col, kind = _label_column(columns)
     share_col = _share_column(columns)
+    repeated_amount_col, repeated_share_col = _repeated_revenue_metric_pair(frame)
+    if not share_col and repeated_share_col:
+        share_col = repeated_share_col
     combined_col = _combined_amount_share_column(columns)
     if combined_col:
         sample_values = [_clean(value) for value in frame[combined_col].head(20).tolist()]
@@ -360,7 +394,7 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
             kind = "product"
             switched_product = True
 
-    amount_col = combined_col or _amount_column(columns, allow_generic=bool(share_col))
+    amount_col = combined_col or repeated_amount_col or _amount_column(columns, allow_generic=bool(share_col))
     sum_dimension_col = None
     if not amount_col and not share_col:
         sum_dimension_col = _sum_dimension_column(frame, label_col)
@@ -600,6 +634,11 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     if report_year and any(str(report_year) in col for col in columns):
         score += 2
 
+    covered_segments = sorted({
+        _clean(item.get("detail"))
+        for item in items
+        if _clean(item.get("detail")) and kind == "product"
+    })
     return {
         "score": score,
         "kind": kind,
@@ -610,6 +649,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         "hasExplicitShare": bool(explicit_share_count),
         "shareSum": share_sum,
         "complete": complete,
+        "totalAmount": round(float(total_amount or sum(item["revenue"] for item in items)), 2),
+        "coveredSegments": covered_segments,
     }
 
 
@@ -680,10 +721,38 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
     if not complete_candidates:
         return None
 
+    segment_candidates = [
+        row for row in complete_candidates
+        if row.get("kind") == "segment" and len(row.get("items") or []) >= 2
+    ]
+    reference_segment = max(segment_candidates, key=lambda row: row["score"]) if segment_candidates else None
+
+    product_candidates = [row for row in complete_candidates if row.get("kind") == "product"]
+    if reference_segment:
+        reference_names = {
+            re.sub(r"\s+", "", item.get("name", "")).replace("사업", "")
+            for item in reference_segment.get("items") or []
+        }
+        scoped_products = []
+        for row in product_candidates:
+            covered = {
+                re.sub(r"\s+", "", name).replace("사업", "")
+                for name in row.get("coveredSegments") or []
+            }
+            if not covered:
+                continue
+            matched = 0
+            for name in covered:
+                if any(name in ref or ref in name for ref in reference_names if name and ref):
+                    matched += 1
+            if matched >= max(1, len(covered) // 2):
+                scoped_products.append(row)
+        product_candidates = scoped_products
+
     priority_groups = [
-        [row for row in complete_candidates if row.get("kind") == "product" and row.get("hasExplicitShare")],
+        [row for row in product_candidates if row.get("hasExplicitShare")],
         [row for row in complete_candidates if row.get("kind") == "segment" and row.get("hasExplicitShare")],
-        [row for row in complete_candidates if row.get("kind") == "product"],
+        product_candidates,
         [row for row in complete_candidates if row.get("kind") == "segment"],
     ]
     for group in priority_groups:
