@@ -144,39 +144,50 @@ def _collect(code, ticker):
         result["reason"] = "corp_code_unavailable"
         return result
     corp_code = company["corpCode"]
-    annual = None
+    def safe_statement(year, report_code, basis):
+        try:
+            return _get_statement(key, corp_code, year, report_code, basis)
+        except requests.RequestException:
+            return None
+
+    codes = (["11014", "11012", "11013"] if now.month >= 11 else
+             ["11012", "11013"] if now.month >= 8 else
+             ["11013"] if now.month >= 5 else [])
+    # The current interim filing and latest annual filing are independent DART
+    # requests. Fetching them together halves the normal cold-lookup wait.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        annual_task = pool.submit(safe_statement, now.year - 1, "11011", "CFS")
+        interim_task = pool.submit(safe_statement, now.year, codes[0], "CFS") if codes else None
+        annual = annual_task.result()
+        interim = interim_task.result() if interim_task else None
+    year = now.year - 1
     fs_div = "CFS"
-    for year in (now.year - 1, now.year - 2):
-        for candidate in ("CFS", "OFS"):
-            try:
-                annual = _get_statement(key, corp_code, year, "11011", candidate)
-            except requests.RequestException:
-                annual = None
+    if not annual:
+        for candidate_year, candidate_basis in ((now.year - 1, "OFS"),
+                                                  (now.year - 2, "CFS"),
+                                                  (now.year - 2, "OFS")):
+            annual = safe_statement(candidate_year, "11011", candidate_basis)
             if annual:
-                fs_div = candidate
+                year, fs_div = candidate_year, candidate_basis
                 break
-        if annual:
-            break
     if annual:
         result.update({"available": True, "basis": "연결재무제표" if fs_div == "CFS" else "별도재무제표", "currency": annual["currency"],
                        "annual": annual["years"], "annualReportYear": year,
                        "annualSourceUrl": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={annual['rceptNo']}"})
     # Only published periods can be requested; a later filing may still be unavailable.
-    interim = None
-    codes = (["11014", "11012", "11013"] if now.month >= 11 else
-             ["11012", "11013"] if now.month >= 8 else
-             ["11013"] if now.month >= 5 else [])
-    for report_code in codes:
-        for candidate in ((fs_div,) if annual else ("CFS", "OFS")):
-            try:
-                interim = _get_statement(key, corp_code, now.year, report_code, candidate)
-            except requests.RequestException:
-                interim = None
+    if annual and fs_div != "CFS":
+        interim = None  # The parallel CFS value must not be mixed with OFS annuals.
+    if not interim:
+        for index, report_code in enumerate(codes):
+            for candidate in ((fs_div,) if annual else ("CFS", "OFS")):
+                if index == 0 and candidate == "CFS" and fs_div == "CFS":
+                    continue  # Already attempted in parallel.
+                interim = safe_statement(now.year, report_code, candidate)
+                if interim:
+                    fs_div = candidate
+                    break
             if interim:
-                fs_div = candidate
                 break
-        if interim:
-            break
     if interim and (not annual or interim["currency"] == annual["currency"]):
         result.update({"available": True, "basis": "연결재무제표" if fs_div == "CFS" else "별도재무제표", "currency": interim["currency"],
                        "interim": {k: v for k, v in interim.items() if k not in {"currency", "rceptNo"}},
