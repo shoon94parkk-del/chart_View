@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-28T18:41:00+09:00",
+  "updated": "2026-09-29T18:31:41+09:00",
   "reviews": [
     {
       "pickId": "2026-09-14:012450",
@@ -368,6 +368,28 @@
       "reviewedAt": "2026-09-28T18:41:00+09:00",
       "reviewTradeDate": "2026-09-28",
       "summary": "추천 직후라 추천일 이후 새롭게 확인된 AI PCB 수주·CAPA·실적 근거가 아직 충분하지 않습니다. 하루 주가 변동만으로 상태를 변경하지 않고 검토 대기로 유지합니다.",
+      "thesisChecks": {
+        "evidence": "PENDING"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-09-28:066570",
+      "completed": false,
+      "reviewedAt": "2026-09-29T18:31:41+09:00",
+      "reviewTradeDate": "2026-09-29",
+      "summary": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 AI 데이터센터 냉각/HVAC, 전장·B2B 성장 논리를 새로 검증할 중대한 펀더멘털 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+      "thesisChecks": {
+        "evidence": "PENDING"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-09-28:218410",
+      "completed": false,
+      "reviewedAt": "2026-09-29T18:31:41+09:00",
+      "reviewTradeDate": "2026-09-29",
+      "summary": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 GaN 전력증폭기, 방산·통신 고객 확대 논리를 새로 검증할 수주·고객·실적 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
       "thesisChecks": {
         "evidence": "PENDING"
       },
