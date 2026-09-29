@@ -401,6 +401,10 @@ def _share_column(columns: list[str]) -> str | None:
 def _row_label(value: str) -> str:
     text = _clean(value)
     text = re.sub(r"^[\-·•]+\s*", "", text)
+    # DART's cell layout can insert spaces between the syllables of a short
+    # segment name; keep the actual words readable without rewriting labels.
+    text = re.sub(r"(?<!\S)사\s+업\s+부\s+문(?=\s|$)", "사업부문", text)
+    text = re.sub(r"(?<!\S)가\s+스(?=\s|$)", "가스", text)
     return text[:100]
 
 

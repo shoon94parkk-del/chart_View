@@ -50,6 +50,12 @@ def test_attachment_only_correction_does_not_replace_business_report_body(monkey
     assert dart._search_report_api("test-key", "033500") is None
 
 
+def test_normalizes_dart_spaced_segment_labels():
+    from dart_business_service import _row_label
+    assert _row_label("PU 단열재 사 업 부 문") == "PU 단열재 사업부문"
+    assert _row_label("가 스 사 업 부 문") == "가스 사업부문"
+
+
 def test_extracts_top_revenue_product_and_share_from_explicit_sales_table():
     html = """
     <html><body>
