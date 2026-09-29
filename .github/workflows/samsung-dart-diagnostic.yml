@@ -1,0 +1,72 @@
+name: Samsung DART Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/samsung-dart-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Diagnose Samsung Electronics DART paths
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          APP_URL: https://chart-view-pkv8.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from dart_business_service import fetch_business_report
+
+          local=fetch_business_report('005930.KS','삼성전자')
+          print('=== LOCAL_PARSER_WITH_GITHUB_ENV ===')
+          print(json.dumps({
+              'hasDartApiKey': bool(os.environ.get('DART_API_KEY','').strip()),
+              'available': local.get('available'),
+              'reportFound': local.get('reportFound'),
+              'reportName': local.get('reportName'),
+              'reportYear': local.get('reportYear'),
+              'rceptDate': local.get('rceptDate'),
+              'source': local.get('source'),
+              'sourceMode': local.get('sourceMode'),
+              'basis': local.get('basis'),
+              'unit': local.get('unit'),
+              'topItem': local.get('topItem'),
+              'items': local.get('items'),
+              'reason': local.get('reason'),
+              'sourceUrl': local.get('sourceUrl'),
+          },ensure_ascii=False,indent=2))
+
+          base=os.environ['APP_URL'].rstrip('/')
+          qs=urllib.parse.urlencode({'ticker':'005930.KS','name':'삼성전자'})
+          with urllib.request.urlopen(base+'/api/business-report?'+qs,timeout=60) as r:
+              live=json.loads(r.read().decode('utf-8'))
+          print('=== LIVE_RENDER_API ===')
+          print(json.dumps({
+              'available': live.get('available'),
+              'reportFound': live.get('reportFound'),
+              'reportName': live.get('reportName'),
+              'reportYear': live.get('reportYear'),
+              'rceptDate': live.get('rceptDate'),
+              'source': live.get('source'),
+              'sourceMode': live.get('sourceMode'),
+              'basis': live.get('basis'),
+              'unit': live.get('unit'),
+              'topItem': live.get('topItem'),
+              'items': live.get('items'),
+              'reason': live.get('reason'),
+              'sourceUrl': live.get('sourceUrl'),
+          },ensure_ascii=False,indent=2))
+          PY
