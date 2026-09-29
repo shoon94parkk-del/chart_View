@@ -108,7 +108,13 @@ def _flatten_columns(frame: pd.DataFrame) -> pd.DataFrame:
 def _detect_unit(html: str) -> str | None:
     text = BeautifulSoup(html or "", "lxml").get_text(" ", strip=True)
     match = re.search(r"\(?\s*단위\s*[:：]\s*([^\)\n]{1,30})\)?", text)
-    return _clean(match.group(1)) if match else None
+    if not match:
+        return None
+    raw = _clean(match.group(1))
+    # DART often writes compound units such as "천원, %" or "백만원, %".
+    # Revenue amounts should carry only the monetary unit; share already has %.
+    amount_unit = re.split(r"[,/·]", raw, maxsplit=1)[0].strip()
+    return amount_unit or None
 
 
 def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
