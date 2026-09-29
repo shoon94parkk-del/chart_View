@@ -43,6 +43,11 @@ jobs:
               import dart_business_service as d
               session=d._session()
               main=session.get(f"{d.DART_BASE}/dsaf001/main.do",params={'rcpNo':result['rceptNo']},timeout=d.REQUEST_TIMEOUT)
+              for token in ('viewDoc(', 'dcmNo', 'treeNode', 'text:'):
+                  pos=main.text.find(token)
+                  print('DART_MAIN_TOKEN',token,'POS',pos)
+                  if pos>=0:
+                      print(main.text[max(0,pos-2500):pos+8000])
               titles=[]
               for m in d.VIEW_DOC_RE.finditer(main.text):
                   title=d._clean(m.group('title'))
