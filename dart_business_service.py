@@ -111,6 +111,38 @@ def _detect_unit(html: str) -> str | None:
     return _clean(match.group(1)) if match else None
 
 
+def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
+    """DART frequently renders table headers as the first tbody row."""
+    if frame is None or frame.empty:
+        return frame
+    columns = [_clean(col) for col in frame.columns]
+    generic = all(
+        re.fullmatch(r"(?:col_)?\d+", col or "")
+        for col in columns
+    )
+    if not generic:
+        return frame
+    first = [_clean(value) for value in frame.iloc[0].tolist()]
+    compact = [re.sub(r"\s+", "", value) for value in first]
+    signals = sum(
+        1
+        for value in compact
+        if any(token in value for token in ("품목", "제품", "서비스", "사업부문", "매출액", "매출", "비중", "비율", "구분"))
+    )
+    if signals < 2:
+        return frame
+    used: dict[str, int] = {}
+    headers = []
+    for idx, value in enumerate(first):
+        base = value or f"col_{idx}"
+        count = used.get(base, 0)
+        used[base] = count + 1
+        headers.append(base if count == 0 else f"{base}_{count+1}")
+    promoted = frame.iloc[1:].copy().reset_index(drop=True)
+    promoted.columns = headers
+    return promoted
+
+
 def _label_column(columns: list[str]) -> tuple[str | None, str]:
     priorities = [
         ("product", ("품목", "제품", "서비스")),
@@ -119,8 +151,8 @@ def _label_column(columns: list[str]) -> tuple[str | None, str]:
     ]
     for kind, words in priorities:
         for col in columns:
-            lowered = col.lower()
-            if any(word in lowered for word in words):
+            lowered = re.sub(r"\s+", "", col.lower())
+            if any(re.sub(r"\s+", "", word.lower()) in lowered for word in words):
                 return col, kind
     return (columns[0], "category") if columns else (None, "category")
 
@@ -159,7 +191,7 @@ def _row_label(value: str) -> str:
 def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = None) -> dict | None:
     if frame is None or frame.empty or len(frame) > 100:
         return None
-    frame = _flatten_columns(frame)
+    frame = _promote_embedded_header(_flatten_columns(frame))
     columns = list(frame.columns)
     label_col, kind = _label_column(columns)
     amount_col = _amount_column(columns)
