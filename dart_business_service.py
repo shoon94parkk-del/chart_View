@@ -119,33 +119,52 @@ def _detect_unit(html: str) -> str | None:
 
 
 def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
-    """DART frequently renders table headers as the first tbody row."""
+    """Promote one or two tbody rows when DART embeds multi-row headers."""
     if frame is None or frame.empty:
         return frame
     columns = [_clean(col) for col in frame.columns]
-    generic = all(
-        re.fullmatch(r"(?:col_)?\d+", col or "")
-        for col in columns
-    )
+    generic = all(re.fullmatch(r"(?:col_)?\d+", col or "") for col in columns)
     if not generic:
         return frame
-    first = [_clean(value) for value in frame.iloc[0].tolist()]
-    compact = [re.sub(r"\s+", "", value) for value in first]
-    signals = sum(
-        1
-        for value in compact
-        if any(token in value for token in ("품목", "제품", "서비스", "사업부문", "매출액", "매출", "비중", "비율", "구분"))
-    )
-    if signals < 2:
+
+    max_depth = min(3, len(frame))
+    chosen = None
+    for depth in range(1, max_depth + 1):
+        combined = []
+        for col_idx in range(len(columns)):
+            parts = []
+            for row_idx in range(depth):
+                text = _clean(frame.iloc[row_idx, col_idx])
+                if text and text not in parts:
+                    parts.append(text)
+            combined.append(" / ".join(parts))
+        compact = [re.sub(r"\s+", "", value) for value in combined]
+        has_label = any(
+            any(token in value for token in ("품목", "제품", "서비스", "사업부문", "부문", "구분", "주요제품"))
+            for value in compact
+        )
+        has_value = any(
+            any(token in value for token in ("매출액", "매출", "금액", "영업수익"))
+            for value in compact
+        )
+        has_share = any(any(token in value for token in ("비중", "비율", "구성비")) for value in compact)
+        if has_label and (has_value or (depth == 1 and any("제" in value for value in compact))):
+            if has_share or depth == max_depth or depth == 1:
+                chosen = (depth, combined)
+                if has_share:
+                    break
+    if not chosen:
         return frame
+
+    depth, combined = chosen
     used: dict[str, int] = {}
     headers = []
-    for idx, value in enumerate(first):
+    for idx, value in enumerate(combined):
         base = value or f"col_{idx}"
         count = used.get(base, 0)
         used[base] = count + 1
         headers.append(base if count == 0 else f"{base}_{count+1}")
-    promoted = frame.iloc[1:].copy().reset_index(drop=True)
+    promoted = frame.iloc[depth:].copy().reset_index(drop=True)
     promoted.columns = headers
     return promoted
 
@@ -173,7 +192,29 @@ def _label_column(columns: list[str]) -> tuple[str | None, str]:
     return (columns[0], "category") if columns else (None, "category")
 
 
-def _amount_column(columns: list[str]) -> str | None:
+def _combined_amount_share_column(columns: list[str]) -> str | None:
+    for col in columns:
+        compact = re.sub(r"\s+", "", col)
+        if "매출" in compact and any(token in compact for token in ("비중", "비율", "%")):
+            return col
+    return None
+
+
+def _amount_share(value) -> tuple[float | None, float | None]:
+    text = _clean(value)
+    if not text:
+        return None, None
+    share_match = re.search(r"\(?\s*([△\-]?[0-9][0-9,.]*)\s*%\s*\)?", text)
+    share = _number(share_match.group(1)) if share_match else None
+    amount_text = re.sub(r"\([^)]*%[^)]*\)", "", text)
+    if share_match and share_match.group(0) == text:
+        amount = None
+    else:
+        amount = _number(amount_text)
+    return amount, share
+
+
+def _amount_column(columns: list[str], allow_generic: bool = False) -> str | None:
     candidates = []
     for idx, col in enumerate(columns):
         compact = col.replace(" ", "")
@@ -187,7 +228,14 @@ def _amount_column(columns: list[str]) -> str | None:
         if any(token in compact for token in ("당기", "현재", "제", "기")):
             score += 1
         candidates.append((score, -idx, col))
-    return max(candidates)[2] if candidates else None
+    if candidates:
+        return max(candidates)[2]
+    if allow_generic:
+        for col in columns:
+            compact = re.sub(r"\s+", "", col)
+            if "금액" in compact and not any(token in compact for token in ("비중", "비율", "증감")):
+                return col
+    return None
 
 
 def _share_column(columns: list[str]) -> str | None:
