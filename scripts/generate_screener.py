@@ -33,13 +33,32 @@ def expected_trade_date(now=None):
     while day.weekday()>=5: day-=timedelta(days=1)
     return day.isoformat()
 
+def clean_text(value):
+    if value is None:
+        return ''
+    try:
+        if pd.isna(value):
+            return ''
+    except (TypeError, ValueError):
+        pass
+    text=str(value).strip()
+    return '' if text.lower() == 'nan' else text
+
 def load_universe():
     stocks=[]; headers={'User-Agent':'Mozilla/5.0'}
     for market_type,market_name,suffix in [('stockMkt','KOSPI','.KS'),('kosdaqMkt','KOSDAQ','.KQ')]:
         r=requests.get('https://kind.krx.co.kr/corpgeneral/corpList.do',params={'method':'download','marketType':market_type},headers=headers,timeout=30); r.raise_for_status()
         frame=pd.read_html(io.StringIO(r.text))[0]
         for _,row in frame.iterrows():
-            code=str(row['종목코드']).zfill(6); stocks.append({'code':code,'name':str(row['회사명']).strip(),'market':market_name,'symbol':f'{code}{suffix}'})
+            code=str(row['종목코드']).zfill(6)
+            stocks.append({
+                'code':code,
+                'name':clean_text(row.get('회사명')),
+                'market':market_name,
+                'symbol':f'{code}{suffix}',
+                'industry':clean_text(row.get('업종')),
+                'mainProducts':clean_text(row.get('주요제품')),
+            })
     seen=set(); result=[]
     for item in stocks:
         if item['symbol'] not in seen: seen.add(item['symbol']); result.append(item)
@@ -106,7 +125,7 @@ def build_row(meta,frame):
     near52=bool(price and high52 and price>=high52*.97)
     bb_breakout=bool(price and up and price>up)
     score,breakdown=_technical_score(rsi,macd,signal,pm,ps,price,ma20,ma60,mid,up,vr,r5,r20); dt=close.index[-1]; dt=dt.date().isoformat() if hasattr(dt,'date') else str(dt)[:10]
-    return {'code':meta['code'],'symbol':meta['symbol'],'name':meta['name'],'market':meta['market'],'date':dt,'price':price,'previousClose':prev,'change1d':change,'rsi14':rsi,'macd':macd,'macdSignal':signal,'macdBullish':macd_bullish,'macdCrossUp':macd_cross_up,'volumeRatio':vr,'avgValue20':avg,'ma20':ma20,'ma60':ma60,'ma120':ma120,'bbMid':mid,'bbUpper':up,'bbLower':lo,'bbBreakout':bb_breakout,'above20':bool(ma20 and price>ma20),'above60':bool(ma60 and price>ma60),'cross20':bool(pd.notna(ma20s.iloc[-2]) and close.iloc[-2]<=ma20s.iloc[-2] and close.iloc[-1]>ma20s.iloc[-1]),'trend2060':trend2060,'goldenCross2060':golden_cross,'aligned':bool(ma20 and ma60 and ma120 and price>ma20>ma60>ma120),'high52':high52,'distance52HighPct':distance52,'near52High':near52,'ret5':r5,'ret20':r20,'ret60':r60,'technicalScore':score,'technicalBreakdown':breakdown,'score':score}
+    return {'code':meta['code'],'symbol':meta['symbol'],'name':meta['name'],'market':meta['market'],'industry':meta.get('industry') or '','mainProducts':meta.get('mainProducts') or '','date':dt,'price':price,'previousClose':prev,'change1d':change,'rsi14':rsi,'macd':macd,'macdSignal':signal,'macdBullish':macd_bullish,'macdCrossUp':macd_cross_up,'volumeRatio':vr,'avgValue20':avg,'ma20':ma20,'ma60':ma60,'ma120':ma120,'bbMid':mid,'bbUpper':up,'bbLower':lo,'bbBreakout':bb_breakout,'above20':bool(ma20 and price>ma20),'above60':bool(ma60 and price>ma60),'cross20':bool(pd.notna(ma20s.iloc[-2]) and close.iloc[-2]<=ma20s.iloc[-2] and close.iloc[-1]>ma20s.iloc[-1]),'trend2060':trend2060,'goldenCross2060':golden_cross,'aligned':bool(ma20 and ma60 and ma120 and price>ma20>ma60>ma120),'high52':high52,'distance52HighPct':distance52,'near52High':near52,'ret5':r5,'ret20':r20,'ret60':r60,'technicalScore':score,'technicalBreakdown':breakdown,'score':score}
 
 def process_group(group):
     symbols=[x['symbol'] for x in group]
@@ -131,7 +150,7 @@ def build():
         if freshest!=expected: raise RuntimeError(f'STALE_MARKET_DATE: expected {expected}, provider freshest {freshest}')
         if coverage<MIN_EXACT_COVERAGE: raise RuntimeError(f'INSUFFICIENT_EXACT_COVERAGE: {len(exact)}/{len(universe)} ({coverage:.1%})')
     rows=exact; rows.sort(key=lambda x:(x.get('technicalScore') or 0,x.get('avgValue20') or 0),reverse=True)
-    payload={'updated':datetime.now(KST).isoformat(timespec='seconds'),'tradeDate':freshest,'count':len(rows),'universeCount':len(universe),'exactDateCount':len(exact),'exactDateCoverage':round(coverage,4),'scoreModel':'technical 30 only; final recommendation = fundamental/industry 70 + technical 30','source':'KIND listing + Yahoo Finance batched daily prices; exact-date fail-closed','stocks':rows}
+    payload={'updated':datetime.now(KST).isoformat(timespec='seconds'),'tradeDate':freshest,'count':len(rows),'universeCount':len(universe),'exactDateCount':len(exact),'exactDateCoverage':round(coverage,4),'scoreModel':'technical 30 only; final recommendation = fundamental/industry 70 + technical 30','source':'KIND listing/company industry/main products + Yahoo Finance batched daily prices; exact-date fail-closed','stocks':rows}
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8'); META_OUT.write_text(json.dumps({k:payload[k] for k in ('updated','tradeDate','count','universeCount','exactDateCount','exactDateCoverage','scoreModel','source')},ensure_ascii=False,separators=(',',':')),encoding='utf-8'); print(f'Saved exact-date {len(rows)} stocks')
 
 if __name__=='__main__':build()
