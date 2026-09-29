@@ -40,7 +40,14 @@ RELATION_PATTERNS = (
 )
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|[\n\r]+")
 SPECULATIVE_RE = re.compile(r"가능성|기대감?|전망|추정|관측|소문|거론|후보|예상|검토|논의", re.I)
-ENDED_RELATION_RE = re.compile(r"계약.?해지|계약.?종료|공급.?중단|납품.?중단|거래.?중단|취소|무산", re.I)
+ENDED_RELATION_RE = re.compile(
+    r"계약(?:을|이|의)?\\s*(?:해지|종료)|"
+    r"공급(?:을|이|의)?\\s*중단|"
+    r"납품(?:을|이|의)?\\s*중단|"
+    r"거래(?:를|가|의)?\\s*중단|"
+    r"취소|무산",
+    re.I,
+)
 TARGETED_TERMS = ("공급계약", "수주", "고객사", "납품")
 GENERIC_NAMES = {
     "대상", "우리", "미래", "보성", "한솔", "삼성", "한화", "현대", "동양", "동아", "대성",
