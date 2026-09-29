@@ -80,3 +80,25 @@ def test_parses_current_dart_assignment_style_viewer_nodes():
     assert nodes[0]["rcp"] == "20260515000361"
     assert nodes[0]["dcm"] == "11381582"
     assert nodes[0]["ele"] == "23"
+
+def test_parses_dart_first_body_row_as_embedded_header():
+    html = """
+    <table>
+      <tbody>
+        <tr><td>구 분</td><td>품 목</td><td>매출액</td><td>비율</td></tr>
+        <tr><td>의료진단기기 (ACCUNIQ)</td><td>체성분분석기</td><td>9591529</td><td>31.12%</td></tr>
+        <tr><td>의료진단기기 (ACCUNIQ)</td><td>전자동혈압계</td><td>3882692</td><td>12.60%</td></tr>
+        <tr><td>보조공학기기 (HIMS)</td><td>점자정보단말기</td><td>9551554</td><td>30.99%</td></tr>
+        <tr><td>보조공학기기 (HIMS)</td><td>음성독서기</td><td>1610481</td><td>5.22%</td></tr>
+        <tr><td>합 계</td><td>합 계</td><td>30824696</td><td>100.00%</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "제품별 매출"
+    assert result["topItem"]["name"] == "체성분분석기"
+    assert result["topItem"]["share"] == 31.12
+    assert result["items"][1]["name"] == "점자정보단말기"
+    assert result["items"][1]["share"] == 30.99
+
