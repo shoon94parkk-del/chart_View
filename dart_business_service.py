@@ -177,7 +177,7 @@ def _amount_column(columns: list[str]) -> str | None:
 def _share_column(columns: list[str]) -> str | None:
     for col in columns:
         compact = col.replace(" ", "")
-        if any(word in compact for word in ("매출비중", "매출비율", "비중", "구성비")):
+        if any(word in compact for word in ("매출비중", "매출비율", "비중", "비율", "구성비")):
             return col
     return None
 
@@ -209,7 +209,7 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         if not label or amount is None or amount < 0:
             continue
         compact_label = re.sub(r"\s+", "", label)
-        if re.fullmatch(r"(합계|총계|소계|계|매출액합계)", compact_label):
+        if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출)", compact_label):
             total_amount = max(total_amount or 0, amount)
             continue
         if label in {"내수", "수출", "국내", "해외"}:
@@ -237,6 +237,21 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     inferred_total = total_amount or sum(item["revenue"] for item in items)
     if inferred_total <= 0:
         return None
+
+    # When DART exposes both detail rows and subtotal rows in the same table,
+    # naïvely summing explicit shares can double-count a product. Reject such
+    # candidates instead of normalising a clearly inconsistent disclosure.
+    if explicit_share_count:
+        explicit_share_sum = sum(
+            item["share"] for item in items if item["_share_count"]
+        )
+        if explicit_share_sum > 105:
+            return None
+
+    revenue_sum = sum(item["revenue"] for item in items)
+    if total_amount and revenue_sum > total_amount * 1.05:
+        return None
+
     for item in items:
         if not item["_share_count"]:
             item["share"] = item["revenue"] / inferred_total * 100
@@ -244,7 +259,7 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         item["revenue"] = round(float(item["revenue"]), 2)
         item.pop("_share_count", None)
 
-    items = [item for item in items if item["share"] >= 0.1]
+    items = [item for item in items if 0.1 <= item["share"] <= 100.0]
     items.sort(key=lambda x: (x["revenue"], x["share"]), reverse=True)
     if len(items) < 2:
         return None
@@ -284,6 +299,11 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
                 candidates.append(parsed)
     if not candidates:
         return None
+    # Prefer actual product/segment disclosures over generic revenue-category
+    # tables whenever both are present in the same business report.
+    structured = [row for row in candidates if row.get("kind") in {"product", "segment"}]
+    if structured:
+        candidates = structured
     best = max(candidates, key=lambda x: x["score"])
     top = best["items"][0]
     return {
