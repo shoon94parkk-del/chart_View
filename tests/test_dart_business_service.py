@@ -446,3 +446,23 @@ def test_prefers_company_wide_posco_segment_mix_over_subbusiness_product_mix():
     assert result["topItem"]["name"] == "철강부문"
     assert result["topItem"]["share"] == 51.0
 
+def test_ignores_non_monetary_units_before_revenue_unit():
+    html = """
+    <html><body>
+      <p>(단위 : tCO2e)</p>
+      <p>(단위 : 백만원, %)</p>
+      <table>
+        <thead><tr><th>사업부문</th><th>매출액</th><th>비중</th></tr></thead>
+        <tbody>
+          <tr><td>HS</td><td>261259</td><td>29.3%</td></tr>
+          <tr><td>MS</td><td>194263</td><td>21.8%</td></tr>
+          <tr><td>기타</td><td>436347</td><td>48.9%</td></tr>
+          <tr><td>합계</td><td>891869</td><td>100.0%</td></tr>
+        </tbody>
+      </table>
+    </body></html>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["unit"] == "백만원"
+
