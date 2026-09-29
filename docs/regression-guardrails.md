@@ -189,3 +189,4 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Do not mix consolidated and separate financial statements or currencies in one trend. Missing or ambiguous accounts fail closed.
 - A stale validated financial cache remains visible while rechecking; a failed check must not replace it with an empty result.
 - The checked-in major-company financial cache must stay valid and serve before network I/O after a cold restart. The daily generator must not churn commits when the underlying filings are unchanged.
+- 직접 거래 단서는 특징주·장마감 등 다종목 기사의 수주/계약 단어만으로 생성하지 않는다. 단일 기업의 구체적 계약·납품 문맥과 상대 회사명이 함께 확인되어야 하며, 긴 회사명 안에 포함된 짧은 상장사명은 독립 상대가 아니다.

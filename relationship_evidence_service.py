@@ -33,12 +33,13 @@ _LOCK = threading.Lock()
 _COMPANIES: tuple[float, list[dict]] = (0.0, [])
 
 RELATION_PATTERNS = (
-    ("공급·납품", re.compile(r"공급계약|단일판매.?공급계약|납품|공급사|벤더|vendor", re.I)),
-    ("수주·발주", re.compile(r"수주|발주|수주잔고", re.I)),
-    ("고객·채택", re.compile(r"고객사|주요.?고객|채택|탑재|적용.?확대", re.I)),
-    ("계약", re.compile(r"계약.?체결|장기.?계약|전략적.?계약", re.I)),
+    ("공급·납품", re.compile(r"공급계약|납품계약|납품(?:했|한다|중|하기로|을|를)|공급사로\s*(?:선정|지정)", re.I)),
+    ("수주·발주", re.compile(r"수주\s*계약|발주(?:했|한다|계약|를\s*받)", re.I)),
+    ("고객·채택", re.compile(r"고객사로\s*(?:확보|선정|등록)|(?:제품|부품|장비).{0,15}채택", re.I)),
+    ("계약", re.compile(r"계약(?:을|을\s*새로)?\s*(?:체결|맺|따냈|공시)", re.I)),
 )
-SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|[\n\r]+")
+CLAUSE_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|[\n\r]+|[▲▶◆]")
+ROUNDUP_RE = re.compile(r"오늘의\s*특징주|특징주|주식마감|기업\s*공시|증시\s*마감|코스피|코스닥|상한가|종목\s*뉴스|뉴스톡톡|뉴스인사이드", re.I)
 SPECULATIVE_RE = re.compile(r"가능성|기대감?|전망|추정|관측|소문|거론|후보|예상|검토|논의", re.I)
 ENDED_RELATION_RE = re.compile(
     r"계약(?:을|이|의)?\s*(?:해지|종료)|"
@@ -48,7 +49,7 @@ ENDED_RELATION_RE = re.compile(
     r"취소|무산",
     re.I,
 )
-TARGETED_TERMS = ("공급계약", "수주", "고객사", "납품")
+TARGETED_TERMS = ("공급계약", "납품계약", "고객사", "계약 체결")
 GENERIC_NAMES = {
     "대상", "우리", "미래", "보성", "한솔", "삼성", "한화", "현대", "동양", "동아", "대성",
 }
@@ -155,6 +156,19 @@ def _company_mentioned(name: str, text: str) -> bool:
     return name in text
 
 
+def _unshadowed_company_mentioned(name: str, text: str, companies: list[dict]) -> bool:
+    # A short listed name can occur inside another issuer's name (e.g. 이닉스
+    # inside SK하이닉스, HD현대 inside HD현대중공업).
+    if not _company_mentioned(name, text):
+        return False
+    visible = text
+    for company in companies:
+        other = company["name"]
+        if other != name and len(other) > len(name) and name in other:
+            visible = visible.replace(other, " ")
+    return _company_mentioned(name, visible)
+
+
 def _counterparties_in_evidence(text: str, subject_name: str, subject_symbol: str, companies: list[dict]) -> list[dict]:
     found = []
     subject_name = _clean(subject_name)
@@ -162,7 +176,7 @@ def _counterparties_in_evidence(text: str, subject_name: str, subject_symbol: st
     for company in companies:
         if company["symbol"] == subject_symbol or company["name"] == subject_name:
             continue
-        if _company_mentioned(company["name"], text):
+        if _unshadowed_company_mentioned(company["name"], text, companies):
             found.append(company)
             if len(found) >= 8:
                 break
@@ -179,22 +193,36 @@ def extract_direct_relations(subject_name: str, subject_symbol: str, news_items:
             continue
         title = _clean(item.get("title"))
         context = _clean(item.get("summarySeed"))
+        if ROUNDUP_RE.search(title):
+            continue
         full_text = f"{title}. {context}".strip()
         if not full_text:
             continue
 
-        evidence_chunks = [title] + [chunk for chunk in SENTENCE_SPLIT_RE.split(context) if chunk]
+        dedicated_title = title.find(subject_name) >= 0 and title.find(subject_name) <= 15
+        evidence_chunks = [title] + [chunk for chunk in CLAUSE_SPLIT_RE.split(context) if chunk]
         candidates = _counterparties_in_evidence(full_text, subject_name, subject_symbol, companies)
         for counterparty in candidates:
             matched_label = None
             matched_chunk = None
             for chunk in evidence_chunks:
-                if not _company_mentioned(counterparty["name"], chunk):
+                if not _unshadowed_company_mentioned(counterparty["name"], chunk, companies):
                     continue
                 if SPECULATIVE_RE.search(chunk) or ENDED_RELATION_RE.search(chunk):
                     continue
                 label = _relation_label(chunk)
-                if label:
+                # A summary may omit the article's subject, but only a dedicated
+                # single-company headline can supply that missing context.
+                subject_in_chunk = _company_mentioned(subject_name, chunk)
+                if label and (subject_in_chunk or dedicated_title):
+                    if subject_in_chunk and abs(chunk.find(subject_name) - chunk.find(counterparty["name"])) > 100:
+                        continue
+                    if not subject_in_chunk and not re.search(
+                        rf"{re.escape(counterparty['name'])}(?:와|과|에|에게|로부터|를|을)", chunk
+                    ):
+                        continue
+                    if len(chunk) > 180 and not subject_in_chunk:
+                        continue
                     matched_label = label
                     matched_chunk = chunk
                     break
@@ -212,7 +240,7 @@ def extract_direct_relations(subject_name: str, subject_symbol: str, news_items:
                 "source": _clean(item.get("source")) or "뉴스",
                 "publishedAt": item.get("publishedAt"),
                 "url": str(item.get("url") or ""),
-                "basis": "기사 제목·요약에 상장사명과 직접 거래/고객 키워드가 함께 확인됨",
+                "basis": "단일 기업 기사에서 두 회사의 구체적 계약·납품 표현 확인",
                 "evidencePreview": _clean(matched_chunk)[:180],
             })
 
@@ -279,7 +307,7 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
         "provider": fetched.get("provider"),
         "searchMode": "general+targeted" if targeted_attempts else "general",
         "reason": None if relations else ("news_provider_unavailable" if fetched.get("error") else "no_evidence_backed_direct_relation"),
-        "evidencePolicy": "named-listed-counterparty + strong commercial keyword in the same news evidence chunk; speculative/ended relationships excluded",
+        "evidencePolicy": "single-company article + named listed counterparty + concrete contract/delivery wording in one clause; roundup/speculative/ended relationships excluded",
     }
     with _LOCK:
         _CACHE[key] = (time.time(), result)
