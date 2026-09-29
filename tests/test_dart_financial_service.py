@@ -1,4 +1,6 @@
 from unittest.mock import patch
+import json
+from pathlib import Path
 
 import dart_financial_service as service
 
@@ -48,3 +50,23 @@ def test_unavailable_key_does_not_invent_financials():
         result = service._collect("005930", "005930.KS")
     assert result["available"] is False
     assert result["reason"] == "api_key_unavailable"
+
+
+def test_major_company_static_cache_serves_before_dart_network():
+    payload = json.loads(Path(service.STATIC_PATH).read_text(encoding="utf-8"))
+    assert len(payload["companies"]) >= 14
+    for code, row in payload["companies"].items():
+        assert row["available"] and row["stockCode"] == code
+        assert row["annual"] and row["annualSourceUrl"].startswith("https://dart.fss.or.kr/")
+    with service._LOCK:
+        service._CACHE.pop("005930", None)
+        service._REFRESHING.discard("005930")
+    with patch.object(service, "_persistent", return_value=None), \
+         patch.object(service._POOL, "submit") as submit:
+        row = service.fetch_financial_history("005930.KS")
+    assert row["available"] is True
+    assert [item["year"] for item in row["annual"]] == [2023, 2024, 2025]
+    assert submit.called
+    with service._LOCK:
+        service._CACHE.pop("005930", None)
+        service._REFRESHING.discard("005930")

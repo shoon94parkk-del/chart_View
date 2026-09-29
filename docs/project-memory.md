@@ -246,3 +246,4 @@ A user-visible change is complete only when:
 ## 2026-09-29 OpenDART financial history
 - `/api/financial-history?ticker=...` uses `dart_financial_service.py`, the checked-in corp-code map, and the existing DART API key. It returns annual revenue/operating profit from one annual filing plus the latest available same-period interim cumulative comparison.
 - Consolidated statements are preferred; separate statements are labeled when needed. The API omits ambiguous or missing figures. Results reuse in-memory and Render Key Value caches with daily background revalidation; provider failures retain the previous validated row.
+- The 14 major Korean tickers also have a checked-in `static/data/dart_financial_history.json` fallback, regenerated daily by `scripts/generate_dart_financial_history.py` in the existing DART workflow. A cold process serves this file immediately and rechecks the official API in the background.

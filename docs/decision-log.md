@@ -265,3 +265,5 @@ For the same receipt number, prefer the newly built validated static row over an
 ## 2026-09-29 — OpenDART 재무 흐름 API
 
 한국 종목 상세의 매출액·영업이익 추이는 `/api/financial-history`에서 OpenDART 단일회사 전체 재무제표를 조회한다. 동일 사업보고서의 당기·전기·전전기 손익계산서 값을 최대 3개 연도로 묶고, 최근 분기·반기는 당기/전기 **누적** 금액만 비교한다. 연결(CFS)을 우선하고 없으면 별도(OFS)를 명시해 사용하며 서로 다른 기준을 혼합하지 않는다. 계정이 중복·누락되거나 접수번호/통화가 맞지 않으면 수치를 표시하지 않는다. 결과는 메모리·Render Key Value에 저장하고 하루마다 뒤에서 재확인한다. 제공처 실패가 기존 검증값을 지우지 않도록 한다.
+
+2026-09-29 후속: 무료 Key Value가 비워진 재시작 직후에도 주요 종목 상세가 느려지지 않도록 공식 DART 원문으로 검증한 14개 회사의 연간·반기 재무 결과를 `static/data/dart_financial_history.json`에 미리 저장한다. 이 파일을 먼저 보여주고 API 최신성 확인은 뒤에서 한다. 기존 DART 사업 맥락 GitHub Actions가 하루 한 번 재무 파일도 갱신하되, 공시값에 변화가 없으면 커밋하지 않는다.

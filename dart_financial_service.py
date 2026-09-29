@@ -21,6 +21,8 @@ _CACHE: dict[str, tuple[float, dict]] = {}
 _LOCK = threading.Lock()
 _REFRESHING: set[str] = set()
 _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="dart-financial")
+STATIC_PATH = os.path.join("static", "data", "dart_financial_history.json")
+_STATIC: tuple[float, dict] = (0.0, {})
 
 
 def _amount(value):
@@ -122,6 +124,37 @@ def _persistent(code):
     return None
 
 
+def _static_row(code):
+    global _STATIC
+    try:
+        mtime = os.path.getmtime(STATIC_PATH)
+    except OSError:
+        return None
+    with _LOCK:
+        if _STATIC[0] != mtime:
+            try:
+                with open(STATIC_PATH, encoding="utf-8") as handle:
+                    payload = json.load(handle)
+            except (OSError, ValueError):
+                return None
+            _STATIC = (mtime, payload)
+        row = (_STATIC[1].get("companies") or {}).get(code)
+    if (isinstance(row, dict) and row.get("available") is True
+            and row.get("stockCode") == code and row.get("source") == "OpenDART"):
+        return dict(row)
+    return None
+
+
+def _freshness(row):
+    if not row:
+        return (-1, -1, -1, "", "")
+    interim = row.get("interim") or {}
+    return (int(row.get("annualReportYear") or 0), int(interim.get("year") or 0),
+            int(interim.get("quarter") or 0),
+            str(row.get("annualSourceUrl") or "").split("rcpNo=")[-1],
+            str(row.get("interimSourceUrl") or "").split("rcpNo=")[-1])
+
+
 def _save(code, row):
     try:
         client = _redis_client()
@@ -221,8 +254,13 @@ def fetch_financial_history(ticker):
         cached = _CACHE.get(code)
     if not cached:
         persisted = _persistent(code)
-        if persisted and persisted.get("available"):
-            cached = (0, persisted)
+        static = _static_row(code)
+        # At the same receipt, the newly validated checked-in row wins over a
+        # Redis entry from an older parser revision.
+        row = max((r for r in (static, persisted) if r and r.get("available")),
+                  key=_freshness, default=None)
+        if row:
+            cached = (0, row)
             with _LOCK:
                 _CACHE[code] = cached
     if cached:

@@ -188,3 +188,4 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Never calculate quarterly growth from a 3-month value against a cumulative prior period. Annual years must come from one filing, and interim YoY from matching cumulative fields.
 - Do not mix consolidated and separate financial statements or currencies in one trend. Missing or ambiguous accounts fail closed.
 - A stale validated financial cache remains visible while rechecking; a failed check must not replace it with an empty result.
+- The checked-in major-company financial cache must stay valid and serve before network I/O after a cold restart. The daily generator must not churn commits when the underlying filings are unchanged.

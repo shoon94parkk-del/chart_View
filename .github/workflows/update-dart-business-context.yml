@@ -1,4 +1,4 @@
-name: Update DART Business Context
+name: Update DART Business and Financial Context
 
 on:
   schedule:
@@ -8,7 +8,9 @@ on:
     branches: [main]
     paths:
       - 'scripts/generate_dart_business_context.py'
+      - 'scripts/generate_dart_financial_history.py'
       - 'dart_business_service.py'
+      - 'dart_financial_service.py'
       - '.github/workflows/update-dart-business-context.yml'
 
 permissions:
@@ -35,6 +37,10 @@ jobs:
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: python scripts/generate_dart_business_context.py
+      - name: Generate validated DART financial history
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python scripts/generate_dart_financial_history.py
       - name: Validate cache
         run: |
           python - <<'PY'
@@ -48,12 +54,20 @@ jobs:
               assert row.get('sourceMode') in {'opendart-api', 'dart-web'}
               assert row.get('topItem')
           print('Validated DART business cache:',len(rows))
+          financial=json.loads(Path('static/data/dart_financial_history.json').read_text(encoding='utf-8'))
+          financial_rows=financial.get('companies') or {}
+          assert len(financial_rows)>=10, len(financial_rows)
+          for code,row in financial_rows.items():
+              assert row.get('available') is True
+              assert row.get('annual')
+              assert row.get('annualSourceUrl', '').startswith('https://dart.fss.or.kr/')
+          print('Validated DART financial cache:',len(financial_rows))
           PY
-      - name: Commit cache only when business data changed
+      - name: Commit caches only when validated DART data changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/dart_business_context.json
+          git add static/data/dart_business_context.json static/data/dart_financial_history.json
           if git diff --cached --quiet; then
             echo "No DART business-context changes"
             exit 0

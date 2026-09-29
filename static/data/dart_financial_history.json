@@ -1,0 +1,510 @@
+{
+  "companies": {
+    "000270": {
+      "annual": [
+        {
+          "operatingProfit": 11607873000000,
+          "revenue": 99808420000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 12667139000000,
+          "revenue": 107448752000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 9078148000000,
+          "revenue": 114140919000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260312001224",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 4833650000000,
+        "priorOperatingProfit": 5773354000000,
+        "priorRevenue": 57367145000000,
+        "quarter": 2,
+        "revenue": 62538936000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000427",
+      "source": "OpenDART",
+      "stockCode": "000270",
+      "ticker": "000270.KS"
+    },
+    "000660": {
+      "annual": [
+        {
+          "operatingProfit": -7730313000000,
+          "revenue": 32765719000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 23467319000000,
+          "revenue": 66192960000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 47206319000000,
+          "revenue": 97146675000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260317000635",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 98152891000000,
+        "priorOperatingProfit": 16653355000000,
+        "priorRevenue": 39871093000000,
+        "quarter": 2,
+        "revenue": 131895033000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003509",
+      "source": "OpenDART",
+      "stockCode": "000660",
+      "ticker": "000660.KS"
+    },
+    "005380": {
+      "annual": [
+        {
+          "operatingProfit": 15126901000000,
+          "revenue": 162663579000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 14239592000000,
+          "revenue": 175231153000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 11467851000000,
+          "revenue": 186254472000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260318001394",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 5365574000000,
+        "priorOperatingProfit": 7235206000000,
+        "priorRevenue": 92694438000000,
+        "quarter": 2,
+        "revenue": 95154214000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003521",
+      "source": "OpenDART",
+      "stockCode": "005380",
+      "ticker": "005380.KS"
+    },
+    "005490": {
+      "annual": [
+        {
+          "operatingProfit": 3531422506439,
+          "revenue": 77127197108585,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 2173573272904,
+          "revenue": 72688143160111,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 1827063210829,
+          "revenue": 69094886192787,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260311004517",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 1525845449199,
+        "priorOperatingProfit": 1175613151730,
+        "priorRevenue": 34992363367898,
+        "quarter": 2,
+        "revenue": 37134790631212,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814000957",
+      "source": "OpenDART",
+      "stockCode": "005490",
+      "ticker": "005490.KS"
+    },
+    "005930": {
+      "annual": [
+        {
+          "operatingProfit": 6566976000000,
+          "revenue": 258935494000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 32725961000000,
+          "revenue": 300870903000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 43601051000000,
+          "revenue": 333605938000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260310002820",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 146725209000000,
+        "priorOperatingProfit": 11361329000000,
+        "priorRevenue": 153706820000000,
+        "quarter": 2,
+        "revenue": 305372914000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003699",
+      "source": "OpenDART",
+      "stockCode": "005930",
+      "ticker": "005930.KS"
+    },
+    "006400": {
+      "annual": [
+        {
+          "operatingProfit": 1545488713572,
+          "revenue": 21436788407451,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 363304463263,
+          "revenue": 16592248884388,
+          "year": 2024
+        },
+        {
+          "operatingProfit": -1722360788760,
+          "revenue": 13266730679499,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260310002954",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 48193813418,
+        "priorOperatingProfit": -831905582042,
+        "priorRevenue": 6356223796915,
+        "quarter": 2,
+        "revenue": 7345161306669,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003578",
+      "source": "OpenDART",
+      "stockCode": "006400",
+      "ticker": "006400.KS"
+    },
+    "033500": {
+      "annual": [
+        {
+          "operatingProfit": 39954477175,
+          "revenue": 533761699823,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 53988814630,
+          "revenue": 597409682162,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 72558706089,
+          "revenue": 742186008411,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260318001705",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 55794844316,
+        "priorOperatingProfit": 29465214680,
+        "priorRevenue": 365688308982,
+        "quarter": 2,
+        "revenue": 393663153672,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002437",
+      "source": "OpenDART",
+      "stockCode": "033500",
+      "ticker": "033500.KQ"
+    },
+    "035420": {
+      "annual": [
+        {
+          "operatingProfit": 1488820269608,
+          "revenue": 9670643576585,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 1979263438827,
+          "revenue": 10737719264647,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 2208138388720,
+          "revenue": 12035007218975,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260313001021",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 1062066552592,
+        "priorOperatingProfit": 1026855081011,
+        "priorRevenue": 5701868408120,
+        "quarter": 2,
+        "revenue": 6629816183195,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002266",
+      "source": "OpenDART",
+      "stockCode": "035420",
+      "ticker": "035420.KS"
+    },
+    "035720": {
+      "annual": [
+        {
+          "operatingProfit": 482998763483,
+          "revenue": 7554821329554,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 495277757353,
+          "revenue": 7864033326475,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 732036535379,
+          "revenue": 8099147815086,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260318001423",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 488414000457,
+        "priorOperatingProfit": 331267675053,
+        "priorRevenue": 3665355229180,
+        "quarter": 2,
+        "revenue": 4040533247476,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260819000055",
+      "source": "OpenDART",
+      "stockCode": "035720",
+      "ticker": "035720.KS"
+    },
+    "042660": {
+      "annual": [
+        {
+          "operatingProfit": -196498300366,
+          "revenue": 7408312265643,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 237876379317,
+          "revenue": 10776004933627,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 1167590137928,
+          "revenue": 12783512278323,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260317000644",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 1177178759130,
+        "priorOperatingProfit": 630311818493,
+        "priorRevenue": 6437202971239,
+        "quarter": 2,
+        "revenue": 8653111724948,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260812000829",
+      "source": "OpenDART",
+      "stockCode": "042660",
+      "ticker": "042660.KS"
+    },
+    "066570": {
+      "annual": [
+        {
+          "operatingProfit": 3653294000000,
+          "revenue": 82262664000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 3419675000000,
+          "revenue": 87728182000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 2478392000000,
+          "revenue": 89200882000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260706000276",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 3252805000000,
+        "priorOperatingProfit": 1898463000000,
+        "priorRevenue": 43474954000000,
+        "quarter": 2,
+        "revenue": 47553695000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001997",
+      "source": "OpenDART",
+      "stockCode": "066570",
+      "ticker": "066570.KS"
+    },
+    "068270": {
+      "annual": [
+        {
+          "operatingProfit": 651481422157,
+          "revenue": 2176431531380,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 492015534847,
+          "revenue": 3557303554371,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 1168471345595,
+          "revenue": 4162495108881,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260316001415",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 773661225753,
+        "priorOperatingProfit": 391887649948,
+        "priorRevenue": 1803369024709,
+        "quarter": 2,
+        "revenue": 2538678712902,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003751",
+      "source": "OpenDART",
+      "stockCode": "068270",
+      "ticker": "068270.KS"
+    },
+    "207940": {
+      "annual": [
+        {
+          "operatingProfit": 1205545951005,
+          "revenue": 2938755680729,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 1321366380588,
+          "revenue": 3497145675782,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 2069221266630,
+          "revenue": 4556971695180,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515001658",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": 1167196422965,
+        "priorOperatingProfit": 907441669818,
+        "priorRevenue": 2013782484640,
+        "quarter": 2,
+        "revenue": 2578030056694,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003375",
+      "source": "OpenDART",
+      "stockCode": "207940",
+      "ticker": "207940.KS"
+    },
+    "373220": {
+      "annual": [
+        {
+          "operatingProfit": 2163234000000,
+          "revenue": 33745470000000,
+          "year": 2023
+        },
+        {
+          "operatingProfit": 575387000000,
+          "revenue": 25619585000000,
+          "year": 2024
+        },
+        {
+          "operatingProfit": 1346120000000,
+          "revenue": 23671759000000,
+          "year": 2025
+        }
+      ],
+      "annualReportYear": 2025,
+      "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260312000217",
+      "available": true,
+      "basis": "연결재무제표",
+      "currency": "KRW",
+      "interim": {
+        "operatingProfit": -94453000000,
+        "priorOperatingProfit": 866832000000,
+        "priorRevenue": 12778880000000,
+        "quarter": 2,
+        "revenue": 14115216000000,
+        "year": 2026
+      },
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260813000255",
+      "source": "OpenDART",
+      "stockCode": "373220",
+      "ticker": "373220.KS"
+    }
+  },
+  "generatedAt": "2026-09-29T21:34:22+09:00",
+  "source": "OpenDART fnlttSinglAcntAll"
+}
