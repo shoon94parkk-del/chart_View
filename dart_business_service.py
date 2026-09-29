@@ -29,6 +29,7 @@ DART_BASE = "https://dart.fss.or.kr"
 OPEN_DART_BASE = "https://opendart.fss.or.kr/api"
 CACHE_TTL = 7 * 24 * 3600
 REQUEST_TIMEOUT = 15
+CORP_CODE_CACHE_PATH = os.path.join("static", "data", "dart_corp_codes.json")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; ChartView/1.0; +https://chart-view-pkv8.onrender.com)",
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.7",
@@ -73,8 +74,8 @@ def _number(value):
     text = _clean(value).replace(",", "").replace(" ", "")
     if not text or text in {"-", "—"}:
         return None
-    negative = text.startswith("(") and text.endswith(")")
-    text = text.strip("()").replace("%", "")
+    negative = (text.startswith("(") and text.endswith(")")) or text.startswith("△")
+    text = text.lstrip("△").strip("()").replace("%", "")
     text = re.sub(r"[^0-9.\-]", "", text)
     if not text or text in {"-", ".", "-."}:
         return None
@@ -150,14 +151,23 @@ def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _label_column(columns: list[str]) -> tuple[str | None, str]:
+    compact = [(col, re.sub(r"\s+", "", col.lower())) for col in columns]
+    segment_cols = [col for col, lowered in compact if "부문" in lowered]
+    product_cols = [col for col, lowered in compact if any(word in lowered for word in ("품목", "제품", "서비스"))]
+    # When a table explicitly gives both a business division and its major
+    # product list (Samsung is a representative case), the revenue belongs to
+    # the division. Show the division as the revenue item and keep products as
+    # descriptive detail instead of pretending each listed product has the
+    # division's full revenue.
+    if segment_cols and product_cols:
+        return segment_cols[0], "segment"
     priorities = [
         ("product", ("품목", "제품", "서비스")),
         ("segment", ("사업부문", "사업 부문", "부문")),
         ("category", ("구분", "매출유형", "매출 유형")),
     ]
     for kind, words in priorities:
-        for col in columns:
-            lowered = re.sub(r"\s+", "", col.lower())
+        for col, lowered in compact:
             if any(re.sub(r"\s+", "", word.lower()) in lowered for word in words):
                 return col, kind
     return (columns[0], "category") if columns else (None, "category")
@@ -204,19 +214,36 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     share_col = _share_column(columns)
     if not label_col or not amount_col:
         return None
+    detail_col = None
+    if kind == "segment":
+        for col in columns:
+            lowered = re.sub(r"\s+", "", col.lower())
+            if any(word in lowered for word in ("품목", "제품", "서비스")):
+                detail_col = col
+                break
 
     rows = []
     total_amount = None
     explicit_share_count = 0
+    adjustment_amount = 0.0
+    adjustment_share = 0.0
     for _, raw in frame.iterrows():
         label = _row_label(raw.get(label_col))
         amount = _number(raw.get(amount_col))
         share = _number(raw.get(share_col)) if share_col else None
-        if not label or amount is None or amount < 0:
+        if not label or amount is None:
             continue
         compact_label = re.sub(r"\s+", "", label)
         if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출)", compact_label):
-            total_amount = max(total_amount or 0, amount)
+            if amount >= 0:
+                total_amount = max(total_amount or 0, amount)
+            continue
+        raw_text = " ".join(_clean(value) for value in raw.tolist())
+        if amount < 0:
+            if re.search(r"내부거래|제거|조정|상계", raw_text):
+                adjustment_amount += amount
+                if share is not None and share < 0:
+                    adjustment_share += share
             continue
         if label in {"내수", "수출", "국내", "해외"}:
             continue
@@ -224,7 +251,12 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
             explicit_share_count += 1
         else:
             share = None
-        rows.append({"name": label, "revenue": amount, "share": share})
+        row = {"name": label, "revenue": amount, "share": share}
+        if detail_col:
+            detail = _clean(raw.get(detail_col))
+            if detail and detail != label:
+                row["detail"] = detail[:180]
+        rows.append(row)
 
     if len(rows) < 2:
         return None
@@ -236,7 +268,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     # total to roughly 100%; otherwise keep failing closed.
     if explicit_share_count:
         raw_share_sum = sum(row["share"] for row in rows if row["share"] is not None)
-        if raw_share_sum > 105:
+        effective_share_sum = raw_share_sum + adjustment_share
+        if raw_share_sum > 105 and not (95 <= effective_share_sum <= 105):
             collapsed_rows = []
             collapsed_count = 0
             for row in rows:
@@ -256,7 +289,7 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
             collapsed_share_sum = sum(
                 row["share"] for row in collapsed_rows if row["share"] is not None
             )
-            if collapsed_count and 95 <= collapsed_share_sum <= 105:
+            if collapsed_count and 95 <= collapsed_share_sum + adjustment_share <= 105:
                 rows = collapsed_rows
                 explicit_share_count = sum(row["share"] is not None for row in rows)
             else:
@@ -267,6 +300,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     for row in rows:
         key = row["name"]
         bucket = grouped.setdefault(key, {"name": key, "revenue": 0.0, "share": 0.0, "_share_count": 0})
+        if row.get("detail") and not bucket.get("detail"):
+            bucket["detail"] = row["detail"]
         bucket["revenue"] += row["revenue"]
         if row["share"] is not None:
             bucket["share"] += row["share"]
@@ -284,11 +319,12 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         explicit_share_sum = sum(
             item["share"] for item in items if item["_share_count"]
         )
-        if explicit_share_sum > 105:
+        if explicit_share_sum > 105 and not (95 <= explicit_share_sum + adjustment_share <= 105):
             return None
 
     revenue_sum = sum(item["revenue"] for item in items)
-    if total_amount and revenue_sum > total_amount * 1.05:
+    adjusted_revenue_sum = revenue_sum + adjustment_amount
+    if total_amount and adjusted_revenue_sum > total_amount * 1.05:
         return None
 
     for item in items:
@@ -413,6 +449,23 @@ def _corp_codes(api_key: str) -> dict[str, dict]:
     with _CACHE_LOCK:
         if _CORP_CODES[1] and time.time() - _CORP_CODES[0] < 30 * 24 * 3600:
             return _CORP_CODES[1]
+
+    # Runtime requests must not download the entire DART corp-code archive.
+    # A GitHub workflow materialises the public stock_code -> corp_code mapping
+    # into the repo so cold starts stay fast.
+    try:
+        if os.path.exists(CORP_CODE_CACHE_PATH):
+            import json
+            with open(CORP_CODE_CACHE_PATH, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+            mapping = payload.get("companies") if isinstance(payload, dict) else payload
+            if isinstance(mapping, dict) and mapping:
+                with _CACHE_LOCK:
+                    _CORP_CODES = (time.time(), mapping)
+                return mapping
+    except Exception as exc:
+        print(f"[DART] local corp-code cache failed: {type(exc).__name__}: {exc}")
+
     response = requests.get(
         f"{OPEN_DART_BASE}/corpCode.xml",
         params={"crtfc_key": api_key},
@@ -538,17 +591,17 @@ def _viewer_sections_web(rcept_no: str) -> list[str]:
         node for node in all_nodes
         if any(word in node["title"] for word in TARGET_SECTION_WORDS)
     ]
-    # Prefer narrow sales/product sections over a broad business-content parent.
-    nodes.sort(
-        key=lambda x: (
-            0 if any(word in x["title"] for word in TARGET_SECTION_WORDS[:5]) else 1,
-            len(x["title"]),
-        )
-    )
+    specific_nodes = [
+        node for node in nodes
+        if any(word in node["title"] for word in TARGET_SECTION_WORDS[:5])
+    ]
+    if specific_nodes:
+        nodes = specific_nodes
+    nodes.sort(key=lambda x: len(x["title"]))
 
     documents = []
     seen = set()
-    for node in nodes[:8]:
+    for node in nodes[:3]:
         key = (node["dcm"], node["ele"], node["offset"], node["length"])
         if key in seen:
             continue
@@ -601,7 +654,10 @@ def fetch_business_report(ticker: str, company_name: str = "") -> dict:
         if api_key:
             report = _search_report_api(api_key, code)
             if report:
-                documents = _document_html_api(api_key, report["rceptNo"])
+                # OpenDART is authoritative for company/report discovery. For
+                # content, fetch only the relevant DART viewer sections first;
+                # downloading a large full-report ZIP can take tens of seconds.
+                documents = _viewer_sections_web(report["rceptNo"])
                 mode = "opendart-api"
     except Exception as exc:
         print(f"[DART] official API failed for {code}: {type(exc).__name__}: {exc}")
