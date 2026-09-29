@@ -11,6 +11,7 @@ Append-only record of high-risk behavioral decisions. New work should add entrie
 **Protection:** `tests/mobile_smoke.cjs`, frontend and boot bundle freshness checks, exact-revision production mobile verification.
 
 The live smoke readiness check now recognizes the single content-addressed boot JavaScript and CSS references. It had continued waiting for four obsolete individual script tags after the boot bundle was introduced.
+The same smoke check compares current U.S. prices through `/api/quotes?fresh=true`; `/api/home-live` intentionally serves a saved display value while no Home visitor is active, so using it as a current-price assertion misreported normal idle behavior. The smoke does not create a synthetic visitor in usage analytics.
 
 ## 2026-09-22
 

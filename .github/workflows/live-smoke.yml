@@ -63,11 +63,13 @@ jobs:
 
           echo 'Market data integrity:'
           curl -fsSL "$BASE/api/market-now?fresh=1" -o /tmp/market-now.json
-          curl -fsSL "$BASE/api/home-live" -o /tmp/home-live.json
+          # Home live is demand-driven and returns a prior snapshot while idle.
+          # Verify current canonical quotes without creating a fake Home visitor.
+          curl -fsSL --get --data-urlencode 'tickers=NVDA,AAPL,MSFT,GOOGL,AMZN,TSM,META,AVGO,TSLA,AMD' --data-urlencode 'fresh=true' "$BASE/api/quotes" -o /tmp/us-quotes.json
           python - <<'PY'
           import json, math
           market=json.load(open('/tmp/market-now.json'))
-          home=json.load(open('/tmp/home-live.json'))
+          home=json.load(open('/tmp/us-quotes.json'))
 
           def rows(payload):
               return {x.get('ticker'): x for x in payload.get('results', []) if x.get('ticker')}
