@@ -42,10 +42,8 @@ jobs:
               && grep -q '차트뷰' /tmp/home.html \
               && grep -q 'viewport-fit=cover' /tmp/home.html \
               && ! grep -q 'user-scalable=no' /tmp/home.html \
-              && grep -q '/static/js/macro.js?v=' /tmp/home.html \
-              && grep -q '/static/js/ux_patch.js?v=' /tmp/home.html \
-              && grep -q '/static/js/valuation_bands.js?v=' /tmp/home.html \
-              && grep -q '/static/js/consensus_v2.js?v=' /tmp/home.html; then
+              && grep -q '/static/js/chartview_boot_bundle.js?v=' /tmp/home.html \
+              && grep -q '/static/css/chartview_boot_bundle.css?v=' /tmp/home.html; then
               ready=1
               echo "current mobile build detected on attempt=$i"
               break
