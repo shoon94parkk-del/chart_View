@@ -45,6 +45,7 @@ from news_service_v37 import router as news_router_v37
 from news_summary_service import router as news_summary_router_v43
 from profile_sync_service import router as profile_sync_router
 from dart_business_service import router as dart_business_router
+from relationship_evidence_service import router as relationship_evidence_router
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -151,6 +152,7 @@ app.include_router(news_router_v37)
 app.include_router(news_summary_router_v43)
 app.include_router(profile_sync_router)
 app.include_router(dart_business_router)
+app.include_router(relationship_evidence_router)
 
 # CORS 설정 - 토스 앱인토스 도메인 허용
 app.add_middleware(
