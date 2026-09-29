@@ -415,3 +415,34 @@ def test_does_not_treat_separate_revenue_ratio_column_as_combined_amount_cell():
     assert result["topItem"]["revenue"] == 1574083.0
     assert result["topItem"]["share"] == 53.6
 
+def test_prefers_company_wide_posco_segment_mix_over_subbusiness_product_mix():
+    html = """
+    <html><body>
+      <table><tbody>
+        <tr><td>사업부문</td><td>제58기(당기)</td><td>제58기(당기)</td><td>제58기(당기)</td><td>제58기(당기)</td></tr>
+        <tr><td>사업부문</td><td>자산</td><td>자산</td><td>매출</td><td>매출</td></tr>
+        <tr><td>철강부문</td><td>65562938</td><td>38%</td><td>59413172</td><td>51%</td></tr>
+        <tr><td>인프라(무역부문)</td><td>23610546</td><td>14%</td><td>42220911</td><td>36%</td></tr>
+        <tr><td>인프라(건설부문)</td><td>9797114</td><td>6%</td><td>7228333</td><td>6%</td></tr>
+        <tr><td>인프라(물류 등 부문)</td><td>2041956</td><td>1%</td><td>3554224</td><td>3%</td></tr>
+        <tr><td>이차전지소재부문</td><td>17624390</td><td>10%</td><td>3338386</td><td>3%</td></tr>
+        <tr><td>기타부문</td><td>52486865</td><td>31%</td><td>1500108</td><td>1%</td></tr>
+        <tr><td>합계</td><td>171123809</td><td>100%</td><td>117255134</td><td>100%</td></tr>
+      </tbody></table>
+
+      <table><tbody>
+        <tr><td>사업부문</td><td>사업부문</td><td>품 목</td><td>2025년 (제55기)</td><td>2025년 (제55기)</td></tr>
+        <tr><td>사업부문</td><td>사업부문</td><td>품 목</td><td>매출액</td><td>매출액 비율(%)</td></tr>
+        <tr><td>기초소재 사업</td><td>내화물 사업</td><td>내화물 제조</td><td>505309</td><td>17.2%</td></tr>
+        <tr><td>기초소재 사업</td><td>라임화성 사업</td><td>생석회 등</td><td>859306</td><td>29.2%</td></tr>
+        <tr><td>에너지소재 사업</td><td>에너지소재 사업</td><td>양극재, 음극재</td><td>1574083</td><td>53.6%</td></tr>
+        <tr><td>합 계</td><td>합 계</td><td>-</td><td>2938698</td><td>100.0%</td></tr>
+      </tbody></table>
+    </body></html>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["topItem"]["name"] == "철강부문"
+    assert result["topItem"]["share"] == 51.0
+
