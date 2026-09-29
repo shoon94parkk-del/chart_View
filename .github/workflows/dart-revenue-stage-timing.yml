@@ -1,0 +1,99 @@
+name: DART Revenue Stage Timing
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  timing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Measure DART stages per company
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json,os,time
+          import dart_business_service as d
+
+          probes=[
+              ('005930.KS','삼성전자'),
+              ('000660.KS','SK하이닉스'),
+              ('373220.KS','LG에너지솔루션'),
+              ('207940.KS','삼성바이오로직스'),
+              ('005380.KS','현대차'),
+              ('000270.KS','기아'),
+              ('006400.KS','삼성SDI'),
+              ('066570.KS','LG전자'),
+              ('035420.KS','NAVER'),
+              ('035720.KS','카카오'),
+              ('068270.KS','셀트리온'),
+              ('005490.KS','POSCO홀딩스'),
+          ]
+          key=os.environ['DART_API_KEY'].strip()
+          rows=[]
+          for ticker,name in probes:
+              code=ticker[:6]
+              row={'symbol':ticker,'name':name}
+              total=time.perf_counter()
+
+              t=time.perf_counter()
+              report=d._search_report_api(key,code)
+              row['reportLookupSec']=round(time.perf_counter()-t,3)
+              if not report:
+                  row['error']='report_not_found'
+                  print('DART_STAGE '+json.dumps(row,ensure_ascii=False),flush=True)
+                  continue
+
+              t=time.perf_counter()
+              docs=d._viewer_sections_web(report['rceptNo'])
+              row['targetViewerSec']=round(time.perf_counter()-t,3)
+              row['targetDocs']=len(docs)
+
+              year=d._report_year(report)
+              t=time.perf_counter()
+              mix=d.extract_revenue_mix(docs,year)
+              row['targetParseSec']=round(time.perf_counter()-t,3)
+
+              if not mix:
+                  t=time.perf_counter()
+                  broad=d._viewer_broad_business_web(report['rceptNo'])
+                  row['broadViewerSec']=round(time.perf_counter()-t,3)
+                  row['broadDocs']=len(broad)
+                  t=time.perf_counter()
+                  mix=d.extract_revenue_mix(broad,year)
+                  row['broadParseSec']=round(time.perf_counter()-t,3)
+              else:
+                  row['broadViewerSec']=0.0
+                  row['broadDocs']=0
+                  row['broadParseSec']=0.0
+
+              row['totalDirectSec']=round(time.perf_counter()-total,3)
+              row['available']=bool(mix)
+              row['basis']=mix.get('basis') if mix else None
+              row['topItem']=(mix.get('topItem') or {}).get('name') if mix else None
+              rows.append(row)
+              print('DART_STAGE '+json.dumps(row,ensure_ascii=False),flush=True)
+
+          def avg(key):
+              vals=[r.get(key,0) or 0 for r in rows]
+              return round(sum(vals)/len(vals),3) if vals else 0
+          print('DART_STAGE_SUMMARY '+json.dumps({
+              'count':len(rows),
+              'reportLookupAvgSec':avg('reportLookupSec'),
+              'targetViewerAvgSec':avg('targetViewerSec'),
+              'targetParseAvgSec':avg('targetParseSec'),
+              'broadViewerAvgSec':avg('broadViewerSec'),
+              'broadParseAvgSec':avg('broadParseSec'),
+              'totalDirectAvgSec':avg('totalDirectSec'),
+          },ensure_ascii=False),flush=True)
+          PY
