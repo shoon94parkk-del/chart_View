@@ -90,6 +90,7 @@ def test_parses_dart_first_body_row_as_embedded_header():
         <tr><td>의료진단기기 (ACCUNIQ)</td><td>전자동혈압계</td><td>3882692</td><td>12.60%</td></tr>
         <tr><td>보조공학기기 (HIMS)</td><td>점자정보단말기</td><td>9551554</td><td>30.99%</td></tr>
         <tr><td>보조공학기기 (HIMS)</td><td>음성독서기</td><td>1610481</td><td>5.22%</td></tr>
+        <tr><td>기타</td><td>기타제품</td><td>6188440</td><td>20.07%</td></tr>
         <tr><td>합 계</td><td>합 계</td><td>30824696</td><td>100.00%</td></tr>
       </tbody>
     </table>
@@ -314,4 +315,52 @@ def test_merges_split_hyundai_segment_tables_when_shares_reconcile_to_100():
     assert result["topItem"]["share"] == 78.2
     assert [row["name"] for row in result["items"][:3]] == ["차량 부문", "금융 부문", "기타 부문"]
     assert round(sum(row["share"] for row in result["items"]), 1) == 100.0
+
+def test_switches_to_product_basis_when_segment_repeats_across_priced_products():
+    html = """
+    <table>
+      <thead>
+        <tr><th>사업부문</th><th>매출유형</th><th>품목</th><th>2025년도 금액</th><th>2025년도 비중</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>바이오의약품</td><td>제품 및 상품 등</td><td>바이오의약품 등</td><td>3879697</td><td>93.20%</td></tr>
+        <tr><td>바이오의약품</td><td>용역</td><td>제품관련 서비스 등</td><td>2838</td><td>0.07%</td></tr>
+        <tr><td>바이오의약품</td><td>소계</td><td>소계</td><td>3882535</td><td>93.27%</td></tr>
+        <tr><td>케미컬의약품</td><td>제품 및 상품 등</td><td>케미컬의약품 등</td><td>272156</td><td>6.54%</td></tr>
+        <tr><td>케미컬의약품</td><td>용역</td><td>기타 서비스 등</td><td>6139</td><td>0.15%</td></tr>
+        <tr><td>케미컬의약품</td><td>기타</td><td>기타</td><td>1665</td><td>0.04%</td></tr>
+        <tr><td>케미컬의약품</td><td>소계</td><td>소계</td><td>279960</td><td>6.73%</td></tr>
+        <tr><td>합계</td><td>합계</td><td>합계</td><td>4162495</td><td>100.00%</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "제품별 매출"
+    assert result["topItem"]["name"] == "바이오의약품 등"
+    assert result["topItem"]["share"] == 93.2
+
+
+def test_extracts_product_mix_from_domestic_export_total_rows():
+    html = """
+    <table>
+      <thead><tr><th>매출 유형</th><th>품목</th><th>구분</th><th>제82기 ('25.1.1~12.31)</th><th>제81기</th></tr></thead>
+      <tbody>
+        <tr><td>제품</td><td>승용</td><td>내수</td><td>3554913</td><td>3503745</td></tr>
+        <tr><td>제품</td><td>승용</td><td>수출</td><td>4734171</td><td>4280518</td></tr>
+        <tr><td>제품</td><td>승용</td><td>합계</td><td>8289084</td><td>7784262</td></tr>
+        <tr><td>제품</td><td>RV</td><td>내수</td><td>13609944</td><td>12652011</td></tr>
+        <tr><td>제품</td><td>RV</td><td>수출</td><td>29220221</td><td>26973985</td></tr>
+        <tr><td>제품</td><td>RV</td><td>합계</td><td>42830165</td><td>39625996</td></tr>
+        <tr><td>제품</td><td>상용</td><td>합계</td><td>2322858</td><td>2321379</td></tr>
+        <tr><td>제품 외 기타</td><td>제품 외 기타</td><td>합계</td><td>11706569</td><td>13518904</td></tr>
+        <tr><td>합계</td><td>합계</td><td>합계</td><td>65148676</td><td>63256745</td></tr>
+      </tbody>
+    </table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "제품별 매출"
+    assert result["topItem"]["name"] == "RV"
+    assert round(result["topItem"]["share"], 1) == 65.7
 
