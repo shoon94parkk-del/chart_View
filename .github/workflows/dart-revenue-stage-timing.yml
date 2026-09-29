@@ -2,6 +2,10 @@ name: DART Revenue Stage Timing
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dart-revenue-stage-timing.yml'
 
 permissions:
   contents: read
