@@ -144,15 +144,14 @@ def _promote_embedded_header(frame: pd.DataFrame) -> pd.DataFrame:
             for value in compact
         )
         has_value = any(
-            any(token in value for token in ("매출액", "매출", "금액", "영업수익"))
+            any(token in value for token in ("매출액", "금액", "영업수익"))
             for value in compact
         )
         has_share = any(any(token in value for token in ("비중", "비율", "구성비")) for value in compact)
-        if has_label and (has_value or (depth == 1 and any("제" in value for value in compact))):
-            if has_share or depth == max_depth or depth == 1:
-                chosen = (depth, combined)
-                if has_share:
-                    break
+        if has_label and has_value:
+            chosen = (depth, combined)
+            if has_share:
+                break
     if not chosen:
         return frame
 
@@ -252,21 +251,48 @@ def _row_label(value: str) -> str:
     return text[:100]
 
 
+def _metric_column(frame: pd.DataFrame, label_col: str | None) -> str | None:
+    for col in frame.columns:
+        if col == label_col:
+            continue
+        values = {
+            re.sub(r"\s+", "", _clean(value))
+            for value in frame[col].head(30).tolist()
+        }
+        if any(value in {"매출액", "영업수익", "매출", "수익"} for value in values):
+            return col
+    return None
+
+
+def _is_total_label(label: str, share: float | None = None) -> bool:
+    compact = re.sub(r"\s+", "", label)
+    if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출|영업수익합계)", compact):
+        return True
+    if compact in {"영업수익", "매출액", "매출"} and share is not None and 95 <= share <= 105:
+        return True
+    return False
+
+
 def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = None) -> dict | None:
-    if frame is None or frame.empty or len(frame) > 100:
+    if frame is None or frame.empty or len(frame) > 120:
         return None
     frame = _promote_embedded_header(_flatten_columns(frame))
     columns = list(frame.columns)
     label_col, kind = _label_column(columns)
-    amount_col = _amount_column(columns)
     share_col = _share_column(columns)
+    combined_col = _combined_amount_share_column(columns)
+    amount_col = combined_col or _amount_column(columns, allow_generic=bool(share_col))
     if not label_col or not amount_col:
         return None
+
+    generic_amount = combined_col is None and "매출" not in re.sub(r"\s+", "", amount_col)
+    metric_col = _metric_column(frame, label_col) if generic_amount else None
+
     detail_col = None
     if kind == "segment":
         for col in columns:
             lowered = re.sub(r"\s+", "", col.lower())
-            if any(word in lowered for word in ("품목", "제품", "서비스")):
+            if any(word in lowered for word in ("품목", "제품", "서비스", "주요제품")):
                 detail_col = col
                 break
 
@@ -275,30 +301,46 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     explicit_share_count = 0
     adjustment_amount = 0.0
     adjustment_share = 0.0
+
     for _, raw in frame.iterrows():
         label = _row_label(raw.get(label_col))
-        amount = _number(raw.get(amount_col))
-        share = _number(raw.get(share_col)) if share_col else None
-        if not label or amount is None:
+        if not label:
             continue
-        compact_label = re.sub(r"\s+", "", label)
-        if re.fullmatch(r"(합계|총계|소계|계|매출액합계|매출합계|매출총계|총매출)", compact_label):
+
+        if metric_col:
+            metric = re.sub(r"\s+", "", _clean(raw.get(metric_col)))
+            if metric not in {"매출액", "영업수익", "매출", "수익"}:
+                continue
+
+        if combined_col:
+            amount, share = _amount_share(raw.get(combined_col))
+        else:
+            amount = _number(raw.get(amount_col))
+            share = _number(raw.get(share_col)) if share_col else None
+
+        if amount is None:
+            continue
+
+        if _is_total_label(label, share):
             if amount >= 0:
                 total_amount = max(total_amount or 0, amount)
             continue
+
         raw_text = " ".join(_clean(value) for value in raw.tolist())
         if amount < 0:
-            if re.search(r"내부거래|제거|조정|상계", raw_text):
+            if re.search(r"내부거래|내부매출|제거|조정|상계", raw_text):
                 adjustment_amount += amount
                 if share is not None and share < 0:
                     adjustment_share += share
             continue
+
         if label in {"내수", "수출", "국내", "해외"}:
             continue
         if share is not None and 0 <= share <= 100:
             explicit_share_count += 1
         else:
             share = None
+
         row = {"name": label, "revenue": amount, "share": share}
         if detail_col:
             detail = _clean(raw.get(detail_col))
@@ -306,14 +348,17 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
                 row["detail"] = detail[:180]
         rows.append(row)
 
-    if len(rows) < 2:
+    if not rows:
         return None
 
-    # DART HTML can use rowspan for revenue/share cells. pandas.read_html
-    # forward-fills those cells into the following row, which can make an
-    # otherwise valid product mix exceed 100%. Only collapse an *adjacent*
-    # exact amount+share duplicate when doing so restores the explicit-share
-    # total to roughly 100%; otherwise keep failing closed.
+    if kind == "category":
+        segment_like = sum("부문" in row["name"] for row in rows)
+        if segment_like and segment_like >= max(1, len(rows) // 2):
+            kind = "segment"
+
+    # DART rowspan forward-fill can duplicate the same amount/share into the
+    # next label. Collapse only when removing exact adjacent duplicates restores
+    # the disclosed share total to approximately 100%.
     if explicit_share_count:
         raw_share_sum = sum(row["share"] for row in rows if row["share"] is not None)
         effective_share_sum = raw_share_sum + adjustment_share
@@ -343,7 +388,6 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
             else:
                 return None
 
-    # Aggregate duplicate product/segment rows (e.g. domestic/export split).
     grouped: dict[str, dict] = {}
     for row in rows:
         key = row["name"]
@@ -356,17 +400,16 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
             bucket["_share_count"] += 1
 
     items = list(grouped.values())
+    if not items:
+        return None
+
     inferred_total = total_amount or sum(item["revenue"] for item in items)
     if inferred_total <= 0:
         return None
 
-    # When DART exposes both detail rows and subtotal rows in the same table,
-    # naïvely summing explicit shares can double-count a product. Reject such
-    # candidates instead of normalising a clearly inconsistent disclosure.
+    explicit_share_sum = 0.0
     if explicit_share_count:
-        explicit_share_sum = sum(
-            item["share"] for item in items if item["_share_count"]
-        )
+        explicit_share_sum = sum(item["share"] for item in items if item["_share_count"])
         if explicit_share_sum > 105 and not (95 <= explicit_share_sum + adjustment_share <= 105):
             return None
 
@@ -383,9 +426,15 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         item.pop("_share_count", None)
 
     items = [item for item in items if 0.1 <= item["share"] <= 100.0]
-    items.sort(key=lambda x: (x["revenue"], x["share"]), reverse=True)
-    if len(items) < 2:
+    items.sort(key=lambda x: (x["share"], x["revenue"]), reverse=True)
+    if not items:
         return None
+
+    share_sum = round(sum(item["share"] for item in items) + adjustment_share, 2) if explicit_share_count else 100.0
+    complete = (95 <= share_sum <= 105) if explicit_share_count else True
+    if len(items) == 1 and not complete:
+        # Keep partial one-segment candidates only for cross-table merging.
+        pass
 
     score = 10 + min(len(items), 8)
     if kind == "product":
@@ -394,6 +443,8 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         score += 5
     if explicit_share_count:
         score += 4
+    if complete:
+        score += 3
     if report_year and any(str(report_year) in col for col in columns):
         score += 2
 
@@ -404,13 +455,50 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         "labelColumn": label_col,
         "unit": _detect_unit(html),
         "items": items[:8],
+        "hasExplicitShare": bool(explicit_share_count),
+        "shareSum": share_sum,
+        "complete": complete,
     }
+
+
+def _merge_segment_candidates(candidates: list[dict]) -> dict | None:
+    partials = [
+        row for row in candidates
+        if row.get("kind") == "segment"
+        and row.get("hasExplicitShare")
+        and 0 < float(row.get("shareSum") or 0) < 95
+    ]
+    best = None
+    for i, left in enumerate(partials):
+        left_names = {item["name"] for item in left["items"]}
+        for right in partials[i + 1:]:
+            right_names = {item["name"] for item in right["items"]}
+            if left_names & right_names:
+                continue
+            share_sum = float(left.get("shareSum") or 0) + float(right.get("shareSum") or 0)
+            if not 95 <= share_sum <= 105:
+                continue
+            items = [*left["items"], *right["items"]]
+            items.sort(key=lambda x: (x["share"], x["revenue"]), reverse=True)
+            merged = {
+                "score": max(left["score"], right["score"]) + 5,
+                "kind": "segment",
+                "unit": left.get("unit") or right.get("unit"),
+                "items": items[:8],
+                "hasExplicitShare": True,
+                "shareSum": round(share_sum, 2),
+                "complete": True,
+            }
+            if best is None or merged["score"] > best["score"]:
+                best = merged
+    return best
 
 
 def extract_revenue_mix(html_documents: list[str], report_year: int | None = None) -> dict | None:
     candidates = []
+    seen = set()
     for html in html_documents:
-        if not html or "매출" not in html:
+        if not html or ("매출" not in html and "영업수익" not in html):
             continue
         try:
             tables = pd.read_html(StringIO(html))
@@ -418,20 +506,37 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
             continue
         for table in tables:
             parsed = _extract_table(table, html, report_year)
-            if parsed:
-                candidates.append(parsed)
+            if not parsed:
+                continue
+            signature = (
+                parsed.get("kind"),
+                tuple((item.get("name"), item.get("share")) for item in parsed.get("items") or []),
+            )
+            if signature in seen:
+                continue
+            seen.add(signature)
+            candidates.append(parsed)
+
     if not candidates:
         return None
-    # Prefer actual product/segment disclosures over generic revenue-category
-    # tables whenever both are present in the same business report.
-    structured = [row for row in candidates if row.get("kind") in {"product", "segment"}]
+
+    merged = _merge_segment_candidates(candidates)
+    if merged:
+        candidates.append(merged)
+
+    complete_candidates = [row for row in candidates if row.get("complete")]
+    if not complete_candidates:
+        return None
+
+    structured = [row for row in complete_candidates if row.get("kind") in {"product", "segment"}]
     if structured:
-        candidates = structured
-    best = max(candidates, key=lambda x: x["score"])
+        complete_candidates = structured
+
+    best = max(complete_candidates, key=lambda x: x["score"])
     top = best["items"][0]
     return {
         "basis": "제품별 매출" if best["kind"] == "product" else "사업부문별 매출" if best["kind"] == "segment" else "매출 구분",
-        "unit": best["unit"],
+        "unit": best.get("unit"),
         "topItem": top,
         "items": best["items"][:5],
         "confidence": "high" if best["score"] >= 24 else "medium",
