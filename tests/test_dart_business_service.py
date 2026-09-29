@@ -102,3 +102,43 @@ def test_parses_dart_first_body_row_as_embedded_header():
     assert result["items"][1]["name"] == "점자정보단말기"
     assert result["items"][1]["share"] == 30.99
 
+def test_prefers_clean_product_mix_over_double_counted_sales_channel_table():
+    clean = """
+    <table><tbody>
+      <tr><td>구 분</td><td>품 목</td><td>매출액</td><td>비율</td></tr>
+      <tr><td>의료진단기기</td><td>체성분분석기</td><td>9591529</td><td>31.12%</td></tr>
+      <tr><td>의료진단기기</td><td>전자동혈압계</td><td>3882692</td><td>12.60%</td></tr>
+      <tr><td>보조공학기기</td><td>점자정보단말기</td><td>9551554</td><td>30.99%</td></tr>
+      <tr><td>합 계</td><td>합 계</td><td>30824696</td><td>100.00%</td></tr>
+    </tbody></table>
+    """
+    doubled = """
+    <table><tbody>
+      <tr><td>매출유형</td><td>품목</td><td>구분</td><td>판매경로</td><td>매출액</td><td>비중</td></tr>
+      <tr><td>제품</td><td>체성분분석기</td><td>국내</td><td>직접판매</td><td>956596</td><td>5.60%</td></tr>
+      <tr><td>제품</td><td>체성분분석기</td><td>수출</td><td>딜러</td><td>7816305</td><td>45.76%</td></tr>
+      <tr><td>제품</td><td>체성분분석기</td><td>소계</td><td>소계</td><td>9591529</td><td>56.16%</td></tr>
+      <tr><td>제품</td><td>혈압계</td><td>국내</td><td>직접판매</td><td>2319801</td><td>13.58%</td></tr>
+      <tr><td>제품</td><td>혈압계</td><td>소계</td><td>소계</td><td>3882692</td><td>22.73%</td></tr>
+    </tbody></table>
+    """
+    result = extract_revenue_mix([doubled, clean], 2025)
+    assert result is not None
+    assert result["topItem"]["name"] == "체성분분석기"
+    assert result["topItem"]["share"] == 31.12
+    assert all(row["share"] <= 100 for row in result["items"])
+
+
+def test_excludes_named_sales_total_rows():
+    html = """
+    <table><tbody>
+      <tr><td>품목</td><td>매출액</td><td>비중</td></tr>
+      <tr><td>제품A</td><td>60</td><td>60%</td></tr>
+      <tr><td>제품B</td><td>40</td><td>40%</td></tr>
+      <tr><td>매출합계</td><td>100</td><td>100%</td></tr>
+    </tbody></table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert [row["name"] for row in result["items"]] == ["제품A", "제품B"]
+
