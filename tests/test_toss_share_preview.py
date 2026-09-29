@@ -48,9 +48,11 @@ class TossSharePreviewTest(unittest.TestCase):
         html = endpoint("detail", "066570.KS").body.decode("utf-8")
         self.assertIn("LG전자 (066570.KS) | 차트뷰", html)
         self.assertIn('property="og:image"', html)
+        self.assertIn('https://chart-view-toss.onrender.com/marketing/chartview-toss-instagram-20260930.png', html)
+        self.assertIn('property="og:image:width" content="1122"', html)
+        self.assertIn('property="og:image:height" content="1402"', html)
         self.assertIn('name="twitter:card" content="summary_large_image"', html)
         self.assertIn("#detail/066570.KS", html)
-        self.assertTrue((ROOT / "static/social-card-toss.png").is_file())
 
     def test_chart_metadata_and_invalid_symbol(self):
         endpoint, HttpError = preview_functions()
