@@ -21,7 +21,7 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -q -r requirements.txt
-      - name: Print POSCO revenue candidates and scopes
+      - name: Print POSCO company-wide revenue tables
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
@@ -31,25 +31,24 @@ jobs:
           import dart_business_service as d
 
           report=d._search_report_api(os.environ['DART_API_KEY'],'005490')
-          print('REPORT',json.dumps(report,ensure_ascii=False))
           year=d._report_year(report)
-          docs=d._viewer_sections_web(report['rceptNo'])
           broad=d._viewer_broad_business_web(report['rceptNo'])
-          print('DOCS',len(docs),'BROAD',len(broad))
-          for source,documents in [('targeted',docs),('broad',broad)]:
-              print('\nSOURCE',source)
-              for di,html in enumerate(documents):
-                  try: tables=pd.read_html(io.StringIO(html))
-                  except Exception: continue
-                  for ti,table in enumerate(tables):
-                      parsed=d._extract_table(table,html,year)
-                      if not parsed: continue
-                      print('CANDIDATE',json.dumps({
-                          'source':source,'doc':di,'table':ti,
-                          'columns':[str(x) for x in table.columns],
-                          'parsed':parsed,
-                      },ensure_ascii=False))
-                      print(table.head(16).to_string(index=False)[:7000])
-          print('TARGET_RESULT',json.dumps(d.extract_revenue_mix(docs,year),ensure_ascii=False))
-          print('BROAD_RESULT',json.dumps(d.extract_revenue_mix(broad,year),ensure_ascii=False))
+          print('REPORT',json.dumps(report,ensure_ascii=False),'BROAD',len(broad))
+          for di,html in enumerate(broad):
+              try: tables=pd.read_html(io.StringIO(html))
+              except Exception: continue
+              for ti,table in enumerate(tables):
+                  flat=' '.join(map(str,table.columns))+' '+table.astype(str).to_string(index=False)
+                  if '매출' not in flat:
+                      continue
+                  scope_tokens=sum(token in flat for token in ('철강','인프라','이차전지','연결조정','친환경'))
+                  if scope_tokens < 2:
+                      continue
+                  parsed=d._extract_table(table,html,year)
+                  print('SCOPE_TABLE',json.dumps({
+                      'doc':di,'table':ti,'shape':list(table.shape),
+                      'columns':[str(x) for x in table.columns],
+                      'scopeTokens':scope_tokens,'parsed':parsed,
+                  },ensure_ascii=False))
+                  print(table.head(25).to_string(index=False)[:14000])
           PY
