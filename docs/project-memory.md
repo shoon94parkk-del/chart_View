@@ -231,3 +231,8 @@ A user-visible change is complete only when:
 - Disk-seeded Home rows are stale-first display data. A first Home visitor gets a short grace period, but seeded rows never mark the whole market fresh.
 - Successful provider fallback through `/api/quotes` repairs that ticker's shared Home cache so Home, Watchlist, Heatmap, and Detail converge on the same newest row.
 - Korean current-quote live hours are treated as 08:00–20:00 KST to cover the NXT extended session instead of freezing live refresh at the 15:30 KRX close.
+
+## 2026-09-29 — DART receipt-aware cache
+- Validated major-company rows in `dart_business_context.json` no longer expire merely because `updated` is older than 14 days; the daily generator commits only report changes.
+- Every successfully parsed Korean stock report is also cached in the existing Render Key Value under its stock code, with the receipt number and last successful check time. A cache hit returns immediately while a 24-hour-old entry checks the latest receipt in the background. Unchanged receipts skip viewer parsing; failures keep the last validated row.
+- Render Key Value is free and configured without persistence, so this cache may disappear on instance restart or eviction. Major-company checked-in rows survive that event; other companies fall back to a new DART fetch.

@@ -180,3 +180,6 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - DART triangle-negative values (△) are negative. Internal-transaction elimination rows may reconcile disclosed segment shares above 100%; use them for validation but never expose them as revenue items.
 - Samsung Electronics 2025 annual-report sentinel: sourceMode=opendart-api, basis=사업부문별 매출, top item=DX 부문, share=56.3.
 - Performance sentinel: optimized cold path should remain under 15s in CI; warm in-process cache under 100ms.
+- A validated annual-report row remains usable after the static generator's `updated` date ages; unchanged filings must not trigger a full report parse.
+- Runtime cache entries are keyed by stock code and retain the validated receipt number. Recheck the latest receipt in the background after 24 hours; parse only a changed receipt. Provider or parser failure must preserve the last validated row.
+- Render Key Value is an opportunistic shared cache for all visited Korean stocks. The checked-in major-company rows remain the durable fallback because the free Key Value instance has persistence disabled and may evict keys.

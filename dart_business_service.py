@@ -8,9 +8,11 @@ The service is deliberately fail-closed:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from io import BytesIO, StringIO
 import html as html_lib
+import json
 import os
 import re
 import threading
@@ -22,12 +24,14 @@ from bs4 import BeautifulSoup
 from fastapi import APIRouter, HTTPException, Query
 import pandas as pd
 import requests
+import redis
 
 router = APIRouter()
 KST = timezone(timedelta(hours=9))
 DART_BASE = "https://dart.fss.or.kr"
 OPEN_DART_BASE = "https://opendart.fss.or.kr/api"
-CACHE_TTL = 7 * 24 * 3600
+REPORT_CHECK_TTL = 24 * 3600
+NEGATIVE_CACHE_TTL = 3600
 REQUEST_TIMEOUT = 15
 CORP_CODE_CACHE_PATH = os.path.join("static", "data", "dart_corp_codes.json")
 BUSINESS_CONTEXT_CACHE_PATH = os.path.join("static", "data", "dart_business_context.json")
@@ -39,6 +43,9 @@ _CACHE: dict[str, tuple[float, dict]] = {}
 _CACHE_LOCK = threading.Lock()
 _CORP_CODES: tuple[float, dict[str, dict]] = (0.0, {})
 _STATIC_BUSINESS_CONTEXT: tuple[float, dict] = (0.0, {})
+_REFRESHING: set[str] = set()
+_REFRESH_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="dart-report-check")
+_REDIS_CLIENT = None
 
 REPORT_TITLE_RE = re.compile(r"(?:^|\])\s*사업보고서(?:\s*\(|\s*$)")
 VIEW_NODE_RE = re.compile(
@@ -81,20 +88,91 @@ def _static_business_context(code: str) -> dict | None:
             except Exception:
                 return None
             _STATIC_BUSINESS_CONTEXT = (mtime, payload)
-    updated = _clean(payload.get("updated")) if isinstance(payload, dict) else ""
-    if updated:
-        try:
-            updated_dt = datetime.fromisoformat(updated)
-            if updated_dt.tzinfo is None:
-                updated_dt = updated_dt.replace(tzinfo=KST)
-            if datetime.now(KST) - updated_dt.astimezone(KST) > timedelta(days=14):
-                return None
-        except Exception:
-            return None
+    # A validated annual report does not expire because the daily generator
+    # found no change. Receipt-number revalidation happens in the background.
     row = (payload.get("companies") or {}).get(code) if isinstance(payload, dict) else None
     if not isinstance(row, dict) or not row.get("available"):
         return None
     return dict(row)
+
+
+def _redis_client():
+    global _REDIS_CLIENT
+    url = os.environ.get("CHARTVIEW_ANALYTICS_REDIS", "").strip()
+    if not url:
+        return None
+    if _REDIS_CLIENT is None:
+        _REDIS_CLIENT = redis.from_url(url, decode_responses=True,
+                                       socket_connect_timeout=0.3, socket_timeout=0.3)
+    return _REDIS_CLIENT
+
+
+def _redis_key(code: str) -> str:
+    return f"chartview:dart-business:v1:{code}"
+
+
+def _load_persistent(code: str) -> tuple[float, dict] | None:
+    try:
+        client = _redis_client()
+        raw = client.get(_redis_key(code)) if client else None
+        payload = json.loads(raw) if raw else None
+        row = payload.get("row") if isinstance(payload, dict) else None
+        if (isinstance(row, dict) and row.get("available") is True
+                and row.get("stockCode") == code
+                and re.fullmatch(r"\d{14}", str(row.get("rceptNo") or ""))):
+            return float(payload.get("verifiedAt") or 0), row
+    except Exception as exc:
+        print(f"[DART] persistent cache read failed for {code}: {type(exc).__name__}")
+    return None
+
+
+def _save_persistent(code: str, row: dict, verified_at: float) -> None:
+    if not row.get("available") or not row.get("rceptNo"):
+        return
+    try:
+        client = _redis_client()
+        if client:
+            client.set(_redis_key(code), json.dumps({"verifiedAt": verified_at, "row": row}, ensure_ascii=False))
+    except Exception as exc:
+        print(f"[DART] persistent cache write failed for {code}: {type(exc).__name__}")
+
+
+def _refresh_cached_report(code: str, ticker: str, company_name: str, old: dict) -> None:
+    try:
+        api_key = _clean(os.environ.get("DART_API_KEY"))
+        report = _search_report_api(api_key, code) if api_key else _search_report_web(company_name, code)
+        if not report:
+            # A provider error must not erase a validated report.
+            with _CACHE_LOCK:
+                _CACHE[code] = (time.time() - REPORT_CHECK_TTL + NEGATIVE_CACHE_TTL, old)
+            return
+        if report["rceptNo"] == old.get("rceptNo"):
+            checked = time.time()
+            with _CACHE_LOCK:
+                _CACHE[code] = (checked, old)
+            _save_persistent(code, old, checked)
+            return
+        newer = fetch_business_report(ticker, company_name, force=True, report_hint=report)
+        if not newer.get("available"):
+            with _CACHE_LOCK:
+                _CACHE[code] = (time.time() - REPORT_CHECK_TTL + NEGATIVE_CACHE_TTL, old)
+    except Exception as exc:
+        print(f"[DART] report check failed for {code}: {type(exc).__name__}: {exc}")
+        with _CACHE_LOCK:
+            _CACHE[code] = (time.time() - REPORT_CHECK_TTL + NEGATIVE_CACHE_TTL, old)
+    finally:
+        with _CACHE_LOCK:
+            _REFRESHING.discard(code)
+
+
+def _schedule_report_check(code: str, ticker: str, company_name: str, row: dict) -> None:
+    if os.environ.get("DART_STATIC_CACHE_BYPASS") == "1":
+        return
+    with _CACHE_LOCK:
+        if code in _REFRESHING:
+            return
+        _REFRESHING.add(code)
+    _REFRESH_POOL.submit(_refresh_cached_report, code, ticker, company_name, row)
 
 
 def _stock_code(ticker: str) -> str:
@@ -1107,35 +1185,47 @@ def _report_year(report: dict) -> int | None:
     return None
 
 
-def fetch_business_report(ticker: str, company_name: str = "") -> dict:
+def fetch_business_report(ticker: str, company_name: str = "", *,
+                          force: bool = False, report_hint: dict | None = None) -> dict:
     code = _stock_code(ticker)
     cache_key = code
-    with _CACHE_LOCK:
-        cached = _CACHE.get(cache_key)
-        if cached and time.time() - cached[0] < CACHE_TTL:
-            return cached[1]
-
-    static_cached = _static_business_context(code)
-    if static_cached:
-        static_cached["ticker"] = ticker
-        static_cached["cacheMode"] = "static-precomputed"
+    bypass = os.environ.get("DART_STATIC_CACHE_BYPASS") == "1"
+    if not force:
         with _CACHE_LOCK:
-            _CACHE[cache_key] = (time.time(), static_cached)
-        return static_cached
+            cached = _CACHE.get(cache_key)
+        if cached and (cached[1].get("available") or time.time() - cached[0] < NEGATIVE_CACHE_TTL):
+            if cached[1].get("available") and time.time() - cached[0] >= REPORT_CHECK_TTL:
+                _schedule_report_check(code, ticker, company_name, cached[1])
+            return dict(cached[1], ticker=ticker)
+
+        persistent = None if bypass else _load_persistent(code)
+        static_cached = _static_business_context(code)
+        if static_cached:
+            static_cached["cacheMode"] = "static-precomputed"
+        if persistent and static_cached and str(static_cached.get("rceptNo") or "") > str(persistent[1].get("rceptNo") or ""):
+            persistent = None
+        if persistent or static_cached:
+            checked_at, row = persistent if persistent else (0.0, static_cached)
+            row = dict(row, ticker=ticker)
+            if persistent:
+                row["cacheMode"] = "render-key-value"
+            with _CACHE_LOCK:
+                _CACHE[cache_key] = (checked_at, row)
+            if time.time() - checked_at >= REPORT_CHECK_TTL:
+                _schedule_report_check(code, ticker, company_name, row)
+            return row
 
     api_key = _clean(os.environ.get("DART_API_KEY"))
-    report = None
+    report = report_hint
     documents: list[str] = []
     mode = "dart-web"
     try:
-        if api_key:
+        if api_key and not report:
             report = _search_report_api(api_key, code)
-            if report:
-                # OpenDART is authoritative for company/report discovery. For
-                # content, fetch only the relevant DART viewer sections first;
-                # downloading a large full-report ZIP can take tens of seconds.
-                documents = _viewer_sections_web(report["rceptNo"])
-                mode = "opendart-api"
+        if report:
+            # Content parsing starts only for a newly identified receipt.
+            documents = _viewer_sections_web(report["rceptNo"])
+            mode = "opendart-api" if report.get("mode") == "opendart-api" or api_key else "dart-web"
     except Exception as exc:
         print(f"[DART] official API failed for {code}: {type(exc).__name__}: {exc}")
 
@@ -1184,6 +1274,8 @@ def fetch_business_report(ticker: str, company_name: str = "") -> dict:
 
     with _CACHE_LOCK:
         _CACHE[cache_key] = (time.time(), result)
+    if not bypass and result.get("available"):
+        _save_persistent(code, result, time.time())
     return result
 
 

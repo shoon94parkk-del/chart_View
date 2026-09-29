@@ -252,3 +252,6 @@ A production screenshot showed Samsung Electronics and SK hynix frozen at 13:37 
 
 ## 2026-09-29 — Popular screener technical signals
 The daily Korean screener now downloads one year of daily history and publishes explicit fields used by the Toss one-tap popular filters: MACD bullish/cross-up, 20/60 golden cross, price>20MA>60MA trend, 52-week high distance/near-high, and Bollinger upper breakout. These are deterministic end-of-day technical observations, not recommendation labels. Existing RSI, volume ratio, returns, moving averages and technical score remain unchanged.
+
+## 2026-09-29 — DART receipt-aware cache for repeat stock views
+The major-company static cache was discarded after 14 days even when its daily workflow found no new annual report. Keep validated static rows until replaced. Store other successfully parsed Korean stock reports in the existing Render Key Value, keyed by stock code, receipt number, and successful check time. Return a cached report before checking DART; after 24 hours, compare the latest receipt in a background worker and parse the viewer only when the receipt changes. Provider and parser failures preserve the last validated report. The free Key Value service has persistence disabled, so it is a best-effort shared cache; checked-in major-company rows remain the durable fallback.
