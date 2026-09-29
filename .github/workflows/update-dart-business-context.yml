@@ -1,0 +1,64 @@
+name: Update DART Business Context
+
+on:
+  schedule:
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_dart_business_context.py'
+      - 'dart_business_service.py'
+      - '.github/workflows/update-dart-business-context.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dart-business-context
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Generate validated DART business context
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python scripts/generate_dart_business_context.py
+      - name: Validate cache
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('static/data/dart_business_context.json').read_text(encoding='utf-8'))
+          rows=data.get('companies') or {}
+          assert len(rows)>=10, len(rows)
+          for code,row in rows.items():
+              assert row.get('available') is True
+              assert row.get('sourceMode') == 'opendart-api'
+              assert row.get('topItem')
+          print('Validated DART business cache:',len(rows))
+          PY
+      - name: Commit cache only when business data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/dart_business_context.json
+          if git diff --cached --quiet; then
+            echo "No DART business-context changes"
+            exit 0
+          fi
+          git commit -m "data: refresh validated DART business context"
+          git fetch origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
