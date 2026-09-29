@@ -38,13 +38,17 @@ _CACHE_LOCK = threading.Lock()
 _CORP_CODES: tuple[float, dict[str, dict]] = (0.0, {})
 
 REPORT_TITLE_RE = re.compile(r"(?:^|\])\s*사업보고서(?:\s*\(|\s*$)")
-VIEW_DOC_RE = re.compile(
-    r"text\s*:\s*[\"'](?P<title>.*?)[\"'].*?"
-    r"viewDoc\(\s*[\"'](?P<rcp>\d+)[\"']\s*,\s*[\"'](?P<dcm>\d+)[\"']\s*,"
-    r"\s*[\"'](?P<ele>\d+)[\"']\s*,\s*[\"'](?P<offset>\d+)[\"']\s*,"
-    r"\s*[\"'](?P<length>\d+)[\"']\s*,\s*[\"'](?P<dtd>[^\"']+)[\"']",
+VIEW_NODE_RE = re.compile(
+    r"(?P<var>node\\d+)\\['text'\\]\\s*=\\s*[\\\"'](?P<title>.*?)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['rcpNo'\\]\\s*=\\s*[\\\"'](?P<rcp>\\d+)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['dcmNo'\\]\\s*=\\s*[\\\"'](?P<dcm>\\d+)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['eleId'\\]\\s*=\\s*[\\\"'](?P<ele>\\d+)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['offset'\\]\\s*=\\s*[\\\"'](?P<offset>\\d+)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['length'\\]\\s*=\\s*[\\\"'](?P<length>\\d+)[\\\"']\\s*;.*?"
+    r"(?P=var)\\['dtd'\\]\\s*=\\s*[\\\"'](?P<dtd>[^\\\"']+)[\\\"']",
     re.S,
 )
+
 TARGET_SECTION_WORDS = ("주요 제품", "주요제품", "매출 및 수주", "매출실적", "매출 실적", "사업의 내용")
 
 
@@ -405,6 +409,27 @@ def _document_html_api(api_key: str, rcept_no: str) -> list[str]:
     return documents
 
 
+def _viewer_nodes(page_html: str) -> list[dict]:
+    nodes = []
+    seen = set()
+    for match in VIEW_NODE_RE.finditer(page_html or ""):
+        node = {
+            "title": _clean(html_lib.unescape(match.group("title"))),
+            "rcp": match.group("rcp"),
+            "dcm": match.group("dcm"),
+            "ele": match.group("ele"),
+            "offset": match.group("offset"),
+            "length": match.group("length"),
+            "dtd": match.group("dtd"),
+        }
+        key = (node["dcm"], node["ele"], node["offset"], node["length"])
+        if key in seen:
+            continue
+        seen.add(key)
+        nodes.append(node)
+    return nodes
+
+
 def _viewer_sections_web(rcept_no: str) -> list[str]:
     session = _session()
     try:
@@ -417,16 +442,22 @@ def _viewer_sections_web(rcept_no: str) -> list[str]:
     except requests.RequestException:
         return []
 
-    nodes = []
-    for match in VIEW_DOC_RE.finditer(main.text):
-        title = _clean(html_lib.unescape(match.group("title")))
-        if any(word in title for word in TARGET_SECTION_WORDS):
-            nodes.append({key: match.group(key) for key in ("rcp", "dcm", "ele", "offset", "length", "dtd")} | {"title": title})
-    # Prefer narrow sales/product sections over the full business section.
-    nodes.sort(key=lambda x: (0 if any(word in x["title"] for word in TARGET_SECTION_WORDS[:5]) else 1, len(x["title"])))
+    all_nodes = _viewer_nodes(main.text)
+    nodes = [
+        node for node in all_nodes
+        if any(word in node["title"] for word in TARGET_SECTION_WORDS)
+    ]
+    # Prefer narrow sales/product sections over a broad business-content parent.
+    nodes.sort(
+        key=lambda x: (
+            0 if any(word in x["title"] for word in TARGET_SECTION_WORDS[:5]) else 1,
+            len(x["title"]),
+        )
+    )
+
     documents = []
     seen = set()
-    for node in nodes[:5]:
+    for node in nodes[:8]:
         key = (node["dcm"], node["ele"], node["offset"], node["length"])
         if key in seen:
             continue
