@@ -160,3 +160,37 @@ def test_normalizes_compound_dart_revenue_unit():
     assert result is not None
     assert result["unit"] == "천원"
 
+def test_recovers_hlbpep_rowspan_revenue_mix_without_double_counting():
+    html = """
+    <html><body>
+      <p>(단위 : 백만원)</p>
+      <table>
+        <thead>
+          <tr><th>구분</th><th>품목</th><th>내용</th><th>주요 수요처</th><th>매출액</th><th>비율(%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="6">의약용 펩타이드 소재</td><td>루프로렐린</td><td>치료제</td><td>국내외 제약사</td><td>244.0</td><td>4.92</td></tr>
+          <tr><td>데스모프레신</td><td>치료제</td><td>국내외 제약사</td><td>991.1</td><td>19.97</td></tr>
+          <tr><td>임상용 펩타이드</td><td>위탁생산</td><td>국내외 제약사</td><td>275.7</td><td>5.56</td></tr>
+          <tr><td>기타 의약용 펩타이드</td><td>기타</td><td>국내외 제약사</td><td>-</td><td>-</td></tr>
+          <tr><td>위탁 용역</td><td>CMC 등</td><td>국내외 제약사</td><td>358.3</td><td>7.22</td></tr>
+          <tr><td>소 계</td><td>소 계</td><td>소 계</td><td>1869.1</td><td>37.67</td></tr>
+          <tr><td rowspan="4">연구용 펩타이드 소재</td><td>주문자 펩타이드</td><td>주문 생산</td><td>제약사·대학</td><td rowspan="2">2688.7</td><td rowspan="2">54.19</td></tr>
+          <tr><td>카탈로그 펩타이드</td><td>상용화 펩타이드</td><td>제약사·대학</td></tr>
+          <tr><td>용역</td><td>연구 용역</td><td>제약사·대학</td><td>33.0</td><td>0.66</td></tr>
+          <tr><td>소 계</td><td>소 계</td><td>소 계</td><td>2721.7</td><td>54.85</td></tr>
+          <tr><td>상품 외</td><td>상품</td><td>화합물 라이브러리</td><td>제약사·대학</td><td>370.9</td><td>7.48</td></tr>
+          <tr><td>합 계</td><td>합 계</td><td>합 계</td><td>합 계</td><td>4961.7</td><td>100.00</td></tr>
+        </tbody>
+      </table>
+    </body></html>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "제품별 매출"
+    assert result["unit"] == "백만원"
+    assert result["topItem"]["name"] == "주문자 펩타이드"
+    assert result["topItem"]["share"] == 54.19
+    assert all(row["name"] != "카탈로그 펩타이드" for row in result["items"])
+    assert sum(row["share"] for row in result["items"]) <= 100.01
+
