@@ -109,6 +109,7 @@ def test_prefers_clean_product_mix_over_double_counted_sales_channel_table():
       <tr><td>의료진단기기</td><td>체성분분석기</td><td>9591529</td><td>31.12%</td></tr>
       <tr><td>의료진단기기</td><td>전자동혈압계</td><td>3882692</td><td>12.60%</td></tr>
       <tr><td>보조공학기기</td><td>점자정보단말기</td><td>9551554</td><td>30.99%</td></tr>
+      <tr><td>기타</td><td>기타제품</td><td>7798921</td><td>25.29%</td></tr>
       <tr><td>합 계</td><td>합 계</td><td>30824696</td><td>100.00%</td></tr>
     </tbody></table>
     """
