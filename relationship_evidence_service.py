@@ -244,7 +244,7 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
     # General company news can miss an older but still relevant order/customer
     # story. When needed, narrow the search by commercial relationship terms.
     # The same strict named-counterparty + same-chunk evidence rules still apply.
-    if len(relations) < 4 and subject_name and not fetched.get("error"):
+    if not relations and subject_name and not fetched.get("error"):
         for term in TARGETED_TERMS:
             targeted_attempts += 1
             try:
@@ -259,7 +259,7 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
                         items.append(row)
                         known.add(identity)
                 relations = extract_direct_relations(subject_name, symbol, items)
-                if len(relations) >= 4:
+                if relations:
                     break
 
     result = {
