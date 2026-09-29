@@ -1,0 +1,61 @@
+name: Update Company Context
+
+on:
+  schedule:
+    - cron: '15 0 * * 1-5'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_company_context.py'
+      - '.github/workflows/update-company-context.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: company-context
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install pandas requests lxml html5lib
+      - name: Generate KRX company context
+        run: python scripts/generate_company_context.py
+      - name: Validate company context
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('static/data/company_context.json').read_text(encoding='utf-8'))
+          rows=data.get('companies') or []
+          assert len(rows) >= 2000
+          assert all(row.get('symbol') and row.get('name') for row in rows)
+          assert sum(bool(row.get('industry')) for row in rows) >= int(len(rows)*0.90)
+          assert sum(bool(row.get('mainProducts')) for row in rows) >= int(len(rows)*0.80)
+          print('company context OK:', len(rows))
+          PY
+      - name: Commit company context
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/company_context.json
+          if git diff --cached --quiet; then
+            echo "No company context changes"
+            exit 0
+          fi
+          git commit -m "data: refresh KRX company context"
+          git fetch origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
