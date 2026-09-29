@@ -1,3 +1,8 @@
+import asyncio
+import time
+from unittest.mock import patch
+
+import relationship_evidence_service as service
 from relationship_evidence_service import extract_direct_relations
 
 
@@ -179,4 +184,23 @@ def test_unlisted_longer_company_name_does_not_create_listed_prefix_relation():
     ]
     rows = extract_direct_relations("동성화인텍", "033500.KQ", [item], companies)
     assert [row["counterpartyName"] for row in rows] == ["HD현대중공업"]
+
+
+def test_no_relation_returns_from_general_news_without_serial_targeted_searches():
+    with patch.object(service, "_cached_fetch", return_value={"items": [], "error": None, "provider": "test"}):
+        result = service.fetch_relationship_evidence("005930.KS", "삼성전자")
+    assert result["relations"] == []
+    assert result["searchMode"] == "general"
+    assert result["targetedSearchCount"] == 0
+
+
+def test_slow_news_provider_returns_bounded_unavailable_state():
+    def slow_fetch(*_args):
+        time.sleep(.03)
+        return {"ticker": "005930.KS", "available": False, "relations": []}
+
+    with patch.object(service, "fetch_relationship_evidence", side_effect=slow_fetch), patch.object(service, "RESPONSE_TIMEOUT", .005):
+        result = asyncio.run(service.relationship_evidence(ticker="005930.KS", name="삼성전자"))
+    assert result["available"] is False
+    assert result["reason"] == "provider_timeout"
 

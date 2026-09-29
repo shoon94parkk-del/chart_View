@@ -10,24 +10,21 @@ Industry adjacency remains a separate UI concept and is never upgraded to "direc
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
 import threading
-from datetime import timezone
-from email.utils import parsedate_to_datetime
 from pathlib import Path
 
-import requests
 from fastapi import APIRouter, Query
 import asyncio
 
-from news_service_v37 import _cached_fetch, _clean_text, _host_label
+from news_service_v37 import _cached_fetch
 
 router = APIRouter()
 
 COMPANY_CONTEXT_PATH = Path("static/data/company_context.json")
 CACHE_TTL = 6 * 3600
+RESPONSE_TIMEOUT = 9
 _CACHE: dict[str, tuple[float, dict]] = {}
 _LOCK = threading.Lock()
 _COMPANIES: tuple[float, list[dict]] = (0.0, [])
@@ -49,7 +46,6 @@ ENDED_RELATION_RE = re.compile(
     r"취소|무산",
     re.I,
 )
-TARGETED_TERMS = ("공급계약", "납품계약", "고객사", "계약 체결")
 GENERIC_NAMES = {
     "대상", "우리", "미래", "보성", "한솔", "삼성", "한화", "현대", "동양", "동아", "대성",
 }
@@ -90,62 +86,6 @@ def _relation_label(text: str) -> str | None:
         if pattern.search(text or ""):
             return label
     return None
-
-
-def _targeted_naver_news(subject_name: str, subject_symbol: str, term: str) -> list[dict]:
-    client_id = os.environ.get("NAVER_API_HUB_CLIENT_ID", "").strip()
-    client_secret = os.environ.get("NAVER_API_HUB_CLIENT_SECRET", "").strip()
-    if not client_id or not client_secret or not subject_name:
-        return []
-    response = requests.get(
-        "https://naverapihub.apigw.ntruss.com/search/v1/news",
-        params={
-            "query": f"{subject_name} {term}",
-            "display": 20,
-            "start": 1,
-            "sort": "date",
-            "format": "json",
-        },
-        headers={
-            "X-NCP-APIGW-API-KEY-ID": client_id,
-            "X-NCP-APIGW-API-KEY": client_secret,
-            "User-Agent": "ChartView/idea-evidence",
-        },
-        timeout=7,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    rows: list[dict] = []
-    for raw in payload.get("items") or []:
-        title = _clean_text(raw.get("title"))
-        context = _clean_text(raw.get("description"))
-        full_text = f"{title} {context}".strip()
-        if not title or not _company_mentioned(subject_name, full_text):
-            continue
-        url = str(raw.get("originallink") or raw.get("link") or "").strip()
-        if not url:
-            continue
-        try:
-            dt = parsedate_to_datetime(str(raw.get("pubDate") or ""))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            published_at = dt.isoformat()
-        except Exception:
-            published_at = None
-        rows.append({
-            "symbol": subject_symbol,
-            "name": subject_name,
-            "market": "KR",
-            "title": title,
-            "source": _host_label(url),
-            "publishedAt": published_at,
-            "url": url,
-            "provider": "NAVER API HUB targeted",
-            "relationType": "direct",
-            "relationBasis": f"회사명 + {term} 근거검색",
-            "summarySeed": context[:700],
-        })
-    return rows
 
 
 def _company_mentioned(name: str, text: str) -> bool:
@@ -279,28 +219,6 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
     fetched = _cached_fetch(symbol, subject_name)
     items = list(fetched.get("items") or [])
     relations = extract_direct_relations(subject_name, symbol, items)
-    targeted_attempts = 0
-
-    # General company news can miss an older but still relevant order/customer
-    # story. When needed, narrow the search by commercial relationship terms.
-    # The same strict named-counterparty + same-chunk evidence rules still apply.
-    if not relations and subject_name and not fetched.get("error"):
-        for term in TARGETED_TERMS:
-            targeted_attempts += 1
-            try:
-                targeted = _targeted_naver_news(subject_name, symbol, term)
-            except Exception:
-                targeted = []
-            if targeted:
-                known = {(str(row.get("url") or ""), str(row.get("title") or "")) for row in items}
-                for row in targeted:
-                    identity = (str(row.get("url") or ""), str(row.get("title") or ""))
-                    if identity not in known:
-                        items.append(row)
-                        known.add(identity)
-                relations = extract_direct_relations(subject_name, symbol, items)
-                if relations:
-                    break
 
     result = {
         "ticker": symbol,
@@ -308,9 +226,9 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
         "available": bool(relations),
         "relations": relations,
         "checkedNewsCount": len(items),
-        "targetedSearchCount": targeted_attempts,
+        "targetedSearchCount": 0,
         "provider": fetched.get("provider"),
-        "searchMode": "general+targeted" if targeted_attempts else "general",
+        "searchMode": "general",
         "reason": None if relations else ("news_provider_unavailable" if fetched.get("error") else "no_evidence_backed_direct_relation"),
         "evidencePolicy": "single-company article + named listed counterparty + concrete contract/delivery wording in one clause; roundup/speculative/ended relationships excluded",
     }
@@ -324,4 +242,17 @@ async def relationship_evidence(
     ticker: str = Query(..., min_length=9, max_length=12),
     name: str = Query("", max_length=80),
 ):
-    return await asyncio.to_thread(fetch_relationship_evidence, ticker, name)
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(fetch_relationship_evidence, ticker, name),
+            timeout=RESPONSE_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        return {
+            "ticker": _clean(ticker).upper(),
+            "name": _clean(name),
+            "available": False,
+            "relations": [],
+            "reason": "provider_timeout",
+            "searchMode": "general",
+        }
