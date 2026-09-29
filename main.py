@@ -702,7 +702,7 @@ def toss_share_page(tab: str, symbol: str = Query("", max_length=24)):
         description = f"{TOSS_SHARE_TITLES[tab]} 화면에서 시장 데이터와 종목 정보를 확인해보세요."
         destination = f"{TOSS_SHARE_ORIGIN}/#{tab}"
         card_url = f"{TOSS_SHARE_URL}/{tab}"
-    image = "https://chart-view-pkv8.onrender.com/static/social-card-toss.png"
+    image = "https://chart-view-toss.onrender.com/marketing/chartview-toss-instagram-20260930.png"
     safe_title, safe_desc = html_escape(title, quote=True), html_escape(description, quote=True)
     safe_destination = html_escape(destination, quote=True)
     page = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
@@ -711,8 +711,9 @@ def toss_share_page(tab: str, symbol: str = Query("", max_length=24)):
 <meta property="og:type" content="website"><meta property="og:site_name" content="차트뷰">
 <meta property="og:locale" content="ko_KR"><meta property="og:title" content="{safe_title}">
 <meta property="og:description" content="{safe_desc}"><meta property="og:url" content="{html_escape(card_url, quote=True)}">
-<meta property="og:image" content="{image}"><meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630"><meta property="og:image:alt" content="차트뷰 로고와 차트 미리보기">
+<meta property="og:image" content="{image}"><meta property="og:image:secure_url" content="{image}">
+<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1122">
+<meta property="og:image:height" content="1402"><meta property="og:image:alt" content="DART 공시 기반 무료 주식 분석 앱 차트뷰 토스">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{safe_title}">
 <meta name="twitter:description" content="{safe_desc}"><meta name="twitter:image" content="{image}">
 <meta http-equiv="refresh" content="1;url={safe_destination}"></head>
