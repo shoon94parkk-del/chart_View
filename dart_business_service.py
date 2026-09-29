@@ -339,6 +339,38 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     if not label_col or not amount_col:
         return None
 
+    if switched_product and segment_col and product_col:
+        # Some disclosures repeat one segment's exact revenue/share on every
+        # sub-service row (e.g. Kakao platform sub-services). Those are not
+        # product-level revenues. If multiple products under the same segment
+        # carry the identical disclosed amount/share, revert to segment basis.
+        by_segment: dict[str, list[tuple[str, float | None, float | None]]] = {}
+        for _, raw in frame.head(50).iterrows():
+            seg = _row_label(raw.get(segment_col))
+            prod = _row_label(raw.get(product_col))
+            if not seg or not prod or _is_total_label(seg) or _is_total_label(prod):
+                continue
+            if combined_col:
+                amt, shr = _amount_share(raw.get(combined_col))
+            else:
+                amt = _number(raw.get(amount_col))
+                shr = _number(raw.get(share_col)) if share_col else None
+            if amt is None:
+                continue
+            by_segment.setdefault(seg, []).append((prod, amt, shr))
+        repeated_segment_total = False
+        for entries in by_segment.values():
+            if len({prod for prod, _, _ in entries}) < 2:
+                continue
+            values = {(round(float(amt), 6), None if shr is None else round(float(shr), 6)) for _, amt, shr in entries}
+            if len(values) == 1:
+                repeated_segment_total = True
+                break
+        if repeated_segment_total:
+            label_col = segment_col
+            kind = "segment"
+            switched_product = False
+
     generic_amount = combined_col is None and "매출" not in re.sub(r"\s+", "", amount_col)
     metric_col = _metric_column(frame, label_col) if generic_amount and not sum_dimension_col else None
 
@@ -493,6 +525,14 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
     items.sort(key=lambda x: (x["share"], x["revenue"]), reverse=True)
     if not items:
         return None
+
+    if kind == "category":
+        geography_labels = {"국내외", "국내", "해외", "내수", "수출", "수출및내수", "내수및수출"}
+        normalized_names = {re.sub(r"\s+", "", item["name"]) for item in items}
+        if normalized_names and normalized_names <= geography_labels:
+            return None
+        if any(name in geography_labels for name in normalized_names) and len(normalized_names) <= 2:
+            return None
 
     share_sum = round(sum(item["share"] for item in items) + adjustment_share, 2) if explicit_share_count else 100.0
     complete = (95 <= share_sum <= 105) if explicit_share_count else True
@@ -851,6 +891,53 @@ def _viewer_sections_web(rcept_no: str) -> list[str]:
     return documents
 
 
+def _viewer_broad_business_web(rcept_no: str) -> list[str]:
+    """Fetch only the broad '사업의 내용' parent as a fail-closed fallback.
+
+    This is intentionally used only when narrow product/sales sections could
+    not yield a coherent revenue mix. It helps companies whose segment tables
+    are split across manufacturing/finance subsections without slowing normal
+    successful requests.
+    """
+    session = _session()
+    try:
+        main = session.get(
+            f"{DART_BASE}/dsaf001/main.do",
+            params={"rcpNo": rcept_no},
+            timeout=REQUEST_TIMEOUT,
+        )
+        main.raise_for_status()
+    except requests.RequestException:
+        return []
+
+    nodes = _viewer_nodes(main.text)
+    broad = [
+        node for node in nodes
+        if "사업의 내용" in node.get("title", "")
+    ]
+    broad.sort(key=lambda node: len(node.get("title", "")))
+    for node in broad[:2]:
+        try:
+            response = session.get(
+                f"{DART_BASE}/report/viewer.do",
+                params={
+                    "rcpNo": node["rcp"],
+                    "dcmNo": node["dcm"],
+                    "eleId": node["ele"],
+                    "offset": node["offset"],
+                    "length": node["length"],
+                    "dtd": node["dtd"],
+                },
+                timeout=REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            if "매출" in response.text or "영업수익" in response.text:
+                return [response.text]
+        except requests.RequestException:
+            continue
+    return []
+
+
 def _report_year(report: dict) -> int | None:
     name = report.get("reportName") or ""
     match = re.search(r"\((\d{4})\.", name)
@@ -904,6 +991,10 @@ def fetch_business_report(ticker: str, company_name: str = "") -> dict:
     else:
         year = _report_year(report)
         mix = extract_revenue_mix(documents, year)
+        if not mix:
+            broad_documents = _viewer_broad_business_web(report["rceptNo"])
+            if broad_documents:
+                mix = extract_revenue_mix(broad_documents, year)
         result = {
             "ticker": ticker,
             "stockCode": code,
