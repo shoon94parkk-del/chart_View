@@ -4,7 +4,9 @@ FastAPI 서버 (토스 가이드라인 준수)
 """
 
 from fastapi import FastAPI, Request, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from html import escape as html_escape
+from urllib.parse import quote as url_quote
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -654,6 +656,68 @@ def search_stocks(q: str = Query(max_length=100)):
         results = [{"symbol": lookup.upper(), "name": lookup.upper(), "type": "DIRECT"}]
 
     return {"results": results}
+
+
+TOSS_SHARE_TITLES = {
+    "home": "차트뷰", "chart": "수익률 비교", "watch": "관심종목",
+    "valuation": "밸류에이션", "macro": "경제 지표", "discover": "시장 스크리너",
+    "heatmap": "시장 히트맵", "consensus": "실적 전망", "bands": "역사적 밸류에이션",
+    "ideas": "투자 아이디어 LAB", "picks": "PICK 관리", "news": "관심종목 뉴스",
+    "more": "전체", "info": "데이터 안내", "tools": "자료 출처",
+}
+TOSS_SHARE_ORIGIN = "https://chart-view-toss.onrender.com"
+TOSS_SHARE_URL = "https://chart-view-pkv8.onrender.com/share/toss"
+
+
+def _toss_share_name(symbol: str) -> str:
+    for stock in STOCK_DATABASE:
+        if stock.get("symbol", "").upper() == symbol:
+            return stock.get("name") or symbol
+    code = symbol.split(".", 1)[0]
+    if re.fullmatch(r"\d{6}\.(KS|KQ)", symbol):
+        for stock in load_krx_stock_list():
+            if stock["code"] == code and f"{code}{stock.get('suffix', '.KS')}" == symbol:
+                return stock["name"]
+    return symbol
+
+
+@app.get("/share/toss/{tab}", response_class=HTMLResponse)
+def toss_share_page(tab: str, symbol: str = Query("", max_length=24)):
+    """Crawler-readable card; the destination remains the Toss client route."""
+    if tab not in TOSS_SHARE_TITLES and tab != "detail":
+        raise HTTPException(status_code=404)
+    symbol = symbol.strip().upper()
+    if tab == "detail" and not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,19}", symbol):
+        raise HTTPException(status_code=400, detail="valid symbol required")
+    if tab == "detail":
+        name = _toss_share_name(symbol)
+        title = f"{name} ({symbol}) | 차트뷰"
+        description = f"{name} 종목의 기간 수익률, 현재가, 기업 정보를 차트뷰에서 확인해보세요."
+        destination = f"{TOSS_SHARE_ORIGIN}/#detail/{url_quote(symbol, safe='')}"
+        card_url = f"{TOSS_SHARE_URL}/detail?symbol={url_quote(symbol, safe='')}"
+    else:
+        title = f"{TOSS_SHARE_TITLES[tab]} | 차트뷰"
+        description = f"{TOSS_SHARE_TITLES[tab]} 화면에서 시장 데이터와 종목 정보를 확인해보세요."
+        destination = f"{TOSS_SHARE_ORIGIN}/#{tab}"
+        card_url = f"{TOSS_SHARE_URL}/{tab}"
+    image = "https://chart-view-pkv8.onrender.com/static/social-card-toss.png"
+    safe_title, safe_desc = html_escape(title, quote=True), html_escape(description, quote=True)
+    safe_destination = html_escape(destination, quote=True)
+    page = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe_title}</title>
+<meta name="description" content="{safe_desc}"><meta name="robots" content="noindex">
+<meta property="og:type" content="website"><meta property="og:site_name" content="차트뷰">
+<meta property="og:locale" content="ko_KR"><meta property="og:title" content="{safe_title}">
+<meta property="og:description" content="{safe_desc}"><meta property="og:url" content="{html_escape(card_url, quote=True)}">
+<meta property="og:image" content="{image}"><meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630"><meta property="og:image:alt" content="차트뷰 로고와 차트 미리보기">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{safe_title}">
+<meta name="twitter:description" content="{safe_desc}"><meta name="twitter:image" content="{image}">
+<meta http-equiv="refresh" content="1;url={safe_destination}"></head>
+<body style="font:16px system-ui;padding:32px;max-width:540px;margin:auto;color:#191f28">
+<h1>{safe_title}</h1><p>{safe_desc}</p><a href="{safe_destination}">차트뷰에서 보기</a>
+<script>location.replace({json.dumps(destination, ensure_ascii=False)})</script></body></html>"""
+    return HTMLResponse(page, headers={"Cache-Control": "public, max-age=3600"})
 
 def get_korean_stock_name(ticker):
     """네이버 금융에서 한국 주식 한글 이름 가져오기"""

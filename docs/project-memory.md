@@ -236,3 +236,5 @@ A user-visible change is complete only when:
 - Validated major-company rows in `dart_business_context.json` no longer expire merely because `updated` is older than 14 days; the daily generator commits only report changes.
 - Every successfully parsed Korean stock report is also cached in the existing Render Key Value under its stock code, with the receipt number and last successful check time. A cache hit returns immediately while a 24-hour-old entry checks the latest receipt in the background. Unchanged receipts skip viewer parsing; failures keep the last validated row.
 - Render Key Value is free and configured without persistence, so this cache may disappear on instance restart or eviction. Major-company checked-in rows survive that event; other companies fall back to a new DART fetch.
+## Toss share previews
+- `/share/toss/{tab}` returns crawler-readable Open Graph and Twitter metadata, including exact Korean stock name/ticker on detail links, then opens the Toss hash route for people. `static/social-card-toss.png` is the stable 1200x630 Chart View logo card; regenerate it with `scripts/generate_toss_social_card.py`.

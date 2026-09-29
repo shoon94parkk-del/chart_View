@@ -183,3 +183,4 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - A validated annual-report row remains usable after the static generator's `updated` date ages; unchanged filings must not trigger a full report parse.
 - Runtime cache entries are keyed by stock code and retain the validated receipt number. Recheck the latest receipt in the background after 24 hours; parse only a changed receipt. Provider or parser failure must preserve the last validated row.
 - Render Key Value is an opportunistic shared cache for all visited Korean stocks. The checked-in major-company rows remain the durable fallback because the free Key Value instance has persistence disabled and may evict keys.
+- Toss share previews must include server-rendered Open Graph title/description/image before redirect. The destination must preserve the exact stock ticker or route; do not trust a user-supplied company name in metadata.
