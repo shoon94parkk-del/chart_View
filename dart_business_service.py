@@ -140,7 +140,9 @@ def _save_persistent(code: str, row: dict, verified_at: float) -> None:
 def _refresh_cached_report(code: str, ticker: str, company_name: str, old: dict) -> None:
     try:
         api_key = _clean(os.environ.get("DART_API_KEY"))
-        report = _search_report_api(api_key, code) if api_key else _search_report_web(company_name, code)
+        report = _search_report_api(api_key, code) if api_key else None
+        if not report:
+            report = _search_report_web(company_name, code)
         if not report:
             # A provider error must not erase a validated report.
             with _CACHE_LOCK:
@@ -442,6 +444,60 @@ def _is_total_label(label: str, share: float | None = None) -> bool:
     if compact in {"영업수익", "매출액", "매출"} and share is not None and 95 <= share <= 105:
         return True
     return False
+
+
+def _extract_period_segment_sales(frame: pd.DataFrame, html: str) -> dict | None:
+    """Read a sales table whose current-period amounts are split by segment.
+
+    Shipbuilders often disclose domestic/export rows under a business segment
+    and put the revenue amount under ``제N기`` instead of ``매출액``. Require an
+    explicit total and reconcile it with any named consolidation adjustment.
+    """
+    frame = _promote_embedded_header(_flatten_columns(frame))
+    columns = list(frame.columns)
+    segment_col = next((c for c in columns if "사업부문" in re.sub(r"\s+", "", c)), None)
+    type_col = next((c for c in columns if "매출유형" in re.sub(r"\s+", "", c)), None)
+    period_col = _latest_period_amount_column(columns)
+    if not segment_col or not type_col or not period_col or len(frame) > 80:
+        return None
+    groups: dict[str, float] = {}
+    total = None
+    adjustment = 0.0
+    for _, raw in frame.iterrows():
+        label = _row_label(raw.get(segment_col))
+        amount = _number(raw.get(period_col))
+        if not label or amount is None:
+            continue
+        compact = re.sub(r"\s+", "", label)
+        if _is_total_label(label):
+            total = amount
+        elif "연결조정" in compact or (amount < 0 and "조정" in compact):
+            adjustment += amount
+        elif amount > 0 and re.search(r"제품|상품|용역|서비스|기타", _clean(raw.get(type_col))):
+            groups[label] = groups.get(label, 0.0) + amount
+    if total is None or total <= 0 or len(groups) < 2:
+        return None
+    if abs(sum(groups.values()) + adjustment - total) > total * 0.01:
+        return None
+    items = [{"name": name, "revenue": round(amount, 2), "share": round(amount / total * 100, 2)}
+             for name, amount in groups.items()]
+    if any(item["share"] > 100 for item in items):
+        return None
+    items.sort(key=lambda item: item["revenue"], reverse=True)
+    return {
+        "score": 28,
+        "kind": "segment",
+        "amountColumn": period_col,
+        "labelColumn": segment_col,
+        "unit": _detect_unit(html),
+        "items": items[:8],
+        "hasExplicitShare": False,
+        "shareSum": round((sum(groups.values()) + adjustment) / total * 100, 2),
+        "complete": True,
+        "totalAmount": round(total, 2),
+        "coveredSegments": [],
+        "hasConsolidationAdjustment": adjustment != 0,
+    }
 
 
 def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = None) -> dict | None:
@@ -817,7 +873,7 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
         except Exception:
             continue
         for table in tables:
-            parsed = _extract_table(table, html, report_year)
+            parsed = _extract_table(table, html, report_year) or _extract_period_segment_sales(table, html)
             if not parsed:
                 continue
             signature = (
@@ -887,6 +943,7 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
         "topItem": top,
         "items": best["items"][:5],
         "confidence": "high" if best["score"] >= 24 else "medium",
+        "hasConsolidationAdjustment": bool(best.get("hasConsolidationAdjustment")),
     }
 
 
@@ -1018,6 +1075,10 @@ def _search_report_api(api_key: str, stock_code: str) -> dict | None:
         report_name = _clean(item.get("report_nm"))
         if "사업보고서" not in report_name:
             continue
+        if "첨부정정" in report_name:
+            # An attachment correction can contain only audit statements. The
+            # public DART search resolves the latest full business-report body.
+            return None
         rcept_no = _clean(item.get("rcept_no"))
         if not re.fullmatch(r"\d{14}", rcept_no):
             continue
@@ -1268,6 +1329,7 @@ def fetch_business_report(ticker: str, company_name: str = "", *,
             "topItem": mix.get("topItem") if mix else None,
             "items": mix.get("items") if mix else [],
             "confidence": mix.get("confidence") if mix else None,
+            "hasConsolidationAdjustment": mix.get("hasConsolidationAdjustment", False) if mix else False,
             "reason": None if mix else "revenue_breakdown_table_not_confident",
             "checkedAt": datetime.now(KST).isoformat(timespec="seconds"),
         }

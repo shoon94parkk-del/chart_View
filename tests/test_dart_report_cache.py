@@ -4,6 +4,13 @@ import time
 import dart_business_service as dart
 
 
+def test_official_hanwha_and_dongseong_reports_are_precomputed():
+    for code in ("042660", "033500"):
+        row = dart._static_business_context(code)
+        assert row is not None and row["available"] is True
+        assert row["topItem"]["share"] > 0
+
+
 def _row(receipt="20260310002820"):
     return {
         "available": True, "stockCode": "005930", "ticker": "005930.KS",

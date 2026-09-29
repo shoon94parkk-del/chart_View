@@ -663,7 +663,7 @@ TOSS_SHARE_TITLES = {
     "valuation": "밸류에이션", "macro": "경제 지표", "discover": "시장 스크리너",
     "heatmap": "시장 히트맵", "consensus": "실적 전망", "bands": "역사적 밸류에이션",
     "ideas": "투자 아이디어 LAB", "picks": "PICK 관리", "news": "관심종목 뉴스",
-    "more": "전체", "info": "데이터 안내", "tools": "자료 출처",
+    "more": "전체", "info": "데이터 안내", "tools": "투자 도구",
 }
 TOSS_SHARE_ORIGIN = "https://chart-view-toss.onrender.com"
 TOSS_SHARE_URL = "https://chart-view-pkv8.onrender.com/share/toss"

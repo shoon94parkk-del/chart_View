@@ -3,6 +3,53 @@ import pandas as pd
 from dart_business_service import extract_revenue_mix, _stock_code, _viewer_nodes
 
 
+def test_extracts_hanwha_style_period_segment_sales_with_consolidation_adjustment():
+    html = """
+    <p>(단위 : 백만원)</p><table><thead><tr>
+      <th>사업부문</th><th>매출유형</th><th>품목</th><th>구분</th><th>제26기</th><th>제25기</th>
+    </tr></thead><tbody>
+      <tr><td>상선</td><td>제품</td><td>선박</td><td>수출</td><td>10,501,445</td><td>8,675,531</td></tr>
+      <tr><td>상선</td><td>제품</td><td>선박</td><td>내수</td><td>21,920</td><td>82</td></tr>
+      <tr><td>해양 및 특수선</td><td>제품</td><td>해양 구조물</td><td>수출</td><td>826,509</td><td>1,101,703</td></tr>
+      <tr><td>해양 및 특수선</td><td>제품</td><td>해양 구조물</td><td>내수</td><td>1,204,398</td><td>1,041,865</td></tr>
+      <tr><td>E&amp;I</td><td>제품</td><td>플랜트</td><td>플랜트</td><td>819,373</td><td>336,815</td></tr>
+      <tr><td>기타</td><td>기타</td><td>기타</td><td>기타</td><td>140,694</td><td>95,358</td></tr>
+      <tr><td>연결조정</td><td>-</td><td>-</td><td>-</td><td>(730,827)</td><td>(475,349)</td></tr>
+      <tr><td>합계</td><td>합계</td><td>합계</td><td>합계</td><td>12,783,512</td><td>10,776,005</td></tr>
+    </tbody></table>
+    """
+    result = extract_revenue_mix([html], 2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["unit"] == "백만원"
+    assert result["topItem"]["name"] == "상선"
+    assert result["topItem"]["revenue"] == 10523365
+    assert result["topItem"]["share"] == 82.32
+    assert result["hasConsolidationAdjustment"] is True
+
+
+def test_period_segment_sales_requires_reconciled_total():
+    html = """<table><tr><th>사업부문</th><th>매출유형</th><th>제26기</th></tr>
+    <tr><td>A</td><td>제품</td><td>70</td></tr><tr><td>B</td><td>제품</td><td>30</td></tr>
+    <tr><td>합계</td><td>합계</td><td>200</td></tr></table>"""
+    assert extract_revenue_mix([html], 2025) is None
+
+
+def test_attachment_only_correction_does_not_replace_business_report_body(monkeypatch):
+    import dart_business_service as dart
+    monkeypatch.setattr(dart, "_corp_codes", lambda key: {"033500": {"corpCode": "00123456"}})
+    class Response:
+        def raise_for_status(self):
+            pass
+        def json(self):
+            return {"status": "000", "list": [
+                {"report_nm": "[첨부정정]사업보고서 (2025.12)", "rcept_no": "20260319000704"},
+                {"report_nm": "사업보고서 (2024.12)", "rcept_no": "20250318001705"},
+            ]}
+    monkeypatch.setattr(dart.requests, "get", lambda *args, **kwargs: Response())
+    assert dart._search_report_api("test-key", "033500") is None
+
+
 def test_extracts_top_revenue_product_and_share_from_explicit_sales_table():
     html = """
     <html><body>

@@ -36,6 +36,8 @@ COMPANIES = [
     ("035720.KS", "카카오"),
     ("068270.KS", "셀트리온"),
     ("005490.KS", "POSCO홀딩스"),
+    ("042660.KS", "한화오션"),
+    ("033500.KQ", "동성화인텍"),
 ]
 
 VOLATILE_KEYS = {"checkedAt", "cache", "cacheMode"}
@@ -77,7 +79,7 @@ def main() -> None:
             started = time.perf_counter()
             result = fetch_business_report(ticker, name)
             elapsed += time.perf_counter() - started
-            if result.get("available") and result.get("sourceMode") == "opendart-api":
+            if result.get("available") and result.get("sourceMode") in {"opendart-api", "dart-web"}:
                 break
             if attempt < 3:
                 time.sleep(1.25 * attempt)
@@ -89,7 +91,7 @@ def main() -> None:
             flush=True,
         )
 
-        if result.get("available") and result.get("sourceMode") == "opendart-api":
+        if result.get("available") and result.get("sourceMode") in {"opendart-api", "dart-web"}:
             companies[code] = stable_row(result, name)
         else:
             previous_row = previous_companies.get(code)
@@ -102,7 +104,7 @@ def main() -> None:
             can_retain = bool(
                 isinstance(previous_row, dict)
                 and previous_row.get("available") is True
-                and previous_row.get("sourceMode") == "opendart-api"
+                and previous_row.get("sourceMode") in {"opendart-api", "dart-web"}
                 and (same_report or report_lookup_failed)
             )
             if can_retain:

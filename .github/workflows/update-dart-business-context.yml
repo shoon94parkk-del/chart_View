@@ -45,7 +45,7 @@ jobs:
           assert len(rows)>=10, len(rows)
           for code,row in rows.items():
               assert row.get('available') is True
-              assert row.get('sourceMode') == 'opendart-api'
+              assert row.get('sourceMode') in {'opendart-api', 'dart-web'}
               assert row.get('topItem')
           print('Validated DART business cache:',len(rows))
           PY
