@@ -1,0 +1,55 @@
+name: POSCO DART Revenue Scope Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/posco-dart-scope.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+      - name: Print POSCO revenue candidates and scopes
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python - <<'PY'
+          import io,json,os
+          import pandas as pd
+          import dart_business_service as d
+
+          report=d._search_report_api(os.environ['DART_API_KEY'],'005490')
+          print('REPORT',json.dumps(report,ensure_ascii=False))
+          year=d._report_year(report)
+          docs=d._viewer_sections_web(report['rceptNo'])
+          broad=d._viewer_broad_business_web(report['rceptNo'])
+          print('DOCS',len(docs),'BROAD',len(broad))
+          for source,documents in [('targeted',docs),('broad',broad)]:
+              print('\nSOURCE',source)
+              for di,html in enumerate(documents):
+                  try: tables=pd.read_html(io.StringIO(html))
+                  except Exception: continue
+                  for ti,table in enumerate(tables):
+                      parsed=d._extract_table(table,html,year)
+                      if not parsed: continue
+                      print('CANDIDATE',json.dumps({
+                          'source':source,'doc':di,'table':ti,
+                          'columns':[str(x) for x in table.columns],
+                          'parsed':parsed,
+                      },ensure_ascii=False))
+                      print(table.head(16).to_string(index=False)[:7000])
+          print('TARGET_RESULT',json.dumps(d.extract_revenue_mix(docs,year),ensure_ascii=False))
+          print('BROAD_RESULT',json.dumps(d.extract_revenue_mix(broad,year),ensure_ascii=False))
+          PY
