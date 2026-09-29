@@ -194,3 +194,35 @@ def test_recovers_hlbpep_rowspan_revenue_mix_without_double_counting():
     assert all(row["name"] != "카탈로그 펩타이드" for row in result["items"])
     assert sum(row["share"] for row in result["items"]) <= 100.01
 
+def test_extracts_samsung_segment_mix_with_internal_transaction_elimination():
+    html = """
+    <html><body>
+      <p>(단위 : 억원, %)</p>
+      <table>
+        <thead><tr><th>부 문</th><th>주요 제품</th><th>매출액</th><th>비중</th></tr></thead>
+        <tbody>
+          <tr><td>DX 부문</td><td>TV, 모니터, 냉장고, 스마트폰 등</td><td>1,879,673</td><td>56.3%</td></tr>
+          <tr><td>DS 부문</td><td>DRAM, NAND Flash, 모바일AP 등</td><td>1,301,282</td><td>39.0%</td></tr>
+          <tr><td>SDC</td><td>스마트폰용 OLED패널 등</td><td>298,417</td><td>8.9%</td></tr>
+          <tr><td>Harman</td><td>디지털 콕핏, 카오디오 등</td><td>157,833</td><td>4.7%</td></tr>
+          <tr><td>기타</td><td>부문간 내부거래 제거 등</td><td>△301,146</td><td>△8.9%</td></tr>
+          <tr><td>총 계</td><td>총 계</td><td>3,336,059</td><td>100.00%</td></tr>
+        </tbody>
+      </table>
+    </body></html>
+    """
+    result=extract_revenue_mix([html],2025)
+    assert result is not None
+    assert result["basis"] == "사업부문별 매출"
+    assert result["unit"] == "억원"
+    assert result["topItem"]["name"] == "DX 부문"
+    assert result["topItem"]["share"] == 56.3
+    assert "스마트폰" in result["topItem"]["detail"]
+    assert all(row["name"] != "기타" for row in result["items"])
+
+
+def test_triangle_marker_is_parsed_as_negative():
+    from dart_business_service import _number
+    assert _number("△301,146") == -301146
+    assert _number("△8.9%") == -8.9
+
