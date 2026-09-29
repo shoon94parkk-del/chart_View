@@ -218,13 +218,14 @@ def _amount_share(value) -> tuple[float | None, float | None]:
 def _amount_column(columns: list[str], allow_generic: bool = False) -> str | None:
     candidates = []
     for idx, col in enumerate(columns):
-        compact = col.replace(" ", "")
-        if "매출" not in compact:
+        compact = re.sub(r"\s+", "", col)
+        explicit_amount = any(token in compact for token in ("매출액", "매출금액", "영업수익"))
+        if not explicit_amount and compact not in {"매출", "수익"}:
             continue
-        if any(bad in compact for bad in ("비중", "비율", "증감", "원가")):
+        if any(bad in compact for bad in ("비중", "비율", "증감", "원가", "유형", "채권", "이익")):
             continue
         score = 3
-        if "매출액" in compact:
+        if "매출액" in compact or "영업수익" in compact:
             score += 3
         if any(token in compact for token in ("당기", "현재", "제", "기")):
             score += 1
