@@ -243,3 +243,6 @@ A user-visible change is complete only when:
 - Hanwha Ocean `042660` has a period-column sales table. Group domestic/export by segment and require the positive segments plus named consolidation adjustment to reconcile to the disclosed total before returning a mix.
 - Dongseong Finetec `033500` has a newer attachment-only correction. OpenDART's latest-only result cannot be treated as the full annual body; use the public DART report search for the 2025 full report.
 - Both reports are included in the checked-in static cache for fast first display; the daily generator may refresh them from either official DART path, while Redis remains the best-effort cache for other non-major stocks.
+## 2026-09-29 OpenDART financial history
+- `/api/financial-history?ticker=...` uses `dart_financial_service.py`, the checked-in corp-code map, and the existing DART API key. It returns annual revenue/operating profit from one annual filing plus the latest available same-period interim cumulative comparison.
+- Consolidated statements are preferred; separate statements are labeled when needed. The API omits ambiguous or missing figures. Results reuse in-memory and Render Key Value caches with daily background revalidation; provider failures retain the previous validated row.

@@ -184,3 +184,7 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Runtime cache entries are keyed by stock code and retain the validated receipt number. Recheck the latest receipt in the background after 24 hours; parse only a changed receipt. Provider or parser failure must preserve the last validated row.
 - Render Key Value is an opportunistic shared cache for all visited Korean stocks. The checked-in major-company rows remain the durable fallback because the free Key Value instance has persistence disabled and may evict keys.
 - Toss share previews must include server-rendered Open Graph title/description/image before redirect. The destination must preserve the exact stock ticker or route; do not trust a user-supplied company name in metadata.
+### OpenDART financial history
+- Never calculate quarterly growth from a 3-month value against a cumulative prior period. Annual years must come from one filing, and interim YoY from matching cumulative fields.
+- Do not mix consolidated and separate financial statements or currencies in one trend. Missing or ambiguous accounts fail closed.
+- A stale validated financial cache remains visible while rechecking; a failed check must not replace it with an empty result.

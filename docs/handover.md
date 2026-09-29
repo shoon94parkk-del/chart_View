@@ -346,3 +346,6 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 - scripts/generate_screener.py now uses PERIOD='1y' so 52-week-high proximity is available.
 - Do not rename macdBullish, macdCrossUp, goldenCross2060, trend2060, high52, distance52HighPct, near52High, bbBreakout without updating chart-view-toss presets/tests.
 - The generated screener remains exact-trade-date fail-closed and end-of-day; popular filters must not be described as intraday signals.
+## 2026-09-29 DART 재무 추이
+- New `/api/financial-history` provides recent annual and cumulative interim sales/operating profit for Korean tickers. Requires existing `DART_API_KEY`; uses the checked-in corp-code cache and optional Render Key Value cache. First uncached lookup may wait for OpenDART, while subsequent lookups reuse cached data.
+- Check production with Samsung Electronics and SK hynix after deploying the exact tested main revision. Verify the source filing links, accounting basis, years, and cumulative half-year comparison; report missing OpenDART data as unavailable rather than filling it from Yahoo.
