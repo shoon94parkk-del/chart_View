@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-29T18:36:34+09:00",
+  "generatedAt": "2026-09-30T18:33:24+09:00",
   "source": "static/data/ai_daily_rankings.json",
-  "sourceUpdated": "2026-09-28T18:41:00+09:00",
+  "sourceUpdated": "2026-09-29T19:05:00+09:00",
   "policy": {
     "automaticExitAllowed": false,
     "userConfirmationRequiredForExit": true,
@@ -974,18 +974,33 @@
         "source": "legacy_reason",
         "completeness": "legacy_baseline"
       },
-      "status": "PENDING_REVIEW",
-      "statusLabel": "검토 대기",
+      "status": "KEEP",
+      "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": "2026-09-29T18:31:41+09:00",
-        "lastReviewedTradeDate": "2026-09-29",
+        "lastReviewedAt": "2026-09-30T18:45:00+09:00",
+        "lastReviewedTradeDate": "2026-09-30",
         "thesisChecks": {
-          "evidence": "PENDING"
+          "earnings": "OK",
+          "product": "OK",
+          "industry": "OK",
+          "customer": "OK"
         },
-        "evidence": [],
-        "reason": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 AI 데이터센터 냉각/HVAC, 전장·B2B 성장 논리를 새로 검증할 중대한 펀더멘털 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
-        "reviewKey": "2026-09-29T18:31:41+09:00"
+        "evidence": [
+          {
+            "verified": true,
+            "publishedAt": "2026-09-29",
+            "sourceTitle": "“블록처럼 연결해 AI 데이터센터 냉각”… LG전자, 모듈형 인프라 첫 공개",
+            "sourceUrl": "https://biz.chosun.com/it-science/ict/2026/09/29/Z5LTF6QJQ5CJFF7XM2WIKEXPZM/",
+            "fact": "LG전자가 AI 데이터센터에 필요한 펌프·밸브·배관 등을 공장에서 사전 조립한 모듈형 냉각 인프라를 공개하며 AI 데이터센터 냉각 포트폴리오 확대를 확인.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "ai_dc_modular_cooling",
+            "category": "product"
+          }
+        ],
+        "reason": "추천 이후 9월 29일 LG전자가 AI 데이터센터용 모듈형 냉각 인프라를 공개해 HVAC·AI 데이터센터 냉각 사업 확장 논리가 새 펀더멘털 근거로 확인됐습니다. 기존 투자논리를 훼손하는 검증된 부정 신호는 확인되지 않았습니다.",
+        "reviewKey": "2026-09-30T18:45:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -1033,7 +1048,95 @@
         "exitDate": null,
         "exitPrice": null
       }
+    },
+    {
+      "pickId": "2026-09-29:445090",
+      "code": "445090",
+      "symbol": "445090.KQ",
+      "name": "에이직랜드",
+      "pickDate": "2026-09-29",
+      "rank": 1,
+      "pickPrice": 21700,
+      "changePctAtPick": 0.23,
+      "scoreAtPick": 91,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "TSMC VCA 기반 ASIC 디자인솔루션과 NPU·서버 가속기 양산 프로젝트 확대가 성장축.",
+        "pillars": [
+          "TSMC VCA 기반 ASIC 디자인솔루션과 NPU·서버 가속기 양산 프로젝트 확대가 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-09-30T18:45:00+09:00",
+        "lastReviewedTradeDate": "2026-09-30",
+        "thesisChecks": {
+          "earnings": "PENDING",
+          "orders": "PENDING",
+          "customer": "PENDING",
+          "industry": "OK"
+        },
+        "evidence": [],
+        "reason": "2026년 9월 29일 추천 확정 이후 9월 30일 장 마감까지 TSMC VCA 기반 ASIC 디자인·NPU/서버 가속기 양산 프로젝트 논리를 새로 검증할 추천일 이후의 중대한 공시·수주·고객 이벤트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-30T18:45:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-09-29:489790",
+      "code": "489790",
+      "symbol": "489790.KS",
+      "name": "한화비전",
+      "pickDate": "2026-09-29",
+      "rank": 2,
+      "pickPrice": 48800,
+      "changePctAtPick": 5.51,
+      "scoreAtPick": 90,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "영상보안 사업 기반에 HBM용 TC본더 및 차세대 본딩 장비 성장 옵션이 더해지는 구조.",
+        "pillars": [
+          "영상보안 사업 기반에 HBM용 TC본더 및 차세대 본딩 장비 성장 옵션이 더해지는 구조."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-09-30T18:45:00+09:00",
+        "lastReviewedTradeDate": "2026-09-30",
+        "thesisChecks": {
+          "earnings": "PENDING",
+          "orders": "PENDING",
+          "customer": "PENDING",
+          "industry": "OK"
+        },
+        "evidence": [],
+        "reason": "2026년 9월 29일 추천 확정 이후 9월 30일 장 마감까지 영상보안·한화세미텍 HBM TC본더/하이브리드 본더 성장 논리를 새로 검증할 추천일 이후의 중대한 공시·수주·고객 이벤트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+        "reviewKey": "2026-09-30T18:45:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
     }
   ],
-  "reviewSourceUpdated": "2026-09-29T18:31:41+09:00"
+  "reviewSourceUpdated": "2026-09-30T18:45:00+09:00"
 }

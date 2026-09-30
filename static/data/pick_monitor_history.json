@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-29T18:36:34+09:00",
+  "updated": "2026-09-30T18:33:24+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -317,6 +317,43 @@
       "at": "2026-09-29T18:36:34+09:00",
       "status": "PENDING_REVIEW",
       "reviewKey": "2026-09-29T18:31:41+09:00"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-09-29:445090",
+      "at": "2026-09-30T18:33:24+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-09-29:489790",
+      "at": "2026-09-30T18:33:24+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "STATUS_CHANGED",
+      "pickId": "2026-09-28:066570",
+      "at": "2026-09-30T18:33:24+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "KEEP",
+      "reviewKey": "2026-09-30T18:45:00+09:00",
+      "reason": "추천 이후 9월 29일 LG전자가 AI 데이터센터용 모듈형 냉각 인프라를 공개해 HVAC·AI 데이터센터 냉각 사업 확장 논리가 새 펀더멘털 근거로 확인됐습니다. 기존 투자논리를 훼손하는 검증된 부정 신호는 확인되지 않았습니다."
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-29:445090",
+      "at": "2026-09-30T18:33:24+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-30T18:45:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-29:489790",
+      "at": "2026-09-30T18:33:24+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-09-30T18:45:00+09:00"
     }
   ]
 }
