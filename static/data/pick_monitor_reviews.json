@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-29T18:31:41+09:00",
+  "updated": "2026-09-30T18:45:00+09:00",
   "reviews": [
     {
       "pickId": "2026-09-14:012450",
@@ -375,14 +375,29 @@
     },
     {
       "pickId": "2026-09-28:066570",
-      "completed": false,
-      "reviewedAt": "2026-09-29T18:31:41+09:00",
-      "reviewTradeDate": "2026-09-29",
-      "summary": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 AI 데이터센터 냉각/HVAC, 전장·B2B 성장 논리를 새로 검증할 중대한 펀더멘털 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+      "completed": true,
+      "reviewedAt": "2026-09-30T18:45:00+09:00",
+      "reviewTradeDate": "2026-09-30",
+      "summary": "추천 이후 9월 29일 LG전자가 AI 데이터센터용 모듈형 냉각 인프라를 공개해 HVAC·AI 데이터센터 냉각 사업 확장 논리가 새 펀더멘털 근거로 확인됐습니다. 기존 투자논리를 훼손하는 검증된 부정 신호는 확인되지 않았습니다.",
       "thesisChecks": {
-        "evidence": "PENDING"
+        "earnings": "OK",
+        "product": "OK",
+        "industry": "OK",
+        "customer": "OK"
       },
-      "evidence": []
+      "evidence": [
+        {
+          "verified": true,
+          "publishedAt": "2026-09-29",
+          "sourceTitle": "“블록처럼 연결해 AI 데이터센터 냉각”… LG전자, 모듈형 인프라 첫 공개",
+          "sourceUrl": "https://biz.chosun.com/it-science/ict/2026/09/29/Z5LTF6QJQ5CJFF7XM2WIKEXPZM/",
+          "fact": "LG전자가 AI 데이터센터에 필요한 펌프·밸브·배관 등을 공장에서 사전 조립한 모듈형 냉각 인프라를 공개하며 AI 데이터센터 냉각 포트폴리오 확대를 확인.",
+          "direction": "positive",
+          "materiality": "supporting",
+          "independentKey": "ai_dc_modular_cooling",
+          "category": "product"
+        }
+      ]
     },
     {
       "pickId": "2026-09-28:218410",
@@ -392,6 +407,34 @@
       "summary": "2026년 9월 28일 추천 확정 이후 9월 29일 장 마감까지 DART·회사 IR·신뢰할 수 있는 공개 기사에서 GaN 전력증폭기, 방산·통신 고객 확대 논리를 새로 검증할 수주·고객·실적 팩트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
       "thesisChecks": {
         "evidence": "PENDING"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-09-29:445090",
+      "completed": false,
+      "reviewedAt": "2026-09-30T18:45:00+09:00",
+      "reviewTradeDate": "2026-09-30",
+      "summary": "2026년 9월 29일 추천 확정 이후 9월 30일 장 마감까지 TSMC VCA 기반 ASIC 디자인·NPU/서버 가속기 양산 프로젝트 논리를 새로 검증할 추천일 이후의 중대한 공시·수주·고객 이벤트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+      "thesisChecks": {
+        "earnings": "PENDING",
+        "orders": "PENDING",
+        "customer": "PENDING",
+        "industry": "OK"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-09-29:489790",
+      "completed": false,
+      "reviewedAt": "2026-09-30T18:45:00+09:00",
+      "reviewTradeDate": "2026-09-30",
+      "summary": "2026년 9월 29일 추천 확정 이후 9월 30일 장 마감까지 영상보안·한화세미텍 HBM TC본더/하이브리드 본더 성장 논리를 새로 검증할 추천일 이후의 중대한 공시·수주·고객 이벤트를 확인하지 못했습니다. 하루 주가 변동만으로 상태를 바꾸지 않고 검토 대기로 유지합니다.",
+      "thesisChecks": {
+        "earnings": "PENDING",
+        "orders": "PENDING",
+        "customer": "PENDING",
+        "industry": "OK"
       },
       "evidence": []
     }
