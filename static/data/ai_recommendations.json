@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-30T16:03:53+09:00",
+  "updated": "2026-09-30T18:37:11+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -413,6 +413,60 @@
       "grade": "사용자 확정",
       "reason": "영상보안 사업 기반에 HBM용 TC본더 및 차세대 본딩 장비 성장 옵션이 더해지는 구조.",
       "score": 90,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-30",
+      "rank": 1,
+      "symbol": "131290.KQ",
+      "code": "131290",
+      "name": "티에스이",
+      "recommendedPrice": 287500.0,
+      "currentPrice": 287500.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-30",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "HBM4·DRAM 웨이퍼 테스트용 Probe Card와 Interface Board·Test Socket 전반의 성장 및 실적 레버리지.",
+      "score": 93,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-30",
+      "rank": 2,
+      "symbol": "323350.KQ",
+      "code": "323350",
+      "name": "다원넥스뷰",
+      "recommendedPrice": 8980.0,
+      "currentPrice": 8980.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-30",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "HBM Probe Card용 초정밀 레이저 마이크로 본딩 장비와 패키지 기판 Micro Solder Ball Bumping 성장.",
+      "score": 92,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-09-30",
+      "rank": 3,
+      "symbol": "083450.KQ",
+      "code": "083450",
+      "name": "GST",
+      "recommendedPrice": 51100.0,
+      "currentPrice": 51100.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-09-30",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "반도체 Scrubber·Chiller 설치 기반 확대와 AI·HBM 관련 FAB CAPEX 증가에 따른 장비 및 유지보수 수요 성장.",
+      "score": 92,
       "analysisSource": "사용자 최종 선택"
     }
   ]
