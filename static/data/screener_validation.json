@@ -1,16 +1,16 @@
 {
-  "tradeDate": "2026-09-29",
-  "generatedAt": "2026-09-29T16:04:09+09:00",
-  "sourceUniverseCount": 2503,
-  "exactDateUniverseCount": 2503,
-  "candidateCount": 133,
+  "tradeDate": "2026-09-30",
+  "generatedAt": "2026-09-30T16:03:53+09:00",
+  "sourceUniverseCount": 2504,
+  "exactDateUniverseCount": 2504,
+  "candidateCount": 134,
   "technicalDiscoveryCount": 100,
   "growthDiscoveryLimit": 40,
   "carryoverDays": 10,
   "secondaryProvider": "Naver Finance KRX/Koscom",
-  "priceVerifiedCount": 64,
+  "priceVerifiedCount": 70,
   "pricePendingCount": 0,
-  "priceMismatchCount": 69,
+  "priceMismatchCount": 64,
   "aiInputReady": true,
   "policy": "Candidate pool = technical top100 + recent AI ranks + active recommendations + consensus-growth candidates. Technical score is discovery/timing only and must never be an exclusion gate for a fundamentally strong company. Final ranking remains fundamentals/industry 70 + technical 30. Price mismatch is a validation flag for final picks, not a reason to delete the company from the research pool."
 }
