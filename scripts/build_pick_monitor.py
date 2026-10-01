@@ -28,7 +28,6 @@ POLICY = {
     "technicalOnlyCanTriggerSellReview": False,
     "sellReviewEvidenceRule": "one_major_fact_or_two_independent_weakening_signals",
     "priceDropAloneCanTriggerSellReview": False,
-    "technicalSignalIsAdvisoryOnly": True,
 }
 
 TECHNICAL_SIGNALS = {
