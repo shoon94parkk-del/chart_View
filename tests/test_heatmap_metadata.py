@@ -1,4 +1,10 @@
-from heatmap_metadata import us_universe, korean_metadata
+from heatmap_metadata import us_universe, korean_metadata, quote_order
+
+def test_quote_order_shows_sectors_early_without_expanding_the_universe():
+    rows = [{'ticker': 'A', 'sector': 'Technology', 'marketCap': 100},
+            {'ticker': 'B', 'sector': 'Technology', 'marketCap': 90},
+            {'ticker': 'C', 'sector': 'Utilities', 'marketCap': 1}]
+    assert quote_order(rows, ['KR', 'KR']) == ['A', 'C', 'KR', 'B']
 
 
 def test_sector_coverage_is_preserved_without_legacy_prices():

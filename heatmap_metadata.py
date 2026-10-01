@@ -37,3 +37,10 @@ def us_universe(payload, names, limit=40):
 def korean_metadata(screener):
     return {str(row["symbol"]).upper(): {"industry": row.get("industry"), "mainProducts": row.get("mainProducts"),
             "sectorSource": "KRX 업종·주요제품"} for row in screener.get("stocks", []) if row.get("symbol")}
+def quote_order(us_rows, kr_tickers):
+    """Fetch one large company per US sector before the rest of the same budget."""
+    sectors, representatives = set(), []
+    for row in sorted(us_rows, key=lambda row: -(row.get('marketCap') or 0)):
+        if row.get('sector') and row['sector'] not in sectors:
+            sectors.add(row['sector']); representatives.append(row['ticker'])
+    return list(dict.fromkeys(representatives + list(kr_tickers) + [row['ticker'] for row in us_rows]))

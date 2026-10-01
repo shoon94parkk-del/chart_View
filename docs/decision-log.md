@@ -314,3 +314,5 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 - Validation: 36 heatmap/cache/performance/app regression tests and generated Web bundle check.
 
 Final review follow-up: complete coverage containing retained stale provider rows uses the 60-second retry policy, including both internal refresh guards. Added a warm full-cache test that asserts the provider is actually called after the cooldown.
+
+Cold-start live QA found the full 60-company background batch could exceed the frontend polling window. Fetch one company per US sector first and publish successful dated quote rows incrementally before the batch finishes. Provider count and one-worker budget are unchanged; partial coverage remains labeled incomplete and quoted rows preserve observation dates. Regression asserts partial cache publication while refresh is still running.

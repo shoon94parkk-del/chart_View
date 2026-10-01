@@ -32,6 +32,29 @@ def test_stale_full_heatmap_retry_reaches_provider_after_sixty_seconds():
         assert result['results'][0]['stale'] is True
         assert cache['lastAttempt'] == 1000
 
+def test_sector_refresh_publishes_first_success_before_remaining_quotes_finish():
+    cache = {'data': {'complete': False, 'results': []}, 'timestamp': 0, 'refreshing': False}
+    async def fetch(tickers, on_progress=None):
+        assert tickers[:2] == ['A', 'C']
+        one = {'price': 10, 'change': 2, 'asOf': '2026-10-01T15:00:00Z', 'sessionDate': '2026-10-01'}
+        on_progress('A', one)
+        assert cache['refreshing'] is True
+        assert cache['data']['complete'] is False
+        assert cache['data']['results'][0]['ticker'] == 'A'
+        assert cache['data']['results'][0]['asOf'] == one['asOf']
+        return {'A': one, 'C': None}
+    rows = [{'ticker': 'A', 'sector': 'Technology', 'marketCap': 100}, {'ticker': 'C', 'sector': 'Utilities', 'marketCap': 1}]
+    with patch.object(main, 'FULL_HEATMAP_CACHE', cache), \
+         patch.object(main, 'FULL_HEATMAP_LOCK', asyncio.Lock()), \
+         patch.object(main, '_fetch_full_heatmap_quotes', side_effect=fetch), \
+         patch.object(main, '_load_full_heatmap_us_rows', return_value=rows), \
+         patch.object(main, 'FULL_HEATMAP_KR_TICKERS', []), \
+         patch.object(main, '_load_valuation_market_caps', return_value={}), \
+         patch.object(main, '_load_home_insight_sources', return_value={}), \
+         patch.object(main, '_home_heatmap_rows_by_ticker', return_value={}):
+        result = asyncio.run(main._refresh_full_heatmap())
+        assert result['results'][0]['ticker'] == 'A'
+
 
 @pytest.mark.parametrize('path', [
     '/api/compare?tickers=AAPL&start=2026-09-12&end=2026-01-01',

@@ -26,7 +26,7 @@ import re
 import hashlib
 import secrets
 import json
-from heatmap_metadata import us_universe, korean_metadata
+from heatmap_metadata import us_universe, korean_metadata, quote_order
 from heatmap_refresh_policy import needs_refresh as heatmap_needs_refresh
 try:
     import redis.asyncio as redis_async
@@ -1364,13 +1364,16 @@ def _overlay_home_quotes_on_full(data):
     return payload
 
 
-async def _fetch_full_heatmap_quotes(tickers):
+async def _fetch_full_heatmap_quotes(tickers, on_progress=None):
     """Fetch current quotes with bounded concurrency so one refresh cannot fan out wildly."""
     semaphore = asyncio.Semaphore(FULL_HEATMAP_REFRESH_CONCURRENCY)
 
     async def one(ticker):
         async with semaphore:
-            return await _bulk_market_call(fetch_quote_snapshot, ticker)
+            item = await _bulk_market_call(fetch_quote_snapshot, ticker)
+            if on_progress:
+                on_progress(ticker, item)
+            return item
 
     fetched = await asyncio.gather(*[one(ticker) for ticker in tickers], return_exceptions=True)
     return dict(zip(tickers, fetched))
@@ -1475,12 +1478,8 @@ async def _refresh_full_heatmap(force: bool = False):
             us_meta_rows = _load_full_heatmap_us_rows()
             us_meta = {row["ticker"]: row for row in us_meta_rows}
             kr_meta = korean_metadata((_load_home_insight_sources().get("screener") or {}))
-            all_tickers = list(dict.fromkeys(FULL_HEATMAP_KR_TICKERS + [row["ticker"] for row in us_meta_rows]))
-            fetched = await _fetch_full_heatmap_quotes(all_tickers)
-
-            results = []
-            for ticker in all_tickers:
-                item = fetched.get(ticker)
+            all_tickers = quote_order(us_meta_rows, FULL_HEATMAP_KR_TICKERS)
+            def build_row(ticker, item):
                 old = previous.get(ticker)
                 market = "KR" if ticker in FULL_HEATMAP_KR_TICKERS else "US"
                 meta = us_meta.get(ticker) or kr_meta.get(ticker) or {}
@@ -1495,12 +1494,12 @@ async def _refresh_full_heatmap(force: bool = False):
                     # Preserve only previously canonical rows. Never fall back to
                     # legacy heatmap.json price/change values.
                     if old and old.get("quoteBasis") in {"provider-canonical", "home-canonical"}:
-                        results.append({**meta, **old, "sector": meta.get("sector") or old.get("sector"), "stale": True})
-                    continue
+                        return {**meta, **old, "sector": meta.get("sector") or old.get("sector"), "stale": True}
+                    return None
                 if not market_cap:
-                    continue
+                    return None
 
-                results.append({
+                return {
                     **meta,
                     "ticker": ticker,
                     "name": item.get("name") or meta.get("name") or (old or {}).get("name") or ticker,
@@ -1514,7 +1513,20 @@ async def _refresh_full_heatmap(force: bool = False):
                     "source": item.get("source") or "quote-snapshot",
                     "quoteBasis": "provider-canonical",
                     "stale": False,
-                })
+                }
+
+            progress = dict(previous)
+            def publish_progress(ticker, item):
+                row = build_row(ticker, item)
+                if not row or row.get('stale'):
+                    return
+                progress[ticker] = row
+                # Keep original observation dates; do not claim a completed batch.
+                FULL_HEATMAP_CACHE['data'] = dict(cached or {}, results=list(progress.values()), complete=False,
+                    source='canonical-provider-partial-heatmap')
+
+            fetched = await _fetch_full_heatmap_quotes(all_tickers, on_progress=publish_progress)
+            results = [row for ticker in all_tickers if (row := build_row(ticker, fetched.get(ticker)))]
 
             kr_count = sum(1 for row in results if row.get("market") == "KR")
             us_count = sum(1 for row in results if row.get("market") == "US")
