@@ -267,6 +267,11 @@ def test_extracts_samsung_segment_mix_with_internal_transaction_elimination():
     </body></html>
     """
     result=extract_revenue_mix([html],2025)
+    assert result['hasConsolidationAdjustment'] is True
+    assert result['revenueBasis']['totalAmount'] == 3336059
+    assert result['revenueBasis']['positiveSegmentTotal'] == 3637205
+    assert result['revenueBasis']['adjustmentAmount'] == -301146
+    assert result['revenueBasis']['reconciled'] is True
     assert result is not None
     assert result["basis"] == "사업부문별 매출"
     assert result["unit"] == "억원"

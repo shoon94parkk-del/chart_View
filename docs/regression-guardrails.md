@@ -196,3 +196,6 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - Interim IS/CIS must use cumulative fields; interim CF must not use prior year-end annual values as a prior interim flow. BS compares with previous year end.
 - Preserve missing vs zero, conservative account uniqueness and matched basis. A partial refresh retains validated periods and their source/quality packet together.
 - Static major-company cache and Redis v2 serve before live requests. Never fabricate optional figures or infer share dilution from balance-sheet capital.
+
+## 2026-10-01 DART revenue denominator metadata
+Business-report adds optional revenueBasis (denominator, totalAmount, positiveSegmentTotal, signed adjustmentAmount, reconciled). Existing items, shares and report/source fields remain compatible. Reconciliation tolerance is 1% of disclosed total; absent component metadata is not verified. The Samsung general table now returns its existing consolidation flag and amount, matching the Hanwha period table. Samsung and Hanwha static rows were reread from official DART source and carry verified metadata for immediate cold-start display. The separate web UI is unchanged. Validation: 45 DART business/financial/cache tests plus scripts/build_frontend_bundle.py --check.

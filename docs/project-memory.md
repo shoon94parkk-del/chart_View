@@ -250,3 +250,6 @@ A user-visible change is complete only when:
 
 ## 2026-10-01 Financial-quality extension
 Financial history now exposes schemaVersion 2 quality. Flow accounts: netIncome/operatingCashFlow; balance accounts: inventories/receivables/assets/liabilities/equity. Each packet includes exact source account metadata. Annual years come from one report; interim flow prior is same cumulative period, balance prior is year end. The Toss UI adds quality review and comparison. Shared legacy frontend is unchanged. Partial provider refreshes preserve validated period packets. Existing daily DART workflow rebuilds the major-company static cache.
+
+## 2026-10-01 DART revenue denominator metadata
+Business-report adds optional revenueBasis (denominator, totalAmount, positiveSegmentTotal, signed adjustmentAmount, reconciled). Existing items, shares and report/source fields remain compatible. Reconciliation tolerance is 1% of disclosed total; absent component metadata is not verified. The Samsung general table now returns its existing consolidation flag and amount, matching the Hanwha period table. Samsung and Hanwha static rows were reread from official DART source and carry verified metadata for immediate cold-start display. The separate web UI is unchanged. Validation: 45 DART business/financial/cache tests plus scripts/build_frontend_bundle.py --check.

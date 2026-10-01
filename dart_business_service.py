@@ -501,6 +501,8 @@ def _extract_period_segment_sales(frame: pd.DataFrame, html: str) -> dict | None
         "totalAmount": round(total, 2),
         "coveredSegments": [],
         "hasConsolidationAdjustment": adjustment != 0,
+        "positiveSegmentTotal": round(sum(groups.values()), 2),
+        "adjustmentAmount": round(adjustment, 2),
     }
 
 
@@ -830,6 +832,9 @@ def _extract_table(frame: pd.DataFrame, html: str, report_year: int | None = Non
         "complete": complete,
         "totalAmount": round(float(total_amount or sum(item["revenue"] for item in items)), 2),
         "coveredSegments": covered_segments,
+        "hasConsolidationAdjustment": bool(adjustment_amount or adjustment_share),
+        "positiveSegmentTotal": round(revenue_sum, 2),
+        "adjustmentAmount": round(adjustment_amount, 2),
     }
 
 
@@ -948,6 +953,13 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
         "items": best["items"][:5],
         "confidence": "high" if best["score"] >= 24 else "medium",
         "hasConsolidationAdjustment": bool(best.get("hasConsolidationAdjustment")),
+        "revenueBasis": {
+            "denominator": "공시 연결조정 후 매출액" if best.get("hasConsolidationAdjustment") else "공시 매출 합계",
+            "totalAmount": best.get("totalAmount"),
+            "positiveSegmentTotal": best.get("positiveSegmentTotal"),
+            "adjustmentAmount": best.get("adjustmentAmount"),
+            "reconciled": bool(best.get("totalAmount") and best.get("positiveSegmentTotal") is not None and best.get("adjustmentAmount") is not None and abs(best["positiveSegmentTotal"] + best["adjustmentAmount"] - best["totalAmount"]) <= best["totalAmount"] * .01),
+        },
     }
 
 
@@ -1334,6 +1346,7 @@ def fetch_business_report(ticker: str, company_name: str = "", *,
             "items": mix.get("items") if mix else [],
             "confidence": mix.get("confidence") if mix else None,
             "hasConsolidationAdjustment": mix.get("hasConsolidationAdjustment", False) if mix else False,
+            "revenueBasis": mix.get("revenueBasis") if mix else None,
             "reason": None if mix else "revenue_breakdown_table_not_confident",
             "checkedAt": datetime.now(KST).isoformat(timespec="seconds"),
         }
