@@ -29,6 +29,10 @@
         "priorRevenue": 57367145000000,
         "quarter": 2,
         "revenue": 62538936000000,
+        "singleQuarter": {
+          "operatingProfit": 2628559000000,
+          "revenue": 33037055000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000427",
@@ -254,6 +258,10 @@
         "priorRevenue": 39871093000000,
         "quarter": 2,
         "revenue": 131895033000000,
+        "singleQuarter": {
+          "operatingProfit": 60542608000000,
+          "revenue": 79318746000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003509",
@@ -479,6 +487,10 @@
         "priorRevenue": 92694438000000,
         "quarter": 2,
         "revenue": 95154214000000,
+        "singleQuarter": {
+          "operatingProfit": 2850888000000,
+          "revenue": 49215328000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003521",
@@ -704,6 +716,10 @@
         "priorRevenue": 34992363367898,
         "quarter": 2,
         "revenue": 37134790631212,
+        "singleQuarter": {
+          "operatingProfit": 819013515966,
+          "revenue": 19258684353345
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814000957",
@@ -929,6 +945,10 @@
         "priorRevenue": 153706820000000,
         "quarter": 2,
         "revenue": 305372914000000,
+        "singleQuarter": {
+          "operatingProfit": 89492412000000,
+          "revenue": 171499470000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003699",
@@ -1154,6 +1174,10 @@
         "priorRevenue": 6356223796915,
         "quarter": 2,
         "revenue": 7345161306669,
+        "singleQuarter": {
+          "operatingProfit": 203774585157,
+          "revenue": 3768808123247
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003578",
@@ -1379,6 +1403,10 @@
         "priorRevenue": 365688308982,
         "quarter": 2,
         "revenue": 393663153672,
+        "singleQuarter": {
+          "operatingProfit": 35940409073,
+          "revenue": 224533797658
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002437",
@@ -1604,6 +1632,10 @@
         "priorRevenue": 5701868408120,
         "quarter": 2,
         "revenue": 6629816183195,
+        "singleQuarter": {
+          "operatingProfit": 520309210901,
+          "revenue": 3388755080295
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002266",
@@ -1829,6 +1861,10 @@
         "priorRevenue": 3665355229180,
         "quarter": 2,
         "revenue": 4040533247476,
+        "singleQuarter": {
+          "operatingProfit": 277016338871,
+          "revenue": 2098456124429
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260819000055",
@@ -2054,6 +2090,10 @@
         "priorRevenue": 6437202971239,
         "quarter": 2,
         "revenue": 8653111724948,
+        "singleQuarter": {
+          "operatingProfit": 736113640397,
+          "revenue": 5443171479056
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260812000829",
@@ -2279,6 +2319,10 @@
         "priorRevenue": 43474954000000,
         "quarter": 2,
         "revenue": 47553695000000,
+        "singleQuarter": {
+          "operatingProfit": 1579082000000,
+          "revenue": 23826468000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001997",
@@ -2504,6 +2548,10 @@
         "priorRevenue": 1803369024709,
         "quarter": 2,
         "revenue": 2538678712902,
+        "singleQuarter": {
+          "operatingProfit": 451791591338,
+          "revenue": 1393692794953
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003751",
@@ -2729,6 +2777,10 @@
         "priorRevenue": 2013782484640,
         "quarter": 2,
         "revenue": 2578030056694,
+        "singleQuarter": {
+          "operatingProfit": 586443842141,
+          "revenue": 1320910867803
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003375",
@@ -2954,6 +3006,10 @@
         "priorRevenue": 12778880000000,
         "quarter": 2,
         "revenue": 14115216000000,
+        "singleQuarter": {
+          "operatingProfit": 113302000000,
+          "revenue": 7560249000000
+        },
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260813000255",
@@ -3151,6 +3207,6 @@
       "ticker": "373220.KS"
     }
   },
-  "generatedAt": "2026-10-01T20:17:31+09:00",
+  "generatedAt": "2026-10-02T00:45:41+09:00",
   "source": "OpenDART fnlttSinglAcntAll"
 }
