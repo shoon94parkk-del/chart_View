@@ -128,6 +128,39 @@ def _counterparties_in_evidence(text: str, subject_name: str, subject_symbol: st
     return found
 
 
+def _explicit_pair_role(text: str, subject: str, counterparty: str) -> bool:
+    """Require a named actor and named contract target, in either direction.
+
+    A list of co-suppliers followed by a third company's contract is not a
+    transaction between those suppliers. Ambiguous phrasing stays omitted.
+    """
+    for actor, target in ((subject, counterparty), (counterparty, subject)):
+        for actor_match in re.finditer(re.escape(actor), text):
+            tail = text[actor_match.end():]
+            target_match = re.search(re.escape(target), tail)
+            if not target_match or target_match.start() > 100:
+                continue
+            between = tail[:target_match.start()]
+            if re.match(r"\s*(?:와|과|및|·|&|and\b)", between, re.I):
+                continue
+            after_target = tail[target_match.end():]
+            role = re.match(r"(?:에게서|로부터|에게|와|과|에|를|을)(?:의)?", after_target)
+            if not role and re.match(r"\s*(?:은|는|이|가)(?:\s|$)", between):
+                # Explicit actor, several named customers: A는 B 및 C와 계약.
+                role = re.match(
+                    r"\s*(?:및|,|·)\s*[가-힣A-Za-z0-9&.\-]{2,30}"
+                    r"(?:\s*(?:및|,|·)\s*[가-힣A-Za-z0-9&.\-]{2,30}){0,2}"
+                    r"(?:에게서|로부터|에게|와|과|에|를|을)(?:의)?", after_target
+                )
+            if not role:
+                continue
+            if re.match(r"\s*(?:같은|함께|동반|동일|비슷|경쟁)", after_target[role.end():]):
+                continue
+            if _relation_label(tail[target_match.start():]):
+                return True
+    return False
+
+
 def extract_direct_relations(subject_name: str, subject_symbol: str, news_items: list[dict], companies: list[dict] | None = None) -> list[dict]:
     companies = companies if companies is not None else _load_companies()
     relations: list[dict] = []
@@ -160,6 +193,8 @@ def extract_direct_relations(subject_name: str, subject_symbol: str, news_items:
                 # single-company headline can supply that missing context.
                 subject_in_chunk = _company_mentioned(subject_name, chunk)
                 if label and (subject_in_chunk or dedicated_title):
+                    if subject_in_chunk and not _explicit_pair_role(chunk, subject_name, counterparty["name"]):
+                        continue
                     if subject_in_chunk and abs(chunk.find(subject_name) - chunk.find(counterparty["name"])) > 100:
                         continue
                     if not subject_in_chunk and not re.search(
@@ -230,7 +265,7 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
         "provider": fetched.get("provider"),
         "searchMode": "general",
         "reason": None if relations else ("news_provider_unavailable" if fetched.get("error") else "no_evidence_backed_direct_relation"),
-        "evidencePolicy": "single-company article + named listed counterparty + concrete contract/delivery wording in one clause; roundup/speculative/ended relationships excluded",
+        "evidencePolicy": "single-company article + explicit named actor/contract target roles + concrete contract/delivery wording in one clause; co-suppliers, roundup, speculative and ended relationships excluded",
     }
     with _LOCK:
         _CACHE[key] = (time.time(), result)

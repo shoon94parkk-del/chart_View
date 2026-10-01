@@ -12,6 +12,42 @@ COMPANIES = [
     {"name": "HLB제약", "symbol": "047920.KQ"},
 ]
 
+def test_shared_suppliers_in_third_party_article_are_not_each_others_contract_party():
+    item = {
+        "relationType": "direct",
+        "title": "브로드컴, 앤트로픽에 지원",
+        "summarySeed": "삼성전자, SK하이닉스, 마이크론 등 메모리 반도체 3사도 고성능 메모리 공급을 위한 핵심 전략적 파트너로 투자설명서에 이름을 올렸다 앤트로픽은 장기 계약을 체결한 배경을 설명했다",
+        "url": "https://example.com/third-party",
+    }
+    assert extract_direct_relations("삼성전자", "005930.KS", [item], COMPANIES) == []
+
+def test_co_suppliers_with_a_common_customer_are_not_a_direct_pair():
+    item = {
+        "relationType": "direct",
+        "title": "삼성전자와 SK하이닉스, 고객사와 공급계약 체결",
+        "summarySeed": "삼성전자와 SK하이닉스는 앤트로픽과 공급계약을 체결했다",
+        "url": "https://example.com/co-suppliers",
+    }
+    assert extract_direct_relations("삼성전자", "005930.KS", [item], COMPANIES) == []
+
+def test_explicit_reverse_party_and_direction_remain_valid():
+    item = {
+        "relationType": "direct",
+        "title": "SK하이닉스는 삼성전자와 장비 공급계약을 체결했다",
+        "url": "https://example.com/pair",
+    }
+    rows = extract_direct_relations("삼성전자", "005930.KS", [item], COMPANIES)
+    assert [row["counterpartyName"] for row in rows] == ["SK하이닉스"]
+
+def test_peer_comparison_particle_does_not_make_a_contract_role():
+    item = {
+        "relationType": "direct",
+        "title": "메모리 공급사 관련 기사",
+        "summarySeed": "삼성전자는 SK하이닉스와 같은 메모리 공급사다 고객사는 다른 업체와 계약을 체결했다",
+        "url": "https://example.com/peer-description",
+    }
+    assert extract_direct_relations("삼성전자", "005930.KS", [item], COMPANIES) == []
+
 
 def test_requires_named_counterparty_and_strong_commercial_keyword():
     items = [{
