@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-30T18:55:00+09:00",
+  "updated": "2026-10-01T18:12:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -568,6 +568,68 @@
             "technical": 27
           },
           "reason": "반도체 Scrubber·Chiller 설치 기반 확대와 AI·HBM 관련 FAB CAPEX 증가에 따른 장비 및 유지보수 수요 성장."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-01",
+      "status": "사용자 확정 2종목 — 2026-10-01 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-10-01",
+        "analyzedAt": "2026-10-01T18:12:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2-new-pick-exclusion",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "355150",
+          "symbol": "355150.KQ",
+          "name": "코스텍시스",
+          "close": 22850,
+          "previousClose": 22500,
+          "changePct": 1.56,
+          "totalScore": 90,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 6,
+            "catalystRisk": 8,
+            "technical": 27
+          },
+          "reason": "NXP RF 패키지 기반 위에 SiC/GaN 전력반도체용 고방열 Spacer·Interposer와 AI 데이터센터 800VDC 전력모듈 양산 확대가 성장축."
+        },
+        {
+          "rank": 2,
+          "code": "241770",
+          "symbol": "241770.KQ",
+          "name": "메카로",
+          "close": 42600,
+          "previousClose": 40300,
+          "changePct": 5.71,
+          "totalScore": 88,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 31,
+            "industry": 15,
+            "valuation": 6,
+            "catalystRisk": 8,
+            "technical": 28
+          },
+          "reason": "CVD/ALD 증착장비용 Heater Block의 신규 FAB 설치·기존 장비 교체수요와 고사양 MCA·Ceramic Heater 확장이 성장축."
         }
       ]
     }
