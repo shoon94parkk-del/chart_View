@@ -39,12 +39,12 @@ def _amount(value):
         return None
 
 
-def _pick_account(rows, names, ids):
+def _pick_account(rows, names, ids, statements=("IS", "CIS")):
     """Use a single primary income-statement row, never sum ambiguous rows."""
-    candidates = [r for r in rows if r.get("sj_div") in {"IS", "CIS"}
+    candidates = [r for r in rows if r.get("sj_div") in statements
                   and str(r.get("account_detail") or "-").strip() in {"", "-"}
                   and (r.get("account_id") in ids or str(r.get("account_nm") or "").replace(" ", "") in names)]
-    for statement in ("IS", "CIS"):
+    for statement in statements:
         subset = [r for r in candidates if r.get("sj_div") == statement]
         for account_id in ids:
             standard = [r for r in subset if r.get("account_id") == account_id]
@@ -63,6 +63,58 @@ REVENUE_NAMES = {"매출액", "매출", "영업수익", "수익(매출액)", "�
 REVENUE_IDS = ("ifrs-full_Revenue", "ifrs_Revenue", "ifrs-full_RevenueFromContractsWithCustomers")
 OPERATING_NAMES = {"영업이익", "영업이익(손실)", "영업손익"}
 OPERATING_IDS = ("dart_OperatingIncomeLoss", "ifrs-full_ProfitLossFromOperatingActivities")
+
+# Optional accounts never change the original revenue/profit contract.
+QUALITY_ACCOUNTS = {
+    "netIncome": ({"당기순이익", "당기순이익(손실)", "당기순손익", "분기순이익", "반기순이익"},
+                  ("ifrs-full_ProfitLoss", "ifrs_ProfitLoss"), ("IS", "CIS")),
+    "operatingCashFlow": ({"영업활동현금흐름", "영업활동으로인한현금흐름", "영업활동으로부터의현금흐름", "영업활동순현금흐름"},
+                          ("ifrs-full_CashFlowsFromUsedInOperatingActivities", "ifrs_CashFlowsFromUsedInOperatingActivities"), ("CF",)),
+    "inventories": ({"재고자산"}, ("ifrs-full_Inventories", "ifrs_Inventories"), ("BS",)),
+    "receivables": ({"매출채권", "매출채권및기타채권", "매출채권및기타유동채권"},
+                    ("ifrs-full_TradeReceivables", "dart_TradeReceivables", "ifrs-full_TradeAndOtherCurrentReceivables"), ("BS",)),
+    "assets": ({"자산총계", "총자산"}, ("ifrs-full_Assets", "ifrs_Assets"), ("BS",)),
+    "liabilities": ({"부채총계", "총부채"}, ("ifrs-full_Liabilities", "ifrs_Liabilities"), ("BS",)),
+    "equity": ({"자본총계", "총자본"}, ("ifrs-full_Equity", "ifrs_Equity"), ("BS",)),
+}
+
+
+def _quality_statement(rows, year, report_code, receipt, currency):
+    accounts, sources = {}, {}
+    for key, (names, ids, statements) in QUALITY_ACCOUNTS.items():
+        row = _pick_account(rows, names, ids, statements)
+        if (not row or str(row.get("rcept_no") or "") != receipt
+                or str(row.get("currency") or currency).strip() != currency):
+            continue
+        accounts[key] = row
+        sources[key] = {"accountId": row.get("account_id"), "accountName": row.get("account_nm"),
+                        "statement": row.get("sj_div"), "receiptNo": receipt}
+
+    def values(period, interim=False):
+        result = {}
+        for key in QUALITY_ACCOUNTS:
+            row = accounts.get(key)
+            value = None
+            if row:
+                if not interim or row["sj_div"] == "BS":
+                    value = _amount(row.get(period + "_amount"))
+                else:
+                    value = _amount(row.get(period + "_add_amount"))
+                    if value is None and row["sj_div"] == "CF":
+                        # CF amounts are cumulative; IS/CIS 3-month amounts are not.
+                        # A prior year-end label cannot stand in for an interim flow.
+                        label = str(row.get(period + "_nm") or "")
+                        if period == "thstrm" or "기말" not in label:
+                            value = _amount(row.get(period + "_amount"))
+            result[key] = value
+        return result
+
+    if report_code == "11011":
+        return {"annual": [{"year": year - offset, **values(period)} for offset, period in
+                           ((2, "bfefrmtrm"), (1, "frmtrm"), (0, "thstrm"))], "accounts": sources}
+    return {"year": year, "quarter": {"11013": 1, "11012": 2, "11014": 3}[report_code],
+            "current": values("thstrm", True), "previous": values("frmtrm", True),
+            "balanceComparison": "previous_year_end", "accounts": sources}
 
 
 def parse_financial_statement(rows, year, report_code):
@@ -85,7 +137,8 @@ def parse_financial_statement(rows, year, report_code):
                 periods.append({"year": year - offset, "revenue": sales, "operatingProfit": profit})
         if not periods:
             return None
-        return {"currency": currency, "rceptNo": rcept_no, "years": periods}
+        return {"currency": currency, "rceptNo": rcept_no, "years": periods,
+                "quality": _quality_statement(rows, year, report_code, rcept_no, currency)}
     current_sales = _amount(revenue.get("thstrm_add_amount"))
     current_profit = _amount(operating.get("thstrm_add_amount"))
     prior_sales = _amount(revenue.get("frmtrm_add_amount"))
@@ -97,7 +150,8 @@ def parse_financial_statement(rows, year, report_code):
         return None
     return {"currency": currency, "rceptNo": rcept_no, "year": year, "quarter": quarter,
             "revenue": current_sales, "operatingProfit": current_profit,
-            "priorRevenue": prior_sales, "priorOperatingProfit": prior_profit}
+            "priorRevenue": prior_sales, "priorOperatingProfit": prior_profit,
+            "quality": _quality_statement(rows, year, report_code, rcept_no, currency)}
 
 
 def _get_statement(api_key, corp_code, year, report_code, fs_div="CFS"):
@@ -115,7 +169,7 @@ def _get_statement(api_key, corp_code, year, report_code, fs_div="CFS"):
 def _persistent(code):
     try:
         client = _redis_client()
-        raw = client.get(f"chartview:dart-financial:v1:{code}") if client else None
+        raw = client.get(f"chartview:dart-financial:v2:{code}") if client else None
         value = json.loads(raw) if raw else None
         if isinstance(value, dict) and value.get("stockCode") == code:
             return value
@@ -147,19 +201,20 @@ def _static_row(code):
 
 def _freshness(row):
     if not row:
-        return (-1, -1, -1, "", "")
+        return (-1, -1, -1, "", "", -1)
     interim = row.get("interim") or {}
     return (int(row.get("annualReportYear") or 0), int(interim.get("year") or 0),
             int(interim.get("quarter") or 0),
             str(row.get("annualSourceUrl") or "").split("rcpNo=")[-1],
-            str(row.get("interimSourceUrl") or "").split("rcpNo=")[-1])
+            str(row.get("interimSourceUrl") or "").split("rcpNo=")[-1],
+            int(row.get("schemaVersion") or 1))
 
 
 def _save(code, row):
     try:
         client = _redis_client()
         if client:
-            client.set(f"chartview:dart-financial:v1:{code}", json.dumps(row, ensure_ascii=False))
+            client.set(f"chartview:dart-financial:v2:{code}", json.dumps(row, ensure_ascii=False))
     except Exception as exc:
         print(f"[DART financial] cache write failed: {type(exc).__name__}")
 
@@ -167,7 +222,8 @@ def _save(code, row):
 def _collect(code, ticker):
     now = datetime.now(KST)
     result = {"ticker": ticker, "stockCode": code, "available": False,
-              "source": "OpenDART", "checkedAt": now.isoformat(timespec="seconds")}
+              "source": "OpenDART", "schemaVersion": 2,
+              "checkedAt": now.isoformat(timespec="seconds"), "quality": {}}
     key = os.environ.get("DART_API_KEY", "").strip()
     if not key:
         result["reason"] = "api_key_unavailable"
@@ -207,6 +263,8 @@ def _collect(code, ticker):
         result.update({"available": True, "basis": "연결재무제표" if fs_div == "CFS" else "별도재무제표", "currency": annual["currency"],
                        "annual": annual["years"], "annualReportYear": year,
                        "annualSourceUrl": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={annual['rceptNo']}"})
+        result["quality"]["annual"] = annual.get("quality", {}).get("annual", [])
+        result["quality"]["annualAccounts"] = annual.get("quality", {}).get("accounts", {})
     # Only published periods can be requested; a later filing may still be unavailable.
     if annual and fs_div != "CFS":
         interim = None  # The parallel CFS value must not be mixed with OFS annuals.
@@ -223,10 +281,42 @@ def _collect(code, ticker):
                 break
     if interim and (not annual or interim["currency"] == annual["currency"]):
         result.update({"available": True, "basis": "연결재무제표" if fs_div == "CFS" else "별도재무제표", "currency": interim["currency"],
-                       "interim": {k: v for k, v in interim.items() if k not in {"currency", "rceptNo"}},
+                       "interim": {k: v for k, v in interim.items() if k not in {"currency", "rceptNo", "quality"}},
                        "interimSourceUrl": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={interim['rceptNo']}"})
+        result["quality"]["interim"] = interim.get("quality", {})
     if not result["available"]:
         result["reason"] = "consolidated_statement_unavailable"
+    return result
+
+
+def _merge_validated(old, new):
+    """Keep complete older periods when a provider refresh is partial/older."""
+    if not old or not old.get("available"):
+        return new
+    if not new or not new.get("available"):
+        return old
+    if (old.get("basis"), old.get("currency")) != (new.get("basis"), new.get("currency")):
+        return new
+    result = dict(new, quality=dict(new.get("quality") or {}))
+    for period in ("annual", "interim"):
+        old_period, new_period = old.get(period), new.get(period)
+        if not old_period:
+            continue
+        def stamp(row):
+            item = row.get("interim") or {}
+            return ((int(row.get("annualReportYear") or 0), 0) if period == "annual" else
+                    (int(item.get("year") or 0), int(item.get("quarter") or 0))) + (
+                str(row.get(period + "SourceUrl") or ""), int(row.get("schemaVersion") or 1))
+        if not new_period or stamp(old) > stamp(new):
+            result[period] = old_period
+            result[period + "SourceUrl"] = old.get(period + "SourceUrl")
+            if period == "annual":
+                result["annualReportYear"] = old.get("annualReportYear")
+            for key in (("annual", "annualAccounts") if period == "annual" else ("interim",)):
+                if key in (old.get("quality") or {}):
+                    result["quality"][key] = old["quality"][key]
+                else:
+                    result["quality"].pop(key, None)
     return result
 
 
@@ -235,6 +325,7 @@ def _refresh(code, ticker):
         row = _collect(code, ticker)
         with _LOCK:
             old = _CACHE.get(code)
+            row = _merge_validated(old[1] if old else None, row)
             if row["available"] or not old or not old[1].get("available"):
                 _CACHE[code] = (time.time(), row)
                 if row["available"]:

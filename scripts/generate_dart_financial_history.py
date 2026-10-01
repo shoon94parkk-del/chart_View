@@ -10,7 +10,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from dart_financial_service import _collect  # noqa: E402
+from dart_financial_service import _collect, _merge_validated  # noqa: E402
 
 OUT = ROOT / "static/data/dart_financial_history.json"
 BUSINESS_CACHE = ROOT / "static/data/dart_business_context.json"
@@ -36,6 +36,7 @@ def main():
             except Exception as exc:
                 print(f"{code}: lookup failed: {type(exc).__name__}", flush=True)
                 result = None
+            result = _merge_validated(old_rows.get(code), result)
             if result and result.get("available") and result.get("annual"):
                 rows[code] = {k: v for k, v in result.items() if k not in {"checkedAt", "reason"}}
                 print(f"{code}: {result.get('annualReportYear')} annual, latest interim {(result.get('interim') or {}).get('quarter')}", flush=True)

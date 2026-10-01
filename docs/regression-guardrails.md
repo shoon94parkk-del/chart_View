@@ -190,3 +190,9 @@ Update implementation, regression test, this document, and `docs/decision-log.md
 - A stale validated financial cache remains visible while rechecking; a failed check must not replace it with an empty result.
 - The checked-in major-company financial cache must stay valid and serve before network I/O after a cold restart. The daily generator must not churn commits when the underlying filings are unchanged.
 - 직접 거래 단서는 특징주·장마감 등 다종목 기사의 수주/계약 단어만으로 생성하지 않는다. 단일 기업의 구체적 계약·납품 문맥과 상대 회사명이 함께 확인되어야 하며, 긴 회사명 안에 포함된 짧은 상장사명은 독립 상대가 아니다.
+
+### Financial quality API v2 (2026-10-01)
+- Optional quality data is additive, same receipt and currency as its financial report. Keep account provenance.
+- Interim IS/CIS must use cumulative fields; interim CF must not use prior year-end annual values as a prior interim flow. BS compares with previous year end.
+- Preserve missing vs zero, conservative account uniqueness and matched basis. A partial refresh retains validated periods and their source/quality packet together.
+- Static major-company cache and Redis v2 serve before live requests. Never fabricate optional figures or infer share dilution from balance-sheet capital.

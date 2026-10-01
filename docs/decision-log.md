@@ -283,3 +283,7 @@ For the same receipt number, prefer the newly built validated static row over an
 종목 상세와 IDEA LAB의 직접 관계 API는 여러 종목을 나열한 특징주·장마감·기업 공시 기사에서 계약 단어만 발견해 관계를 만들지 않는다. 단일 기업 기사에서 두 상장사와 구체적 계약·납품 표현이 같은 문맥에 있는 경우로 제한한다. 수주잔고·막연한 고객사 확대는 관계 근거로 쓰지 않는다. 이닉스/SK하이닉스, HD현대/HD현대중공업처럼 회사명이 다른 회사명 안에 포함된 경우 짧은 이름을 별도 거래상대로 인식하지 않는다. 근거가 부족하면 관계를 표시하지 않는다.
 
 운영 검증에서 별도 검색어 4개를 순차 조회하는 첫 요청이 토스의 관계 근거 표시 제한시간을 넘었다. 관계 API는 이미 수집한 해당 종목 뉴스만 판정하고 9초 안에 자료 없음/제공처 지연을 반환한다. 오래된 계약 기사의 누락보다 오탐과 상세 화면 지연을 줄이는 쪽을 우선한다.
+
+## 2026-10-01 — DART financial quality and conservative review facts
+The financial-history API adds schemaVersion 2 and optional quality accounts (net income, operating cash flow, inventories, receivables, assets, liabilities, equity), with account ID/name/statement/receipt provenance. Revenue/profit fields remain compatible. IS/CIS interim values require cumulative add_amount; CF cumulative values use cash-flow amount fields; BS balances compare with previous year end. Missing, duplicate, mismatched receipt/currency accounts remain null. No industry-independent investment score or forecast is produced.
+Redis uses a v2 namespace. Partial refreshes and the daily generator retain older validated periods with their original quality/source data when basis and currency match; no CFS/OFS mixing. Major-stock static data is upgraded by the existing secret-backed workflow, without adding requests per company.
