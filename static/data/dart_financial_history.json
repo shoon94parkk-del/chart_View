@@ -32,6 +32,146 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000427",
+      "quality": {
+        "annual": [
+          {
+            "assets": 80627826000000,
+            "equity": 46558235000000,
+            "inventories": 11272875000000,
+            "liabilities": 34069591000000,
+            "netIncome": 8777817000000,
+            "operatingCashFlow": 11296526000000,
+            "receivables": null,
+            "year": 2023
+          },
+          {
+            "assets": 92755874000000,
+            "equity": 55840309000000,
+            "inventories": 12419084000000,
+            "liabilities": 36915565000000,
+            "netIncome": 9775005000000,
+            "operatingCashFlow": 12564368000000,
+            "receivables": null,
+            "year": 2024
+          },
+          {
+            "assets": 98979055000000,
+            "equity": 61190464000000,
+            "inventories": 14666201000000,
+            "liabilities": 37788591000000,
+            "netIncome": 7554174000000,
+            "operatingCashFlow": 9054140000000,
+            "receivables": null,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260312001224",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260312001224",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260312001224",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260312001224",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260312001224",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동현금흐름",
+            "receiptNo": "20260312001224",
+            "statement": "CF"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260916000427",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260916000427",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260916000427",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260916000427",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "당기순이익",
+              "receiptNo": "20260916000427",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260916000427",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260916000427",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 106829374000000,
+            "equity": 64689236000000,
+            "inventories": 16491721000000,
+            "liabilities": 42140138000000,
+            "netIncome": 4157949000000,
+            "operatingCashFlow": 7167135000000,
+            "receivables": 4841656000000
+          },
+          "previous": {
+            "assets": 98979055000000,
+            "equity": 61190464000000,
+            "inventories": 14666201000000,
+            "liabilities": 37788591000000,
+            "netIncome": 4660812000000,
+            "operatingCashFlow": null,
+            "receivables": 3551824000000
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "000270",
       "ticker": "000270.KS"
@@ -68,6 +208,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003509",
+      "quality": {
+        "annual": [
+          {
+            "assets": 100330165000000,
+            "equity": 53503752000000,
+            "inventories": 13480659000000,
+            "liabilities": 46826413000000,
+            "netIncome": -9137547000000,
+            "operatingCashFlow": 4278191000000,
+            "receivables": 6600273000000,
+            "year": 2023
+          },
+          {
+            "assets": 119855209000000,
+            "equity": 73915704000000,
+            "inventories": 13313937000000,
+            "liabilities": 45939505000000,
+            "netIncome": 19796902000000,
+            "operatingCashFlow": 29795885000000,
+            "receivables": 13019006000000,
+            "year": 2024
+          },
+          {
+            "assets": 176107659000000,
+            "equity": 120666751000000,
+            "inventories": 14289390000000,
+            "liabilities": 55440908000000,
+            "netIncome": 42947902000000,
+            "operatingCashFlow": 53373126000000,
+            "receivables": 18199078000000,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260317000635",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260317000635",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260317000635",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260317000635",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익(손실)",
+            "receiptNo": "20260317000635",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동 현금흐름",
+            "receiptNo": "20260317000635",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260317000635",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814003509",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003509",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003509",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814003509",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814003509",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동 현금흐름",
+              "receiptNo": "20260814003509",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260814003509",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 348862214000000,
+            "equity": 262693228000000,
+            "inventories": 17985706000000,
+            "liabilities": 86168986000000,
+            "netIncome": 134268502000000,
+            "operatingCashFlow": 91742501000000,
+            "receivables": 47821395000000
+          },
+          "previous": {
+            "assets": 176107659000000,
+            "equity": 120666751000000,
+            "inventories": 14289390000000,
+            "liabilities": 55440908000000,
+            "netIncome": 15104411000000,
+            "operatingCashFlow": null,
+            "receivables": 18199078000000
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "000660",
       "ticker": "000660.KS"
@@ -104,6 +390,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003521",
+      "quality": {
+        "annual": [
+          {
+            "assets": 282463355000000,
+            "equity": 101809440000000,
+            "inventories": 17400346000000,
+            "liabilities": 180653915000000,
+            "netIncome": 12272301000000,
+            "operatingCashFlow": -2518760000000,
+            "receivables": 4682182000000,
+            "year": 2023
+          },
+          {
+            "assets": 339798429000000,
+            "equity": 120275933000000,
+            "inventories": 19791007000000,
+            "liabilities": 219522496000000,
+            "netIncome": 13229908000000,
+            "operatingCashFlow": -5661641000000,
+            "receivables": 5908079000000,
+            "year": 2024
+          },
+          {
+            "assets": 368844849000000,
+            "equity": 127648237000000,
+            "inventories": 20661752000000,
+            "liabilities": 241196612000000,
+            "netIncome": 10364775000000,
+            "operatingCashFlow": -5991270000000,
+            "receivables": 8600419000000,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260318001394",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260318001394",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260318001394",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260318001394",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "연결당기순이익",
+            "receiptNo": "20260318001394",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260318001394",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260318001394",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814003521",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003521",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003521",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814003521",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "연결반기순이익",
+              "receiptNo": "20260814003521",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260814003521",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260814003521",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 394512167000000,
+            "equity": 135416445000000,
+            "inventories": 22503349000000,
+            "liabilities": 259095722000000,
+            "netIncome": 5472888000000,
+            "operatingCashFlow": 4849653000000,
+            "receivables": 6896989000000
+          },
+          "previous": {
+            "assets": 368844849000000,
+            "equity": 127648237000000,
+            "inventories": 20661752000000,
+            "liabilities": 241196612000000,
+            "netIncome": 6632564000000,
+            "operatingCashFlow": null,
+            "receivables": 8600419000000
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "005380",
       "ticker": "005380.KS"
@@ -140,6 +572,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814000957",
+      "quality": {
+        "annual": [
+          {
+            "assets": 100945394185079,
+            "equity": 59663897393468,
+            "inventories": 13825514288591,
+            "liabilities": 41281496791611,
+            "netIncome": 1845849532200,
+            "operatingCashFlow": 6167694886590,
+            "receivables": 11015302856499,
+            "year": 2023
+          },
+          {
+            "assets": 103404198997805,
+            "equity": 61450367919684,
+            "inventories": 14143499793793,
+            "liabilities": 41953831078121,
+            "netIncome": 947580322052,
+            "operatingCashFlow": 6663654759669,
+            "receivables": 10821618663150,
+            "year": 2024
+          },
+          {
+            "assets": 105192437963565,
+            "equity": 62377691037383,
+            "inventories": 13624432729452,
+            "liabilities": 42814746926182,
+            "netIncome": 504403472266,
+            "operatingCashFlow": 4571910292218,
+            "receivables": 11197974028882,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260311004517",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260311004517",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260311004517",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260311004517",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260311004517",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260311004517",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260311004517",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814000957",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814000957",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814000957",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814000957",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814000957",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260814000957",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260814000957",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 109712644176209,
+            "equity": 64163144255029,
+            "inventories": 13967773790600,
+            "liabilities": 45549499921180,
+            "netIncome": 1304703999027,
+            "operatingCashFlow": 708619472560,
+            "receivables": 13333111904818
+          },
+          "previous": {
+            "assets": 105192437963565,
+            "equity": 62377691037383,
+            "inventories": 13624432729452,
+            "liabilities": 42814746926182,
+            "netIncome": 428080637168,
+            "operatingCashFlow": null,
+            "receivables": 11197974028882
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "005490",
       "ticker": "005490.KS"
@@ -176,6 +754,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003699",
+      "quality": {
+        "annual": [
+          {
+            "assets": 455905980000000,
+            "equity": 363677865000000,
+            "inventories": 51625874000000,
+            "liabilities": 92228115000000,
+            "netIncome": 15487100000000,
+            "operatingCashFlow": 44137427000000,
+            "receivables": 36647393000000,
+            "year": 2023
+          },
+          {
+            "assets": 514531948000000,
+            "equity": 402192070000000,
+            "inventories": 51754865000000,
+            "liabilities": 112339878000000,
+            "netIncome": 34451351000000,
+            "operatingCashFlow": 72982621000000,
+            "receivables": 43623073000000,
+            "year": 2024
+          },
+          {
+            "assets": 566942110000000,
+            "equity": 436320337000000,
+            "inventories": 52636828000000,
+            "liabilities": 130621773000000,
+            "netIncome": 45206805000000,
+            "operatingCashFlow": 85315148000000,
+            "receivables": 51127642000000,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260310002820",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260310002820",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260310002820",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260310002820",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260310002820",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동현금흐름",
+            "receiptNo": "20260310002820",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260310002820",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814003699",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003699",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003699",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814003699",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814003699",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260814003699",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260814003699",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 759480516000000,
+            "equity": 579309676000000,
+            "inventories": 71389118000000,
+            "liabilities": 180170840000000,
+            "netIncome": 118849733000000,
+            "operatingCashFlow": 145355192000000,
+            "receivables": 96408968000000
+          },
+          "previous": {
+            "assets": 566942110000000,
+            "equity": 436320337000000,
+            "inventories": 52636828000000,
+            "liabilities": 130621773000000,
+            "netIncome": 13339313000000,
+            "operatingCashFlow": null,
+            "receivables": 51127642000000
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "005930",
       "ticker": "005930.KS"
@@ -212,6 +936,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003578",
+      "quality": {
+        "annual": [
+          {
+            "assets": 34038860192967,
+            "equity": 19907249977522,
+            "inventories": 3297368930324,
+            "liabilities": 14131610215445,
+            "netIncome": 2066046562201,
+            "operatingCashFlow": 2103521513959,
+            "receivables": 3402869054756,
+            "year": 2023
+          },
+          {
+            "assets": 40597344536357,
+            "equity": 21567237112527,
+            "inventories": 2879441809212,
+            "liabilities": 19030107423830,
+            "netIncome": 575512415979,
+            "operatingCashFlow": -137613377776,
+            "receivables": 4042229664106,
+            "year": 2024
+          },
+          {
+            "assets": 42255338580919,
+            "equity": 23570113159830,
+            "inventories": 2936331872805,
+            "liabilities": 18685225421089,
+            "netIncome": -584875358534,
+            "operatingCashFlow": 792385760879,
+            "receivables": 3078592799490,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산 합계",
+            "receiptNo": "20260310002954",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260310002954",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260310002954",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채 합계",
+            "receiptNo": "20260310002954",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순손익",
+            "receiptNo": "20260310002954",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동현금흐름",
+            "receiptNo": "20260310002954",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+            "accountName": "매출채권및기타채권",
+            "receiptNo": "20260310002954",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산 합계",
+              "receiptNo": "20260814003578",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003578",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003578",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채 합계",
+              "receiptNo": "20260814003578",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순손익",
+              "receiptNo": "20260814003578",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260814003578",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+              "accountName": "매출채권및기타채권",
+              "receiptNo": "20260814003578",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 47621891099845,
+            "equity": 26836219617697,
+            "inventories": 3675536764333,
+            "liabilities": 20785671482148,
+            "netIncome": 527736617880,
+            "operatingCashFlow": 109386315168,
+            "receivables": 3742835721524
+          },
+          "previous": {
+            "assets": 42255338580919,
+            "equity": 23570113159830,
+            "inventories": 2936331872805,
+            "liabilities": 18685225421089,
+            "netIncome": -382690226424,
+            "operatingCashFlow": null,
+            "receivables": 3078592799490
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "006400",
       "ticker": "006400.KS"
@@ -248,6 +1118,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002437",
+      "quality": {
+        "annual": [
+          {
+            "assets": 364279612381,
+            "equity": 170984172522,
+            "inventories": 150815840494,
+            "liabilities": 193295439859,
+            "netIncome": 29773965672,
+            "operatingCashFlow": 64724856446,
+            "receivables": 40523575404,
+            "year": 2023
+          },
+          {
+            "assets": 455450977751,
+            "equity": 202436234793,
+            "inventories": 153320419124,
+            "liabilities": 253014742958,
+            "netIncome": 39342705119,
+            "operatingCashFlow": 67578275983,
+            "receivables": 82893611929,
+            "year": 2024
+          },
+          {
+            "assets": 501560927287,
+            "equity": 258895742264,
+            "inventories": 161198068394,
+            "liabilities": 242665185023,
+            "netIncome": 55883227093,
+            "operatingCashFlow": 84702106506,
+            "receivables": 61055370369,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260318001705",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260318001705",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260318001705",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260318001705",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순손익",
+            "receiptNo": "20260318001705",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동 현금흐름",
+            "receiptNo": "20260318001705",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+            "accountName": "매출채권 및 기타채권",
+            "receiptNo": "20260318001705",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814002437",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814002437",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814002437",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814002437",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814002437",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동 현금흐름",
+              "receiptNo": "20260814002437",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+              "accountName": "매출채권 및 기타채권",
+              "receiptNo": "20260814002437",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 507412998534,
+            "equity": 290584370522,
+            "inventories": 188531855775,
+            "liabilities": 216828628012,
+            "netIncome": 43694522722,
+            "operatingCashFlow": -17395058987,
+            "receivables": 92939347900
+          },
+          "previous": {
+            "assets": 501560927287,
+            "equity": 258895742264,
+            "inventories": 161198068394,
+            "liabilities": 242665185023,
+            "netIncome": 20052642656,
+            "operatingCashFlow": null,
+            "receivables": 61055370369
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "033500",
       "ticker": "033500.KQ"
@@ -284,6 +1300,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002266",
+      "quality": {
+        "annual": [
+          {
+            "assets": 35737826964395,
+            "equity": 24237998815553,
+            "inventories": 14811319796,
+            "liabilities": 11499828148842,
+            "netIncome": 985017762493,
+            "operatingCashFlow": 2002233273518,
+            "receivables": 1724145643626,
+            "year": 2023
+          },
+          {
+            "assets": 38167876036020,
+            "equity": 27000911848337,
+            "inventories": 21743796031,
+            "liabilities": 11166964187683,
+            "netIncome": 1931976372953,
+            "operatingCashFlow": 2589874337746,
+            "receivables": 1655220886505,
+            "year": 2024
+          },
+          {
+            "assets": 41084496327318,
+            "equity": 28953013365595,
+            "inventories": 20235420058,
+            "liabilities": 12131482961723,
+            "netIncome": 1818746310015,
+            "operatingCashFlow": 3095806604677,
+            "receivables": 1689716780835,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260313001021",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260313001021",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260313001021",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260313001021",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260313001021",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동현금흐름",
+            "receiptNo": "20260313001021",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+            "accountName": "매출채권및기타채권",
+            "receiptNo": "20260313001021",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814002266",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814002266",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814002266",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814002266",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814002266",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260814002266",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+              "accountName": "매출채권및기타채권",
+              "receiptNo": "20260814002266",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 44656683622468,
+            "equity": 31029795255828,
+            "inventories": 35560688806,
+            "liabilities": 13626888366640,
+            "netIncome": 995294183086,
+            "operatingCashFlow": 1186557718996,
+            "receivables": 2026568896495
+          },
+          "previous": {
+            "assets": 41084496327318,
+            "equity": 28953013365595,
+            "inventories": 20235420058,
+            "liabilities": 12131482961723,
+            "netIncome": 921019633550,
+            "operatingCashFlow": null,
+            "receivables": 1689716780835
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "035420",
       "ticker": "035420.KS"
@@ -320,6 +1482,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260819000055",
+      "quality": {
+        "annual": [
+          {
+            "assets": 25179968939321,
+            "equity": 13858599224126,
+            "inventories": 138643535336,
+            "liabilities": 11321369715195,
+            "netIncome": -1816669011014,
+            "operatingCashFlow": 1341098333644,
+            "receivables": 622027314668,
+            "year": 2023
+          },
+          {
+            "assets": 25773028304462,
+            "equity": 13942894159737,
+            "inventories": 81053448196,
+            "liabilities": 11830134144725,
+            "netIncome": -161870567171,
+            "operatingCashFlow": 1250459006332,
+            "receivables": 548689364993,
+            "year": 2024
+          },
+          {
+            "assets": 27783524545811,
+            "equity": 15224922016050,
+            "inventories": 76540621667,
+            "liabilities": 12558602529761,
+            "netIncome": 517959587282,
+            "operatingCashFlow": 1404762595727,
+            "receivables": 569486036942,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260318001423",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260318001423",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260318001423",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260318001423",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익(손실)",
+            "receiptNo": "20260318001423",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260318001423",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260318001423",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260819000055",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260819000055",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260819000055",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260819000055",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "당기순이익(손실)",
+              "receiptNo": "20260819000055",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260819000055",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260819000055",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 27672994899114,
+            "equity": 15073401181967,
+            "inventories": 79266042988,
+            "liabilities": 12599593717147,
+            "netIncome": 244816510539,
+            "operatingCashFlow": 359956106356,
+            "receivables": 567794586423
+          },
+          "previous": {
+            "assets": 27783524545811,
+            "equity": 15224922016050,
+            "inventories": 76540621667,
+            "liabilities": 12558602529761,
+            "netIncome": 372149284703,
+            "operatingCashFlow": null,
+            "receivables": 569486036942
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "035720",
       "ticker": "035720.KS"
@@ -356,6 +1664,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260812000829",
+      "quality": {
+        "annual": [
+          {
+            "assets": 13944772692394,
+            "equity": 4312157120697,
+            "inventories": 2890783261031,
+            "liabilities": 9632615571697,
+            "netIncome": 160043854483,
+            "operatingCashFlow": -1939155311922,
+            "receivables": 332546692552,
+            "year": 2023
+          },
+          {
+            "assets": 17843809161295,
+            "equity": 4863349890725,
+            "inventories": 2779695381926,
+            "liabilities": 12980459270570,
+            "netIncome": 528212898147,
+            "operatingCashFlow": -2904574465563,
+            "receivables": 894491362699,
+            "year": 2024
+          },
+          {
+            "assets": 20140914014349,
+            "equity": 6175006995811,
+            "inventories": 3040398552060,
+            "liabilities": 13965907018538,
+            "netIncome": 1245921538208,
+            "operatingCashFlow": 1314671582302,
+            "receivables": 965182459216,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260317000644",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260317000644",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260317000644",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260317000644",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익(손실)",
+            "receiptNo": "20260317000644",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260317000644",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+            "accountName": "매출채권및기타채권",
+            "receiptNo": "20260317000644",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260812000829",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260812000829",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260812000829",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260812000829",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260812000829",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260812000829",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+              "accountName": "매출채권및기타채권",
+              "receiptNo": "20260812000829",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 20146186796973,
+            "equity": 7528212288382,
+            "inventories": 1583621854746,
+            "liabilities": 12617974508591,
+            "netIncome": 1192625820025,
+            "operatingCashFlow": 1040210578474,
+            "receivables": 621607549365
+          },
+          "previous": {
+            "assets": 20140914014349,
+            "equity": 6175006995811,
+            "inventories": 3040398552060,
+            "liabilities": 13965907018538,
+            "netIncome": 364202035432,
+            "operatingCashFlow": null,
+            "receivables": 965182459216
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "042660",
       "ticker": "042660.KS"
@@ -392,6 +1846,140 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001997",
+      "quality": {
+        "annual": [
+          {
+            "assets": 60240793000000,
+            "equity": 23498536000000,
+            "inventories": 9125404000000,
+            "liabilities": 36742257000000,
+            "netIncome": 1150611000000,
+            "operatingCashFlow": 5913596000000,
+            "receivables": null,
+            "year": 2023
+          },
+          {
+            "assets": 65629589000000,
+            "equity": 25211664000000,
+            "inventories": 10729360000000,
+            "liabilities": 40417925000000,
+            "netIncome": 591365000000,
+            "operatingCashFlow": 3842661000000,
+            "receivables": null,
+            "year": 2024
+          },
+          {
+            "assets": 68620167000000,
+            "equity": 28552025000000,
+            "inventories": 11084962000000,
+            "liabilities": 40068142000000,
+            "netIncome": 1220412000000,
+            "operatingCashFlow": 4280500000000,
+            "receivables": null,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260706000276",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260706000276",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260706000276",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260706000276",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익(손실)",
+            "receiptNo": "20260706000276",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260706000276",
+            "statement": "CF"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814001997",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814001997",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814001997",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814001997",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익(손실)",
+              "receiptNo": "20260814001997",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260814001997",
+              "statement": "CF"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 73696206000000,
+            "equity": 31917635000000,
+            "inventories": 12186506000000,
+            "liabilities": 41778571000000,
+            "netIncome": 1786410000000,
+            "operatingCashFlow": 3552902000000,
+            "receivables": null
+          },
+          "previous": {
+            "assets": 68620167000000,
+            "equity": 28552025000000,
+            "inventories": 11084962000000,
+            "liabilities": 40068142000000,
+            "netIncome": 1485261000000,
+            "operatingCashFlow": null,
+            "receivables": null
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "066570",
       "ticker": "066570.KS"
@@ -428,6 +2016,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003751",
+      "quality": {
+        "annual": [
+          {
+            "assets": 19956813831274,
+            "equity": 17125794307235,
+            "inventories": 3038708399955,
+            "liabilities": 2831019524039,
+            "netIncome": 539706505110,
+            "operatingCashFlow": 537158606192,
+            "receivables": 939169490610,
+            "year": 2023
+          },
+          {
+            "assets": 21055222437706,
+            "equity": 17580062368691,
+            "inventories": 2765942959864,
+            "liabilities": 3475160069015,
+            "netIncome": 418883310404,
+            "operatingCashFlow": 901870301325,
+            "receivables": 1215250840801,
+            "year": 2024
+          },
+          {
+            "assets": 22334900189800,
+            "equity": 17352529819114,
+            "inventories": 2803460062651,
+            "liabilities": 4982370370686,
+            "netIncome": 1031483789240,
+            "operatingCashFlow": 646050776661,
+            "receivables": 1790421768686,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260316001415",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260316001415",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260316001415",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260316001415",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260316001415",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260316001415",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260316001415",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814003751",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003751",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003751",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814003751",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익",
+              "receiptNo": "20260814003751",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260814003751",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260814003751",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 23703154446039,
+            "equity": 18048159641063,
+            "inventories": 2940520653882,
+            "liabilities": 5654994804976,
+            "netIncome": 721161387676,
+            "operatingCashFlow": 651436274413,
+            "receivables": 2220125281692
+          },
+          "previous": {
+            "assets": 22334900189800,
+            "equity": 17352529819114,
+            "inventories": 2803460062651,
+            "liabilities": 4982370370686,
+            "netIncome": 171633060805,
+            "operatingCashFlow": null,
+            "receivables": 1790421768686
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "068270",
       "ticker": "068270.KS"
@@ -464,6 +2198,152 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003375",
+      "quality": {
+        "annual": [
+          {
+            "assets": 16046197209196,
+            "equity": 9830492412345,
+            "inventories": 2641368466083,
+            "liabilities": 6215704796851,
+            "netIncome": 857691298384,
+            "operatingCashFlow": 1666228521442,
+            "receivables": 679354410912,
+            "year": 2023
+          },
+          {
+            "assets": 17336296349511,
+            "equity": 10904676062018,
+            "inventories": 2818275774375,
+            "liabilities": 6431620287493,
+            "netIncome": 1083315885986,
+            "operatingCashFlow": 1659255402663,
+            "receivables": 1165428133505,
+            "year": 2024
+          },
+          {
+            "assets": 11060741976837,
+            "equity": 7451110647985,
+            "inventories": 2128164162722,
+            "liabilities": 3609631328852,
+            "netIncome": 1784352060593,
+            "operatingCashFlow": 2247807426551,
+            "receivables": 676466918976,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260515001658",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260515001658",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260515001658",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260515001658",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익",
+            "receiptNo": "20260515001658",
+            "statement": "CIS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동으로 인한 현금흐름",
+            "receiptNo": "20260515001658",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+            "accountName": "매출채권및기타채권",
+            "receiptNo": "20260515001658",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260814003375",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260814003375",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260814003375",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260814003375",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "당기순이익",
+              "receiptNo": "20260814003375",
+              "statement": "CIS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동으로 인한 현금흐름",
+              "receiptNo": "20260814003375",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+              "accountName": "매출채권및기타채권",
+              "receiptNo": "20260814003375",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 12652621086337,
+            "equity": 8361923185339,
+            "inventories": 2344406492431,
+            "liabilities": 4290697900998,
+            "netIncome": 899899606847,
+            "operatingCashFlow": 1392488374186,
+            "receivables": 615771443792
+          },
+          "previous": {
+            "assets": 11060741976837,
+            "equity": 7451110647985,
+            "inventories": 2128164162722,
+            "liabilities": 3609631328852,
+            "netIncome": 699939693469,
+            "operatingCashFlow": null,
+            "receivables": 676466918976
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "207940",
       "ticker": "207940.KS"
@@ -500,11 +2380,157 @@
         "year": 2026
       },
       "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260813000255",
+      "quality": {
+        "annual": [
+          {
+            "assets": 45437144000000,
+            "equity": 24373509000000,
+            "inventories": 5396336000000,
+            "liabilities": 21063635000000,
+            "netIncome": 1637985000000,
+            "operatingCashFlow": 4444179000000,
+            "receivables": 5128474000000,
+            "year": 2023
+          },
+          {
+            "assets": 60306791000000,
+            "equity": 30966543000000,
+            "inventories": 4552355000000,
+            "liabilities": 29340248000000,
+            "netIncome": 338602000000,
+            "operatingCashFlow": 5111700000000,
+            "receivables": 4944019000000,
+            "year": 2024
+          },
+          {
+            "assets": 67147953000000,
+            "equity": 29321676000000,
+            "inventories": 4350407000000,
+            "liabilities": 37826277000000,
+            "netIncome": 80803000000,
+            "operatingCashFlow": 4432277000000,
+            "receivables": 4311178000000,
+            "year": 2025
+          }
+        ],
+        "annualAccounts": {
+          "assets": {
+            "accountId": "ifrs-full_Assets",
+            "accountName": "자산총계",
+            "receiptNo": "20260312000217",
+            "statement": "BS"
+          },
+          "equity": {
+            "accountId": "ifrs-full_Equity",
+            "accountName": "자본총계",
+            "receiptNo": "20260312000217",
+            "statement": "BS"
+          },
+          "inventories": {
+            "accountId": "ifrs-full_Inventories",
+            "accountName": "재고자산",
+            "receiptNo": "20260312000217",
+            "statement": "BS"
+          },
+          "liabilities": {
+            "accountId": "ifrs-full_Liabilities",
+            "accountName": "부채총계",
+            "receiptNo": "20260312000217",
+            "statement": "BS"
+          },
+          "netIncome": {
+            "accountId": "ifrs-full_ProfitLoss",
+            "accountName": "당기순이익(손실)",
+            "receiptNo": "20260312000217",
+            "statement": "IS"
+          },
+          "operatingCashFlow": {
+            "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+            "accountName": "영업활동현금흐름",
+            "receiptNo": "20260312000217",
+            "statement": "CF"
+          },
+          "receivables": {
+            "accountId": "ifrs-full_CurrentTradeReceivables",
+            "accountName": "매출채권",
+            "receiptNo": "20260312000217",
+            "statement": "BS"
+          }
+        },
+        "interim": {
+          "accounts": {
+            "assets": {
+              "accountId": "ifrs-full_Assets",
+              "accountName": "자산총계",
+              "receiptNo": "20260813000255",
+              "statement": "BS"
+            },
+            "equity": {
+              "accountId": "ifrs-full_Equity",
+              "accountName": "자본총계",
+              "receiptNo": "20260813000255",
+              "statement": "BS"
+            },
+            "inventories": {
+              "accountId": "ifrs-full_Inventories",
+              "accountName": "재고자산",
+              "receiptNo": "20260813000255",
+              "statement": "BS"
+            },
+            "liabilities": {
+              "accountId": "ifrs-full_Liabilities",
+              "accountName": "부채총계",
+              "receiptNo": "20260813000255",
+              "statement": "BS"
+            },
+            "netIncome": {
+              "accountId": "ifrs-full_ProfitLoss",
+              "accountName": "반기순이익(손실)",
+              "receiptNo": "20260813000255",
+              "statement": "IS"
+            },
+            "operatingCashFlow": {
+              "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+              "accountName": "영업활동현금흐름",
+              "receiptNo": "20260813000255",
+              "statement": "CF"
+            },
+            "receivables": {
+              "accountId": "ifrs-full_CurrentTradeReceivables",
+              "accountName": "매출채권",
+              "receiptNo": "20260813000255",
+              "statement": "BS"
+            }
+          },
+          "balanceComparison": "previous_year_end",
+          "current": {
+            "assets": 77877681000000,
+            "equity": 30286644000000,
+            "inventories": 6445283000000,
+            "liabilities": 47591037000000,
+            "netIncome": -1272678000000,
+            "operatingCashFlow": -290876000000,
+            "receivables": 5975320000000
+          },
+          "previous": {
+            "assets": 67147953000000,
+            "equity": 29321676000000,
+            "inventories": 4350407000000,
+            "liabilities": 37826277000000,
+            "netIncome": 317178000000,
+            "operatingCashFlow": null,
+            "receivables": 4311178000000
+          },
+          "quarter": 2,
+          "year": 2026
+        }
+      },
+      "schemaVersion": 2,
       "source": "OpenDART",
       "stockCode": "373220",
       "ticker": "373220.KS"
     }
   },
-  "generatedAt": "2026-09-29T21:34:22+09:00",
+  "generatedAt": "2026-10-01T20:12:31+09:00",
   "source": "OpenDART fnlttSinglAcntAll"
 }
