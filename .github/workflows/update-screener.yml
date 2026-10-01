@@ -79,6 +79,14 @@ jobs:
         if: steps.preflight.outputs.should_run == 'true'
         run: pip install 'yfinance>=0.2.50' pandas requests lxml html5lib
 
+      - name: Preserve previous screener for PICK technical deltas
+        if: steps.preflight.outputs.should_run == 'true'
+        run: |
+          if [ -f static/data/screener.json ]; then
+            cp static/data/screener.json "$RUNNER_TEMP/screener_previous.json"
+            echo "Saved previous screener snapshot for technical score comparison."
+          fi
+
       - name: Generate exact-date screener
         if: steps.preflight.outputs.should_run == 'true'
         env:
@@ -117,12 +125,22 @@ jobs:
         if: steps.preflight.outputs.should_run == 'true'
         run: python scripts/update_ai_recommendations.py
 
+      - name: Refresh PICK technical monitor
+        if: steps.preflight.outputs.should_run == 'true'
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/screener_previous.json" ]; then
+            python scripts/build_pick_monitor.py --previous-screener "$RUNNER_TEMP/screener_previous.json"
+          else
+            python scripts/build_pick_monitor.py
+          fi
+
       - name: Commit screener and PICK price data
         if: steps.preflight.outputs.should_run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_recommendations.json static/data/ai_daily_rankings_meta.json
+          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_recommendations.json static/data/ai_daily_rankings_meta.json static/data/pick_monitor.json static/data/pick_monitor_history.json
           if git diff --cached --quiet; then
             echo "No screener or PICK price changes"
             exit 0
