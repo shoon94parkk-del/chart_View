@@ -13,6 +13,7 @@ def rankings(reason="growth", price=100, monitoring=None):
         "changePct": -15.0,
         "totalScore": 88,
         "grade": "사용자 확정",
+        "scores": {"technical": 24},
         "reason": reason,
     }
     if monitoring is not None:
@@ -75,3 +76,69 @@ def test_exit_requires_user_finalization():
     bad["picks"][0]["decision"]["finalizedByUser"] = False
     errors = validate(rankings(), bad, history)
     assert any("EXIT without user finalization" in error for error in errors)
+
+
+def _screener(trade_date, score, *, rsi=60.0, ret5=5.0, ret20=10.0):
+    return {
+        "tradeDate": trade_date,
+        "stocks": [{
+            "code": "123456",
+            "symbol": "123456.KQ",
+            "name": "테스트",
+            "technicalScore": score,
+            "rsi14": rsi,
+            "ret5": ret5,
+            "ret20": ret20,
+            "change1d": 1.0,
+        }],
+    }
+
+
+def test_technical_sell_signal_is_advisory_and_does_not_change_fundamental_status():
+    monitor, history, _ = sync_payloads(
+        rankings(),
+        {},
+        {"events": []},
+        screener=_screener("2026-09-30", 24),
+        timestamp="2026-09-30T18:40:00+09:00",
+    )
+    monitor["picks"][0]["status"] = "KEEP"
+    monitor["picks"][0]["statusLabel"] = "유지"
+    updated, _, changed = sync_payloads(
+        rankings(),
+        monitor,
+        history,
+        screener=_screener("2026-10-01", 20, rsi=74.0, ret5=18.0, ret20=35.0),
+        previous_screener=_screener("2026-09-30", 24),
+        timestamp="2026-10-01T18:40:00+09:00",
+    )
+    tech = updated["picks"][0]["technical"]
+    assert changed is True
+    assert updated["picks"][0]["status"] == "KEEP"
+    assert tech["previousScore"] == 24
+    assert tech["score"] == 20
+    assert tech["dayDelta"] == -4
+    assert tech["signal"] == "TECH_SELL_REVIEW"
+    assert tech["severity"] == "red"
+    assert tech["advisoryOnly"] is True
+
+
+def test_score_drop_without_overheat_is_caution_not_red():
+    monitor, history, _ = sync_payloads(
+        rankings(),
+        {},
+        {"events": []},
+        screener=_screener("2026-09-30", 24),
+        timestamp="2026-09-30T18:40:00+09:00",
+    )
+    updated, _, _ = sync_payloads(
+        rankings(),
+        monitor,
+        history,
+        screener=_screener("2026-10-01", 20, rsi=58.0, ret5=3.0, ret20=8.0),
+        previous_screener=_screener("2026-09-30", 24),
+        timestamp="2026-10-01T18:40:00+09:00",
+    )
+    tech = updated["picks"][0]["technical"]
+    assert tech["signal"] == "TECH_CAUTION"
+    assert tech["severity"] == "orange"
