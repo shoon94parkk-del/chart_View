@@ -89,6 +89,18 @@ def test_interim_cashflow_year_end_and_three_month_income_are_not_yoy_flows():
 def test_parser_revision_wins_at_identical_report_receipts():
     base = {"annualReportYear": 2025, "annualSourceUrl": "x?rcpNo=20260310002820"}
     assert service._freshness(dict(base, schemaVersion=2)) > service._freshness(base)
+    assert service._freshness(dict(base, schemaVersion=2, parserVersion=3)) > service._freshness(dict(base, schemaVersion=2))
+
+
+def test_prior_interim_cashflow_field_wins_over_prior_annual_year_end():
+    rows = [_row("ifrs-full_Revenue", "매출액", thstrm_add_amount="110"),
+            _row("dart_OperatingIncomeLoss", "영업이익", thstrm_add_amount="15"),
+            dict(_row("ifrs-full_CashFlowsFromUsedInOperatingActivities", "영업활동현금흐름",
+                      thstrm_amount="80", frmtrm_amount="120", frmtrm_nm="제55기말",
+                      frmtrm_q_amount="35", frmtrm_q_nm="제55기 반기"), sj_div="CF")]
+    quality = service.parse_financial_statement(rows, 2026, "11012")["quality"]
+    assert quality["previous"]["operatingCashFlow"] == 35
+    assert quality["accounts"]["operatingCashFlow"]["previousInterimPeriod"] == "제55기 반기"
 
 
 def test_partial_refresh_retains_validated_period_and_quality_without_mixing_basis():

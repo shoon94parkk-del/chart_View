@@ -72,7 +72,7 @@ QUALITY_ACCOUNTS = {
                           ("ifrs-full_CashFlowsFromUsedInOperatingActivities", "ifrs_CashFlowsFromUsedInOperatingActivities"), ("CF",)),
     "inventories": ({"재고자산"}, ("ifrs-full_Inventories", "ifrs_Inventories"), ("BS",)),
     "receivables": ({"매출채권", "매출채권및기타채권", "매출채권및기타유동채권"},
-                    ("ifrs-full_TradeReceivables", "dart_TradeReceivables", "ifrs-full_TradeAndOtherCurrentReceivables"), ("BS",)),
+                    ("ifrs-full_CurrentTradeReceivables", "ifrs-full_TradeReceivables", "dart_TradeReceivables", "ifrs-full_TradeAndOtherCurrentReceivables"), ("BS",)),
     "assets": ({"자산총계", "총자산"}, ("ifrs-full_Assets", "ifrs_Assets"), ("BS",)),
     "liabilities": ({"부채총계", "총부채"}, ("ifrs-full_Liabilities", "ifrs_Liabilities"), ("BS",)),
     "equity": ({"자본총계", "총자본"}, ("ifrs-full_Equity", "ifrs_Equity"), ("BS",)),
@@ -88,7 +88,9 @@ def _quality_statement(rows, year, report_code, receipt, currency):
             continue
         accounts[key] = row
         sources[key] = {"accountId": row.get("account_id"), "accountName": row.get("account_nm"),
-                        "statement": row.get("sj_div"), "receiptNo": receipt}
+                        "statement": row.get("sj_div"), "receiptNo": receipt,
+                        "currentPeriod": row.get("thstrm_nm"), "previousPeriod": row.get("frmtrm_nm"),
+                        "previousInterimPeriod": row.get("frmtrm_q_nm")}
 
     def values(period, interim=False):
         result = {}
@@ -101,10 +103,14 @@ def _quality_statement(rows, year, report_code, receipt, currency):
                 else:
                     value = _amount(row.get(period + "_add_amount"))
                     if value is None and row["sj_div"] == "CF":
+                        if period == "frmtrm":
+                            # DART's prior interim CF amount is cumulative (the
+                            # three-month caveat applies only to IS/CIS).
+                            value = _amount(row.get("frmtrm_q_amount"))
                         # CF amounts are cumulative; IS/CIS 3-month amounts are not.
                         # A prior year-end label cannot stand in for an interim flow.
                         label = str(row.get(period + "_nm") or "")
-                        if period == "thstrm" or "기말" not in label:
+                        if value is None and (period == "thstrm" or "기말" not in label):
                             value = _amount(row.get(period + "_amount"))
             result[key] = value
         return result
@@ -207,7 +213,7 @@ def _freshness(row):
             int(interim.get("quarter") or 0),
             str(row.get("annualSourceUrl") or "").split("rcpNo=")[-1],
             str(row.get("interimSourceUrl") or "").split("rcpNo=")[-1],
-            int(row.get("schemaVersion") or 1))
+            int(row.get("parserVersion") or row.get("schemaVersion") or 1))
 
 
 def _save(code, row):
@@ -222,7 +228,7 @@ def _save(code, row):
 def _collect(code, ticker):
     now = datetime.now(KST)
     result = {"ticker": ticker, "stockCode": code, "available": False,
-              "source": "OpenDART", "schemaVersion": 2,
+              "source": "OpenDART", "schemaVersion": 2, "parserVersion": 3,
               "checkedAt": now.isoformat(timespec="seconds"), "quality": {}}
     key = os.environ.get("DART_API_KEY", "").strip()
     if not key:
@@ -306,7 +312,7 @@ def _merge_validated(old, new):
             item = row.get("interim") or {}
             return ((int(row.get("annualReportYear") or 0), 0) if period == "annual" else
                     (int(item.get("year") or 0), int(item.get("quarter") or 0))) + (
-                str(row.get(period + "SourceUrl") or ""), int(row.get("schemaVersion") or 1))
+                str(row.get(period + "SourceUrl") or ""), int(row.get("parserVersion") or row.get("schemaVersion") or 1))
         if not new_period or stamp(old) > stamp(new):
             result[period] = old_period
             result[period + "SourceUrl"] = old.get(period + "SourceUrl")
