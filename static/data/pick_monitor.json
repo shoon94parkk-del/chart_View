@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-30T18:39:16+09:00",
+  "generatedAt": "2026-10-01T17:00:14+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-09-30T18:55:00+09:00",
   "policy": {
@@ -37,13 +37,14 @@
       "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
-        "lastReviewedTradeDate": "2026-09-28",
+        "lastReviewedAt": "2026-10-01T17:20:00+09:00",
+        "lastReviewedTradeDate": "2026-10-01",
         "thesisChecks": {
           "earnings": "OK",
           "orders": "OK",
           "customer": "OK",
-          "industry": "OK"
+          "industry": "OK",
+          "newGrowth": "OK"
         },
         "evidence": [
           {
@@ -56,10 +57,21 @@
             "materiality": "supporting",
             "independentKey": "earnings_consensus",
             "category": "earnings"
+          },
+          {
+            "verified": true,
+            "publishedAt": "2026-09-30",
+            "sourceTitle": "한화, ‘발사체 재사용 기술 시연체’ 총조립 착수…‘한국판 스페이스X’ 도전",
+            "sourceUrl": "https://www.hanwhaaerospace.com/kor/media/newsroom/view.do?seq=659",
+            "fact": "한화에어로스페이스가 한국항공우주연구원 주관 재사용 발사체 기술 시연체의 체계종합을 맡아 총조립에 착수했으며 2028년까지 기술 실증을 목표로 함.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "reusable_launch_vehicle_demo",
+            "category": "newGrowth"
           }
         ],
-        "reason": "추천 이후 확인된 컨센서스에서 2026년 매출·영업이익 추정치가 유지 또는 소폭 상향되어 유럽 방산 수출·실적 성장 논리가 훼손됐다고 볼 근거가 확인되지 않았습니다.",
-        "reviewKey": "2026-09-28T13:20:00+09:00"
+        "reason": "추천 이후 기존 방산 수출·실적 성장 논리를 훼손하는 검증된 부정 근거는 확인되지 않았고, 9월 30일 재사용 발사체 기술 시연체 총조립 착수로 우주 사업의 중장기 성장 옵션이 추가 확인됐습니다.",
+        "reviewKey": "2026-10-01T17:20:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -1261,5 +1273,5 @@
       }
     }
   ],
-  "reviewSourceUpdated": "2026-09-30T18:58:00+09:00"
+  "reviewSourceUpdated": "2026-10-01T17:20:00+09:00"
 }

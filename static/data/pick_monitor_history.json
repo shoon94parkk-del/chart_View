@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-30T18:39:16+09:00",
+  "updated": "2026-10-01T17:00:14+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -396,6 +396,13 @@
       "at": "2026-09-30T18:39:16+09:00",
       "status": "PENDING_REVIEW",
       "reviewKey": "2026-09-30T18:58:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-09-14:012450",
+      "at": "2026-10-01T17:00:14+09:00",
+      "status": "KEEP",
+      "reviewKey": "2026-10-01T17:20:00+09:00"
     }
   ]
 }
