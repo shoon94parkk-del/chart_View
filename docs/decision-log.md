@@ -303,3 +303,6 @@ Regression reproduced two false positives before the fix. DART business/financia
 - 메모리/Redis/checked-in static quarter cache 재사용. established company set의 일일 DART workflow가 quarterly cache도 생성한다. 계산값은 양쪽 원문 연결.
 - 조회 성공/실패 수를 보존하며 전부 실패 시 기존 성공 checkedAt을 새 시각으로 바꾸지 않는다. 부분 실패는 별도 표시한다. 사용자 재시도는 refresh=true로 singleflight 재확인하며 polling은 force하지 않는다.
 - 관련 pytest와 generated frontend bundle check를 통과시킨 정확한 main만 기존 Render 서비스로 배포한다.
+
+## 2026-10-02 Sector heatmap metadata
+Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.

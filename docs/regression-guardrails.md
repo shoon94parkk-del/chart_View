@@ -208,3 +208,6 @@ Regression reproduced two false positives before the fix. DART business/financia
 - singleQuarter와 누적 revenue/operatingProfit은 다른 의미다. 기존 cumulative fields를 direct quarter로 대체하지 않는다.
 - Q4 차감/TTM은 동일 basis·currency 및 완전한 연속 분기를 요구한다. missing != zero; 적자/0 기준 증가율을 만들지 않는다.
 - 분기 수집은 core detail API를 막지 않는다. 전부 실패를 ready/latest checkedAt으로 위장하지 않으며 기존 packet을 보존한다.
+
+## 2026-10-02 Sector heatmap metadata
+Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.

@@ -26,6 +26,7 @@ import re
 import hashlib
 import secrets
 import json
+from heatmap_metadata import us_universe, korean_metadata
 try:
     import redis.asyncio as redis_async
 except Exception:
@@ -1299,26 +1300,7 @@ def _load_full_heatmap_us_rows():
     except Exception:
         pass
 
-    rows = []
-    sectors = payload.get("sectors") or []
-    sector_iter = sectors.values() if isinstance(sectors, dict) else sectors if isinstance(sectors, list) else []
-    for sector in sector_iter:
-        sector_rows = sector if isinstance(sector, list) else (sector.get("stocks") or sector.get("data") or [])
-        for row in sector_rows:
-            if not isinstance(row, dict):
-                continue
-            ticker = str(row.get("ticker") or "").strip().upper()
-            market_cap = row.get("marketCap")
-            if not ticker or market_cap is None:
-                continue
-            rows.append({
-                "ticker": ticker,
-                "name": quote_names.get(ticker) or ticker,
-                "market": "US",
-                "marketCap": market_cap,
-            })
-    rows.sort(key=lambda row: float(row.get("marketCap") or 0), reverse=True)
-    return rows[:FULL_HEATMAP_US_LIMIT]
+    return us_universe(payload, quote_names, limit=FULL_HEATMAP_US_LIMIT)
 
 
 def _load_valuation_market_caps():
@@ -1418,6 +1400,7 @@ def _seed_full_heatmap_from_local():
             if price is None or change is None or market_cap is None:
                 continue
             kr_rows.append({
+                **(korean_metadata({"stocks": [screen]}).get(ticker) or {}),
                 "ticker": ticker,
                 "name": live.get("name") or screen.get("name") or val.get("shortName") or ticker,
                 "market": "KR",
@@ -1490,6 +1473,7 @@ async def _refresh_full_heatmap(force: bool = False):
             market_caps = _load_valuation_market_caps()
             us_meta_rows = _load_full_heatmap_us_rows()
             us_meta = {row["ticker"]: row for row in us_meta_rows}
+            kr_meta = korean_metadata((_load_home_insight_sources().get("screener") or {}))
             all_tickers = list(dict.fromkeys(FULL_HEATMAP_KR_TICKERS + [row["ticker"] for row in us_meta_rows]))
             fetched = await _fetch_full_heatmap_quotes(all_tickers)
 
@@ -1498,7 +1482,7 @@ async def _refresh_full_heatmap(force: bool = False):
                 item = fetched.get(ticker)
                 old = previous.get(ticker)
                 market = "KR" if ticker in FULL_HEATMAP_KR_TICKERS else "US"
-                meta = us_meta.get(ticker) or {}
+                meta = us_meta.get(ticker) or kr_meta.get(ticker) or {}
                 market_cap = (
                     (item.get("marketCap") if isinstance(item, dict) else None)
                     or market_caps.get(ticker)
@@ -1510,12 +1494,13 @@ async def _refresh_full_heatmap(force: bool = False):
                     # Preserve only previously canonical rows. Never fall back to
                     # legacy heatmap.json price/change values.
                     if old and old.get("quoteBasis") in {"provider-canonical", "home-canonical"}:
-                        results.append({**old, "stale": True})
+                        results.append({**meta, **old, "sector": meta.get("sector") or old.get("sector"), "stale": True})
                     continue
                 if not market_cap:
                     continue
 
                 results.append({
+                    **meta,
                     "ticker": ticker,
                     "name": item.get("name") or meta.get("name") or (old or {}).get("name") or ticker,
                     "market": market,

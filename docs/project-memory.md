@@ -260,3 +260,6 @@ Regression reproduced two false positives before the fix. DART business/financia
 
 ## 2026-10-02 분기 흐름 API
 New dart_quarter_service.py and scripts/generate_dart_financial_quarters.py add independent eight-quarter/TTM cache. Current Toss release consumes /api/financial-quarters and must poll refreshing cached results while retaining displayed charts. Existing financial-history remains cumulative; optional singleQuarter fields are additive. Static cache supports fast major-company first visits. Tests/test_dart_quarters.py guards quarter arithmetic, gaps, bases, singleflight, invalid ticker and all-failed refresh.
+
+## 2026-10-02 Sector heatmap metadata
+Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.
