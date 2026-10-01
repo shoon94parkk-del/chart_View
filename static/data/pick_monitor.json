@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-01T18:25:14+09:00",
+  "generatedAt": "2026-10-01T18:37:31+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-10-01T18:12:00+09:00",
   "policy": {
@@ -77,6 +77,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 10.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 46.7,
+        "ret5": -2.18,
+        "ret20": -2.27,
+        "change1d": 2.68,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -133,6 +151,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 27.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 57.5,
+        "ret5": 1.94,
+        "ret20": 11.76,
+        "change1d": 5.2,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -188,6 +224,26 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 20.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 69.0,
+        "ret5": 4.32,
+        "ret20": 81.82,
+        "change1d": 7.81,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [
+          "20일 수익률 +81.8% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -229,6 +285,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 24.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 65.0,
+        "ret5": 11.33,
+        "ret20": 14.8,
+        "change1d": 2.33,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -284,6 +358,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 29.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 61.4,
+        "ret5": 5.17,
+        "ret20": 12.65,
+        "change1d": 2.89,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -339,6 +431,28 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 17.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 78.7,
+        "ret5": 15.27,
+        "ret20": 39.96,
+        "change1d": 8.01,
+        "signal": "TECH_SELL_REVIEW",
+        "signalLabel": "단기 매도 검토",
+        "severity": "red",
+        "reasons": [
+          "RSI 78.7 과열권",
+          "5일 수익률 +15.3% 급등",
+          "20일 수익률 +40.0% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -380,6 +494,28 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 16.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 80.2,
+        "ret5": 19.25,
+        "ret20": 55.72,
+        "change1d": 13.08,
+        "signal": "TECH_SELL_REVIEW",
+        "signalLabel": "단기 매도 검토",
+        "severity": "red",
+        "reasons": [
+          "RSI 80.2 과열권",
+          "5일 수익률 +19.2% 급등",
+          "20일 수익률 +55.7% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -421,6 +557,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 19.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 56.8,
+        "ret5": -0.34,
+        "ret20": -0.51,
+        "change1d": 1.39,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -476,6 +630,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 55.1,
+        "ret5": -0.38,
+        "ret20": 8.27,
+        "change1d": 3.21,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -532,6 +704,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 60.4,
+        "ret5": 9.76,
+        "ret20": 8.25,
+        "change1d": 2.77,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -573,6 +763,28 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 19.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 73.6,
+        "ret5": 19.11,
+        "ret20": 43.15,
+        "change1d": 8.46,
+        "signal": "TECH_CAUTION",
+        "signalLabel": "단기 과열 경계",
+        "severity": "orange",
+        "reasons": [
+          "RSI 73.6 과열권",
+          "5일 수익률 +19.1% 급등",
+          "20일 수익률 +43.1% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -628,6 +840,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 51.5,
+        "ret5": -2.83,
+        "ret20": 0.73,
+        "change1d": 0.49,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -684,6 +914,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 55.7,
+        "ret5": -0.18,
+        "ret20": 5.75,
+        "change1d": 2.79,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -739,6 +987,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": null,
+        "score": 12.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": null,
+        "rsi14": 48.9,
+        "ret5": -2.72,
+        "ret20": -3.22,
+        "change1d": 1.77,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -781,6 +1047,26 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 29.0,
+        "score": 24.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -5.0,
+        "rsi14": 69.8,
+        "ret5": 20.38,
+        "ret20": 19.25,
+        "change1d": 10.4,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [
+          "5일 수익률 +20.4% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -823,6 +1109,28 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 27.0,
+        "score": 20.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -7.0,
+        "rsi14": 73.8,
+        "ret5": 21.4,
+        "ret20": 34.66,
+        "change1d": 6.19,
+        "signal": "TECH_CAUTION",
+        "signalLabel": "단기 과열 경계",
+        "severity": "orange",
+        "reasons": [
+          "RSI 73.8 과열권",
+          "5일 수익률 +21.4% 급등",
+          "20일 수익률 +34.7% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -865,6 +1173,28 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 28.0,
+        "score": 17.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -11.0,
+        "rsi14": 74.7,
+        "ret5": 17.44,
+        "ret20": 32.18,
+        "change1d": 0.43,
+        "signal": "TECH_CAUTION",
+        "signalLabel": "단기 과열 경계",
+        "severity": "orange",
+        "reasons": [
+          "RSI 74.7 과열권",
+          "5일 수익률 +17.4% 급등",
+          "20일 수익률 +32.2% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -906,6 +1236,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 27.0,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -1.0,
+        "rsi14": 63.0,
+        "ret5": 9.3,
+        "ret20": 11.07,
+        "change1d": 7.21,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -962,6 +1310,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 25.0,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 1.0,
+        "rsi14": 61.6,
+        "ret5": 5.05,
+        "ret20": 9.16,
+        "change1d": 3.17,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1018,6 +1384,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 26.0,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 55.9,
+        "ret5": -2.31,
+        "ret20": 2.42,
+        "change1d": -0.47,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1059,6 +1443,26 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 26.0,
+        "score": 24.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -2.0,
+        "rsi14": 65.4,
+        "ret5": 1.69,
+        "ret20": 33.33,
+        "change1d": 2.56,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [
+          "20일 수익률 +33.3% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -1103,6 +1507,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 29.0,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -3.0,
+        "rsi14": 62.3,
+        "ret5": 2.71,
+        "ret20": 10.19,
+        "change1d": 3.42,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1147,6 +1569,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 30.0,
+        "score": 26.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -4.0,
+        "rsi14": 60.7,
+        "ret5": 9.53,
+        "ret20": 5.23,
+        "change1d": 3.77,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1188,6 +1628,26 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 26.0,
+        "score": 24.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -2.0,
+        "rsi14": 63.0,
+        "ret5": 8.54,
+        "ret20": 36.77,
+        "change1d": 5.54,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [
+          "20일 수익률 +36.8% 급등"
+        ],
+        "advisoryOnly": true
       }
     },
     {
@@ -1229,6 +1689,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 28.0,
+        "score": 27.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -1.0,
+        "rsi14": 62.3,
+        "ret5": 3.16,
+        "ret20": 29.84,
+        "change1d": 9.02,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1270,6 +1748,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 27.0,
+        "score": 23.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": -4.0,
+        "rsi14": 68.3,
+        "ret5": 12.13,
+        "ret20": 26.87,
+        "change1d": 7.84,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1311,6 +1807,24 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 27.0,
+        "score": 27.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 59.6,
+        "ret5": 11.46,
+        "ret20": 13.97,
+        "change1d": 1.56,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     },
     {
@@ -1352,8 +1866,25 @@
         "finalizedByUser": false,
         "exitDate": null,
         "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-01",
+        "scoreAtPick": 28.0,
+        "score": 28.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 62.0,
+        "ret5": 3.52,
+        "ret20": 10.22,
+        "change1d": 5.71,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
       }
     }
-  ],
-  "reviewSourceUpdated": "2026-10-01T18:25:00+09:00"
+  ]
 }
