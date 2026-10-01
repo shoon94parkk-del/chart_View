@@ -13,3 +13,8 @@ def test_seed_is_immediate_but_complete_snapshot_is_shared_for_five_minutes():
     assert needs_refresh({'complete': False}, {'timestamp': 0}, 1000)
     assert not needs_refresh({'complete': True}, {'timestamp': 1000}, 1299)
     assert needs_refresh({'complete': True}, {'timestamp': 1000}, 1300)
+
+def test_failed_provider_fallback_coverage_does_not_count_as_fresh_complete():
+    cached = {'complete': True, 'results': [{'ticker': 'AAPL', 'stale': True}]}
+    assert not needs_refresh(cached, {'timestamp': 1000, 'lastAttempt': 1000}, 1059)
+    assert needs_refresh(cached, {'timestamp': 1000, 'lastAttempt': 1000}, 1060)

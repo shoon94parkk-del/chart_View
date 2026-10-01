@@ -6,4 +6,5 @@ def needs_refresh(data, cache, now, ttl=300, retry_ttl=60):
     if not data:
         return True
     age = now - cache.get('timestamp', 0)
-    return age >= (ttl if data.get('complete') else retry_ttl)
+    fresh_complete = data.get('complete') and not any(row.get('stale') for row in data.get('results', []))
+    return age >= (ttl if fresh_complete else retry_ttl)
