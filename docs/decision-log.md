@@ -312,3 +312,5 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 - Partial or failed full snapshots wait at least 60 seconds before automatic provider retries; a three-second UI poll must not fan out a new 60-company batch. Explicit fresh requests still bypass the cooldown. Original observed dates and partial coverage remain visible.
 - Render CPU usage reached the 0.15 CPU allocation during slow live QA. This does not prove a single cause, but the unbounded incomplete-cache restart path was independently identified and removed.
 - Validation: 36 heatmap/cache/performance/app regression tests and generated Web bundle check.
+
+Final review follow-up: complete coverage containing retained stale provider rows uses the 60-second retry policy, including both internal refresh guards. Added a warm full-cache test that asserts the provider is actually called after the cooldown.

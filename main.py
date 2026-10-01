@@ -1455,13 +1455,13 @@ def _seed_full_heatmap_from_local():
 async def _refresh_full_heatmap(force: bool = False):
     now = time.time()
     cached = FULL_HEATMAP_CACHE.get("data")
-    if cached and cached.get("complete") and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+    if not force and not heatmap_needs_refresh(cached, FULL_HEATMAP_CACHE, now, ttl=FULL_HEATMAP_TTL):
         return _overlay_home_quotes_on_full(cached)
 
     async with FULL_HEATMAP_LOCK:
         now = time.time()
         cached = FULL_HEATMAP_CACHE.get("data")
-        if cached and cached.get("complete") and not force and now - FULL_HEATMAP_CACHE.get("timestamp", 0) < FULL_HEATMAP_TTL:
+        if not force and not heatmap_needs_refresh(cached, FULL_HEATMAP_CACHE, now, ttl=FULL_HEATMAP_TTL):
             return _overlay_home_quotes_on_full(cached)
 
         FULL_HEATMAP_CACHE["refreshing"] = True

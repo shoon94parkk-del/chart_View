@@ -3,7 +3,7 @@ import asyncio
 import json
 import time
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 import httpx
 import pytest
@@ -12,6 +12,25 @@ import main
 import market_service as market
 
 client = TestClient(main.app)
+
+def test_stale_full_heatmap_retry_reaches_provider_after_sixty_seconds():
+    row = {'ticker': 'AAPL', 'market': 'US', 'price': 100, 'change': 1, 'marketCap': 10,
+           'stale': True, 'quoteBasis': 'provider-canonical'}
+    cache = {'data': {'complete': True, 'results': [row]}, 'timestamp': 940,
+             'lastAttempt': 940, 'refreshing': False}
+    with patch.object(main, 'FULL_HEATMAP_CACHE', cache), \
+         patch.object(main, 'FULL_HEATMAP_LOCK', asyncio.Lock()), \
+         patch.object(main.time, 'time', return_value=1000), \
+         patch.object(main, '_fetch_full_heatmap_quotes', AsyncMock(return_value={'AAPL': None})) as fetch, \
+         patch.object(main, '_load_full_heatmap_us_rows', return_value=[{'ticker': 'AAPL'}]), \
+         patch.object(main, 'FULL_HEATMAP_KR_TICKERS', []), \
+         patch.object(main, '_load_valuation_market_caps', return_value={}), \
+         patch.object(main, '_load_home_insight_sources', return_value={}), \
+         patch.object(main, '_home_heatmap_rows_by_ticker', return_value={}):
+        result = asyncio.run(main._refresh_full_heatmap())
+        fetch.assert_awaited_once()
+        assert result['results'][0]['stale'] is True
+        assert cache['lastAttempt'] == 1000
 
 
 @pytest.mark.parametrize('path', [
