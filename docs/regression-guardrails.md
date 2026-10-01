@@ -211,3 +211,6 @@ Regression reproduced two false positives before the fix. DART business/financia
 
 ## 2026-10-02 Sector heatmap metadata
 Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.
+
+## 2026-10-02 Full heatmap refresh budget
+Do not refresh an incomplete or empty provider batch on every browser poll. Share successful snapshots for five minutes and retain a minimum 60-second failed/partial attempt cooldown. Fresh=true is explicit; preserve canonical quote timestamps and Home parity.

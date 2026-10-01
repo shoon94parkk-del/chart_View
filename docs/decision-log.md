@@ -306,3 +306,9 @@ Regression reproduced two false positives before the fix. DART business/financia
 
 ## 2026-10-02 Sector heatmap metadata
 Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.
+
+## 2026-10-02 Final loading audit follow-up
+- Full heatmap provider snapshots are shared for five minutes. Home canonical quote overlays keep their existing short polling cadence.
+- Partial or failed full snapshots wait at least 60 seconds before automatic provider retries; a three-second UI poll must not fan out a new 60-company batch. Explicit fresh requests still bypass the cooldown. Original observed dates and partial coverage remain visible.
+- Render CPU usage reached the 0.15 CPU allocation during slow live QA. This does not prove a single cause, but the unbounded incomplete-cache restart path was independently identified and removed.
+- Validation: 36 heatmap/cache/performance/app regression tests and generated Web bundle check.

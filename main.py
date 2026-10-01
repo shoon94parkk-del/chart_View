@@ -27,6 +27,7 @@ import hashlib
 import secrets
 import json
 from heatmap_metadata import us_universe, korean_metadata
+from heatmap_refresh_policy import needs_refresh as heatmap_needs_refresh
 try:
     import redis.asyncio as redis_async
 except Exception:
@@ -77,7 +78,7 @@ HOME_SNAPSHOT_LOCK = asyncio.Lock()
 # Expanded heatmap cache used only by the dedicated full-screen heatmap.
 # Keep Home lightweight while allowing a denser view on demand.
 FULL_HEATMAP_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False}
-FULL_HEATMAP_TTL = 60
+FULL_HEATMAP_TTL = 300
 FULL_HEATMAP_LOCK = asyncio.Lock()
 FULL_HEATMAP_REFRESH_CONCURRENCY = 2
 BACKGROUND_MARKET_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chartview-bg-market")
@@ -1551,17 +1552,14 @@ async def _refresh_full_heatmap(force: bool = False):
             return overlaid
         finally:
             FULL_HEATMAP_CACHE["refreshing"] = False
+            FULL_HEATMAP_CACHE["lastAttempt"] = time.time()
 
 
 @app.get("/api/heatmap/full")
 async def full_heatmap_data(fresh: bool = False):
     """Expanded heatmap using one canonical quote definition for both markets."""
     data = FULL_HEATMAP_CACHE.get("data") or _seed_full_heatmap_from_local()
-    needs_refresh = (
-        not data
-        or not data.get("complete")
-        or time.time() - FULL_HEATMAP_CACHE.get("timestamp", 0) >= FULL_HEATMAP_TTL
-    )
+    needs_refresh = heatmap_needs_refresh(data, FULL_HEATMAP_CACHE, time.time(), ttl=FULL_HEATMAP_TTL)
 
     if fresh:
         try:
