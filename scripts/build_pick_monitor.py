@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RANKINGS = ROOT / "static/data/ai_daily_rankings.json"
 DEFAULT_MONITOR = ROOT / "static/data/pick_monitor.json"
 DEFAULT_HISTORY = ROOT / "static/data/pick_monitor_history.json"
+DEFAULT_SCREENER = ROOT / "static/data/screener.json"
 
 SCHEMA_VERSION = 1
 ALLOWED_STATUSES = {"PENDING_REVIEW", "KEEP", "WATCH", "SELL_REVIEW", "EXIT"}
@@ -27,6 +28,14 @@ POLICY = {
     "technicalOnlyCanTriggerSellReview": False,
     "sellReviewEvidenceRule": "one_major_fact_or_two_independent_weakening_signals",
     "priceDropAloneCanTriggerSellReview": False,
+    "technicalSignalIsAdvisoryOnly": True,
+}
+
+TECHNICAL_SIGNALS = {
+    "TECH_SELL_REVIEW": {"label": "단기 매도 검토", "severity": "red"},
+    "TECH_CAUTION": {"label": "단기 과열 경계", "severity": "orange"},
+    "TECH_IMPROVING": {"label": "기술 흐름 개선", "severity": "green"},
+    "TECH_NORMAL": {"label": "기술 중립", "severity": "neutral"},
 }
 
 KST = timezone(timedelta(hours=9))
@@ -60,6 +69,123 @@ def pick_id(trade_date: str, row: dict[str, Any]) -> str:
 
 def _as_list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
+
+
+def _num(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if number == number and number not in (float("inf"), float("-inf")) else None
+
+
+def technical_score_at_pick(row: dict[str, Any]) -> float | None:
+    scores = row.get("scores") if isinstance(row.get("scores"), dict) else {}
+    return _num(scores.get("technical"))
+
+
+def _screener_index(payload: dict[str, Any] | None) -> tuple[str, dict[str, dict[str, Any]]]:
+    payload = payload if isinstance(payload, dict) else {}
+    trade_date = str(payload.get("tradeDate") or "")
+    rows = {
+        canonical_code(row): row
+        for row in payload.get("stocks", [])
+        if isinstance(row, dict) and canonical_code(row)
+    }
+    return trade_date, rows
+
+
+def _technical_signal(day_delta: float | None, rsi: float | None, ret5: float | None, ret20: float | None) -> tuple[str, list[str]]:
+    reasons: list[str] = []
+    if day_delta is not None and day_delta <= -3:
+        reasons.append(f"기술점수 전일 대비 {day_delta:+.0f}점")
+    if rsi is not None and rsi >= 70:
+        reasons.append(f"RSI {rsi:.1f} 과열권")
+    if ret5 is not None and ret5 >= 15:
+        reasons.append(f"5일 수익률 {ret5:+.1f}% 급등")
+    if ret20 is not None and ret20 >= 30:
+        reasons.append(f"20일 수익률 {ret20:+.1f}% 급등")
+
+    red = (
+        (day_delta is not None and day_delta <= -3 and ((rsi is not None and rsi >= 70) or (ret20 is not None and ret20 >= 30) or (ret5 is not None and ret5 >= 15)))
+        or ((rsi is not None and rsi >= 75) and (ret20 is not None and ret20 >= 30))
+        or ((rsi is not None and rsi >= 80) and (ret20 is not None and ret20 >= 20))
+    )
+    caution = (
+        (day_delta is not None and day_delta <= -3)
+        or (rsi is not None and rsi >= 70)
+        or ((day_delta is not None and day_delta < 0) and (ret20 is not None and ret20 >= 25))
+    )
+    improving = day_delta is not None and day_delta >= 2 and (rsi is None or rsi < 70)
+    if red:
+        return "TECH_SELL_REVIEW", reasons
+    if caution:
+        return "TECH_CAUTION", reasons
+    if improving:
+        return "TECH_IMPROVING", [f"기술점수 전일 대비 {day_delta:+.0f}점 개선"]
+    return "TECH_NORMAL", reasons
+
+
+def technical_snapshot(
+    ranking_row: dict[str, Any],
+    old_pick: dict[str, Any] | None,
+    current_trade_date: str,
+    current_row: dict[str, Any] | None,
+    previous_trade_date: str,
+    previous_row: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    old_technical = (old_pick or {}).get("technical") if isinstance((old_pick or {}).get("technical"), dict) else {}
+    score_at_pick = technical_score_at_pick(ranking_row)
+    if score_at_pick is None:
+        score_at_pick = _num(old_technical.get("scoreAtPick"))
+
+    current_score = _num((current_row or {}).get("technicalScore"))
+    if current_score is None and current_trade_date == str(old_technical.get("tradeDate") or ""):
+        current_score = _num(old_technical.get("score"))
+    if current_score is None:
+        current_score = score_at_pick
+    if current_score is None and not old_technical:
+        return None
+
+    prior_date = ""
+    prior_score: float | None = None
+    if previous_row and previous_trade_date and previous_trade_date != current_trade_date:
+        prior_date = previous_trade_date
+        prior_score = _num(previous_row.get("technicalScore"))
+    elif str(old_technical.get("tradeDate") or "") == current_trade_date:
+        prior_date = str(old_technical.get("previousTradeDate") or "")
+        prior_score = _num(old_technical.get("previousScore"))
+    elif old_technical.get("tradeDate") and str(old_technical.get("tradeDate")) != current_trade_date:
+        prior_date = str(old_technical.get("tradeDate") or "")
+        prior_score = _num(old_technical.get("score"))
+
+    day_delta = current_score - prior_score if current_score is not None and prior_score is not None else None
+    rsi = _num((current_row or {}).get("rsi14"))
+    ret5 = _num((current_row or {}).get("ret5"))
+    ret20 = _num((current_row or {}).get("ret20"))
+    change1d = _num((current_row or {}).get("change1d"))
+    signal, reasons = _technical_signal(day_delta, rsi, ret5, ret20)
+    meta = TECHNICAL_SIGNALS[signal]
+    return {
+        "tradeDate": current_trade_date or str(old_technical.get("tradeDate") or ranking_row.get("tradeDate") or ""),
+        "scoreAtPick": score_at_pick,
+        "score": current_score,
+        "previousTradeDate": prior_date or None,
+        "previousScore": prior_score,
+        "dayDelta": day_delta,
+        "deltaFromPick": current_score - score_at_pick if current_score is not None and score_at_pick is not None else None,
+        "rsi14": rsi,
+        "ret5": ret5,
+        "ret20": ret20,
+        "change1d": change1d,
+        "signal": signal,
+        "signalLabel": meta["label"],
+        "severity": meta["severity"],
+        "reasons": reasons,
+        "advisoryOnly": True,
+    }
 
 
 def thesis_from_row(row: dict[str, Any]) -> dict[str, Any]:
@@ -124,6 +250,8 @@ def sync_payloads(
     monitor: dict[str, Any] | None = None,
     history: dict[str, Any] | None = None,
     *,
+    screener: dict[str, Any] | None = None,
+    previous_screener: dict[str, Any] | None = None,
     timestamp: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], bool]:
     timestamp = timestamp or now_kst_iso()
@@ -138,6 +266,8 @@ def sync_payloads(
     event_keys = {(e.get("eventType"), e.get("pickId")) for e in events}
     picks: list[dict[str, Any]] = []
     changed = False
+    current_trade_date, current_rows = _screener_index(screener)
+    previous_trade_date, previous_rows = _screener_index(previous_screener)
 
     for day in rankings.get("days", []):
         trade_date = str(day.get("tradeDate") or "")
@@ -170,8 +300,29 @@ def sync_payloads(
                     merged["status"] = status
                     changed = True
                 merged["statusLabel"] = STATUS_LABELS[status]
+                technical = technical_snapshot(
+                    row,
+                    old,
+                    current_trade_date,
+                    current_rows.get(fresh["code"]),
+                    previous_trade_date,
+                    previous_rows.get(fresh["code"]),
+                )
+                if technical is not None and merged.get("technical") != technical:
+                    merged["technical"] = technical
+                    changed = True
                 picks.append(merged)
             else:
+                technical = technical_snapshot(
+                    row,
+                    None,
+                    current_trade_date,
+                    current_rows.get(fresh["code"]),
+                    previous_trade_date,
+                    previous_rows.get(fresh["code"]),
+                )
+                if technical is not None:
+                    fresh["technical"] = technical
                 picks.append(fresh)
                 changed = True
                 if ("PICK_REGISTERED", pid) not in event_keys:
@@ -232,6 +383,13 @@ def validate(rankings: dict[str, Any], monitor: dict[str, Any], history: dict[st
         thesis = row.get("originalThesis") or {}
         if not thesis.get("summary") and not thesis.get("pillars"):
             errors.append(f"missing thesis baseline: {row.get('pickId')}")
+        technical = row.get("technical") if isinstance(row.get("technical"), dict) else None
+        if technical:
+            signal = str(technical.get("signal") or "")
+            if signal not in TECHNICAL_SIGNALS:
+                errors.append(f"invalid technical signal {signal!r}: {row.get('pickId')}")
+            if technical.get("advisoryOnly") is not True:
+                errors.append(f"technical signal must remain advisory: {row.get('pickId')}")
 
     seen: set[tuple[Any, Any]] = set()
     for event in history.get("events", []):
@@ -247,12 +405,16 @@ def main() -> int:
     parser.add_argument("--rankings", type=Path, default=DEFAULT_RANKINGS)
     parser.add_argument("--monitor", type=Path, default=DEFAULT_MONITOR)
     parser.add_argument("--history", type=Path, default=DEFAULT_HISTORY)
+    parser.add_argument("--screener", type=Path, default=DEFAULT_SCREENER)
+    parser.add_argument("--previous-screener", type=Path)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
     rankings = load_json(args.rankings, {"days": []})
     monitor = load_json(args.monitor, {})
     history = load_json(args.history, {"events": []})
+    screener = load_json(args.screener, {"stocks": []})
+    previous_screener = load_json(args.previous_screener, {"stocks": []}) if args.previous_screener else None
 
     if args.check:
         errors = validate(rankings, monitor, history)
@@ -261,7 +423,13 @@ def main() -> int:
         print(f"pick monitor valid: {len(monitor.get('picks', []))} picks")
         return 0
 
-    monitor_out, history_out, changed = sync_payloads(rankings, monitor, history)
+    monitor_out, history_out, changed = sync_payloads(
+        rankings,
+        monitor,
+        history,
+        screener=screener,
+        previous_screener=previous_screener,
+    )
     errors = validate(rankings, monitor_out, history_out)
     if errors:
         raise SystemExit("\n".join(errors))
