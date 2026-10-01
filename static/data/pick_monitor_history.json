@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-01T17:00:14+09:00",
+  "updated": "2026-10-01T18:25:14+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -403,6 +403,34 @@
       "at": "2026-10-01T17:00:14+09:00",
       "status": "KEEP",
       "reviewKey": "2026-10-01T17:20:00+09:00"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-01:355150",
+      "at": "2026-10-01T18:25:14+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-01:241770",
+      "at": "2026-10-01T18:25:14+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-10-01:355150",
+      "at": "2026-10-01T18:25:14+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-10-01T18:13:00+09:00"
+    },
+    {
+      "eventType": "REVIEW_REFRESHED",
+      "pickId": "2026-10-01:241770",
+      "at": "2026-10-01T18:25:14+09:00",
+      "status": "PENDING_REVIEW",
+      "reviewKey": "2026-10-01T18:13:00+09:00"
     }
   ]
 }

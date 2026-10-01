@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-01T17:00:14+09:00",
+  "generatedAt": "2026-10-01T18:25:14+09:00",
   "source": "static/data/ai_daily_rankings.json",
-  "sourceUpdated": "2026-09-30T18:55:00+09:00",
+  "sourceUpdated": "2026-10-01T18:12:00+09:00",
   "policy": {
     "automaticExitAllowed": false,
     "userConfirmationRequiredForExit": true,
@@ -1271,7 +1271,89 @@
         "exitDate": null,
         "exitPrice": null
       }
+    },
+    {
+      "pickId": "2026-10-01:355150",
+      "code": "355150",
+      "symbol": "355150.KQ",
+      "name": "코스텍시스",
+      "pickDate": "2026-10-01",
+      "rank": 1,
+      "pickPrice": 22850,
+      "changePctAtPick": 1.56,
+      "scoreAtPick": 90,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "NXP RF 패키지 기반 위에 SiC/GaN 전력반도체용 고방열 Spacer·Interposer와 AI 데이터센터 800VDC 전력모듈 양산 확대가 성장축.",
+        "pillars": [
+          "NXP RF 패키지 기반 위에 SiC/GaN 전력반도체용 고방열 Spacer·Interposer와 AI 데이터센터 800VDC 전력모듈 양산 확대가 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-01T18:13:00+09:00",
+        "lastReviewedTradeDate": "2026-10-01",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 1일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 미국 T사 Spacer 실제 PO·매출 인식, ON Semiconductor 양산 확대, NXP RF 패키지 수요를 검증합니다.",
+        "reviewKey": "2026-10-01T18:13:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
+    },
+    {
+      "pickId": "2026-10-01:241770",
+      "code": "241770",
+      "symbol": "241770.KQ",
+      "name": "메카로",
+      "pickDate": "2026-10-01",
+      "rank": 2,
+      "pickPrice": 42600,
+      "changePctAtPick": 5.71,
+      "scoreAtPick": 88,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "CVD/ALD 증착장비용 Heater Block의 신규 FAB 설치·기존 장비 교체수요와 고사양 MCA·Ceramic Heater 확장이 성장축.",
+        "pillars": [
+          "CVD/ALD 증착장비용 Heater Block의 신규 FAB 설치·기존 장비 교체수요와 고사양 MCA·Ceramic Heater 확장이 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-01T18:13:00+09:00",
+        "lastReviewedTradeDate": "2026-10-01",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 1일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 Heater Block 교체수요, 중국 FAB CAPEX, MCA·Ceramic Heater 수주와 매출을 검증합니다.",
+        "reviewKey": "2026-10-01T18:13:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      }
     }
   ],
-  "reviewSourceUpdated": "2026-10-01T17:20:00+09:00"
+  "reviewSourceUpdated": "2026-10-01T18:25:00+09:00"
 }
