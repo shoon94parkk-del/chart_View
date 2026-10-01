@@ -353,3 +353,6 @@ Playwright 모바일 viewport 결과는 실기기 검증으로 표현하지 않�
 
 ## 2026-10-01 DART quality API handover
 See financial quality schema in dart_financial_service.py and decisions/guardrails. Regenerate static/data/dart_financial_history.json using existing GitHub DART workflow (secret remains server-side). Before completing deployment, verify quality accounts in real Samsung/Hynix API responses, current /health revision, and Toss live browser comparison.
+
+## 2026-10-02 분기 공시 배포 확인
+Backend first: tested main → daily DART workflow quarterly cache → exact final cache revision deployment. Verify /health commit and Samsung/Hynix /api/financial-quarters: 8 rows, TTM, 3-month direct/Q4 calculated provenance, warm latency. Then deploy Toss 0.10.0 and verify actual index point chart and locally saved comparison conditions in production.

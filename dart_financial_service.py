@@ -157,6 +157,8 @@ def parse_financial_statement(rows, year, report_code):
     return {"currency": currency, "rceptNo": rcept_no, "year": year, "quarter": quarter,
             "revenue": current_sales, "operatingProfit": current_profit,
             "priorRevenue": prior_sales, "priorOperatingProfit": prior_profit,
+            "singleQuarter": {"revenue": _amount(revenue.get("thstrm_amount")),
+                              "operatingProfit": _amount(operating.get("thstrm_amount"))},
             "quality": _quality_statement(rows, year, report_code, rcept_no, currency)}
 
 

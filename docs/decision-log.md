@@ -296,3 +296,10 @@ Business-report adds optional revenueBasis (denominator, totalAmount, positiveSe
 ## 2026-10-01 Live QA follow-up: co-supplier relationship false positive
 Production Samsung detail showed SK hynix as a direct contract counterparty based on a Broadcom/Anthropic article listing several memory suppliers. Name proximity plus a contract word in a flattened summary was insufficient. Require explicit named actor and named contract-target particles in either direction when both issuers occur in the evidence; co-supplier lists and peer comparison wording do not establish a pair. Keep established dedicated-subject customer-list fixtures valid. Ambiguous syntax is omitted rather than promoted to a direct relationship. No extra provider requests, endpoints or news fetches were added.
 Regression reproduced two false positives before the fix. DART business/financial/cache plus relationship tests: 63 passed. Separate web bundle check is unchanged. Runtime deployment resets the in-process six-hour relationship cache.
+
+## 2026-10-02 · 독립 분기 공시 캐시
+- /api/financial-quarters 추가. 기존 금융/비교 API와 별개로 bounded background workers에서 공시를 수집하며 cache-first + stale refresh를 제공한다.
+- interim parser에 singleQuarter(3개월 IS 값) 필드를 추가하고 기존 누적 계약을 유지한다. Q4는 연간−Q3 누적, 동일 basis/currency에서만 계산한다. 누락값은 None, TTM은 최신 연속 네 분기에 한정한다.
+- 메모리/Redis/checked-in static quarter cache 재사용. established company set의 일일 DART workflow가 quarterly cache도 생성한다. 계산값은 양쪽 원문 연결.
+- 조회 성공/실패 수를 보존하며 전부 실패 시 기존 성공 checkedAt을 새 시각으로 바꾸지 않는다. 부분 실패는 별도 표시한다. 사용자 재시도는 refresh=true로 singleflight 재확인하며 polling은 force하지 않는다.
+- 관련 pytest와 generated frontend bundle check를 통과시킨 정확한 main만 기존 Render 서비스로 배포한다.

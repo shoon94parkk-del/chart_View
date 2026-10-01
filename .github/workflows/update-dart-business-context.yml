@@ -11,6 +11,8 @@ on:
       - 'scripts/generate_dart_financial_history.py'
       - 'dart_business_service.py'
       - 'dart_financial_service.py'
+      - 'dart_quarter_service.py'
+      - 'scripts/generate_dart_financial_quarters.py'
       - '.github/workflows/update-dart-business-context.yml'
 
 permissions:
@@ -23,7 +25,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,11 +65,15 @@ jobs:
               assert row.get('annualSourceUrl', '').startswith('https://dart.fss.or.kr/')
           print('Validated DART financial cache:',len(financial_rows))
           PY
+      - name: Generate validated standalone quarterly history
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python scripts/generate_dart_financial_quarters.py
       - name: Commit caches only when validated DART data changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/data/dart_business_context.json static/data/dart_financial_history.json
+          git add static/data/dart_business_context.json static/data/dart_financial_history.json static/data/dart_financial_quarters.json
           if git diff --cached --quiet; then
             echo "No DART business-context changes"
             exit 0

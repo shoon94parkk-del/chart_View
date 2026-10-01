@@ -203,3 +203,8 @@ Business-report adds optional revenueBasis (denominator, totalAmount, positiveSe
 ## 2026-10-01 Live QA follow-up: co-supplier relationship false positive
 Production Samsung detail showed SK hynix as a direct contract counterparty based on a Broadcom/Anthropic article listing several memory suppliers. Name proximity plus a contract word in a flattened summary was insufficient. Require explicit named actor and named contract-target particles in either direction when both issuers occur in the evidence; co-supplier lists and peer comparison wording do not establish a pair. Keep established dedicated-subject customer-list fixtures valid. Ambiguous syntax is omitted rather than promoted to a direct relationship. No extra provider requests, endpoints or news fetches were added.
 Regression reproduced two false positives before the fix. DART business/financial/cache plus relationship tests: 63 passed. Separate web bundle check is unchanged. Runtime deployment resets the in-process six-hour relationship cache.
+
+## 2026-10-02 분기 실적
+- singleQuarter와 누적 revenue/operatingProfit은 다른 의미다. 기존 cumulative fields를 direct quarter로 대체하지 않는다.
+- Q4 차감/TTM은 동일 basis·currency 및 완전한 연속 분기를 요구한다. missing != zero; 적자/0 기준 증가율을 만들지 않는다.
+- 분기 수집은 core detail API를 막지 않는다. 전부 실패를 ready/latest checkedAt으로 위장하지 않으며 기존 packet을 보존한다.
