@@ -143,6 +143,47 @@ def test_country_item_breakdown_reports_configured_market_share(monkeypatch):
     assert us["sharePct"] == 30.0
 
 
+def test_hs2_breadth_counts_growth_and_ranks_change_contributors():
+    current = [
+        {"year": "2026.08", "hsCode": "85", "statKor": "전기기기", "expDlr": "1500000000"},
+        {"year": "2026.08", "hsCode": "87", "statKor": "자동차", "expDlr": "700000000"},
+        {"year": "2026.08", "hsCode": "72", "statKor": "철강", "expDlr": "300000000"},
+    ]
+    prior = [
+        {"year": "2025.08", "hsCode": "85", "statKor": "전기기기", "expDlr": "1000000000"},
+        {"year": "2025.08", "hsCode": "87", "statKor": "자동차", "expDlr": "800000000"},
+        {"year": "2025.08", "hsCode": "72", "statKor": "철강", "expDlr": "300000000"},
+    ]
+    breadth = export_service._build_hs2_breadth(current, prior, "202608")
+    assert breadth["comparableCount"] == 3
+    assert breadth["risingCount"] == 1
+    assert breadth["fallingCount"] == 1
+    assert breadth["flatCount"] == 1
+    assert breadth["risingBreadthPct"] == pytest.approx(33.3)
+    assert breadth["topPositive"][0]["code"] == "85"
+    assert breadth["topPositive"][0]["deltaUsdBillion"] == pytest.approx(0.5)
+    assert breadth["topNegative"][0]["code"] == "87"
+    assert breadth["topNegative"][0]["deltaUsdBillion"] == pytest.approx(-0.1)
+
+
+def test_momentum_summary_compares_latest_three_months_with_previous_three():
+    history = [
+        {"period": "2026-03", "exportYoY": 2, "exportWeightYoY": -4, "unitValueYoY": 6},
+        {"period": "2026-04", "exportYoY": 4, "exportWeightYoY": -2, "unitValueYoY": 7},
+        {"period": "2026-05", "exportYoY": 6, "exportWeightYoY": 0, "unitValueYoY": 8},
+        {"period": "2026-06", "exportYoY": 8, "exportWeightYoY": 2, "unitValueYoY": 9},
+        {"period": "2026-07", "exportYoY": 10, "exportWeightYoY": 4, "unitValueYoY": 10},
+        {"period": "2026-08", "exportYoY": 12, "exportWeightYoY": 6, "unitValueYoY": 11},
+    ]
+    momentum = export_service._build_momentum_summary(history)
+    assert momentum["exports"]["avg3mYoY"] == 10.0
+    assert momentum["exports"]["previous3mYoY"] == 4.0
+    assert momentum["exports"]["accelerationPp"] == 6.0
+    assert momentum["exports"]["label"] == "증가세 강화"
+    assert momentum["latestPhase"] == "물량↑·단위가치↑"
+    assert len(momentum["phaseHistory"]) == 6
+
+
 def test_country_total_row_wins_over_hs_detail():
     rows = [
         {"year": "총계", "hsCd": "-", "expDlr": "999"},
@@ -213,6 +254,12 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
         lambda period: [{"year": "2025.08", "hsCode": "8542310000", "expDlr": "1"}],
     )
     monkeypatch.setattr(export_service, "_build_items_from_rows", lambda *args: items)
+    monkeypatch.setattr(export_service, "_build_hs2_breadth", lambda *args: {
+        "period": "2026-08", "level": "HS2", "comparableCount": 10,
+        "risingCount": 6, "fallingCount": 4, "flatCount": 0,
+        "risingBreadthPct": 60.0, "risingExportSharePct": 70.0,
+        "netChangeUsdBillion": 1.2, "topPositive": [], "topNegative": [],
+    })
     monkeypatch.setattr(export_service, "_find_region_period", lambda latest: "202608")
     monkeypatch.setattr(export_service, "_parallel_optional", lambda *args, **kwargs: (regions, []))
 
@@ -226,6 +273,7 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
     assert snapshot["itemPeriod"] == "2026-08"
     assert snapshot["regionPeriod"] == "2026-08"
     assert snapshot["items"][0]["name"] == "반도체"
+    assert snapshot["breadth"]["risingBreadthPct"] == 60.0
     assert snapshot["regions"][0]["name"] == "미국"
     assert snapshot["summary"]["exportsUsdBillion"] > 0
 
