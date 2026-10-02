@@ -226,3 +226,12 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - Valuation-band startup prewarm, request coalescing/singleflight, and multi-hour caching are intentional protections against repeated expensive historical downloads.
 - A repeated bug that escaped an existing test requires a strengthened/new regression test before completion.
 - Use same-harness production timings only as regression evidence, not as absolute backend SLAs.
+
+## Export momentum API
+- Never expose the data.go.kr service key to browser JSON, logs, source control or Toss frontend environment variables.
+- Do not add Customs calls to Home, Home startup critical warm, heatmap refresh, quote polling or stock-detail paths.
+- `/api/export-momentum` must reuse its server cache; concurrent users must not fan out provider calls.
+- Monthly Customs APIs cannot be presented as 10-day/20-day preliminary statistics. Missing checkpoint data remains missing.
+- HS item groups must remain labeled as HS proxies and may not be relabeled as a company's actual exports.
+- Country aggregation must never sum 2/4/6/10-digit HS hierarchy levels together.
+- Provider/auth failure may keep a previously valid stale snapshot visible; never replace valid cached data with zeroes or fabricated values.
