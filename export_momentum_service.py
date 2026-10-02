@@ -247,17 +247,22 @@ def _hs_prefix_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -
     if not candidates:
         return None
 
+    exact = [row for row in candidates if _row_hs_code(row) == requested]
+    if exact:
+        return sum(_number(row.get("expDlr")) or 0.0 for row in exact)
+
     # The unfiltered Itemtrade response normally contains HSK 10-digit leaves.
-    # If an endpoint revision returns multiple hierarchy levels, use the most
-    # detailed common level so aggregate + child rows are never double counted.
+    # If an endpoint revision returns hierarchy levels, the shortest level
+    # inside the requested prefix is the aggregate level and avoids counting
+    # the same trade again through its descendants.
     lengths = [len(_row_hs_code(row)) for row in candidates if _row_hs_code(row).isdigit()]
     if not lengths:
         return None
-    detail_len = max(lengths)
+    aggregate_len = min(lengths)
     by_code: dict[str, float] = {}
     for row in candidates:
         code = _row_hs_code(row)
-        if len(code) != detail_len:
+        if len(code) != aggregate_len:
             continue
         by_code[code] = max(by_code.get(code, 0.0), _number(row.get("expDlr")) or 0.0)
     return sum(by_code.values()) if by_code else None
@@ -316,12 +321,13 @@ def _country_export(rows: list[dict[str, str]], yyyymm: str) -> float | None:
     if not coded:
         return None
 
-    # Use only one hierarchy depth. The provider's unfiltered response is
-    # generally HSK 10-digit, but this remains correct if shorter levels appear.
-    detail_len = max(len(code) for code, _ in coded)
+    # Use only one hierarchy depth. If multiple levels are present, the
+    # shortest level is already the broader aggregate and must not be added
+    # again to its descendants.
+    aggregate_len = min(len(code) for code, _ in coded)
     by_code: dict[str, float] = {}
     for code, value in coded:
-        if len(code) == detail_len:
+        if len(code) == aggregate_len:
             by_code[code] = max(by_code.get(code, 0.0), value)
     return sum(by_code.values()) if by_code else None
 
