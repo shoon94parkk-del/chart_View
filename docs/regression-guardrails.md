@@ -257,3 +257,6 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 반도체 세부 조회는 #exports의 첫 화면이나 Home에서 호출하지 않고 semiconductor 상세 클릭 시에만 수행한다.
 
 - Itemtrade 기간조회는 한 호출에 1년을 초과하지 않는다. 12개월 YoY 비교가 필요하면 최근 12개월과 전년 12개월을 나눠 조회한다.
+
+- 반도체 DRAM/Flash/SRAM 카드를 위해 별도 Itemtrade fan-out을 추가하지 않는다. 최신 월/전년동월 전체 품목 원자료를 재사용한다.
+- 세부 HSK 카드에 12개월 시계열이 없다고 해서 요청 시 12~24개의 provider 호출을 다시 추가하지 않는다.
