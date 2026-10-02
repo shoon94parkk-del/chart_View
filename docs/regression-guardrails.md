@@ -235,3 +235,7 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - HS item groups must remain labeled as HS proxies and may not be relabeled as a company's actual exports.
 - Country aggregation must never sum 2/4/6/10-digit HS hierarchy levels together.
 - Provider/auth failure may keep a previously valid stale snapshot visible; never replace valid cached data with zeroes or fabricated values.
+
+- 총괄 최신 월과 HS 상세 최신 월이 다르면 같은 월인 것처럼 표시하지 않는다. `itemPeriod`과 `regionPeriod`를 보존한다.
+- Itemtrade 응답의 `hsCode`와 nitemtrade의 `hsCd` 필드 차이를 흡수한다.
+- HS prefix 집계에서 상위 aggregate 행과 하위 행을 동시에 더해 이중계산하지 않는다.

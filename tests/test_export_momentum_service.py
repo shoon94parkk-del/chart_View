@@ -38,14 +38,36 @@ def test_country_aggregation_uses_shortest_hs_level_to_avoid_double_count():
     assert export_service._country_export(rows, "202609") == 150
 
 
-def test_hs_export_prefers_exact_requested_code():
+def test_hs_prefix_export_accepts_itemtrade_hs_code_and_prefers_aggregate():
     rows = [
-        {"year": "2026.09", "hsCd": "85", "expDlr": "500"},
-        {"year": "2026.09", "hsCd": "8541", "expDlr": "120"},
-        {"year": "2026.09", "hsCd": "8542", "expDlr": "300"},
-        {"year": "2026.09", "hsCd": "854231", "expDlr": "250"},
+        {"year": "2026.09", "hsCode": "85", "expDlr": "500"},
+        {"year": "2026.09", "hsCode": "8541", "expDlr": "120"},
+        {"year": "2026.09", "hsCode": "8542", "expDlr": "300"},
+        {"year": "2026.09", "hsCode": "8542310000", "expDlr": "250"},
     ]
-    assert export_service._hs_export(rows, "8542", "202609") == 300
+    assert export_service._hs_prefix_export(rows, "8542", "202609") == 300
+
+
+def test_country_total_row_wins_over_hs_detail():
+    rows = [
+        {"year": "총계", "hsCd": "-", "expDlr": "999"},
+        {"year": "2026.09", "hsCd": "85", "expDlr": "100"},
+        {"year": "2026.09", "hsCd": "87", "expDlr": "50"},
+    ]
+    assert export_service._country_export(rows, "202609") == 999
+
+
+def test_item_period_falls_back_when_latest_month_has_no_hs_rows(monkeypatch):
+    def fake_rows(period):
+        if period == "202609":
+            return []
+        if period == "202608":
+            return [{"year": "2026.08", "hsCode": "8542310000", "expDlr": "10"}]
+        return []
+    monkeypatch.setattr(export_service, "_fetch_item_rows", fake_rows)
+    period, rows = export_service._find_item_period("202609")
+    assert period == "202608"
+    assert rows[0]["hsCode"] == "8542310000"
 
 
 def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypatch):
@@ -85,13 +107,19 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
         }
     ]
 
-    def fake_parallel(builder, rows, latest, prior, workers=6):
-        if rows is export_service.ITEM_GROUPS:
-            return items, []
-        return regions, []
-
-    monkeypatch.setattr(export_service, "_parallel_optional", fake_parallel)
-    monkeypatch.setattr(export_service, "_fetch_hs_export", lambda code, period: 10_000_000_000)
+    monkeypatch.setattr(
+        export_service,
+        "_find_item_period",
+        lambda latest: ("202608", [{"year": "2026.08", "hsCode": "8542310000", "expDlr": "1"}]),
+    )
+    monkeypatch.setattr(
+        export_service,
+        "_fetch_item_rows",
+        lambda period: [{"year": "2025.08", "hsCode": "8542310000", "expDlr": "1"}],
+    )
+    monkeypatch.setattr(export_service, "_build_items_from_rows", lambda *args: items)
+    monkeypatch.setattr(export_service, "_find_region_period", lambda latest: "202608")
+    monkeypatch.setattr(export_service, "_parallel_optional", lambda *args, **kwargs: (regions, []))
 
     snapshot = export_service._build_snapshot(datetime(2026, 10, 2, 12, 0))
     assert snapshot["status"] == "official_api"
@@ -100,6 +128,8 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
     assert len(snapshot["history"]) == 12
     assert snapshot["history"][-1]["exportYoY"] == 10.0
     assert snapshot["checkpoints"] == []
+    assert snapshot["itemPeriod"] == "2026-08"
+    assert snapshot["regionPeriod"] == "2026-08"
     assert snapshot["items"][0]["name"] == "반도체"
     assert snapshot["regions"][0]["name"] == "미국"
     assert snapshot["summary"]["exportsUsdBillion"] > 0
