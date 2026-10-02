@@ -92,7 +92,7 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
     snapshot = export_service._build_snapshot(datetime(2026, 10, 2, 12, 0))
     assert snapshot["status"] == "official_api"
     assert snapshot["period"] == "2026-09"
-    assert len(snapshot["history"]) == 9
+    assert len(snapshot["history"]) == 12
     assert snapshot["history"][-1]["exportYoY"] == 10.0
     assert snapshot["checkpoints"] == []
     assert snapshot["items"][0]["name"] == "반도체"
