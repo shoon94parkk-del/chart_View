@@ -67,6 +67,9 @@ def test_korean_stock_price_is_identical_across_quote_compare_and_valuation(monk
     assert compare["price"] == 777000
     assert valuation["price"] == 777000
     assert quote["source"].startswith("Naver Finance")
+    assert quote["marketStatus"] == "OPEN"
+    assert quote["sessionType"] == "regular"
+    assert quote["priceBasis"] == "regular_live"
     assert compare["quoteSource"].startswith("Naver Finance")
     assert valuation["fieldMeta"]["price"]["source"].startswith("Naver Finance")
     # One Naver call is shared by all three surfaces during the short consistency window.
@@ -93,6 +96,39 @@ def test_korean_stock_basic_failure_uses_realtime_polling(monkeypatch):
     assert quote["price"] == 266000
     assert quote["change"] == 2.1
     assert quote["source"] == "Naver Finance realtime polling"
+    assert quote["marketStatus"] == "OPEN"
+    assert quote["priceBasis"] == "regular_live"
+    assert quote["asOf"] is None
+
+
+def test_closed_korean_stock_is_explicit_regular_close(monkeypatch):
+    reset_quote_cache()
+
+    def fake_get(url, *args, **kwargs):
+        assert url.endswith("/api/stock/005930/basic")
+        return FakeResponse({
+            "stockName": "삼성전자",
+            "closePrice": "276,000",
+            "fluctuationsRatio": "2.22",
+            "localTradedAt": "2026-10-02T15:30:00+09:00",
+            "marketStatus": "CLOSE",
+            "overMarketPriceInfo": {
+                "overPrice": "277,500",
+                "overMarketStatus": "OPEN",
+                "localTradedAt": "2026-10-02T19:20:00+09:00",
+            },
+        })
+
+    monkeypatch.setattr(realtime_korea.requests, "get", fake_get)
+    quote = realtime_korea.fetch_korean_stock_quote("005930.KS")
+
+    assert quote["price"] == 276000
+    assert quote["asOf"] == "2026-10-02T15:30:00+09:00"
+    assert quote["marketStatus"] == "CLOSE"
+    assert quote["sessionType"] == "regular"
+    assert quote["priceBasis"] == "regular_close"
+    # NXT/after-hours is intentionally not mixed into the regular-session quote.
+    assert quote["price"] != 277500
 
 
 def test_non_korean_symbols_keep_original_provider(monkeypatch):

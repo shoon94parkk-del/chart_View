@@ -56,6 +56,27 @@ def _is_korean_stock(symbol: str) -> bool:
     return normalized.endswith((".KS", ".KQ")) and normalized.split(".", 1)[0].isdigit()
 
 
+def _quote_session_fields(status: Any) -> dict[str, Any]:
+    normalized = str(status or "").strip().upper()
+    if normalized == "CLOSE":
+        return {
+            "marketStatus": "CLOSE",
+            "sessionType": "regular",
+            "priceBasis": "regular_close",
+        }
+    if normalized == "OPEN":
+        return {
+            "marketStatus": "OPEN",
+            "sessionType": "regular",
+            "priceBasis": "regular_live",
+        }
+    return {
+        "marketStatus": normalized or None,
+        "sessionType": "regular",
+        "priceBasis": "provider_latest",
+    }
+
+
 def _cache_get(symbol: str) -> dict[str, Any] | None:
     now = time.monotonic()
     with _quote_lock:
@@ -99,8 +120,8 @@ def _basic_index_quote(symbol: str) -> dict[str, Any]:
         "marketCap": None,
         "currency": "KRW",
         "source": "Naver Finance KRX/Koscom",
-        "marketStatus": data.get("marketStatus"),
         "delayTime": data.get("delayTime"),
+        **_quote_session_fields(data.get("marketStatus")),
     }
 
 
@@ -130,12 +151,14 @@ def _polling_index_quote(symbol: str) -> dict[str, Any]:
         "name": label,
         "price": round(price, 4),
         "change": round(change, 2) if change is not None else None,
-        "asOf": datetime.now(timezone.utc).isoformat(),
+        # Legacy polling does not expose a reliable regular-session trade
+        # timestamp. Keep it unknown rather than labelling query time as trade time.
+        "asOf": None,
         "marketCap": None,
         "currency": "KRW",
         "source": "Naver Finance realtime polling",
-        "marketStatus": row.get("ms"),
         "delayTime": 0,
+        **_quote_session_fields(row.get("ms")),
     }
 
 
@@ -159,12 +182,14 @@ def _basic_stock_quote(symbol: str) -> dict[str, Any]:
         "name": str(data.get("stockName") or data.get("itemName") or symbol).strip(),
         "price": round(price, 4),
         "change": round(change, 2) if change is not None else None,
-        "asOf": str(data.get("localTradedAt") or "").strip() or datetime.now(timezone.utc).isoformat(),
+        # localTradedAt is the provider's observation time. Do not substitute
+        # server query time when the provider omits it.
+        "asOf": str(data.get("localTradedAt") or "").strip() or None,
         "marketCap": None,
         "currency": "KRW",
         "source": "Naver Finance KRX/Koscom",
-        "marketStatus": data.get("marketStatus"),
         "delayTime": data.get("delayTime"),
+        **_quote_session_fields(data.get("marketStatus")),
     }
 
 
@@ -192,12 +217,14 @@ def _polling_stock_quote(symbol: str) -> dict[str, Any]:
         "name": str(row.get("nm") or symbol).strip(),
         "price": round(price, 4),
         "change": round(change, 2) if change is not None else None,
-        "asOf": datetime.now(timezone.utc).isoformat(),
+        # Query time is not a trade timestamp. Being explicit is safer than
+        # pretending this legacy fallback observed a new transaction.
+        "asOf": None,
         "marketCap": None,
         "currency": "KRW",
         "source": "Naver Finance realtime polling",
-        "marketStatus": row.get("ms"),
         "delayTime": 0,
+        **_quote_session_fields(row.get("ms")),
     }
 
 
