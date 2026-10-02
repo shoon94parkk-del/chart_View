@@ -252,15 +252,20 @@ def test_country_total_row_wins_over_hs_detail():
     assert export_service._country_export(rows, "202609") == 999
 
 
-def test_item_period_falls_back_when_latest_month_has_no_hs_rows(monkeypatch):
+def test_item_period_falls_back_with_lightweight_probe_before_full_fetch(monkeypatch):
+    probes = []
+    full_fetches = []
+    def fake_available(period):
+        probes.append(period)
+        return period == "202608"
     def fake_rows(period):
-        if period == "202609":
-            return []
-        if period == "202608":
-            return [{"year": "2026.08", "hsCode": "8542310000", "expDlr": "10"}]
-        return []
+        full_fetches.append(period)
+        return [{"year": "2026.08", "hsCode": "8542310000", "expDlr": "10"}]
+    monkeypatch.setattr(export_service, "_item_period_available", fake_available)
     monkeypatch.setattr(export_service, "_fetch_item_rows", fake_rows)
     period, rows = export_service._find_item_period("202609")
+    assert probes == ["202609", "202608"]
+    assert full_fetches == ["202608"]
     assert period == "202608"
     assert rows[0]["hsCode"] == "8542310000"
 
@@ -304,8 +309,8 @@ def test_snapshot_builds_real_history_contract_without_fake_checkpoints(monkeypa
 
     monkeypatch.setattr(
         export_service,
-        "_find_item_period",
-        lambda latest: ("202608", [{"year": "2026.08", "hsCode": "8542310000", "expDlr": "1"}]),
+        "_find_item_period_candidate",
+        lambda latest: "202608",
     )
     monkeypatch.setattr(
         export_service,
@@ -375,3 +380,14 @@ def test_semiconductor_report_official_codes_include_mcp_and_dram_module():
     assert "Multichip" in mcp["note"]
     assert module["code"] == "8473304060"
     assert "DRAM modules" in module["note"]
+
+
+
+def test_item_period_candidate_uses_probe_without_full_table(monkeypatch):
+    calls = []
+    def fake_probe(period):
+        calls.append(period)
+        return period == "202607"
+    monkeypatch.setattr(export_service, "_item_period_available", fake_probe)
+    assert export_service._find_item_period_candidate("202609") == "202607"
+    assert calls == ["202609", "202608", "202607"]
