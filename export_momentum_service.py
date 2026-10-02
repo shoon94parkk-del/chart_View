@@ -55,6 +55,51 @@ ITEM_GROUPS = (
     {"key": "steel", "name": "철강", "codes": ("72",), "note": "HS 72 철강 기준"},
 )
 
+SEMICONDUCTOR_SEGMENTS = (
+    {
+        "key": "memory-total",
+        "name": "메모리 IC",
+        "code": "854232",
+        "group": "memory",
+        "note": "HS 854232 메모리 전체",
+    },
+    {
+        "key": "dram",
+        "name": "DRAM",
+        "code": "8542321010",
+        "group": "memory",
+        "note": "HSK 8542321010 · HBM은 별도 HSK 코드가 없어 독립 집계 불가",
+    },
+    {
+        "key": "flash",
+        "name": "Flash memory",
+        "code": "8542321030",
+        "group": "memory",
+        "note": "HSK 8542321030 · NAND/NOR 등을 포함하는 Flash memory 분류",
+    },
+    {
+        "key": "sram",
+        "name": "SRAM",
+        "code": "8542321020",
+        "group": "memory",
+        "note": "HSK 8542321020",
+    },
+    {
+        "key": "processor-controller",
+        "name": "프로세서·컨트롤러",
+        "code": "854231",
+        "group": "logic",
+        "note": "HS 854231",
+    },
+    {
+        "key": "other-ic",
+        "name": "기타 IC",
+        "code": "854239",
+        "group": "logic",
+        "note": "HS 854239",
+    },
+)
+
 COUNTRIES = (
     {"name": "미국", "code": "US"},
     {"name": "중국", "code": "CN"},
@@ -684,6 +729,70 @@ def _build_group_history(group: dict[str, Any], end_yyyymm: str) -> list[dict[st
     return history
 
 
+def _build_semiconductor_segment(segment: dict[str, str], end_yyyymm: str) -> dict[str, Any] | None:
+    start_yyyymm = _month_shift(end_yyyymm, -23)
+    rows = _fetch_item_range_rows(segment["code"], start_yyyymm, end_yyyymm)
+    history = []
+    for offset in range(-11, 1):
+        period = _month_shift(end_yyyymm, offset)
+        prior = _month_shift(period, -12)
+        exports = _hs_prefix_export(rows, segment["code"], period)
+        previous = _hs_prefix_export(rows, segment["code"], prior)
+        weight = _hs_prefix_weight(rows, segment["code"], period)
+        prior_weight = _hs_prefix_weight(rows, segment["code"], prior)
+        unit_value = _unit_value_usd_per_kg(exports, weight)
+        prior_unit_value = _unit_value_usd_per_kg(previous, prior_weight)
+        if exports is None:
+            continue
+        history.append({
+            "period": _display_period(period),
+            "exportsUsdBillion": _billion(exports),
+            "exportYoY": _pct(exports, previous),
+            "exportWeightKg": round(weight, 3) if weight is not None else None,
+            "exportWeightYoY": _pct(weight, prior_weight),
+            "unitValueUsdPerKg": unit_value,
+            "unitValueYoY": _pct(unit_value, prior_unit_value),
+        })
+    if not history:
+        return None
+    latest = history[-1]
+    return {
+        "key": segment["key"],
+        "name": segment["name"],
+        "code": segment["code"],
+        "group": segment["group"],
+        "note": segment["note"],
+        "period": latest["period"],
+        "exportsUsdBillion": latest["exportsUsdBillion"],
+        "exportYoY": latest["exportYoY"],
+        "exportWeightKg": latest["exportWeightKg"],
+        "exportWeightYoY": latest["exportWeightYoY"],
+        "unitValueUsdPerKg": latest["unitValueUsdPerKg"],
+        "unitValueYoY": latest["unitValueYoY"],
+        "history": history,
+    }
+
+
+def _build_semiconductor_breakdown(end_yyyymm: str) -> list[dict[str, Any]]:
+    results = []
+    with ThreadPoolExecutor(max_workers=6, thread_name_prefix="customs-semi-segment") as pool:
+        future_map = {
+            pool.submit(_build_semiconductor_segment, segment, end_yyyymm): segment
+            for segment in SEMICONDUCTOR_SEGMENTS
+        }
+        for future in as_completed(future_map):
+            segment = future_map[future]
+            try:
+                value = future.result()
+                if value:
+                    results.append(value)
+            except Exception as exc:
+                print(f"[EXPORT_MOMENTUM] semiconductor segment {segment['key']} failed: {exc}")
+    order = {segment["key"]: index for index, segment in enumerate(SEMICONDUCTOR_SEGMENTS)}
+    results.sort(key=lambda row: order.get(row["key"], 999))
+    return results
+
+
 def _fetch_country_item_export(country: dict[str, str], group: dict[str, Any], period: str) -> dict[str, Any] | None:
     total = 0.0
     found = False
@@ -746,6 +855,7 @@ def _build_item_detail(key: str) -> dict[str, Any]:
     total_exports = (latest.get("exportsUsdBillion") or 0.0) * 1_000_000_000.0
     countries = _build_country_item_breakdown(group, period, total_exports)
     momentum = _build_momentum_summary(history)
+    semiconductor_breakdown = _build_semiconductor_breakdown(period) if key == "semiconductor" else []
 
     return {
         "schemaVersion": 1,
@@ -755,11 +865,17 @@ def _build_item_detail(key: str) -> dict[str, Any]:
         "period": _display_period(period),
         "history": history,
         "momentum": momentum,
+        "semiconductorBreakdown": semiconductor_breakdown,
         "countries": countries,
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "countryScope": "US, CN, VN, JP, TW configured major markets; not a global top-country ranking",
             "unitValueMethod": "export 신고미화금액 / 순중량(kg)",
+            "semiconductorClassification": (
+                "2026 HSK: DRAM 8542321010, SRAM 8542321020, Flash memory 8542321030; "
+                "HBM is not separately identifiable from the Customs HS statistics"
+                if key == "semiconductor" else None
+            ),
             "cacheTtlSec": DETAIL_CACHE_TTL_SEC,
         },
     }
