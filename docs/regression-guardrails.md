@@ -250,3 +250,8 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - ‘기여’ 표시는 전년동월 대비 수출금액 증감액을 뜻하며 주가 기여, 기업 실적 기여, 투자 추천을 의미하지 않는다.
 - 3개월 모멘텀은 최근 3개월 YoY 평균과 직전 3개월 YoY 평균의 차이(pp)다. 미래 수출 전망치로 표현하지 않는다.
 - HS2 확산도는 기존 월 전체 품목 응답을 재사용해 provider 호출량을 늘리지 않는다.
+
+- HBM을 관세청 HS 통계만으로 독립 수출액처럼 표시하지 않는다. 2026 HSK에는 HBM 전용 코드가 없다.
+- 8542321030은 Flash memory다. NAND-only 수출액으로 오인시키지 않는다.
+- DRAM 8542321010, SRAM 8542321020, Flash memory 8542321030의 공식 HSK 의미를 유지한다.
+- 반도체 세부 조회는 #exports의 첫 화면이나 Home에서 호출하지 않고 semiconductor 상세 클릭 시에만 수행한다.

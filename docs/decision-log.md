@@ -355,3 +355,10 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - 기여 품목은 투자 점수나 추천 순위가 아니라 전년동월 대비 수출금액 증감액(delta USD) 기준으로 상승/하락 각각 표시한다.
 - 품목 상세는 최근 3개월 YoY 평균과 직전 3개월 평균 차이(pp)를 계산해 수출액·물량·평균 단위가치의 가속/둔화를 설명한다.
 - 12개월 phaseHistory는 물량 YoY와 평균 단위가치 YoY의 부호 조합만 사용하며 미래 방향을 예측하지 않는다.
+
+## 2026-10-02 — 반도체 HSK 세부분류
+- 반도체 상세에서 2026 HSK 공식 분류를 사용해 메모리/IC 세부 항목을 별도 조회한다.
+- DRAM은 HSK 8542321010, SRAM은 8542321020, Flash memory는 8542321030을 사용한다.
+- HBM은 2026 HSK에서 독립 품목번호가 아니므로 ‘HBM 수출액’으로 별도 집계하지 않는다. DRAM/복합구조 메모리 등 신고 분류에 포함될 수 있음을 안내한다.
+- NAND도 독립 HSK가 아니라 Flash memory 분류 안에 포함되므로 ‘Flash memory (NAND 포함)’처럼 표시한다.
+- 세부 반도체 조회는 semiconductor 품목 상세을 열 때만 실행하고 기존 6시간 상세 캐시에 포함한다.
