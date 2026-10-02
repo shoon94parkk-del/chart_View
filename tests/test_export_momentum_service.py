@@ -75,23 +75,23 @@ def test_item_snapshot_includes_imports_and_trade_balance():
     current = [
         {
             "year": "2026.08", "hsCode": "3304",
-            "expDlr": "1200", "expWgt": "100",
-            "impDlr": "500", "impWgt": "40", "balPayments": "700",
+            "expDlr": "1200000000", "expWgt": "100000000",
+            "impDlr": "500000000", "impWgt": "40000000", "balPayments": "700000000",
         },
     ]
     prior = [
         {
             "year": "2025.08", "hsCode": "3304",
-            "expDlr": "1000", "expWgt": "100",
-            "impDlr": "400", "impWgt": "35", "balPayments": "600",
+            "expDlr": "1000000000", "expWgt": "100000000",
+            "impDlr": "400000000", "impWgt": "35000000", "balPayments": "600000000",
         },
     ]
     rows = export_service._build_items_from_rows(current, prior, "202608")
     cosmetic = next(row for row in rows if row["key"] == "cosmetics")
-    assert cosmetic["importsUsdBillion"] == pytest.approx(0.0000005)
+    assert cosmetic["importsUsdBillion"] == pytest.approx(0.5)
     assert cosmetic["importYoY"] == 25.0
-    assert cosmetic["importWeightKg"] == 40
-    assert cosmetic["tradeBalanceUsdBillion"] == pytest.approx(0.0000007)
+    assert cosmetic["importWeightKg"] == 40_000_000
+    assert cosmetic["tradeBalanceUsdBillion"] == pytest.approx(0.7)
 
 
 def test_group_history_builds_12_month_value_volume_unit_value(monkeypatch):
