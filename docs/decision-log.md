@@ -316,3 +316,12 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 Final review follow-up: complete coverage containing retained stale provider rows uses the 60-second retry policy, including both internal refresh guards. Added a warm full-cache test that asserts the provider is actually called after the cooldown.
 
 Cold-start live QA found the full 60-company background batch could exceed the frontend polling window. Fetch one company per US sector first and publish successful dated quote rows incrementally before the batch finishes. Provider count and one-worker budget are unchanged; partial coverage remains labeled incomplete and quoted rows preserve observation dates. Regression asserts partial cache publication while refresh is still running.
+
+
+## 2026-10-02 — 이미 해결된 성능/캐시 문제의 재구현 금지
+
+**관찰된 문제:** 홈/상세 시세, 캐시, valuation 계열 성능처럼 과거에 이미 개선된 영역이 후속 변경에서 다시 느려지거나 깨졌고, 이를 새 문제처럼 다시 최적화하는 작업이 반복됐다.
+
+**결정:** 백엔드 성능·시세·캐시·provider routing 변경 전에는 `docs/no-repeat-regression-policy.md`를 반드시 확인하고, 새 기능/새 버그/기존 수정의 회귀 중 하나로 먼저 분류한다. 회귀라면 기존 known-good 계약을 복원하는 것이 우선이며, 두 번째 경쟁 캐시나 provider 경로를 새로 만들지 않는다.
+
+**보호:** `AGENTS.md`가 no-repeat 정책을 최우선 읽기 문서로 지정한다. `docs/regression-guardrails.md`에 fresh quote, provider-free Home live, valuation-band prewarm/singleflight/cache 계약을 명시한다. 반복된 문제가 기존 테스트를 통과했다면 해당 테스트를 강화하거나 새 회귀 테스트를 추가하지 않고는 완료로 보지 않는다.
