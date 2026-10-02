@@ -273,3 +273,8 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 품목 상세월 탐색을 위해 데이터가 없는 후보월의 전체 HSK 테이블을 받지 않는다.
 - 최신월/전년동월 full-table 조회는 상세월 확정 후 병렬로 수행한다.
 - 상세월 availability probe는 작은 단일 HSK 조회를 사용하고, probe 실패를 무한 재시도하지 않는다.
+
+- 반도체 세부 국가 화면을 전세계 국가 순위로 표현하지 않는다. CN/HK/VN/TW/US/JP 지정시장 비교라고 명시한다.
+- 국가별 비중은 해당 HSK 품목의 전세계 총수출액을 분모로 사용한다.
+- 증가/감소 기여는 YoY %가 아니라 전년동월 대비 수출액 증감액을 함께 보여 소규모 기저 왜곡을 줄인다.
+- semiconductor country matrix는 메인 /api/export-momentum 또는 일반 item-detail 호출에 합치지 않고 lazy endpoint + 장시간 캐시로 유지한다.
