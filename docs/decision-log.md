@@ -341,3 +341,9 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - 품목 API의 HS 필드는 응답에 따라 `hsCode` 또는 `hsCd`를 허용한다.
 - 품목은 한 달 전체 HSK 행을 한 번 받아 필요한 HS prefix를 서버에서 집계한다. 4자리 prefix를 API에 직접 넣어 빈 결과를 정상값으로 오인하지 않는다.
 - 품목/국가 상세 기간이 총괄보다 늦으면 `itemPeriod` / `regionPeriod`로 별도 노출한다.
+
+## 2026-10-02 — 수출 품목의 금액·물량·단위가치 분해
+- 관세청 HS 상세의 `expWgt`(순중량 kg)를 보존해 품목별 수출중량과 전년동월비를 제공한다.
+- `unitValueUsdPerKg = expDlr / expWgt`를 계산하고 전년동월비를 제공한다.
+- 이 값은 개별 제품의 판매가격이 아니라 동일 HS 그룹 내부 품목 믹스가 반영된 평균 단위가치이므로 UI에서 ‘kg당 신고금액/평균 단위가치’로 표기한다.
+- 반도체·선박처럼 kg당 값의 경제적 의미가 제한적인 품목도 원자료 기반 보조지표로만 제공하며 실제 제품 ASP로 표현하지 않는다.
