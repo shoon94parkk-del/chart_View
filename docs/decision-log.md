@@ -362,3 +362,8 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - HBM은 2026 HSK에서 독립 품목번호가 아니므로 ‘HBM 수출액’으로 별도 집계하지 않는다. DRAM/복합구조 메모리 등 신고 분류에 포함될 수 있음을 안내한다.
 - NAND도 독립 HSK가 아니라 Flash memory 분류 안에 포함되므로 ‘Flash memory (NAND 포함)’처럼 표시한다.
 - 세부 반도체 조회는 semiconductor 품목 상세을 열 때만 실행하고 기존 6시간 상세 캐시에 포함한다.
+
+## 2026-10-02 — 반도체 HSK 조회기간 제한 대응
+- Itemtrade는 시작~종료 조회기간이 1년을 넘으면 오류 99를 반환한다.
+- 반도체 세부 12개월 YoY를 만들 때 최근 12개월과 전년 12개월을 각각 별도 호출한 뒤 서버에서 결합한다.
+- 24개월을 한 요청으로 보내지 않는다.
