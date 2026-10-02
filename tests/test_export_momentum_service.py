@@ -457,3 +457,56 @@ def test_semiconductor_country_matrix_is_configured_market_comparison(monkeypatc
     china = next(row for row in dram["countries"] if row["code"] == "CN")
     assert china["sharePct"] == pytest.approx(26.7)
     assert "not a global ranking" in matrix["meta"]["scope"]
+
+
+
+def test_ten_day_stage_parses_provider_period_labels_and_dates():
+    assert export_service._ten_day_stage({"priodDt": "01~10"}) == 10
+    assert export_service._ten_day_stage({"priodDt": "01~20"}) == 20
+    assert export_service._ten_day_stage({"priodDt": "01~30"}) == 30
+    assert export_service._ten_day_stage({"priodDt": "2026.09.10"}) == 10
+    assert export_service._ten_day_stage({"priodDt": "2026.09.20"}) == 20
+    assert export_service._ten_day_stage({"priodDt": "2026.09.30"}) == 30
+
+
+def test_ten_day_amount_converts_thousand_dollars_to_billions():
+    assert export_service._ten_day_amount_billion({"itemUsdAmt00": "34,973,000"}, "itemUsdAmt00") == pytest.approx(34.973)
+
+
+def test_provisional_radar_builds_same_window_yoy_mom_acceleration_and_contribution(monkeypatch):
+    rows = [
+        {"priodMon": "2025.09", "priodDt": "01~10", "itemUsdAmt00": "20000000", "itemUsdAmt01": "5000000", "itemUsdAmt02": "1000000"},
+        {"priodMon": "2025.09", "priodDt": "01~20", "itemUsdAmt00": "40000000", "itemUsdAmt01": "9000000", "itemUsdAmt02": "2000000"},
+        {"priodMon": "2025.09", "priodDt": "01~30", "itemUsdAmt00": "60000000", "itemUsdAmt01": "12000000", "itemUsdAmt02": "3000000"},
+        {"priodMon": "2026.08", "priodDt": "01~10", "itemUsdAmt00": "25000000", "itemUsdAmt01": "6000000", "itemUsdAmt02": "1100000"},
+        {"priodMon": "2026.08", "priodDt": "01~20", "itemUsdAmt00": "50000000", "itemUsdAmt01": "12000000", "itemUsdAmt02": "2200000"},
+        {"priodMon": "2026.08", "priodDt": "01~31", "itemUsdAmt00": "70000000", "itemUsdAmt01": "15000000", "itemUsdAmt02": "3300000"},
+        {"priodMon": "2026.09", "priodDt": "01~10", "itemUsdAmt00": "30000000", "itemUsdAmt01": "10000000", "itemUsdAmt02": "1200000"},
+        {"priodMon": "2026.09", "priodDt": "01~20", "itemUsdAmt00": "55000000", "itemUsdAmt01": "18000000", "itemUsdAmt02": "2500000"},
+        {"priodMon": "2026.09", "priodDt": "01~30", "itemUsdAmt00": "80000000", "itemUsdAmt01": "24000000", "itemUsdAmt02": "3600000"},
+    ]
+    monkeypatch.setattr(export_service, "_fetch_ten_day_rows", lambda start, end: rows)
+    radar = export_service._build_provisional_radar(datetime(2026, 10, 2, 18, 0))
+    assert radar["period"] == "2026-09"
+    assert radar["latestStage"] == 30
+    assert len(radar["checkpoints"]) == 3
+    first = radar["checkpoints"][0]
+    second = radar["checkpoints"][1]
+    final = radar["checkpoints"][2]
+    assert first["semiconductor"]["exportsUsdBillion"] == pytest.approx(10.0)
+    assert first["semiconductor"]["exportYoY"] == 100.0
+    assert first["semiconductor"]["exportMoM"] == pytest.approx(66.7)
+    assert first["semiconductorSharePct"] == pytest.approx(33.3)
+    assert second["semiconductorYoYAccelerationPp"] == pytest.approx(0.0)
+    assert final["semiconductorContributionPct"] == pytest.approx(60.0)
+    assert radar["items"][0]["name"] == "반도체"
+    assert radar["meta"]["classification"].startswith("Korea Customs")
+
+
+def test_ten_day_month_map_keeps_latest_row_per_stage():
+    rows = [
+        {"priodMon": "2026.09", "priodDt": "01~10", "itemUsdAmt00": "1"},
+        {"priodMon": "2026.09", "priodDt": "01~10", "itemUsdAmt00": "2"},
+    ]
+    mapped = export_service._ten_day_month_map(rows)
+    assert mapped["202609"][10]["itemUsdAmt00"] == "2"
