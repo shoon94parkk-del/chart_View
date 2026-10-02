@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-02T18:20:00+09:00",
+  "updated": "2026-10-02T18:10:00+09:00",
   "reviews": [
     {
       "pickId": "2026-09-14:012450",
@@ -513,6 +513,28 @@
       "reviewedAt": "2026-10-01T18:13:00+09:00",
       "reviewTradeDate": "2026-10-01",
       "summary": "2026년 10월 1일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 Heater Block 교체수요, 중국 FAB CAPEX, MCA·Ceramic Heater 수주와 매출을 검증합니다.",
+      "thesisChecks": {
+        "evidence": "PENDING"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-10-02:373220",
+      "completed": false,
+      "reviewedAt": "2026-10-02T18:10:00+09:00",
+      "reviewTradeDate": "2026-10-02",
+      "summary": "2026년 10월 2일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 북미 ESS·AI 데이터센터향 수주, 46시리즈 양산, ESS CAPA와 수익성 개선 여부를 검증합니다.",
+      "thesisChecks": {
+        "evidence": "PENDING"
+      },
+      "evidence": []
+    },
+    {
+      "pickId": "2026-10-02:440110",
+      "completed": false,
+      "reviewedAt": "2026-10-02T18:10:00+09:00",
+      "reviewTradeDate": "2026-10-02",
+      "summary": "2026년 10월 2일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 SSD 컨트롤러 양산 프로젝트, 해외 NAND·서버 고객 확대, 신규 수주와 실적 반영 여부를 검증합니다.",
       "thesisChecks": {
         "evidence": "PENDING"
       },
