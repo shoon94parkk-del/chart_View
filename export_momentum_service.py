@@ -85,6 +85,20 @@ SEMICONDUCTOR_SEGMENTS = (
         "note": "HSK 8542321020",
     },
     {
+        "key": "mcp-memory",
+        "name": "MCP",
+        "code": "8542323000",
+        "group": "memory",
+        "note": "HSK 8542323000 · 복합구조칩 메모리(Multichip integrated circuits)",
+    },
+    {
+        "key": "dram-module",
+        "name": "DRAM 모듈",
+        "code": "8473304060",
+        "group": "module",
+        "note": "HSK 8473304060 · DRAM modules",
+    },
+    {
         "key": "processor-controller",
         "name": "프로세서·컨트롤러",
         "code": "854231",
@@ -732,6 +746,7 @@ def _build_group_history(group: dict[str, Any], end_yyyymm: str) -> list[dict[st
 def _build_semiconductor_breakdown_from_rows(
     current_rows: list[dict[str, str]],
     prior_rows: list[dict[str, str]],
+    previous_month_rows: list[dict[str, str]],
     period: str,
 ) -> list[dict[str, Any]]:
     """Build latest semiconductor HSK detail from already-fetched monthly rows.
@@ -742,17 +757,21 @@ def _build_semiconductor_breakdown_from_rows(
     extra HSK requests when a user opens semiconductor detail.
     """
     prior = _month_shift(period, -12)
+    previous_month = _month_shift(period, -1)
     results: list[dict[str, Any]] = []
     for segment in SEMICONDUCTOR_SEGMENTS:
         code = segment["code"]
         exports = _hs_prefix_export(current_rows, code, period)
         previous = _hs_prefix_export(prior_rows, code, prior)
+        previous_month_exports = _hs_prefix_export(previous_month_rows, code, previous_month)
         weight = _hs_prefix_weight(current_rows, code, period)
         prior_weight = _hs_prefix_weight(prior_rows, code, prior)
+        previous_month_weight = _hs_prefix_weight(previous_month_rows, code, previous_month)
         if exports is None:
             continue
         unit_value = _unit_value_usd_per_kg(exports, weight)
         prior_unit_value = _unit_value_usd_per_kg(previous, prior_weight)
+        previous_month_unit_value = _unit_value_usd_per_kg(previous_month_exports, previous_month_weight)
         results.append({
             "key": segment["key"],
             "name": segment["name"],
@@ -762,10 +781,13 @@ def _build_semiconductor_breakdown_from_rows(
             "period": _display_period(period),
             "exportsUsdBillion": _billion(exports),
             "exportYoY": _pct(exports, previous),
+            "exportMoM": _pct(exports, previous_month_exports),
             "exportWeightKg": round(weight, 3) if weight is not None else None,
             "exportWeightYoY": _pct(weight, prior_weight),
+            "exportWeightMoM": _pct(weight, previous_month_weight),
             "unitValueUsdPerKg": unit_value,
             "unitValueYoY": _pct(unit_value, prior_unit_value),
+            "unitValueMoM": _pct(unit_value, previous_month_unit_value),
             "history": [],
         })
     return results
@@ -853,7 +875,8 @@ def _build_item_detail(key: str) -> dict[str, Any]:
             "countryScope": "US, CN, VN, JP, TW configured major markets; not a global top-country ranking",
             "unitValueMethod": "export 신고미화금액 / 순중량(kg)",
             "semiconductorClassification": (
-                "2026 HSK: DRAM 8542321010, SRAM 8542321020, Flash memory 8542321030; "
+                "2026 HSK: DRAM 8542321010, SRAM 8542321020, Flash memory 8542321030, "
+                "memory MCP 8542323000, DRAM module 8473304060; "
                 "HBM is not separately identifiable from the Customs HS statistics"
                 if key == "semiconductor" else None
             ),
@@ -937,12 +960,17 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
     try:
         item_period, item_rows = _find_item_period(latest)
         if item_period:
-            prior_item_rows = _fetch_item_rows(_month_shift(item_period, -12))
+            with ThreadPoolExecutor(max_workers=2, thread_name_prefix="customs-item-compare") as pool:
+                prior_future = pool.submit(_fetch_item_rows, _month_shift(item_period, -12))
+                previous_month_future = pool.submit(_fetch_item_rows, _month_shift(item_period, -1))
+                prior_item_rows = prior_future.result()
+                previous_month_item_rows = previous_month_future.result()
             items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
             breadth = _build_hs2_breadth(item_rows, prior_item_rows, item_period)
             semiconductor_breakdown = _build_semiconductor_breakdown_from_rows(
                 item_rows,
                 prior_item_rows,
+                previous_month_item_rows,
                 item_period,
             )
     except Exception as exc:
@@ -982,7 +1010,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
 
     updated = datetime.now(KST).isoformat()
     payload = {
-        "schemaVersion": 5,
+        "schemaVersion": 6,
         "status": "official_api",
         "period": _display_period(latest),
         "periodLabel": f"{latest[:4]}년 {int(latest[4:6])}월",
@@ -1032,7 +1060,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "cacheTtlSec": CACHE_TTL_SEC,
-            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value",
+            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value; semiconductor YoY/MoM report",
             "regionMethod": "single-month country query total; HS detail fallback without hierarchy double count",
             "detailLagMonths": {
                 "items": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(item_period[:4]) * 12 + int(item_period[4:6]))) if item_period else None,

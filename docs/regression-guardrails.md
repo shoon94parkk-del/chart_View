@@ -260,3 +260,8 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 
 - 반도체 DRAM/Flash/SRAM 카드를 위해 별도 Itemtrade fan-out을 추가하지 않는다. 최신 월/전년동월 전체 품목 원자료를 재사용한다.
 - 세부 HSK 카드에 12개월 시계열이 없다고 해서 요청 시 12~24개의 provider 호출을 다시 추가하지 않는다.
+
+- 반도체 리포트 MoM은 동일 HSK의 직전월과만 비교한다. 전년동월과 혼용하지 않는다.
+- DRAM 모듈은 HSK 8473304060, 메모리 MCP는 HSK 8542323000 기준을 유지한다.
+- HBM 전용 수출액을 관세청 월간 HS 원자료에서 추정하거나 합성하지 않는다.
+- 반도체 리포트 추가를 위해 직전월 전체 품목 조회 1회를 초과하는 provider fan-out을 만들지 않는다.
