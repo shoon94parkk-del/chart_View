@@ -184,40 +184,33 @@ def test_momentum_summary_compares_latest_three_months_with_previous_three():
     assert len(momentum["phaseHistory"]) == 6
 
 
-def test_semiconductor_segment_splits_yoy_history_into_two_one_year_windows(monkeypatch):
-    calls = []
-    def fake_range(code, start, end):
-        calls.append((code, start, end))
-        rows = []
-        period = start
-        while period <= end:
-            year = int(period[:4])
-            month = int(period[4:])
-            amount = 1_000_000_000 + month * 10_000_000
-            if year == 2026:
-                amount *= 1.20
-            rows.append({
-                "year": f"{year}.{month:02d}",
-                "hsCode": code,
-                "expDlr": str(amount),
-                "expWgt": str(100_000 + month * 100),
-            })
-            period = export_service._month_shift(period, 1)
-        return rows
+def test_semiconductor_breakdown_reuses_monthly_rows_without_provider_calls(monkeypatch):
+    def fail_provider(*_args, **_kwargs):
+        raise AssertionError("semiconductor breakdown must not add provider calls")
+    monkeypatch.setattr(export_service, "_fetch_item_range_rows", fail_provider)
 
-    monkeypatch.setattr(export_service, "_fetch_item_range_rows", fake_range)
-    segment = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram")
-    result = export_service._build_semiconductor_segment(segment, "202608")
-    assert calls == [
-        ("8542321010", "202509", "202608"),
-        ("8542321010", "202409", "202508"),
+    current = [
+        {"year": "2026.08", "hsCode": "8542321010", "expDlr": "1200000000", "expWgt": "100000"},
+        {"year": "2026.08", "hsCode": "8542321030", "expDlr": "500000000", "expWgt": "50000"},
+        {"year": "2026.08", "hsCode": "8542321020", "expDlr": "100000000", "expWgt": "10000"},
+        {"year": "2026.08", "hsCode": "854231", "expDlr": "700000000", "expWgt": "70000"},
+        {"year": "2026.08", "hsCode": "854239", "expDlr": "300000000", "expWgt": "30000"},
     ]
-    assert result["code"] == "8542321010"
-    assert result["name"] == "DRAM"
-    assert len(result["history"]) == 12
-    assert result["history"][-1]["period"] == "2026-08"
-    assert result["history"][-1]["exportYoY"] == 20.0
-    assert "HBM" in result["note"]
+    prior = [
+        {"year": "2025.08", "hsCode": "8542321010", "expDlr": "1000000000", "expWgt": "100000"},
+        {"year": "2025.08", "hsCode": "8542321030", "expDlr": "400000000", "expWgt": "50000"},
+        {"year": "2025.08", "hsCode": "8542321020", "expDlr": "100000000", "expWgt": "10000"},
+        {"year": "2025.08", "hsCode": "854231", "expDlr": "600000000", "expWgt": "70000"},
+        {"year": "2025.08", "hsCode": "854239", "expDlr": "250000000", "expWgt": "30000"},
+    ]
+    rows = export_service._build_semiconductor_breakdown_from_rows(current, prior, "202608")
+    dram = next(row for row in rows if row["key"] == "dram")
+    flash = next(row for row in rows if row["key"] == "flash")
+    assert dram["code"] == "8542321010"
+    assert dram["exportYoY"] == 20.0
+    assert dram["history"] == []
+    assert flash["code"] == "8542321030"
+    assert flash["exportYoY"] == 25.0
 
 
 def test_semiconductor_breakdown_preserves_flash_as_broader_than_nand():
