@@ -214,3 +214,15 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 
 ## 2026-10-02 Full heatmap refresh budget
 Do not refresh an incomplete or empty provider batch on every browser poll. Share successful snapshots for five minutes and retain a minimum 60-second failed/partial attempt cooldown. Fresh=true is explicit; preserve canonical quote timestamps and Home parity.
+
+
+## No-repeat quote/cache/performance gate (2026-10-02)
+- Quote freshness, Home live cache, provider routing, compare/valuation, valuation-band, heatmap, startup warming, and executor changes must first consult `docs/no-repeat-regression-policy.md`.
+- Before editing, classify the issue as new behavior, new bug, or regression of a previously fixed behavior.
+- A regression must restore the known-good contract before adding another cache/provider/refresh path.
+- `/api/home-live` remains provider-free on the request path; provider refresh belongs in background workers/executors.
+- `/api/quotes?fresh=true` remains the canonical direct fresh validation path. Do not weaken it just to reduce first-paint latency.
+- Historical close, screener close, quote observation time, lookup time, and current quote semantics must remain distinct.
+- Valuation-band startup prewarm, request coalescing/singleflight, and multi-hour caching are intentional protections against repeated expensive historical downloads.
+- A repeated bug that escaped an existing test requires a strengthened/new regression test before completion.
+- Use same-harness production timings only as regression evidence, not as absolute backend SLAs.
