@@ -269,3 +269,7 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 반도체 MoM 때문에 직전월 전체 Itemtrade 테이블을 다시 받지 않는다.
 - 직전월 MoM provider 조회는 핵심 5개 HSK 코드만 병렬로 수행한다.
 - MoM 보조 조회 실패가 전체 /api/export-momentum을 503으로 만들지 않는다.
+
+- 품목 상세월 탐색을 위해 데이터가 없는 후보월의 전체 HSK 테이블을 받지 않는다.
+- 최신월/전년동월 full-table 조회는 상세월 확정 후 병렬로 수행한다.
+- 상세월 availability probe는 작은 단일 HSK 조회를 사용하고, probe 실패를 무한 재시도하지 않는다.
