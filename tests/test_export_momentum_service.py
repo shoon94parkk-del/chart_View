@@ -348,6 +348,26 @@ def test_total_month_parser_ignores_total_row():
 
 
 
+def test_semiconductor_mom_fetch_targets_only_five_report_codes(monkeypatch):
+    calls = []
+    def fake_request(url, **params):
+        calls.append((url, params["hsSgn"], params["strtYymm"], params["endYymm"]))
+        return [{
+            "year": "2026.07",
+            "hsCode": params["hsSgn"],
+            "expDlr": "1000000",
+            "expWgt": "100",
+        }]
+    monkeypatch.setattr(export_service, "_request_rows", fake_request)
+    rows = export_service._fetch_semiconductor_previous_month_rows("202607")
+    assert len(calls) == 5
+    assert {code for _, code, _, _ in calls} == {
+        "854232", "8542321010", "8542321030", "8542323000", "8473304060"
+    }
+    assert all(start == "202607" and end == "202607" for _, _, start, end in calls)
+    assert len(rows) == 5
+
+
 def test_semiconductor_report_official_codes_include_mcp_and_dram_module():
     mcp = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "mcp-memory")
     module = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram-module")

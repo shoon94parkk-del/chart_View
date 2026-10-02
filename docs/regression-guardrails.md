@@ -265,3 +265,7 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - DRAM 모듈은 HSK 8473304060, 메모리 MCP는 HSK 8542323000 기준을 유지한다.
 - HBM 전용 수출액을 관세청 월간 HS 원자료에서 추정하거나 합성하지 않는다.
 - 반도체 리포트 추가를 위해 직전월 전체 품목 조회 1회를 초과하는 provider fan-out을 만들지 않는다.
+
+- 반도체 MoM 때문에 직전월 전체 Itemtrade 테이블을 다시 받지 않는다.
+- 직전월 MoM provider 조회는 핵심 5개 HSK 코드만 병렬로 수행한다.
+- MoM 보조 조회 실패가 전체 /api/export-momentum을 503으로 만들지 않는다.
