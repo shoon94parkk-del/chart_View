@@ -71,6 +71,78 @@ def test_unit_value_is_missing_when_weight_is_zero_or_absent():
     assert export_service._unit_value_usd_per_kg(1000, None) is None
 
 
+def test_item_snapshot_includes_imports_and_trade_balance():
+    current = [
+        {
+            "year": "2026.08", "hsCode": "3304",
+            "expDlr": "1200000000", "expWgt": "100000000",
+            "impDlr": "500000000", "impWgt": "40000000", "balPayments": "700000000",
+        },
+    ]
+    prior = [
+        {
+            "year": "2025.08", "hsCode": "3304",
+            "expDlr": "1000000000", "expWgt": "100000000",
+            "impDlr": "400000000", "impWgt": "35000000", "balPayments": "600000000",
+        },
+    ]
+    rows = export_service._build_items_from_rows(current, prior, "202608")
+    cosmetic = next(row for row in rows if row["key"] == "cosmetics")
+    assert cosmetic["importsUsdBillion"] == pytest.approx(0.5)
+    assert cosmetic["importYoY"] == 25.0
+    assert cosmetic["importWeightKg"] == 40_000_000
+    assert cosmetic["tradeBalanceUsdBillion"] == pytest.approx(0.7)
+
+
+def test_group_history_builds_12_month_value_volume_unit_value(monkeypatch):
+    group = next(row for row in export_service.ITEM_GROUPS if row["key"] == "cosmetics")
+
+    def fake_range(_group, start, end):
+        rows = {}
+        period = start
+        while period <= end:
+            year = int(period[:4])
+            month = int(period[4:])
+            amount = (1000 + month * 10) * (1.10 if year == 2026 else 1.0)
+            weight = 100 + month
+            rows.setdefault("3304", []).append({
+                "year": f"{year}.{month:02d}",
+                "hsCode": "3304",
+                "expDlr": str(amount),
+                "expWgt": str(weight),
+                "impDlr": str(amount * 0.4),
+                "impWgt": str(weight * 0.5),
+                "balPayments": str(amount * 0.6),
+            })
+            period = export_service._month_shift(period, 1)
+        return rows
+
+    monkeypatch.setattr(export_service, "_fetch_group_range", fake_range)
+    history = export_service._build_group_history(group, "202608")
+    assert len(history) == 12
+    assert history[-1]["period"] == "2026-08"
+    assert history[-1]["exportsUsdBillion"] is not None
+    assert history[-1]["exportWeightKg"] is not None
+    assert history[-1]["unitValueUsdPerKg"] is not None
+    assert history[-1]["importsUsdBillion"] is not None
+    assert history[-1]["tradeBalanceUsdBillion"] is not None
+
+
+def test_country_item_breakdown_reports_configured_market_share(monkeypatch):
+    group = next(row for row in export_service.ITEM_GROUPS if row["key"] == "cosmetics")
+
+    values = {"US": 300, "CN": 200, "VN": 100, "JP": 50, "TW": 25}
+    def fake_country(country, _group, _period):
+        value = values[country["code"]]
+        return {"name": country["name"], "code": country["code"], "exportsUsdBillion": value / 1_000_000_000}
+
+    monkeypatch.setattr(export_service, "_fetch_country_item_export", fake_country)
+    rows = export_service._build_country_item_breakdown(group, "202608", 1000)
+    assert len(rows) == 5
+    us = next(row for row in rows if row["code"] == "US")
+    assert us["sharePct"] == 30.0
+
+
 def test_country_total_row_wins_over_hs_detail():
     rows = [
         {"year": "총계", "hsCd": "-", "expDlr": "999"},
