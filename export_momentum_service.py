@@ -63,6 +63,29 @@ COUNTRIES = (
     {"name": "대만", "code": "TW"},
 )
 
+HS2_NAMES = {
+    "27": "광물성 연료·석유",
+    "29": "유기화학품",
+    "30": "의약품",
+    "33": "화장품·향료",
+    "38": "각종 화학공업 생산품",
+    "39": "플라스틱",
+    "40": "고무제품",
+    "48": "종이·판지",
+    "61": "편물 의류",
+    "62": "비편물 의류",
+    "72": "철강",
+    "73": "철강제품",
+    "74": "구리",
+    "76": "알루미늄",
+    "84": "기계류",
+    "85": "전기기기·전자부품",
+    "87": "자동차·차량",
+    "89": "선박·보트",
+    "90": "광학·정밀기기",
+    "94": "가구·조명",
+}
+
 
 class CustomsApiError(RuntimeError):
     pass
@@ -357,6 +380,156 @@ def _build_items_from_rows(
     return results
 
 
+def _hs2_codes(rows: list[dict[str, str]], period: str) -> list[str]:
+    codes = set()
+    for row in _month_rows(rows, period):
+        code = _row_hs_code(row)
+        if len(code) >= 2 and code[:2].isdigit():
+            number = int(code[:2])
+            if 1 <= number <= 97:
+                codes.add(code[:2])
+    return sorted(codes)
+
+
+def _hs2_name(rows: list[dict[str, str]], code: str, period: str) -> str:
+    exact = [
+        row for row in _month_rows(rows, period)
+        if _row_hs_code(row) == code and str(row.get("statKor") or "").strip()
+    ]
+    if exact:
+        return str(exact[0].get("statKor") or "").strip()
+    return HS2_NAMES.get(code, f"HS {code}")
+
+
+def _build_hs2_breadth(
+    current_rows: list[dict[str, str]],
+    prior_rows: list[dict[str, str]],
+    period: str,
+) -> dict[str, Any]:
+    prior = _month_shift(period, -12)
+    codes = sorted(set(_hs2_codes(current_rows, period)) | set(_hs2_codes(prior_rows, prior)))
+    movers: list[dict[str, Any]] = []
+
+    for code in codes:
+        current = _hs_prefix_export(current_rows, code, period)
+        previous = _hs_prefix_export(prior_rows, code, prior)
+        if current is None and previous is None:
+            continue
+        current = current or 0.0
+        previous = previous or 0.0
+        delta = current - previous
+        movers.append({
+            "code": code,
+            "name": _hs2_name(current_rows, code, period),
+            "exportsUsdBillion": _billion(current),
+            "priorExportsUsdBillion": _billion(previous),
+            "deltaUsdBillion": _billion(delta),
+            "exportYoY": _pct(current, previous),
+        })
+
+    current_total = sum((row["exportsUsdBillion"] or 0.0) for row in movers)
+    prior_total = sum((row["priorExportsUsdBillion"] or 0.0) for row in movers)
+    comparable = [row for row in movers if row["priorExportsUsdBillion"] and row["priorExportsUsdBillion"] > 0]
+    rising = [row for row in comparable if (row["exportYoY"] or 0.0) > 0.1]
+    falling = [row for row in comparable if (row["exportYoY"] or 0.0) < -0.1]
+    flat = [row for row in comparable if -0.1 <= (row["exportYoY"] or 0.0) <= 0.1]
+
+    for row in movers:
+        row["sharePct"] = round((row["exportsUsdBillion"] or 0.0) / current_total * 100.0, 1) if current_total > 0 else None
+
+    rising_export = sum((row["exportsUsdBillion"] or 0.0) for row in rising)
+    return {
+        "period": _display_period(period),
+        "level": "HS2",
+        "comparableCount": len(comparable),
+        "risingCount": len(rising),
+        "fallingCount": len(falling),
+        "flatCount": len(flat),
+        "risingBreadthPct": round(len(rising) / len(comparable) * 100.0, 1) if comparable else None,
+        "risingExportSharePct": round(rising_export / current_total * 100.0, 1) if current_total > 0 else None,
+        "netChangeUsdBillion": round(current_total - prior_total, 4),
+        "topPositive": sorted(
+            [row for row in movers if (row["deltaUsdBillion"] or 0.0) > 0],
+            key=lambda row: row["deltaUsdBillion"] or 0.0,
+            reverse=True,
+        )[:6],
+        "topNegative": sorted(
+            [row for row in movers if (row["deltaUsdBillion"] or 0.0) < 0],
+            key=lambda row: row["deltaUsdBillion"] or 0.0,
+        )[:6],
+    }
+
+
+def _avg(values: list[float | None]) -> float | None:
+    usable = [float(value) for value in values if value is not None]
+    if not usable:
+        return None
+    return round(sum(usable) / len(usable), 1)
+
+
+def _momentum_label(avg3: float | None, acceleration: float | None) -> str:
+    if avg3 is None:
+        return "데이터 부족"
+    if acceleration is None:
+        return "3개월 평균"
+    if avg3 > 0 and acceleration > 0:
+        return "증가세 강화"
+    if avg3 > 0 and acceleration < 0:
+        return "증가세 둔화"
+    if avg3 < 0 and acceleration > 0:
+        return "감소폭 축소"
+    if avg3 < 0 and acceleration < 0:
+        return "감소세 확대"
+    return "보합"
+
+
+def _phase_label(weight_yoy: float | None, unit_yoy: float | None) -> str:
+    if weight_yoy is None or unit_yoy is None:
+        return "데이터 부족"
+    if weight_yoy > 0 and unit_yoy > 0:
+        return "물량↑·단위가치↑"
+    if weight_yoy < 0 and unit_yoy > 0:
+        return "물량↓·단위가치↑"
+    if weight_yoy < 0 and unit_yoy < 0:
+        return "물량↓·단위가치↓"
+    if weight_yoy > 0 and unit_yoy < 0:
+        return "물량↑·단위가치↓"
+    return "혼조·보합"
+
+
+def _build_momentum_summary(history: list[dict[str, Any]]) -> dict[str, Any]:
+    metrics = {
+        "exports": "exportYoY",
+        "volume": "exportWeightYoY",
+        "unitValue": "unitValueYoY",
+    }
+    result: dict[str, Any] = {}
+    for key, field in metrics.items():
+        last3 = [row.get(field) for row in history[-3:]]
+        prev3 = [row.get(field) for row in history[-6:-3]]
+        avg3 = _avg(last3)
+        prior_avg3 = _avg(prev3)
+        acceleration = round(avg3 - prior_avg3, 1) if avg3 is not None and prior_avg3 is not None else None
+        result[key] = {
+            "avg3mYoY": avg3,
+            "previous3mYoY": prior_avg3,
+            "accelerationPp": acceleration,
+            "label": _momentum_label(avg3, acceleration),
+        }
+
+    phase_history = []
+    for row in history:
+        phase_history.append({
+            "period": row.get("period"),
+            "phase": _phase_label(row.get("exportWeightYoY"), row.get("unitValueYoY")),
+            "volumeYoY": row.get("exportWeightYoY"),
+            "unitValueYoY": row.get("unitValueYoY"),
+        })
+    result["phaseHistory"] = phase_history
+    result["latestPhase"] = phase_history[-1]["phase"] if phase_history else "데이터 부족"
+    return result
+
+
 def _country_export(rows: list[dict[str, str]], yyyymm: str) -> float | None:
     """Return one country's export without double-counting HS hierarchy."""
     # nitemtrade includes a query-total row. For a single-month query this is
@@ -572,6 +745,7 @@ def _build_item_detail(key: str) -> dict[str, Any]:
     latest = history[-1]
     total_exports = (latest.get("exportsUsdBillion") or 0.0) * 1_000_000_000.0
     countries = _build_country_item_breakdown(group, period, total_exports)
+    momentum = _build_momentum_summary(history)
 
     return {
         "schemaVersion": 1,
@@ -580,6 +754,7 @@ def _build_item_detail(key: str) -> dict[str, Any]:
         "note": group["note"],
         "period": _display_period(period),
         "history": history,
+        "momentum": momentum,
         "countries": countries,
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
@@ -660,11 +835,13 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
     item_errors: list[str] = []
     item_period = None
     items: list[dict[str, Any]] = []
+    breadth: dict[str, Any] | None = None
     try:
         item_period, item_rows = _find_item_period(latest)
         if item_period:
             prior_item_rows = _fetch_item_rows(_month_shift(item_period, -12))
             items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
+            breadth = _build_hs2_breadth(item_rows, prior_item_rows, item_period)
     except Exception as exc:
         item_errors.append(f"품목 데이터: {exc}")
 
@@ -702,7 +879,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
 
     updated = datetime.now(KST).isoformat()
     payload = {
-        "schemaVersion": 3,
+        "schemaVersion": 4,
         "status": "official_api",
         "period": _display_period(latest),
         "periodLabel": f"{latest[:4]}년 {int(latest[4:6])}월",
@@ -729,6 +906,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         # Never manufacture checkpoints from monthly totals.
         "checkpoints": [],
         "items": items,
+        "breadth": breadth,
         "regions": regions,
         "sources": [
             {
