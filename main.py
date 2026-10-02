@@ -1083,7 +1083,12 @@ async def home_bootstrap():
         }
         return JSONResponse(
             content=payload,
-            headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
+            headers={
+                # Rankings/recommendations only change when the data files are
+                # regenerated and deployed. Let browsers/shared caches absorb
+                # repeat traffic instead of re-hitting the free web service.
+                "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
+            },
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"home bootstrap unavailable: {exc}")
@@ -1290,7 +1295,14 @@ async def market_now(fresh: bool = False):
     payload["refreshing"] = bool(MARKET_NOW_CACHE.get("refreshing"))
     payload["refreshScheduled"] = bool(MARKET_NOW_CACHE.get("scheduled"))
     payload["cacheMode"] = "stale-while-revalidate"
-    return payload
+    headers = {
+        "Cache-Control": (
+            "no-store"
+            if fresh
+            else "public, max-age=5, s-maxage=5, stale-while-revalidate=20"
+        )
+    }
+    return JSONResponse(content=payload, headers=headers)
 
 def _load_full_heatmap_us_rows():
     """Load the US heatmap universe/weights only.
