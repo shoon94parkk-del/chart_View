@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-01T18:25:00+09:00",
+  "updated": "2026-10-02T18:20:00+09:00",
   "reviews": [
     {
       "pickId": "2026-09-14:012450",
@@ -94,13 +94,15 @@
     {
       "pickId": "2026-09-18:010120",
       "completed": true,
-      "reviewedAt": "2026-09-28T13:20:00+09:00",
-      "reviewTradeDate": "2026-09-28",
-      "summary": "9월 23일 컨센서스에서 2026년 매출·영업이익 추정치가 한 달 전보다 소폭 상향되어 북미 전력 인프라·수주잔고의 실적 전환 논리는 유지로 판단합니다.",
+      "reviewedAt": "2026-10-02T18:20:00+09:00",
+      "reviewTradeDate": "2026-10-02",
+      "summary": "추천 이후 기존 북미 전력 인프라 성장 논리를 훼손하는 검증된 부정 근거는 확인되지 않았고, 10월 1일 북미 하이퍼스케일 AI 데이터센터향 약 1,812억원 규모 345kV 초고압 변압기 공급계약이 새로 확인돼 수주·AI 전력 인프라 성장 논리가 추가 강화됐습니다.",
       "thesisChecks": {
         "earnings": "OK",
         "orders": "OK",
-        "industry": "OK"
+        "customer": "OK",
+        "industry": "OK",
+        "newGrowth": "OK"
       },
       "evidence": [
         {
@@ -113,6 +115,17 @@
           "materiality": "supporting",
           "independentKey": "earnings_consensus",
           "category": "earnings"
+        },
+        {
+          "verified": true,
+          "publishedAt": "2026-10-01",
+          "sourceTitle": "LS ELECTRIC, 美 데이터센터에 1,800억원 규모 초고압 변압기 공급",
+          "sourceUrl": "https://www.lsholdings.com/ko/media/news/7435596c7242684a3148324a43394b49797153363675374d77584d5955566475",
+          "fact": "LS ELECTRIC이 북미 하이퍼스케일 AI 데이터센터 전력 인프라 프로젝트에 345kV 초고압 변압기를 2030년까지 순차 공급하는 약 1,812억원 계약을 체결함.",
+          "direction": "positive",
+          "materiality": "supporting",
+          "independentKey": "north_america_ai_dc_transformer_1812",
+          "category": "orders"
         }
       ]
     },
