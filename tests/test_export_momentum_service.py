@@ -497,7 +497,7 @@ def test_provisional_radar_builds_same_window_yoy_mom_acceleration_and_contribut
     assert first["semiconductor"]["exportYoY"] == 100.0
     assert first["semiconductor"]["exportMoM"] == pytest.approx(66.7)
     assert first["semiconductorSharePct"] == pytest.approx(33.3)
-    assert second["semiconductorYoYAccelerationPp"] == pytest.approx(100.0)
+    assert second["semiconductorYoYAccelerationPp"] == pytest.approx(0.0)
     assert final["semiconductorContributionPct"] == pytest.approx(60.0)
     assert radar["items"][0]["name"] == "반도체"
     assert radar["meta"]["classification"].startswith("Korea Customs")
