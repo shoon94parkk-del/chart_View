@@ -947,6 +947,192 @@ def _ten_day_month_map(rows: list[dict[str, str]]) -> dict[str, dict[int, dict[s
     return result
 
 
+def _quantile(values: list[float], q: float) -> float | None:
+    clean = sorted(value for value in values if value is not None)
+    if not clean:
+        return None
+    if len(clean) == 1:
+        return clean[0]
+    position = (len(clean) - 1) * min(1.0, max(0.0, q))
+    lower = int(position)
+    upper = min(lower + 1, len(clean) - 1)
+    fraction = position - lower
+    return clean[lower] * (1.0 - fraction) + clean[upper] * fraction
+
+
+def _completion_ratios(
+    month_map: dict[str, dict[int, dict[str, str]]],
+    field: str,
+    stage: int,
+    before_month: str,
+    max_months: int = 60,
+) -> list[tuple[str, float]]:
+    ratios: list[tuple[str, float]] = []
+    for month in sorted((key for key in month_map if key < before_month), reverse=True):
+        rows = month_map.get(month, {})
+        stage_row = rows.get(stage)
+        final_row = rows.get(30)
+        if not stage_row or not final_row:
+            continue
+        partial = _ten_day_amount_billion(stage_row, field)
+        final = _ten_day_amount_billion(final_row, field)
+        if partial is None or final is None or partial <= 0 or final <= 0:
+            continue
+        ratio = partial / final
+        if 0.05 <= ratio <= 1.5:
+            ratios.append((month, ratio))
+        if len(ratios) >= max_months:
+            break
+    ratios.reverse()
+    return ratios
+
+
+def _landing_backtest(
+    month_map: dict[str, dict[int, dict[str, str]]],
+    field: str,
+    stage: int,
+    before_month: str,
+    max_targets: int = 24,
+) -> dict[str, Any]:
+    candidates = [
+        month for month in sorted(month_map)
+        if month < before_month and stage in month_map.get(month, {}) and 30 in month_map.get(month, {})
+    ]
+    results: list[dict[str, float]] = []
+    for target in candidates:
+        history = _completion_ratios(month_map, field, stage, target, max_months=60)
+        ratios = [ratio for _, ratio in history]
+        if len(ratios) < 12:
+            continue
+        median = _quantile(ratios, 0.5)
+        q25 = _quantile(ratios, 0.25)
+        q75 = _quantile(ratios, 0.75)
+        partial = _ten_day_amount_billion(month_map[target][stage], field)
+        actual = _ten_day_amount_billion(month_map[target][30], field)
+        if None in (median, q25, q75, partial, actual) or not actual:
+            continue
+        estimate = partial / median
+        lower = partial / q75
+        upper = partial / q25
+        results.append({
+            "absErrorPct": abs(estimate / actual - 1.0) * 100.0,
+            "inRange": 1.0 if lower <= actual <= upper else 0.0,
+        })
+    results = results[-max_targets:]
+    if not results:
+        return {
+            "sampleCount": 0,
+            "medianAbsErrorPct": None,
+            "rangeHitPct": None,
+        }
+    errors = [row["absErrorPct"] for row in results]
+    return {
+        "sampleCount": len(results),
+        "medianAbsErrorPct": round(_quantile(errors, 0.5) or 0.0, 1),
+        "rangeHitPct": round(sum(row["inRange"] for row in results) / len(results) * 100.0, 1),
+    }
+
+
+def _landing_projection_metric(
+    month_map: dict[str, dict[int, dict[str, str]]],
+    month: str,
+    stage: int,
+    field: str,
+    *,
+    actual_if_known: bool,
+) -> dict[str, Any] | None:
+    current_rows = month_map.get(month, {})
+    stage_row = current_rows.get(stage)
+    if not stage_row:
+        return None
+    current = _ten_day_amount_billion(stage_row, field)
+    if current is None or current <= 0:
+        return None
+
+    history = _completion_ratios(month_map, field, stage, month, max_months=60)
+    ratios = [ratio for _, ratio in history]
+    if len(ratios) < 12:
+        return None
+    q25 = _quantile(ratios, 0.25)
+    median = _quantile(ratios, 0.5)
+    q75 = _quantile(ratios, 0.75)
+    if None in (q25, median, q75) or min(q25, median, q75) <= 0:
+        return None
+
+    estimate = current / median
+    lower = current / q75
+    upper = current / q25
+    prior_final = _ten_day_amount_billion(
+        month_map.get(_month_shift(month, -12), {}).get(30, {}),
+        field,
+    )
+    backtest = _landing_backtest(month_map, field, stage, month)
+    actual = _ten_day_amount_billion(current_rows.get(30, {}), field) if actual_if_known else None
+
+    return {
+        "currentUsdBillion": round(current, 4),
+        "estimateUsdBillion": round(estimate, 4),
+        "rangeLowUsdBillion": round(lower, 4),
+        "rangeHighUsdBillion": round(upper, 4),
+        "medianCompletionPct": round(median * 100.0, 1),
+        "completionQ25Pct": round(q25 * 100.0, 1),
+        "completionQ75Pct": round(q75 * 100.0, 1),
+        "projectedYoY": _pct(estimate, prior_final),
+        "rangeYoYLow": _pct(lower, prior_final),
+        "rangeYoYHigh": _pct(upper, prior_final),
+        "historySampleCount": len(ratios),
+        "backtest": backtest,
+        "actualUsdBillion": round(actual, 4) if actual is not None else None,
+        "actualErrorPct": round((estimate / actual - 1.0) * 100.0, 1) if actual else None,
+    }
+
+
+def _build_landing_projection(
+    month_map: dict[str, dict[int, dict[str, str]]],
+    month: str,
+) -> dict[str, Any] | None:
+    rows = month_map.get(month, {})
+    if not rows:
+        return None
+    latest_stage = max(rows)
+    is_final = 30 in rows
+    stage = 20 if is_final and 20 in rows else 10 if is_final and 10 in rows else latest_stage
+    if stage not in (10, 20):
+        return {
+            "status": "final",
+            "stage": 30,
+            "stageLabel": "월 전체",
+            "message": "월말 잠정치가 발표되어 착지 추정 대신 실제 마감값을 표시합니다.",
+            "total": None,
+            "semiconductor": None,
+        }
+
+    total = _landing_projection_metric(
+        month_map, month, stage, "itemUsdAmt00", actual_if_known=is_final
+    )
+    semiconductor = _landing_projection_metric(
+        month_map, month, stage, "itemUsdAmt01", actual_if_known=is_final
+    )
+    return {
+        "status": "final-review" if is_final else "open",
+        "stage": stage,
+        "stageLabel": _ten_day_stage_label(stage),
+        "message": (
+            "월말 잠정치가 발표되어 당시 체크포인트 추정과 실제 마감값을 비교합니다."
+            if is_final else
+            "과거 같은 단계의 월말 완성률 분포로 계산한 통계적 착지 범위입니다."
+        ),
+        "total": total,
+        "semiconductor": semiconductor,
+        "model": {
+            "historyWindowMonths": 60,
+            "range": "completion ratio 25th–75th percentile",
+            "backtestWindowMonths": 24,
+            "minimumHistorySamples": 12,
+        },
+    }
+
+
 def _ten_day_metric_row(
     row: dict[str, str],
     prior_row: dict[str, str] | None,
@@ -969,7 +1155,9 @@ def _ten_day_metric_row(
 def _build_provisional_radar(now: datetime | None = None) -> dict[str, Any]:
     now = now or datetime.now(KST)
     query_end = now.strftime("%Y%m")
-    query_start = _month_shift(query_end, -13)
+    # The 10-day API payload is compact. Keep six years so the landing model
+    # has enough history for rolling completion ratios and out-of-sample backtests.
+    query_start = _month_shift(query_end, -71)
     rows = _fetch_ten_day_rows(query_start, query_end)
     month_map = _ten_day_month_map(rows)
     if not month_map:
@@ -1031,9 +1219,10 @@ def _build_provisional_radar(now: datetime | None = None) -> dict[str, Any]:
             **metric,
         })
     items.sort(key=lambda item: item.get("exportsUsdBillion") or 0.0, reverse=True)
+    landing_projection = _build_landing_projection(month_map, latest_month)
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "status": "official_preliminary_api",
         "period": _display_period(latest_month),
         "periodLabel": f"{latest_month[:4]}년 {int(latest_month[4:6])}월",
@@ -1041,12 +1230,14 @@ def _build_provisional_radar(now: datetime | None = None) -> dict[str, Any]:
         "latestStageLabel": _ten_day_stage_label(latest_stage),
         "checkpoints": checkpoints,
         "items": items,
+        "landingProjection": landing_projection,
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "basis": "수출신고수리일 기준 10일 단위 누적 잠정치",
             "unit": "USD billion (provider source: USD thousand)",
             "classification": "Korea Customs 10 major export product categories; not HS monthly classification",
             "queryRange": f"{_display_period(query_start)}~{_display_period(query_end)}",
+            "landingModel": "rolling completion-ratio median with interquartile range and 24-month backtest",
             "cacheTtlSec": PROVISIONAL_CACHE_TTL_SEC,
         },
         "source": {
