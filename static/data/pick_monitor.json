@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T18:14:01+09:00",
+  "generatedAt": "2026-10-02T18:22:55+09:00",
   "source": "static/data/ai_daily_rankings.json",
-  "sourceUpdated": "2026-10-01T18:12:00+09:00",
+  "sourceUpdated": "2026-10-02T18:09:00+09:00",
   "policy": {
     "automaticExitAllowed": false,
     "userConfirmationRequiredForExit": true,
@@ -1905,7 +1905,127 @@
         "reasons": [],
         "advisoryOnly": true
       }
+    },
+    {
+      "pickId": "2026-10-02:373220",
+      "code": "373220",
+      "symbol": "373220.KS",
+      "name": "LG에너지솔루션",
+      "pickDate": "2026-10-02",
+      "rank": 1,
+      "pickPrice": 369000,
+      "changePctAtPick": 2.36,
+      "scoreAtPick": 85,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "북미 ESS와 AI 데이터센터용 에너지저장 수요 확대, 46시리즈 배터리 및 ESS CAPA 확장이 성장축.",
+        "pillars": [
+          "북미 ESS와 AI 데이터센터용 에너지저장 수요 확대, 46시리즈 배터리 및 ESS CAPA 확장이 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-02T18:10:00+09:00",
+        "lastReviewedTradeDate": "2026-10-02",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 2일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 북미 ESS·AI 데이터센터향 수주, 46시리즈 양산, ESS CAPA와 수익성 개선 여부를 검증합니다.",
+        "reviewKey": "2026-10-02T18:10:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-02",
+        "scoreAtPick": 25.0,
+        "score": 25.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 55.8,
+        "ret5": 5.55,
+        "ret20": 6.76,
+        "change1d": 2.91,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
+      }
+    },
+    {
+      "pickId": "2026-10-02:440110",
+      "code": "440110",
+      "symbol": "440110.KQ",
+      "name": "파두",
+      "pickDate": "2026-10-02",
+      "rank": 2,
+      "pickPrice": 86200,
+      "changePctAtPick": -3.9,
+      "scoreAtPick": 87,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "데이터센터용 SSD 컨트롤러 양산 확대와 해외 NAND·서버 고객 프로젝트 증가가 성장축.",
+        "pillars": [
+          "데이터센터용 SSD 컨트롤러 양산 확대와 해외 NAND·서버 고객 프로젝트 증가가 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-02T18:10:00+09:00",
+        "lastReviewedTradeDate": "2026-10-02",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 2일 신규 PICK으로 확정됐습니다. 추천 이후 새 펀더멘털 근거가 아직 없으며, 다음 사후점검에서 SSD 컨트롤러 양산 프로젝트, 해외 NAND·서버 고객 확대, 신규 수주와 실적 반영 여부를 검증합니다.",
+        "reviewKey": "2026-10-02T18:10:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-02",
+        "scoreAtPick": 28.0,
+        "score": 28.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 62.7,
+        "ret5": 5.27,
+        "ret20": 36.78,
+        "change1d": -4.24,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [
+          "20일 수익률 +36.8% 급등"
+        ],
+        "advisoryOnly": true
+      }
     }
   ],
-  "reviewSourceUpdated": "2026-10-02T18:20:00+09:00"
+  "reviewSourceUpdated": "2026-10-02T18:10:00+09:00"
 }
