@@ -510,3 +510,96 @@ def test_ten_day_month_map_keeps_latest_row_per_stage():
     ]
     mapped = export_service._ten_day_month_map(rows)
     assert mapped["202609"][10]["itemUsdAmt00"] == "2"
+
+
+
+def _synthetic_landing_month_map(current_month="202610", current_stage=20, final_current=None):
+    data = {}
+    month = "202301"
+    for index in range(44):
+        full_total = 60.0 + index
+        full_semi = 18.0 + index * 0.7
+        ratio10 = [0.28, 0.31, 0.34, 0.37][index % 4]
+        ratio20 = [0.60, 0.66, 0.72, 0.78][index % 4]
+        data[month] = {
+            10: {
+                "priodMon": export_service._display_period(month),
+                "priodDt": "01~10",
+                "itemUsdAmt00": str(full_total * ratio10 * 1_000_000),
+                "itemUsdAmt01": str(full_semi * ratio10 * 1_000_000),
+            },
+            20: {
+                "priodMon": export_service._display_period(month),
+                "priodDt": "01~20",
+                "itemUsdAmt00": str(full_total * ratio20 * 1_000_000),
+                "itemUsdAmt01": str(full_semi * ratio20 * 1_000_000),
+            },
+            30: {
+                "priodMon": export_service._display_period(month),
+                "priodDt": "01~30",
+                "itemUsdAmt00": str(full_total * 1_000_000),
+                "itemUsdAmt01": str(full_semi * 1_000_000),
+            },
+        }
+        month = export_service._month_shift(month, 1)
+
+    current = {
+        current_stage: {
+            "priodMon": export_service._display_period(current_month),
+            "priodDt": "01~20" if current_stage == 20 else "01~10",
+            "itemUsdAmt00": str(84.0 * 1_000_000),
+            "itemUsdAmt01": str(42.0 * 1_000_000),
+        }
+    }
+    if final_current is not None:
+        current[30] = {
+            "priodMon": export_service._display_period(current_month),
+            "priodDt": "01~31",
+            "itemUsdAmt00": str(final_current[0] * 1_000_000),
+            "itemUsdAmt01": str(final_current[1] * 1_000_000),
+        }
+    data[current_month] = current
+    return data
+
+
+def test_landing_projection_uses_median_completion_and_iqr_with_backtest():
+    month_map = _synthetic_landing_month_map()
+    projection = export_service._build_landing_projection(month_map, "202610")
+    assert projection["status"] == "open"
+    assert projection["stage"] == 20
+    total = projection["total"]
+    semi = projection["semiconductor"]
+    assert total["historySampleCount"] >= 40
+    assert 60 <= total["medianCompletionPct"] <= 78
+    assert total["rangeLowUsdBillion"] < total["estimateUsdBillion"] < total["rangeHighUsdBillion"]
+    assert total["backtest"]["sampleCount"] > 0
+    assert total["backtest"]["medianAbsErrorPct"] is not None
+    assert 0 <= total["backtest"]["rangeHitPct"] <= 100
+    assert semi["estimateUsdBillion"] > 42.0
+
+
+def test_landing_projection_final_review_compares_stage_estimate_with_actual():
+    month_map = _synthetic_landing_month_map(current_month="202609", current_stage=20, final_current=(120.0, 60.0))
+    projection = export_service._build_landing_projection(month_map, "202609")
+    assert projection["status"] == "final-review"
+    assert projection["stage"] == 20
+    assert projection["total"]["actualUsdBillion"] == pytest.approx(120.0)
+    assert projection["semiconductor"]["actualUsdBillion"] == pytest.approx(60.0)
+    assert projection["total"]["actualErrorPct"] is not None
+
+
+def test_landing_projection_final_without_10_or_20_stage_shows_actual_only():
+    month_map = {
+        "202609": {
+            30: {
+                "priodMon": "2026.09",
+                "priodDt": "01~30",
+                "itemUsdAmt00": "120000000",
+                "itemUsdAmt01": "60000000",
+            }
+        }
+    }
+    projection = export_service._build_landing_projection(month_map, "202609")
+    assert projection["status"] == "final"
+    assert projection["stage"] == 30
+    assert projection["total"] is None
