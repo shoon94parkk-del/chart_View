@@ -870,12 +870,9 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
     shared = {}
     missing = []
     for ticker in symbols:
-        if ticker in HOME_MAJOR_TICKERS:
+        if not fresh and ticker in HOME_MAJOR_TICKERS:
             market = "KR" if ticker.endswith((".KS", ".KQ")) else "US"
             updated_epoch = float((HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}).get(ticker) or 0)
-            # A detail "fresh" poll should not block first paint on Yahoo I/O when
-            # the shared Home worker already has a recent observation. Open markets
-            # stay tight; closed markets can safely reuse the final session quote.
             max_age = 15.0 if market in open_markets else 600.0
             row = shared_quotes.get(ticker)
             if row and updated_epoch and now - updated_epoch <= max_age:
@@ -914,7 +911,7 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
             "change": "percent change versus previous trading close",
             "asOf": "provider market timestamp when available",
             "currency": "provider currency",
-            "cache": "recent shared Home quote is reused for first paint, including fresh polls; canonical provider fallback is used when shared data is absent or stale",
+            "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
             "missingValue": "null/omitted; zero is not used as a missing-value substitute",
         },
     }
