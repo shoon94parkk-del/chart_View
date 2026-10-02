@@ -239,22 +239,23 @@ def _find_item_period(latest: str, max_back: int = 3) -> tuple[str | None, list[
     return None, []
 
 
-def _hs_prefix_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -> float | None:
+def _hs_prefix_metric(
+    rows: list[dict[str, str]],
+    requested: str,
+    yyyymm: str,
+    field: str,
+) -> float | None:
     candidates = [
         row for row in _month_rows(rows, yyyymm)
-        if _row_hs_code(row).startswith(requested)
+        if _row_hs_code(row).startswith(requested) and _number(row.get(field)) is not None
     ]
     if not candidates:
         return None
 
     exact = [row for row in candidates if _row_hs_code(row) == requested]
     if exact:
-        return sum(_number(row.get("expDlr")) or 0.0 for row in exact)
+        return sum(_number(row.get(field)) or 0.0 for row in exact)
 
-    # The unfiltered Itemtrade response normally contains HSK 10-digit leaves.
-    # If an endpoint revision returns hierarchy levels, the shortest level
-    # inside the requested prefix is the aggregate level and avoids counting
-    # the same trade again through its descendants.
     lengths = [len(_row_hs_code(row)) for row in candidates if _row_hs_code(row).isdigit()]
     if not lengths:
         return None
@@ -264,8 +265,22 @@ def _hs_prefix_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -
         code = _row_hs_code(row)
         if len(code) != aggregate_len:
             continue
-        by_code[code] = max(by_code.get(code, 0.0), _number(row.get("expDlr")) or 0.0)
+        by_code[code] = max(by_code.get(code, 0.0), _number(row.get(field)) or 0.0)
     return sum(by_code.values()) if by_code else None
+
+
+def _hs_prefix_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -> float | None:
+    return _hs_prefix_metric(rows, requested, yyyymm, "expDlr")
+
+
+def _hs_prefix_weight(rows: list[dict[str, str]], requested: str, yyyymm: str) -> float | None:
+    return _hs_prefix_metric(rows, requested, yyyymm, "expWgt")
+
+
+def _unit_value_usd_per_kg(amount: float | None, weight: float | None) -> float | None:
+    if amount is None or weight is None or weight <= 0:
+        return None
+    return round(amount / weight, 4)
 
 
 def _build_items_from_rows(
@@ -278,14 +293,33 @@ def _build_items_from_rows(
     for group in ITEM_GROUPS:
         current_values = [_hs_prefix_export(current_rows, code, period) for code in group["codes"]]
         prior_values = [_hs_prefix_export(prior_rows, code, prior) for code in group["codes"]]
+        current_weights = [_hs_prefix_weight(current_rows, code, period) for code in group["codes"]]
+        prior_weights = [_hs_prefix_weight(prior_rows, code, prior) for code in group["codes"]]
         if not any(value is not None for value in current_values):
             continue
         current = sum(value for value in current_values if value is not None)
         previous = sum(value for value in prior_values if value is not None)
+        current_weight = sum(value for value in current_weights if value is not None)
+        previous_weight = sum(value for value in prior_weights if value is not None)
+        current_unit = _unit_value_usd_per_kg(
+            current,
+            current_weight if any(v is not None for v in current_weights) else None,
+        )
+        previous_unit = _unit_value_usd_per_kg(
+            previous if any(v is not None for v in prior_values) else None,
+            previous_weight if any(v is not None for v in prior_weights) else None,
+        )
         results.append({
             "name": group["name"],
             "exportsUsdBillion": _billion(current),
             "exportYoY": _pct(current, previous if any(v is not None for v in prior_values) else None),
+            "exportWeightKg": round(current_weight, 3) if any(v is not None for v in current_weights) else None,
+            "exportWeightYoY": _pct(
+                current_weight if any(v is not None for v in current_weights) else None,
+                previous_weight if any(v is not None for v in prior_weights) else None,
+            ),
+            "unitValueUsdPerKg": current_unit,
+            "unitValueYoY": _pct(current_unit, previous_unit),
             "note": group["note"],
         })
     return results
@@ -470,7 +504,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
 
     updated = datetime.now(KST).isoformat()
     payload = {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "status": "official_api",
         "period": _display_period(latest),
         "periodLabel": f"{latest[:4]}년 {int(latest[4:6])}월",
@@ -518,7 +552,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "cacheTtlSec": CACHE_TTL_SEC,
-            "itemMethod": "HS proxy groups",
+            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value",
             "regionMethod": "single-month country query total; HS detail fallback without hierarchy double count",
             "detailLagMonths": {
                 "items": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(item_period[:4]) * 12 + int(item_period[4:6]))) if item_period else None,
