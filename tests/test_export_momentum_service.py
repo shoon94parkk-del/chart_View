@@ -473,7 +473,7 @@ def test_ten_day_amount_converts_thousand_dollars_to_billions():
     assert export_service._ten_day_amount_billion({"itemUsdAmt00": "34,973,000"}, "itemUsdAmt00") == pytest.approx(34.973)
 
 
-def test_provisional_radar_builds_same-window_yoy_mom_acceleration_and_contribution(monkeypatch):
+def test_provisional_radar_builds_same_window_yoy_mom_acceleration_and_contribution(monkeypatch):
     rows = [
         {"priodMon": "2025.09", "priodDt": "01~10", "itemUsdAmt00": "20000000", "itemUsdAmt01": "5000000", "itemUsdAmt02": "1000000"},
         {"priodMon": "2025.09", "priodDt": "01~20", "itemUsdAmt00": "40000000", "itemUsdAmt01": "9000000", "itemUsdAmt02": "2000000"},
