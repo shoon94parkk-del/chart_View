@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-01T18:12:00+09:00",
+  "updated": "2026-10-02T18:09:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -630,6 +630,68 @@
             "technical": 28
           },
           "reason": "CVD/ALD 증착장비용 Heater Block의 신규 FAB 설치·기존 장비 교체수요와 고사양 MCA·Ceramic Heater 확장이 성장축."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-02",
+      "status": "사용자 확정 2종목 — 2026-10-02 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-10-02",
+        "analyzedAt": "2026-10-02T18:09:00+09:00",
+        "candidateFile": "static/data/screener_top100.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v2-new-pick-exclusion",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "373220",
+          "symbol": "373220.KS",
+          "name": "LG에너지솔루션",
+          "close": 369000,
+          "previousClose": 360500,
+          "changePct": 2.36,
+          "totalScore": 85,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 3,
+            "catalystRisk": 8,
+            "technical": 25
+          },
+          "reason": "북미 ESS와 AI 데이터센터용 에너지저장 수요 확대, 46시리즈 배터리 및 ESS CAPA 확장이 성장축."
+        },
+        {
+          "rank": 2,
+          "code": "440110",
+          "symbol": "440110.KQ",
+          "name": "파두",
+          "close": 86200,
+          "previousClose": 89700,
+          "changePct": -3.9,
+          "totalScore": 87,
+          "grade": "사용자 확정",
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 3,
+            "catalystRisk": 6,
+            "technical": 28
+          },
+          "reason": "데이터센터용 SSD 컨트롤러 양산 확대와 해외 NAND·서버 고객 프로젝트 증가가 성장축."
         }
       ]
     }
