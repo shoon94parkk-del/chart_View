@@ -44,6 +44,14 @@ DETAIL_CACHE_TTL_SEC = 6 * 60 * 60
 _DETAIL_CACHE: dict[str, dict[str, Any]] = {}
 _DETAIL_CACHE_LOCK = asyncio.Lock()
 
+SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC = 12 * 60 * 60
+_SEMICONDUCTOR_COUNTRY_CACHE: dict[str, Any] = {
+    "data": None,
+    "timestamp": 0.0,
+    "lastError": None,
+}
+_SEMICONDUCTOR_COUNTRY_LOCK = asyncio.Lock()
+
 # These are explicit HS proxies, not company-level exports and not MTI headline
 # categories. Keeping that distinction visible prevents overclaiming.
 ITEM_GROUPS = (
@@ -129,6 +137,22 @@ COUNTRIES = (
     {"name": "베트남", "code": "VN"},
     {"name": "일본", "code": "JP"},
     {"name": "대만", "code": "TW"},
+)
+
+SEMICONDUCTOR_COUNTRY_SEGMENT_KEYS = (
+    "dram",
+    "flash",
+    "mcp-memory",
+    "dram-module",
+)
+
+SEMICONDUCTOR_COUNTRY_MARKETS = (
+    {"name": "중국", "code": "CN"},
+    {"name": "홍콩", "code": "HK"},
+    {"name": "베트남", "code": "VN"},
+    {"name": "대만", "code": "TW"},
+    {"name": "미국", "code": "US"},
+    {"name": "일본", "code": "JP"},
 )
 
 HS2_NAMES = {
@@ -854,6 +878,150 @@ def _build_semiconductor_breakdown_from_rows(
     return results
 
 
+def _semiconductor_segment(key: str) -> dict[str, str] | None:
+    return next((row for row in SEMICONDUCTOR_SEGMENTS if row["key"] == key), None)
+
+
+def _fetch_semiconductor_country_pair(
+    segment: dict[str, str],
+    country: dict[str, str],
+    period: str,
+    prior: str,
+) -> dict[str, Any] | None:
+    current_rows = _request_rows(
+        ITEM_COUNTRY_URL,
+        strtYymm=period,
+        endYymm=period,
+        hsSgn=segment["code"],
+        cntyCd=country["code"],
+    )
+    prior_rows = _request_rows(
+        ITEM_COUNTRY_URL,
+        strtYymm=prior,
+        endYymm=prior,
+        hsSgn=segment["code"],
+        cntyCd=country["code"],
+    )
+    current = _country_export(current_rows, period)
+    previous = _country_export(prior_rows, prior)
+    if current is None:
+        return None
+    return {
+        "name": country["name"],
+        "code": country["code"],
+        "exportsUsdBillion": _billion(current),
+        "priorExportsUsdBillion": _billion(previous),
+        "exportYoY": _pct(current, previous),
+        "deltaUsdBillion": _billion(current - (previous or 0.0)) if previous is not None else None,
+    }
+
+
+def _build_semiconductor_country_matrix(snapshot: dict[str, Any]) -> dict[str, Any]:
+    raw_period = snapshot.get("itemPeriod")
+    period = str(raw_period or "").replace("-", "")
+    if not period:
+        raise CustomsApiError("반도체 국가 분석 기준월이 없습니다.")
+    prior = _month_shift(period, -12)
+    breakdown = {
+        row.get("key"): row
+        for row in (snapshot.get("semiconductorBreakdown") or [])
+        if row.get("key")
+    }
+
+    segments = [
+        row for row in (
+            _semiconductor_segment(key) for key in SEMICONDUCTOR_COUNTRY_SEGMENT_KEYS
+        )
+        if row
+    ]
+    results: dict[str, list[dict[str, Any]]] = {row["key"]: [] for row in segments}
+    errors: list[str] = []
+
+    with ThreadPoolExecutor(max_workers=8, thread_name_prefix="customs-semi-country") as pool:
+        future_map = {
+            pool.submit(
+                _fetch_semiconductor_country_pair,
+                segment,
+                country,
+                period,
+                prior,
+            ): (segment, country)
+            for segment in segments
+            for country in SEMICONDUCTOR_COUNTRY_MARKETS
+        }
+        for future in as_completed(future_map):
+            segment, country = future_map[future]
+            try:
+                row = future.result()
+                if row:
+                    results[segment["key"]].append(row)
+            except Exception as exc:
+                errors.append(f"{segment['name']}·{country['name']}: {exc}")
+
+    segment_rows: list[dict[str, Any]] = []
+    market_order = {row["code"]: index for index, row in enumerate(SEMICONDUCTOR_COUNTRY_MARKETS)}
+    for segment in segments:
+        countries = results.get(segment["key"], [])
+        countries.sort(key=lambda row: market_order.get(row["code"], 999))
+        total = _number((breakdown.get(segment["key"]) or {}).get("exportsUsdBillion"))
+        covered = sum((row.get("exportsUsdBillion") or 0.0) for row in countries)
+        for row in countries:
+            row["sharePct"] = round((row["exportsUsdBillion"] or 0.0) / total * 100.0, 1) if total and total > 0 else None
+
+        comparable = [row for row in countries if row.get("deltaUsdBillion") is not None]
+        leader = max(countries, key=lambda row: row.get("exportsUsdBillion") or 0.0, default=None)
+        growth = max(comparable, key=lambda row: row.get("deltaUsdBillion") or 0.0, default=None)
+        decline = min(comparable, key=lambda row: row.get("deltaUsdBillion") or 0.0, default=None)
+        segment_rows.append({
+            "key": segment["key"],
+            "name": segment["name"],
+            "code": segment["code"],
+            "period": _display_period(period),
+            "exportsUsdBillion": total,
+            "coveredSharePct": round(covered / total * 100.0, 1) if total and total > 0 else None,
+            "leaderCountry": leader.get("name") if leader else None,
+            "growthLeaderCountry": growth.get("name") if growth and (growth.get("deltaUsdBillion") or 0) > 0 else None,
+            "declineLeaderCountry": decline.get("name") if decline and (decline.get("deltaUsdBillion") or 0) < 0 else None,
+            "countries": countries,
+        })
+
+    return {
+        "schemaVersion": 1,
+        "period": _display_period(period),
+        "segments": segment_rows,
+        "markets": [dict(row) for row in SEMICONDUCTOR_COUNTRY_MARKETS],
+        "meta": {
+            "provider": "Korea Customs Service / data.go.kr",
+            "scope": "CN, HK, VN, TW, US, JP configured semiconductor markets; not a global ranking",
+            "comparison": "current month vs same month one year earlier",
+            "cacheTtlSec": SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC,
+            "errors": errors[:8],
+        },
+    }
+
+
+async def _refresh_semiconductor_country_matrix() -> dict[str, Any]:
+    async with _SEMICONDUCTOR_COUNTRY_LOCK:
+        age = time.time() - float(_SEMICONDUCTOR_COUNTRY_CACHE.get("timestamp") or 0.0)
+        cached = _SEMICONDUCTOR_COUNTRY_CACHE.get("data")
+        if cached is not None and age < SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC:
+            return cached
+
+        snapshot = _CACHE.get("data")
+        if snapshot is None:
+            snapshot = await _refresh_cache()
+
+        try:
+            data = await asyncio.to_thread(_build_semiconductor_country_matrix, snapshot)
+            _SEMICONDUCTOR_COUNTRY_CACHE["data"] = data
+            _SEMICONDUCTOR_COUNTRY_CACHE["timestamp"] = time.time()
+            _SEMICONDUCTOR_COUNTRY_CACHE["lastError"] = None
+            return data
+        except Exception as exc:
+            _SEMICONDUCTOR_COUNTRY_CACHE["lastError"] = str(exc)
+            raise
+
+
 def _fetch_country_item_export(country: dict[str, str], group: dict[str, Any], period: str) -> dict[str, Any] | None:
     total = 0.0
     found = False
@@ -1230,6 +1398,32 @@ async def export_momentum(response: Response):
                 "code": "CUSTOMS_API_UNAVAILABLE",
                 "message": str(exc)[:300],
             },
+        ) from exc
+
+
+@router.get("/api/export-momentum/semiconductor-countries")
+async def export_momentum_semiconductor_countries(response: Response):
+    response.headers["Cache-Control"] = "public, max-age=900, stale-while-revalidate=43200"
+    cached = _SEMICONDUCTOR_COUNTRY_CACHE.get("data")
+    age = time.time() - float(_SEMICONDUCTOR_COUNTRY_CACHE.get("timestamp") or 0.0)
+    if cached is not None and age < SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC:
+        result = copy.deepcopy(cached)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    try:
+        data = await _refresh_semiconductor_country_matrix()
+        result = copy.deepcopy(data)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    except Exception as exc:
+        if cached:
+            result = copy.deepcopy(cached)
+            result.setdefault("meta", {})["cacheStatus"] = "stale-error"
+            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            return result
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SEMICONDUCTOR_COUNTRY_UNAVAILABLE", "message": str(exc)[:300]},
         ) from exc
 
 

@@ -392,3 +392,10 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - DRAM HSK 8542321010 단일 코드로 최신 상세월을 probe한 뒤, 실제 데이터가 있는 월만 전체 HSK를 조회한다.
 - 최신월 전체 HSK와 전년동월 전체 HSK는 병렬로 받고, 반도체 MoM 핵심 5개 조회도 같은 병렬 구간에서 수행한다.
 - 기존 _find_item_period는 호환 래퍼로 유지하되 운영 snapshot 생성은 lightweight candidate 탐색을 사용한다.
+
+## 2026-10-02 — 반도체 세부 품목 × 국가
+- 품목별 국가별 API는 국가코드가 필수이므로 전세계 순위를 가장한 화면을 만들지 않는다.
+- 반도체 국가 분석은 DRAM, Flash memory, MCP, DRAM 모듈 4개 품목과 중국·홍콩·베트남·대만·미국·일본 6개 지정시장으로 제한한다.
+- 각 조합에 현재월/전년동월 수출액을 조회해 YoY, 전년동월 대비 증감액, 해당 품목 전세계 총수출 대비 비중을 계산한다.
+- 국가 분석은 별도 endpoint + 12시간 서버 캐시로 제공하며 메인 수출 snapshot과 품목 12개월 상세의 초기 로딩에 포함하지 않는다.
+- ‘최대 시장’, ‘증가 기여’, ‘감소 기여’는 6개 지정시장 안에서만 계산한다.

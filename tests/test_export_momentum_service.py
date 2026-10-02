@@ -391,3 +391,69 @@ def test_item_period_candidate_uses_probe_without_full_table(monkeypatch):
     monkeypatch.setattr(export_service, "_item_period_available", fake_probe)
     assert export_service._find_item_period_candidate("202609") == "202607"
     assert calls == ["202609", "202608", "202607"]
+
+
+
+def test_semiconductor_country_pair_queries_exact_hsk_and_country(monkeypatch):
+    calls = []
+    def fake_request(url, **params):
+        calls.append((url, params["strtYymm"], params["endYymm"], params["hsSgn"], params["cntyCd"]))
+        value = "1200000000" if params["strtYymm"] == "202608" else "1000000000"
+        return [{"year": params["strtYymm"][:4] + "." + params["strtYymm"][4:], "hsCd": params["hsSgn"], "expDlr": value}]
+    monkeypatch.setattr(export_service, "_request_rows", fake_request)
+    segment = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram")
+    country = {"name": "중국", "code": "CN"}
+    row = export_service._fetch_semiconductor_country_pair(segment, country, "202608", "202508")
+    assert calls == [
+        (export_service.ITEM_COUNTRY_URL, "202608", "202608", "8542321010", "CN"),
+        (export_service.ITEM_COUNTRY_URL, "202508", "202508", "8542321010", "CN"),
+    ]
+    assert row["exportsUsdBillion"] == pytest.approx(1.2)
+    assert row["exportYoY"] == 20.0
+    assert row["deltaUsdBillion"] == pytest.approx(0.2)
+
+
+def test_semiconductor_country_matrix_is_configured_market_comparison(monkeypatch):
+    values = {
+        "CN": (4.0, 3.0),
+        "HK": (2.0, 1.0),
+        "VN": (1.5, 1.0),
+        "TW": (1.0, 1.2),
+        "US": (0.8, 0.7),
+        "JP": (0.4, 0.5),
+    }
+    def fake_pair(segment, country, period, prior):
+        current, previous = values[country["code"]]
+        factor = {"dram": 1.0, "flash": 0.25, "mcp-memory": 0.7, "dram-module": 0.4}[segment["key"]]
+        current *= factor
+        previous *= factor
+        return {
+            "name": country["name"],
+            "code": country["code"],
+            "exportsUsdBillion": current,
+            "priorExportsUsdBillion": previous,
+            "exportYoY": export_service._pct(current, previous),
+            "deltaUsdBillion": round(current - previous, 4),
+        }
+    monkeypatch.setattr(export_service, "_fetch_semiconductor_country_pair", fake_pair)
+    snapshot = {
+        "itemPeriod": "2026-08",
+        "semiconductorBreakdown": [
+            {"key": "dram", "exportsUsdBillion": 15.0},
+            {"key": "flash", "exportsUsdBillion": 4.0},
+            {"key": "mcp-memory", "exportsUsdBillion": 10.0},
+            {"key": "dram-module", "exportsUsdBillion": 6.0},
+        ],
+    }
+    matrix = export_service._build_semiconductor_country_matrix(snapshot)
+    assert matrix["period"] == "2026-08"
+    assert [row["code"] for row in matrix["markets"]] == ["CN", "HK", "VN", "TW", "US", "JP"]
+    assert len(matrix["segments"]) == 4
+    dram = next(row for row in matrix["segments"] if row["key"] == "dram")
+    assert len(dram["countries"]) == 6
+    assert dram["leaderCountry"] == "중국"
+    assert dram["growthLeaderCountry"] == "중국"
+    assert dram["declineLeaderCountry"] == "대만"
+    china = next(row for row in dram["countries"] if row["code"] == "CN")
+    assert china["sharePct"] == pytest.approx(26.7)
+    assert "not a global ranking" in matrix["meta"]["scope"]
