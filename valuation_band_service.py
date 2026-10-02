@@ -16,10 +16,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+from request_coalescing import singleflight
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
 HEADERS = {"User-Agent": UA, "Accept": "application/json,text/plain,*/*"}
-CACHE_TTL = 1800
+CACHE_TTL = 21600
 FINANCIAL_LAG_DAYS = 45
 
 _cache_lock = threading.Lock()
@@ -223,6 +224,7 @@ def _ratio_check(points: list[dict[str, Any]], sparse_ratio: list[dict[str, Any]
     return {"samples": samples, "medianAbsPctDiff": round(_percentile(diffs, 0.5) or 0.0, 1)}
 
 
+@singleflight
 def fetch_valuation_bands(symbol: str, years: int = 3) -> dict[str, Any]:
     symbol = symbol.strip().upper()
     years = max(1, min(int(years or 3), 3))
