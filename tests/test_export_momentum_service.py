@@ -184,10 +184,10 @@ def test_momentum_summary_compares_latest_three_months_with_previous_three():
     assert len(momentum["phaseHistory"]) == 6
 
 
-def test_semiconductor_segment_uses_official_hsk_and_24_month_history(monkeypatch):
+def test_semiconductor_segment_splits_yoy_history_into_two_one_year_windows(monkeypatch):
+    calls = []
     def fake_range(code, start, end):
-        assert start == "202409"
-        assert end == "202608"
+        calls.append((code, start, end))
         rows = []
         period = start
         while period <= end:
@@ -208,6 +208,10 @@ def test_semiconductor_segment_uses_official_hsk_and_24_month_history(monkeypatc
     monkeypatch.setattr(export_service, "_fetch_item_range_rows", fake_range)
     segment = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram")
     result = export_service._build_semiconductor_segment(segment, "202608")
+    assert calls == [
+        ("8542321010", "202509", "202608"),
+        ("8542321010", "202409", "202508"),
+    ]
     assert result["code"] == "8542321010"
     assert result["name"] == "DRAM"
     assert len(result["history"]) == 12
