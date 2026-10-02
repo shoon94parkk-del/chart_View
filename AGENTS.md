@@ -3,22 +3,25 @@
 Chart View is improved incrementally. Do not rely on chat memory alone and do not silently undo a behavior that was intentionally fixed.
 
 ## Read before editing
-1. `docs/project-memory.md`
-2. `docs/regression-guardrails.md`
-3. `docs/decision-log.md`
-4. `docs/handover.md`
-5. Tests nearest to the code you will change
+1. `docs/no-repeat-regression-policy.md`
+2. `docs/project-memory.md`
+3. `docs/regression-guardrails.md`
+4. `docs/decision-log.md`
+5. `docs/handover.md`
+6. Tests nearest to the code you will change
 
 ## Required workflow
-1. Search for prior work on the same behavior before editing.
-2. Preserve current UX/data contracts unless the user explicitly requests a change.
-3. Add or update a regression test for every behavioral bug fix.
-4. If bundled frontend source changes, keep source, generated bundle, and content-hash asset key synchronized.
-5. `python scripts/build_frontend_bundle.py --check` must stay green.
-6. Run relevant Python/Node/mobile checks.
-7. Deploy only the exact tested `main` revision.
-8. Verify `/health` revision and production UI; Render "live" alone is not completion.
-9. Append the decision to `docs/decision-log.md`. Update project memory/guardrails when the architecture or invariant changes.
+1. Search for prior work on the same behavior before editing and classify the task as new behavior, new bug, or regression.
+2. If it is a regression, restore the known-good contract first. Do not add a competing cache/provider path for an already-solved problem.
+3. For quote/cache/performance work, preserve freshness and data semantics; never trade correctness for a faster first response.
+4. Preserve current UX/data contracts unless the user explicitly requests a change.
+5. Add or update a regression test for every behavioral bug fix. A repeated bug without a strengthened/new regression test is not complete.
+6. If bundled frontend source changes, keep source, generated bundle, and content-hash asset key synchronized.
+7. `python scripts/build_frontend_bundle.py --check` must stay green.
+8. Run relevant Python/Node/mobile checks.
+9. Deploy only the exact tested `main` revision.
+10. Verify `/health` revision and production UI; Render "live" alone is not completion.
+11. Append the decision to `docs/decision-log.md`. Update project memory/guardrails when the architecture or invariant changes.
 
 ## Production
 - Web: https://chart-view-pkv8.onrender.com
