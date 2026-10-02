@@ -325,13 +325,34 @@ def _fetch_item_rows(yyyymm: str) -> list[dict[str, str]]:
     return _request_rows(ITEM_URL, strtYymm=yyyymm, endYymm=yyyymm)
 
 
-def _find_item_period(latest: str, max_back: int = 3) -> tuple[str | None, list[dict[str, str]]]:
+def _item_period_available(period: str) -> bool:
+    """Probe a lightweight, consistently traded HSK before fetching the full month."""
+    rows = _request_rows(
+        ITEM_URL,
+        strtYymm=period,
+        endYymm=period,
+        hsSgn="8542321010",
+    )
+    return bool(_month_rows(rows, period))
+
+
+def _find_item_period_candidate(latest: str, max_back: int = 3) -> str | None:
     for offset in range(max_back + 1):
         period = _month_shift(latest, -offset)
-        rows = _fetch_item_rows(period)
-        if _month_rows(rows, period):
-            return period, rows
-    return None, []
+        try:
+            if _item_period_available(period):
+                return period
+        except Exception as exc:
+            print(f"[EXPORT_MOMENTUM] item period probe {period} failed: {exc}")
+    return None
+
+
+def _find_item_period(latest: str, max_back: int = 3) -> tuple[str | None, list[dict[str, str]]]:
+    """Compatibility wrapper for tests/callers that need period + full rows."""
+    period = _find_item_period_candidate(latest, max_back=max_back)
+    if not period:
+        return None, []
+    return period, _fetch_item_rows(period)
 
 
 def _hs_prefix_metric(
@@ -998,14 +1019,19 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
     breadth: dict[str, Any] | None = None
     semiconductor_breakdown: list[dict[str, Any]] = []
     try:
-        item_period, item_rows = _find_item_period(latest)
+        item_period = _find_item_period_candidate(latest)
         if item_period:
-            with ThreadPoolExecutor(max_workers=2, thread_name_prefix="customs-item-compare") as pool:
+            # Once a lightweight probe identifies the latest available detail
+            # month, fetch current/prior-year full tables in parallel. MoM uses
+            # only five targeted HSK requests.
+            with ThreadPoolExecutor(max_workers=3, thread_name_prefix="customs-item-build") as pool:
+                current_future = pool.submit(_fetch_item_rows, item_period)
                 prior_future = pool.submit(_fetch_item_rows, _month_shift(item_period, -12))
                 previous_month_future = pool.submit(
                     _fetch_semiconductor_previous_month_rows,
                     _month_shift(item_period, -1),
                 )
+                item_rows = current_future.result()
                 prior_item_rows = prior_future.result()
                 previous_month_item_rows = previous_month_future.result()
             items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
@@ -1103,7 +1129,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "cacheTtlSec": CACHE_TTL_SEC,
-            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value; semiconductor YoY/MoM report with targeted previous-month HSK queries",
+            "itemMethod": "lightweight HSK availability probe + parallel current/prior full tables; targeted previous-month semiconductor HSK queries",
             "regionMethod": "single-month country query total; HS detail fallback without hierarchy double count",
             "detailLagMonths": {
                 "items": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(item_period[:4]) * 12 + int(item_period[4:6]))) if item_period else None,

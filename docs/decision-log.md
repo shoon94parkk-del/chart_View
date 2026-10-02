@@ -386,3 +386,9 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - MoM은 리포트 핵심 5개 코드(854232, 8542321010, 8542321030, 8542323000, 8473304060)만 병렬 조회한다.
 - 최신월/전년동월 전체 품목 원자료는 기존 수출 확산도와 대표 품목 계산에 그대로 사용한다.
 - 개별 MoM 조회 실패는 전체 수출 스냅샷을 실패시키지 않고 해당 MoM만 null로 둔다.
+
+## 2026-10-02 — 수출 콜드 워밍 경량화
+- 최신 품목 상세월 탐색에서 월 전체 HSK 테이블을 후보월마다 내려받지 않는다.
+- DRAM HSK 8542321010 단일 코드로 최신 상세월을 probe한 뒤, 실제 데이터가 있는 월만 전체 HSK를 조회한다.
+- 최신월 전체 HSK와 전년동월 전체 HSK는 병렬로 받고, 반도체 MoM 핵심 5개 조회도 같은 병렬 구간에서 수행한다.
+- 기존 _find_item_period는 호환 래퍼로 유지하되 운영 snapshot 생성은 lightweight candidate 탐색을 사용한다.
