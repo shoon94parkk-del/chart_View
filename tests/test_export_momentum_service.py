@@ -48,6 +48,29 @@ def test_hs_prefix_export_accepts_itemtrade_hs_code_and_prefers_aggregate():
     assert export_service._hs_prefix_export(rows, "8542", "202609") == 300
 
 
+def test_hs_weight_and_unit_value_are_derived_from_official_weight_fields():
+    current = [
+        {"year": "2026.08", "hsCode": "3304", "expDlr": "1200", "expWgt": "100"},
+        {"year": "2026.08", "hsCode": "3304991000", "expDlr": "900", "expWgt": "70"},
+    ]
+    prior = [
+        {"year": "2025.08", "hsCode": "3304", "expDlr": "1000", "expWgt": "100"},
+    ]
+    assert export_service._hs_prefix_weight(current, "3304", "202608") == 100
+    assert export_service._unit_value_usd_per_kg(1200, 100) == 12
+    rows = export_service._build_items_from_rows(current, prior, "202608")
+    cosmetic = next(row for row in rows if row["name"] == "화장품")
+    assert cosmetic["exportWeightKg"] == 100
+    assert cosmetic["exportWeightYoY"] == 0.0
+    assert cosmetic["unitValueUsdPerKg"] == 12
+    assert cosmetic["unitValueYoY"] == 20.0
+
+
+def test_unit_value_is_missing_when_weight_is_zero_or_absent():
+    assert export_service._unit_value_usd_per_kg(1000, 0) is None
+    assert export_service._unit_value_usd_per_kg(1000, None) is None
+
+
 def test_country_total_row_wins_over_hs_detail():
     rows = [
         {"year": "총계", "hsCd": "-", "expDlr": "999"},
