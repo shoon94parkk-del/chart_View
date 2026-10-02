@@ -263,3 +263,11 @@ New dart_quarter_service.py and scripts/generate_dart_financial_quarters.py add 
 
 ## 2026-10-02 Sector heatmap metadata
 Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies classification and market-cap weights only; the 40-company universe includes the largest company of every available sector before filling by cap. KR rows carry KRX industry/products from the existing local screener. No legacy price/change is promoted to a quote. Static metadata enrichment adds no provider requests; canonical quote/date/stale fields remain authoritative. Tests: test_heatmap_metadata plus existing performance isolation/home snapshot contracts, generated Web bundle check. Toss sector aggregates exclude missing/stale/unclassified/different-session rows and disclose covered universe, not official sector indexes.
+
+## 2026-10-02 Export momentum API
+- Backend module: `export_momentum_service.py`, endpoint `GET /api/export-momentum`.
+- Provider endpoints: Customs total, item, item-country APIs from data.go.kr. The browser never receives the service key.
+- Render key compatibility: `CUSTOMS_TOTAL_API_KEY` first, then generic legacy names.
+- Total history is official monthly customs data; the latest 12 months and YoY are calculated from up to 24 months of official rows.
+- Item cards are explicitly HS-based proxies. Region cards use country-code rows and avoid summing multiple HS hierarchy levels.
+- Cache is server-shared in process, 1h TTL, stale-while-revalidate. It is not part of Home/bootstrap/live-quote work.
