@@ -211,104 +211,142 @@ def _fetch_total_history(end_yyyymm: str) -> dict[str, dict[str, float]]:
     return data
 
 
-def _hs_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -> float | None:
-    candidates = [
+def _row_hs_code(row: dict[str, str]) -> str:
+    # Itemtrade uses hsCode in some responses while nitemtrade uses hsCd.
+    return str(row.get("hsCd") or row.get("hsCode") or "").strip()
+
+
+def _month_rows(rows: list[dict[str, str]], yyyymm: str) -> list[dict[str, str]]:
+    return [
         row for row in rows
         if _normalize_month(row.get("year")) == yyyymm and _number(row.get("expDlr")) is not None
+    ]
+
+
+def _fetch_item_rows(yyyymm: str) -> list[dict[str, str]]:
+    # A prefix such as 8542 is not guaranteed to be accepted as hsSgn because
+    # the provider commonly returns HSK 10-digit rows. Fetch one month once and
+    # aggregate the desired prefixes locally instead of making one call per card.
+    return _request_rows(ITEM_URL, strtYymm=yyyymm, endYymm=yyyymm)
+
+
+def _find_item_period(latest: str, max_back: int = 3) -> tuple[str | None, list[dict[str, str]]]:
+    for offset in range(max_back + 1):
+        period = _month_shift(latest, -offset)
+        rows = _fetch_item_rows(period)
+        if _month_rows(rows, period):
+            return period, rows
+    return None, []
+
+
+def _hs_prefix_export(rows: list[dict[str, str]], requested: str, yyyymm: str) -> float | None:
+    candidates = [
+        row for row in _month_rows(rows, yyyymm)
+        if _row_hs_code(row).startswith(requested)
     ]
     if not candidates:
         return None
 
-    exact = [row for row in candidates if str(row.get("hsCd") or "").strip() == requested]
-    if exact:
-        return sum(_number(row.get("expDlr")) or 0.0 for row in exact)
-
-    prefixed = [
-        row for row in candidates
-        if str(row.get("hsCd") or "").strip().startswith(requested)
-    ]
-    if not prefixed:
-        return None
-    lengths = [len(str(row.get("hsCd") or "").strip()) for row in prefixed if row.get("hsCd")]
+    # The unfiltered Itemtrade response normally contains HSK 10-digit leaves.
+    # If an endpoint revision returns multiple hierarchy levels, use the most
+    # detailed common level so aggregate + child rows are never double counted.
+    lengths = [len(_row_hs_code(row)) for row in candidates if _row_hs_code(row).isdigit()]
     if not lengths:
         return None
-    shortest = min(lengths)
+    detail_len = max(lengths)
     by_code: dict[str, float] = {}
-    for row in prefixed:
-        code = str(row.get("hsCd") or "").strip()
-        if len(code) != shortest:
+    for row in candidates:
+        code = _row_hs_code(row)
+        if len(code) != detail_len:
             continue
         by_code[code] = max(by_code.get(code, 0.0), _number(row.get("expDlr")) or 0.0)
     return sum(by_code.values()) if by_code else None
 
 
-def _fetch_hs_export(hs_code: str, yyyymm: str) -> float | None:
-    rows = _request_rows(
-        ITEM_URL,
-        strtYymm=yyyymm,
-        endYymm=yyyymm,
-        hsSgn=hs_code,
-    )
-    return _hs_export(rows, hs_code, yyyymm)
+def _build_items_from_rows(
+    current_rows: list[dict[str, str]],
+    prior_rows: list[dict[str, str]],
+    period: str,
+) -> list[dict[str, Any]]:
+    prior = _month_shift(period, -12)
+    results = []
+    for group in ITEM_GROUPS:
+        current_values = [_hs_prefix_export(current_rows, code, period) for code in group["codes"]]
+        prior_values = [_hs_prefix_export(prior_rows, code, prior) for code in group["codes"]]
+        if not any(value is not None for value in current_values):
+            continue
+        current = sum(value for value in current_values if value is not None)
+        previous = sum(value for value in prior_values if value is not None)
+        results.append({
+            "name": group["name"],
+            "exportsUsdBillion": _billion(current),
+            "exportYoY": _pct(current, previous if any(v is not None for v in prior_values) else None),
+            "note": group["note"],
+        })
+    return results
 
 
 def _country_export(rows: list[dict[str, str]], yyyymm: str) -> float | None:
-    """Aggregate one country's export without double-counting HS hierarchy."""
-    candidates = [
+    """Return one country's export without double-counting HS hierarchy."""
+    # nitemtrade includes a query-total row. For a single-month query this is
+    # exactly the country total and avoids summing tens of thousands of HS rows.
+    totals = [
         row for row in rows
-        if _normalize_month(row.get("year")) == yyyymm and _number(row.get("expDlr")) is not None
+        if str(row.get("year") or "").strip() == "총계" and _number(row.get("expDlr")) is not None
     ]
+    if totals:
+        return max(_number(row.get("expDlr")) or 0.0 for row in totals)
+
+    candidates = _month_rows(rows, yyyymm)
     if not candidates:
         return None
 
     aggregate = [
         row for row in candidates
-        if not str(row.get("hsCd") or "").strip()
-        or "총계" in str(row.get("statKor") or "")
+        if not _row_hs_code(row) or "총계" in str(row.get("statKor") or "")
     ]
     if aggregate:
         return max(_number(row.get("expDlr")) or 0.0 for row in aggregate)
 
-    # When the API returns several HS hierarchy levels, summing every row would
-    # double-count. Sum only the shortest available HS level (normally 2-digit).
     coded = []
     for row in candidates:
-        code = str(row.get("hsCd") or "").strip()
+        code = _row_hs_code(row)
         if code.isdigit():
             coded.append((code, _number(row.get("expDlr")) or 0.0))
     if not coded:
         return None
-    shortest = min(len(code) for code, _ in coded)
+
+    # Use only one hierarchy depth. The provider's unfiltered response is
+    # generally HSK 10-digit, but this remains correct if shorter levels appear.
+    detail_len = max(len(code) for code, _ in coded)
     by_code: dict[str, float] = {}
     for code, value in coded:
-        if len(code) == shortest:
+        if len(code) == detail_len:
             by_code[code] = max(by_code.get(code, 0.0), value)
     return sum(by_code.values()) if by_code else None
 
 
-def _fetch_country_export(country_code: str, yyyymm: str) -> float | None:
-    rows = _request_rows(
+def _fetch_country_rows(country_code: str, yyyymm: str) -> list[dict[str, str]]:
+    return _request_rows(
         ITEM_COUNTRY_URL,
         strtYymm=yyyymm,
         endYymm=yyyymm,
         cntyCd=country_code,
     )
-    return _country_export(rows, yyyymm)
 
 
-def _build_item(group: dict[str, Any], latest: str, prior: str) -> dict[str, Any] | None:
-    current_values = [_fetch_hs_export(code, latest) for code in group["codes"]]
-    prior_values = [_fetch_hs_export(code, prior) for code in group["codes"]]
-    current = sum(value for value in current_values if value is not None)
-    previous = sum(value for value in prior_values if value is not None)
-    if not any(value is not None for value in current_values):
-        return None
-    return {
-        "name": group["name"],
-        "exportsUsdBillion": _billion(current),
-        "exportYoY": _pct(current, previous if any(v is not None for v in prior_values) else None),
-        "note": group["note"],
-    }
+def _fetch_country_export(country_code: str, yyyymm: str) -> float | None:
+    return _country_export(_fetch_country_rows(country_code, yyyymm), yyyymm)
+
+
+def _find_region_period(latest: str, max_back: int = 3) -> str | None:
+    # Use the U.S. as an availability probe; Customs monthly HS datasets are
+    # published on the same cycle across countries.
+    for offset in range(max_back + 1):
+        period = _month_shift(latest, -offset)
+        if _fetch_country_export("US", period) is not None:
+            return period
+    return None
 
 
 def _build_country(country: dict[str, str], latest: str, prior: str) -> dict[str, Any] | None:
@@ -381,24 +419,48 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         if month.startswith(latest_year) and month <= latest
     )
 
-    items, item_errors = _parallel_optional(_build_item, ITEM_GROUPS, latest, prior)
-    regions, region_errors = _parallel_optional(_build_country, COUNTRIES, latest, prior, workers=5)
+    item_errors: list[str] = []
+    item_period = None
+    items: list[dict[str, Any]] = []
+    try:
+        item_period, item_rows = _find_item_period(latest)
+        if item_period:
+            prior_item_rows = _fetch_item_rows(_month_shift(item_period, -12))
+            items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
+    except Exception as exc:
+        item_errors.append(f"품목 데이터: {exc}")
 
-    semiconductor = next((item for item in items if item["name"] == "반도체"), None)
+    region_errors: list[str] = []
+    region_period = None
+    regions: list[dict[str, Any]] = []
+    try:
+        region_period = _find_region_period(latest)
+        if region_period:
+            regions, region_errors = _parallel_optional(
+                _build_country,
+                COUNTRIES,
+                region_period,
+                _month_shift(region_period, -12),
+                workers=5,
+            )
+    except Exception as exc:
+        region_errors.append(f"국가 데이터: {exc}")
+
+    # A non-semiconductor total is only comparable when the HS detail month is
+    # the same month as the headline total. Do not mix September totals with
+    # August HS detail merely to fill a card.
     non_semi_yoy = None
-    if semiconductor and previous.get("exports"):
+    semiconductor = next((item for item in items if item["name"] == "반도체"), None)
+    if item_period == latest and semiconductor and previous.get("exports"):
         semi_current = (semiconductor.get("exportsUsdBillion") or 0.0) * 1_000_000_000.0
-        # Re-query prior semiconductor only when the displayed group is available.
-        try:
-            semi_prior = sum(
-                value or 0.0 for value in (_fetch_hs_export(code, prior) for code in ("8541", "8542"))
-            )
-            non_semi_yoy = _pct(
-                current["exports"] - semi_current,
-                previous["exports"] - semi_prior,
-            )
-        except Exception:
-            non_semi_yoy = None
+        semi_prior = sum(
+            _hs_prefix_export(prior_item_rows, code, _month_shift(item_period, -12)) or 0.0
+            for code in ("8541", "8542")
+        )
+        non_semi_yoy = _pct(
+            current["exports"] - semi_current,
+            previous["exports"] - semi_prior,
+        )
 
     updated = datetime.now(KST).isoformat()
     payload = {
@@ -423,6 +485,8 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
             "majorItemCount": None,
         },
         "history": history,
+        "itemPeriod": _display_period(item_period) if item_period else None,
+        "regionPeriod": _display_period(region_period) if region_period else None,
         # The three monthly APIs do not provide 1~10/1~20-day preliminary rows.
         # Never manufacture checkpoints from monthly totals.
         "checkpoints": [],
@@ -449,7 +513,11 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
             "provider": "Korea Customs Service / data.go.kr",
             "cacheTtlSec": CACHE_TTL_SEC,
             "itemMethod": "HS proxy groups",
-            "regionMethod": "country totals aggregated at the shortest returned HS level",
+            "regionMethod": "single-month country query total; HS detail fallback without hierarchy double count",
+            "detailLagMonths": {
+                "items": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(item_period[:4]) * 12 + int(item_period[4:6]))) if item_period else None,
+                "regions": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(region_period[:4]) * 12 + int(region_period[4:6]))) if region_period else None,
+            },
             "warnings": item_errors[:3] + region_errors[:3],
         },
     }
@@ -501,8 +569,8 @@ async def warm_export_momentum() -> None:
         print(
             f"[EXPORT_MOMENTUM] warm period={data.get('period')} "
             f"history={len(data.get('history') or [])} "
-            f"items={len(data.get('items') or [])} "
-            f"regions={len(data.get('regions') or [])} "
+            f"items={len(data.get('items') or [])}@{data.get('itemPeriod')} "
+            f"regions={len(data.get('regions') or [])}@{data.get('regionPeriod')} "
             f"warnings={len(warnings)} "
             f"elapsedMs={int((time.perf_counter()-started)*1000)}"
         )
