@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02T16:03:56+09:00",
+  "updated": "2026-10-02T18:22:30+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -503,6 +503,42 @@
       "grade": "사용자 확정",
       "reason": "CVD/ALD 증착장비용 Heater Block의 신규 FAB 설치·기존 장비 교체수요와 고사양 MCA·Ceramic Heater 확장이 성장축.",
       "score": 88,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-02",
+      "rank": 1,
+      "symbol": "373220.KS",
+      "code": "373220",
+      "name": "LG에너지솔루션",
+      "recommendedPrice": 369000.0,
+      "currentPrice": 369000.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-02",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "북미 ESS와 AI 데이터센터용 에너지저장 수요 확대, 46시리즈 배터리 및 ESS CAPA 확장이 성장축.",
+      "score": 85,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-02",
+      "rank": 2,
+      "symbol": "440110.KQ",
+      "code": "440110",
+      "name": "파두",
+      "recommendedPrice": 86200.0,
+      "currentPrice": 86200.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-02",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "데이터센터용 SSD 컨트롤러 양산 확대와 해외 NAND·서버 고객 프로젝트 증가가 성장축.",
+      "score": 87,
       "analysisSource": "사용자 최종 선택"
     }
   ]
