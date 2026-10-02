@@ -200,17 +200,40 @@ def test_semiconductor_breakdown_reuses_monthly_rows_without_provider_calls(monk
         {"year": "2025.08", "hsCode": "8542321010", "expDlr": "1000000000", "expWgt": "100000"},
         {"year": "2025.08", "hsCode": "8542321030", "expDlr": "400000000", "expWgt": "50000"},
         {"year": "2025.08", "hsCode": "8542321020", "expDlr": "100000000", "expWgt": "10000"},
+        {"year": "2025.08", "hsCode": "8542323000", "expDlr": "800000000", "expWgt": "80000"},
+        {"year": "2025.08", "hsCode": "8473304060", "expDlr": "300000000", "expWgt": "15000"},
         {"year": "2025.08", "hsCode": "854231", "expDlr": "600000000", "expWgt": "70000"},
         {"year": "2025.08", "hsCode": "854239", "expDlr": "250000000", "expWgt": "30000"},
     ]
-    rows = export_service._build_semiconductor_breakdown_from_rows(current, prior, "202608")
+    previous_month = [
+        {"year": "2026.07", "hsCode": "8542321010", "expDlr": "1100000000", "expWgt": "95000"},
+        {"year": "2026.07", "hsCode": "8542321030", "expDlr": "450000000", "expWgt": "48000"},
+        {"year": "2026.07", "hsCode": "8542321020", "expDlr": "90000000", "expWgt": "9500"},
+        {"year": "2026.07", "hsCode": "8542323000", "expDlr": "900000000", "expWgt": "70000"},
+        {"year": "2026.07", "hsCode": "8473304060", "expDlr": "400000000", "expWgt": "18000"},
+        {"year": "2026.07", "hsCode": "854231", "expDlr": "650000000", "expWgt": "68000"},
+        {"year": "2026.07", "hsCode": "854239", "expDlr": "280000000", "expWgt": "29000"},
+    ]
+    current.extend([
+        {"year": "2026.08", "hsCode": "8542323000", "expDlr": "1000000000", "expWgt": "75000"},
+        {"year": "2026.08", "hsCode": "8473304060", "expDlr": "600000000", "expWgt": "20000"},
+    ])
+    rows = export_service._build_semiconductor_breakdown_from_rows(current, prior, previous_month, "202608")
     dram = next(row for row in rows if row["key"] == "dram")
     flash = next(row for row in rows if row["key"] == "flash")
     assert dram["code"] == "8542321010"
     assert dram["exportYoY"] == 20.0
+    assert dram["exportMoM"] == pytest.approx(9.1)
+    assert dram["unitValueMoM"] is not None
     assert dram["history"] == []
     assert flash["code"] == "8542321030"
     assert flash["exportYoY"] == 25.0
+    assert flash["exportMoM"] == pytest.approx(11.1)
+    mcp = next(row for row in rows if row["key"] == "mcp-memory")
+    module = next(row for row in rows if row["key"] == "dram-module")
+    assert mcp["code"] == "8542323000"
+    assert module["code"] == "8473304060"
+    assert module["exportMoM"] == 50.0
 
 
 def test_semiconductor_breakdown_preserves_flash_as_broader_than_nand():
@@ -322,3 +345,13 @@ def test_total_month_parser_ignores_total_row():
     parsed = export_service._total_months(rows)
     assert list(parsed) == ["202609"]
     assert parsed["202609"]["exports"] == 60_000_000_000
+
+
+
+def test_semiconductor_report_official_codes_include_mcp_and_dram_module():
+    mcp = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "mcp-memory")
+    module = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram-module")
+    assert mcp["code"] == "8542323000"
+    assert "Multichip" in mcp["note"]
+    assert module["code"] == "8473304060"
+    assert "DRAM modules" in module["note"]
