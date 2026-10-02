@@ -239,3 +239,8 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 총괄 최신 월과 HS 상세 최신 월이 다르면 같은 월인 것처럼 표시하지 않는다. `itemPeriod`과 `regionPeriod`를 보존한다.
 - Itemtrade 응답의 `hsCode`와 nitemtrade의 `hsCd` 필드 차이를 흡수한다.
 - HS prefix 집계에서 상위 aggregate 행과 하위 행을 동시에 더해 이중계산하지 않는다.
+
+- `expWgt`는 관세청 순중량(kg)이며 ‘개수’ 또는 ‘출하대수’로 표기하지 않는다.
+- `expDlr/expWgt`는 ‘kg당 신고금액/평균 단위가치’이지 제품 ASP가 아니다.
+- 중량이 0 또는 누락이면 단위가치를 계산하지 않고 null을 유지한다.
+- 금액·중량·단위가치의 전년비는 동일 HS 그룹·동일 기준월의 전년동월을 비교한다.
