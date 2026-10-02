@@ -255,3 +255,5 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 8542321030은 Flash memory다. NAND-only 수출액으로 오인시키지 않는다.
 - DRAM 8542321010, SRAM 8542321020, Flash memory 8542321030의 공식 HSK 의미를 유지한다.
 - 반도체 세부 조회는 #exports의 첫 화면이나 Home에서 호출하지 않고 semiconductor 상세 클릭 시에만 수행한다.
+
+- Itemtrade 기간조회는 한 호출에 1년을 초과하지 않는다. 12개월 YoY 비교가 필요하면 최근 12개월과 전년 12개월을 나눠 조회한다.
