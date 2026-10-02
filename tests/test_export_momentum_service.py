@@ -184,6 +184,45 @@ def test_momentum_summary_compares_latest_three_months_with_previous_three():
     assert len(momentum["phaseHistory"]) == 6
 
 
+def test_semiconductor_segment_uses_official_hsk_and_24_month_history(monkeypatch):
+    def fake_range(code, start, end):
+        assert start == "202409"
+        assert end == "202608"
+        rows = []
+        period = start
+        while period <= end:
+            year = int(period[:4])
+            month = int(period[4:])
+            amount = 1_000_000_000 + month * 10_000_000
+            if year == 2026:
+                amount *= 1.20
+            rows.append({
+                "year": f"{year}.{month:02d}",
+                "hsCode": code,
+                "expDlr": str(amount),
+                "expWgt": str(100_000 + month * 100),
+            })
+            period = export_service._month_shift(period, 1)
+        return rows
+
+    monkeypatch.setattr(export_service, "_fetch_item_range_rows", fake_range)
+    segment = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram")
+    result = export_service._build_semiconductor_segment(segment, "202608")
+    assert result["code"] == "8542321010"
+    assert result["name"] == "DRAM"
+    assert len(result["history"]) == 12
+    assert result["history"][-1]["period"] == "2026-08"
+    assert result["history"][-1]["exportYoY"] == 20.0
+    assert "HBM" in result["note"]
+
+
+def test_semiconductor_breakdown_preserves_flash_as_broader_than_nand():
+    flash = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "flash")
+    assert flash["code"] == "8542321030"
+    assert flash["name"] == "Flash memory"
+    assert "NAND" in flash["note"]
+
+
 def test_country_total_row_wins_over_hs_detail():
     rows = [
         {"year": "총계", "hsCd": "-", "expDlr": "999"},
