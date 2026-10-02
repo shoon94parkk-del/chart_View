@@ -163,11 +163,12 @@ def test_screener_freshness_targets_new_render_backend():
     assert "https://chart-view-bsg6.onrender.com" not in workflow
 
 
-def test_home_pick_bootstrap_prefers_latest_version_and_disables_stale_cache():
+def test_home_pick_bootstrap_prefers_latest_version_and_uses_bounded_shared_cache():
     main = read("main.py")
     assert 'versions = [str(rankings.get("updated") or ""), str(recommendations.get("updated") or "")]' in main
     assert '"version": max(versions)' in main
-    assert '"Cache-Control": "no-cache, max-age=0, must-revalidate"' in main
+    assert '"Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600"' in main
+    assert '"Cache-Control": "no-cache, max-age=0, must-revalidate"' not in main
 
 
 def test_intekplus_is_kept_only_on_2026_09_14_after_user_correction():
