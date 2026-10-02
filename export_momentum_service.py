@@ -730,16 +730,21 @@ def _build_group_history(group: dict[str, Any], end_yyyymm: str) -> list[dict[st
 
 
 def _build_semiconductor_segment(segment: dict[str, str], end_yyyymm: str) -> dict[str, Any] | None:
-    start_yyyymm = _month_shift(end_yyyymm, -23)
-    rows = _fetch_item_range_rows(segment["code"], start_yyyymm, end_yyyymm)
+    recent_start = _month_shift(end_yyyymm, -11)
+    prior_end = _month_shift(end_yyyymm, -12)
+    prior_start = _month_shift(end_yyyymm, -23)
+    # Itemtrade rejects query windows longer than one year. Split the
+    # 24-month YoY requirement into two provider calls and join locally.
+    current_rows = _fetch_item_range_rows(segment["code"], recent_start, end_yyyymm)
+    prior_rows = _fetch_item_range_rows(segment["code"], prior_start, prior_end)
     history = []
     for offset in range(-11, 1):
         period = _month_shift(end_yyyymm, offset)
         prior = _month_shift(period, -12)
-        exports = _hs_prefix_export(rows, segment["code"], period)
-        previous = _hs_prefix_export(rows, segment["code"], prior)
-        weight = _hs_prefix_weight(rows, segment["code"], period)
-        prior_weight = _hs_prefix_weight(rows, segment["code"], prior)
+        exports = _hs_prefix_export(current_rows, segment["code"], period)
+        previous = _hs_prefix_export(prior_rows, segment["code"], prior)
+        weight = _hs_prefix_weight(current_rows, segment["code"], period)
+        prior_weight = _hs_prefix_weight(prior_rows, segment["code"], prior)
         unit_value = _unit_value_usd_per_kg(exports, weight)
         prior_unit_value = _unit_value_usd_per_kg(previous, prior_weight)
         if exports is None:
