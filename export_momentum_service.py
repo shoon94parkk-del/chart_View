@@ -114,6 +114,15 @@ SEMICONDUCTOR_SEGMENTS = (
     },
 )
 
+SEMICONDUCTOR_REPORT_KEYS = (
+    "memory-total",
+    "dram",
+    "flash",
+    "mcp-memory",
+    "dram-module",
+)
+
+
 COUNTRIES = (
     {"name": "미국", "code": "US"},
     {"name": "중국", "code": "CN"},
@@ -743,6 +752,37 @@ def _build_group_history(group: dict[str, Any], end_yyyymm: str) -> list[dict[st
     return history
 
 
+def _fetch_semiconductor_previous_month_rows(period: str) -> list[dict[str, str]]:
+    """Fetch only the report HSK rows needed for month-over-month comparison.
+
+    A full unfiltered Itemtrade month is expensive. The latest/prior-year full
+    tables are already needed for the broader export dashboard, but MoM only
+    needs five semiconductor report segments. Query those codes in parallel.
+    """
+    segments = [row for row in SEMICONDUCTOR_SEGMENTS if row["key"] in SEMICONDUCTOR_REPORT_KEYS]
+    rows: list[dict[str, str]] = []
+    with ThreadPoolExecutor(max_workers=len(segments), thread_name_prefix="customs-semi-mom") as pool:
+        future_map = {
+            pool.submit(
+                _request_rows,
+                ITEM_URL,
+                strtYymm=period,
+                endYymm=period,
+                hsSgn=segment["code"],
+            ): segment
+            for segment in segments
+        }
+        for future in as_completed(future_map):
+            segment = future_map[future]
+            try:
+                rows.extend(future.result())
+            except Exception as exc:
+                # MoM is an enrichment; do not take down the full export
+                # snapshot when one targeted segment query is unavailable.
+                print(f"[EXPORT_MOMENTUM] semiconductor MoM {segment['key']} failed: {exc}")
+    return rows
+
+
 def _build_semiconductor_breakdown_from_rows(
     current_rows: list[dict[str, str]],
     prior_rows: list[dict[str, str]],
@@ -962,7 +1002,10 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         if item_period:
             with ThreadPoolExecutor(max_workers=2, thread_name_prefix="customs-item-compare") as pool:
                 prior_future = pool.submit(_fetch_item_rows, _month_shift(item_period, -12))
-                previous_month_future = pool.submit(_fetch_item_rows, _month_shift(item_period, -1))
+                previous_month_future = pool.submit(
+                    _fetch_semiconductor_previous_month_rows,
+                    _month_shift(item_period, -1),
+                )
                 prior_item_rows = prior_future.result()
                 previous_month_item_rows = previous_month_future.result()
             items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
@@ -1060,7 +1103,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         "meta": {
             "provider": "Korea Customs Service / data.go.kr",
             "cacheTtlSec": CACHE_TTL_SEC,
-            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value; semiconductor YoY/MoM report",
+            "itemMethod": "HS proxy groups; export value + net weight + implied USD/kg unit value; semiconductor YoY/MoM report with targeted previous-month HSK queries",
             "regionMethod": "single-month country query total; HS detail fallback without hierarchy double count",
             "detailLagMonths": {
                 "items": ((int(latest[:4]) * 12 + int(latest[4:6])) - (int(item_period[:4]) * 12 + int(item_period[4:6]))) if item_period else None,
