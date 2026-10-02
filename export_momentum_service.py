@@ -858,7 +858,7 @@ def _build_item_detail(key: str) -> dict[str, Any]:
     semiconductor_breakdown = _build_semiconductor_breakdown(period) if key == "semiconductor" else []
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "key": group["key"],
         "name": group["name"],
         "note": group["note"],
