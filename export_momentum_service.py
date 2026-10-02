@@ -729,27 +729,36 @@ def _build_group_history(group: dict[str, Any], end_yyyymm: str) -> list[dict[st
     return history
 
 
-def _build_semiconductor_segment(segment: dict[str, str], end_yyyymm: str) -> dict[str, Any] | None:
-    recent_start = _month_shift(end_yyyymm, -11)
-    prior_end = _month_shift(end_yyyymm, -12)
-    prior_start = _month_shift(end_yyyymm, -23)
-    # Itemtrade rejects query windows longer than one year. Split the
-    # 24-month YoY requirement into two provider calls and join locally.
-    current_rows = _fetch_item_range_rows(segment["code"], recent_start, end_yyyymm)
-    prior_rows = _fetch_item_range_rows(segment["code"], prior_start, prior_end)
-    history = []
-    for offset in range(-11, 1):
-        period = _month_shift(end_yyyymm, offset)
-        prior = _month_shift(period, -12)
-        exports = _hs_prefix_export(current_rows, segment["code"], period)
-        previous = _hs_prefix_export(prior_rows, segment["code"], prior)
-        weight = _hs_prefix_weight(current_rows, segment["code"], period)
-        prior_weight = _hs_prefix_weight(prior_rows, segment["code"], prior)
-        unit_value = _unit_value_usd_per_kg(exports, weight)
-        prior_unit_value = _unit_value_usd_per_kg(previous, prior_weight)
+def _build_semiconductor_breakdown_from_rows(
+    current_rows: list[dict[str, str]],
+    prior_rows: list[dict[str, str]],
+    period: str,
+) -> list[dict[str, Any]]:
+    """Build latest semiconductor HSK detail from already-fetched monthly rows.
+
+    This intentionally performs no provider I/O. The main export snapshot has
+    already fetched the complete item table for the latest detail month and its
+    prior-year comparison month, so reuse those rows instead of fanning out
+    extra HSK requests when a user opens semiconductor detail.
+    """
+    prior = _month_shift(period, -12)
+    results: list[dict[str, Any]] = []
+    for segment in SEMICONDUCTOR_SEGMENTS:
+        code = segment["code"]
+        exports = _hs_prefix_export(current_rows, code, period)
+        previous = _hs_prefix_export(prior_rows, code, prior)
+        weight = _hs_prefix_weight(current_rows, code, period)
+        prior_weight = _hs_prefix_weight(prior_rows, code, prior)
         if exports is None:
             continue
-        history.append({
+        unit_value = _unit_value_usd_per_kg(exports, weight)
+        prior_unit_value = _unit_value_usd_per_kg(previous, prior_weight)
+        results.append({
+            "key": segment["key"],
+            "name": segment["name"],
+            "code": code,
+            "group": segment["group"],
+            "note": segment["note"],
             "period": _display_period(period),
             "exportsUsdBillion": _billion(exports),
             "exportYoY": _pct(exports, previous),
@@ -757,44 +766,8 @@ def _build_semiconductor_segment(segment: dict[str, str], end_yyyymm: str) -> di
             "exportWeightYoY": _pct(weight, prior_weight),
             "unitValueUsdPerKg": unit_value,
             "unitValueYoY": _pct(unit_value, prior_unit_value),
+            "history": [],
         })
-    if not history:
-        return None
-    latest = history[-1]
-    return {
-        "key": segment["key"],
-        "name": segment["name"],
-        "code": segment["code"],
-        "group": segment["group"],
-        "note": segment["note"],
-        "period": latest["period"],
-        "exportsUsdBillion": latest["exportsUsdBillion"],
-        "exportYoY": latest["exportYoY"],
-        "exportWeightKg": latest["exportWeightKg"],
-        "exportWeightYoY": latest["exportWeightYoY"],
-        "unitValueUsdPerKg": latest["unitValueUsdPerKg"],
-        "unitValueYoY": latest["unitValueYoY"],
-        "history": history,
-    }
-
-
-def _build_semiconductor_breakdown(end_yyyymm: str) -> list[dict[str, Any]]:
-    results = []
-    with ThreadPoolExecutor(max_workers=6, thread_name_prefix="customs-semi-segment") as pool:
-        future_map = {
-            pool.submit(_build_semiconductor_segment, segment, end_yyyymm): segment
-            for segment in SEMICONDUCTOR_SEGMENTS
-        }
-        for future in as_completed(future_map):
-            segment = future_map[future]
-            try:
-                value = future.result()
-                if value:
-                    results.append(value)
-            except Exception as exc:
-                print(f"[EXPORT_MOMENTUM] semiconductor segment {segment['key']} failed: {exc}")
-    order = {segment["key"]: index for index, segment in enumerate(SEMICONDUCTOR_SEGMENTS)}
-    results.sort(key=lambda row: order.get(row["key"], 999))
     return results
 
 
@@ -860,7 +833,10 @@ def _build_item_detail(key: str) -> dict[str, Any]:
     total_exports = (latest.get("exportsUsdBillion") or 0.0) * 1_000_000_000.0
     countries = _build_country_item_breakdown(group, period, total_exports)
     momentum = _build_momentum_summary(history)
-    semiconductor_breakdown = _build_semiconductor_breakdown(period) if key == "semiconductor" else []
+    semiconductor_breakdown = (
+        copy.deepcopy((snapshot or {}).get("semiconductorBreakdown") or [])
+        if key == "semiconductor" else []
+    )
 
     return {
         "schemaVersion": 2,
@@ -957,12 +933,18 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
     item_period = None
     items: list[dict[str, Any]] = []
     breadth: dict[str, Any] | None = None
+    semiconductor_breakdown: list[dict[str, Any]] = []
     try:
         item_period, item_rows = _find_item_period(latest)
         if item_period:
             prior_item_rows = _fetch_item_rows(_month_shift(item_period, -12))
             items = _build_items_from_rows(item_rows, prior_item_rows, item_period)
             breadth = _build_hs2_breadth(item_rows, prior_item_rows, item_period)
+            semiconductor_breakdown = _build_semiconductor_breakdown_from_rows(
+                item_rows,
+                prior_item_rows,
+                item_period,
+            )
     except Exception as exc:
         item_errors.append(f"품목 데이터: {exc}")
 
@@ -1000,7 +982,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
 
     updated = datetime.now(KST).isoformat()
     payload = {
-        "schemaVersion": 4,
+        "schemaVersion": 5,
         "status": "official_api",
         "period": _display_period(latest),
         "periodLabel": f"{latest[:4]}년 {int(latest[4:6])}월",
@@ -1027,6 +1009,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
         # Never manufacture checkpoints from monthly totals.
         "checkpoints": [],
         "items": items,
+        "semiconductorBreakdown": semiconductor_breakdown,
         "breadth": breadth,
         "regions": regions,
         "sources": [
