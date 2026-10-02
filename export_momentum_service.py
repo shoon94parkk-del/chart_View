@@ -26,6 +26,7 @@ router = APIRouter()
 TOTAL_URL = "https://apis.data.go.kr/1220000/Newtrade/getNewtradeList"
 ITEM_URL = "https://apis.data.go.kr/1220000/Itemtrade/getItemtradeList"
 ITEM_COUNTRY_URL = "https://apis.data.go.kr/1220000/nitemtrade/getNitemtradeList"
+TEN_DAY_EXPORT_URL = "https://apis.data.go.kr/1220000/prlstMmUtPrviExpAcrs/getPrlstMmUtPrviExpAcrs"
 
 CACHE_TTL_SEC = 60 * 60
 REQUEST_TIMEOUT = (3.05, 12)
@@ -43,6 +44,14 @@ _CACHE_LOCK = asyncio.Lock()
 DETAIL_CACHE_TTL_SEC = 6 * 60 * 60
 _DETAIL_CACHE: dict[str, dict[str, Any]] = {}
 _DETAIL_CACHE_LOCK = asyncio.Lock()
+
+PROVISIONAL_CACHE_TTL_SEC = 30 * 60
+_PROVISIONAL_CACHE: dict[str, Any] = {
+    "data": None,
+    "timestamp": 0.0,
+    "lastError": None,
+}
+_PROVISIONAL_CACHE_LOCK = asyncio.Lock()
 
 SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC = 12 * 60 * 60
 _SEMICONDUCTOR_COUNTRY_CACHE: dict[str, Any] = {
@@ -137,6 +146,20 @@ COUNTRIES = (
     {"name": "베트남", "code": "VN"},
     {"name": "일본", "code": "JP"},
     {"name": "대만", "code": "TW"},
+)
+
+TEN_DAY_EXPORT_FIELDS = (
+    ("itemUsdAmt00", "total", "전체"),
+    ("itemUsdAmt01", "semiconductor", "반도체"),
+    ("itemUsdAmt02", "steel", "철강제품"),
+    ("itemUsdAmt03", "passenger-car", "승용차"),
+    ("itemUsdAmt04", "petroleum", "석유제품"),
+    ("itemUsdAmt05", "wireless", "무선통신기기"),
+    ("itemUsdAmt06", "ships", "선박"),
+    ("itemUsdAmt07", "auto-parts", "자동차부품"),
+    ("itemUsdAmt08", "computer-peripherals", "컴퓨터주변기기"),
+    ("itemUsdAmt09", "precision", "정밀기기"),
+    ("itemUsdAmt10", "appliances", "가전제품"),
 )
 
 SEMICONDUCTOR_COUNTRY_SEGMENT_KEYS = (
@@ -878,6 +901,178 @@ def _build_semiconductor_breakdown_from_rows(
     return results
 
 
+def _ten_day_stage(row: dict[str, str]) -> int | None:
+    raw = str(row.get("priodDt") or "").strip()
+    if not raw:
+        return None
+    match = re.search(r"(?:01|1)\s*[~\-]\s*(10|20|2[89]|30|31)", raw)
+    if match:
+        day = int(match.group(1))
+        return 10 if day <= 10 else 20 if day <= 20 else 30
+    digits = re.sub(r"\D", "", raw)
+    if len(digits) == 8:
+        day = int(digits[-2:])
+        return 10 if day <= 10 else 20 if day <= 20 else 30
+    return None
+
+
+def _ten_day_stage_label(stage: int) -> str:
+    return "1~10일" if stage == 10 else "1~20일" if stage == 20 else "월 전체"
+
+
+def _ten_day_amount_billion(row: dict[str, str], field: str) -> float | None:
+    value = _number(row.get(field))
+    if value is None:
+        return None
+    # Provider contract unit: USD thousand -> USD billion.
+    return round(value / 1_000_000.0, 4)
+
+
+def _fetch_ten_day_rows(start_yyyymm: str, end_yyyymm: str) -> list[dict[str, str]]:
+    return _request_rows(
+        TEN_DAY_EXPORT_URL,
+        strtYymm=start_yyyymm,
+        endYymm=end_yyyymm,
+    )
+
+
+def _ten_day_month_map(rows: list[dict[str, str]]) -> dict[str, dict[int, dict[str, str]]]:
+    result: dict[str, dict[int, dict[str, str]]] = {}
+    for row in rows:
+        month = _normalize_month(row.get("priodMon"))
+        stage = _ten_day_stage(row)
+        if not month or stage is None:
+            continue
+        result.setdefault(month, {})[stage] = row
+    return result
+
+
+def _ten_day_metric_row(
+    row: dict[str, str],
+    prior_row: dict[str, str] | None,
+    previous_month_row: dict[str, str] | None,
+    field: str,
+) -> dict[str, Any]:
+    current = _ten_day_amount_billion(row, field)
+    prior = _ten_day_amount_billion(prior_row or {}, field)
+    previous_month = _ten_day_amount_billion(previous_month_row or {}, field)
+    return {
+        "exportsUsdBillion": current,
+        "exportYoY": _pct(current, prior),
+        "exportMoM": _pct(current, previous_month),
+        "priorYearUsdBillion": prior,
+        "previousMonthUsdBillion": previous_month,
+        "deltaYoYUsdBillion": round(current - prior, 4) if current is not None and prior is not None else None,
+    }
+
+
+def _build_provisional_radar(now: datetime | None = None) -> dict[str, Any]:
+    now = now or datetime.now(KST)
+    query_end = now.strftime("%Y%m")
+    query_start = _month_shift(query_end, -13)
+    rows = _fetch_ten_day_rows(query_start, query_end)
+    month_map = _ten_day_month_map(rows)
+    if not month_map:
+        raise CustomsApiError("관세청 10일 단위 잠정치 API가 데이터를 반환하지 않았습니다.")
+
+    latest_month = max(month_map)
+    current_month = month_map[latest_month]
+    prior_month_key = _month_shift(latest_month, -12)
+    previous_month_key = _month_shift(latest_month, -1)
+    prior_month = month_map.get(prior_month_key, {})
+    previous_month = month_map.get(previous_month_key, {})
+
+    checkpoints: list[dict[str, Any]] = []
+    previous_semiconductor_yoy: float | None = None
+    previous_total_yoy: float | None = None
+    for stage in sorted(current_month):
+        row = current_month[stage]
+        prior_row = prior_month.get(stage)
+        previous_month_row = previous_month.get(stage)
+        total = _ten_day_metric_row(row, prior_row, previous_month_row, "itemUsdAmt00")
+        semiconductor = _ten_day_metric_row(row, prior_row, previous_month_row, "itemUsdAmt01")
+        total_amount = total.get("exportsUsdBillion")
+        semi_amount = semiconductor.get("exportsUsdBillion")
+        total_delta = total.get("deltaYoYUsdBillion")
+        semi_delta = semiconductor.get("deltaYoYUsdBillion")
+        checkpoint = {
+            "stage": stage,
+            "label": _ten_day_stage_label(stage),
+            "periodRaw": str(row.get("priodDt") or "").strip(),
+            "total": total,
+            "semiconductor": semiconductor,
+            "semiconductorSharePct": round(semi_amount / total_amount * 100.0, 1)
+                if semi_amount is not None and total_amount and total_amount > 0 else None,
+            "semiconductorContributionPct": round(semi_delta / total_delta * 100.0, 1)
+                if semi_delta is not None and total_delta not in (None, 0) else None,
+            "semiconductorYoYAccelerationPp": round(semiconductor["exportYoY"] - previous_semiconductor_yoy, 1)
+                if semiconductor.get("exportYoY") is not None and previous_semiconductor_yoy is not None else None,
+            "totalYoYAccelerationPp": round(total["exportYoY"] - previous_total_yoy, 1)
+                if total.get("exportYoY") is not None and previous_total_yoy is not None else None,
+        }
+        checkpoints.append(checkpoint)
+        if semiconductor.get("exportYoY") is not None:
+            previous_semiconductor_yoy = semiconductor["exportYoY"]
+        if total.get("exportYoY") is not None:
+            previous_total_yoy = total["exportYoY"]
+
+    latest_stage = max(current_month)
+    latest_row = current_month[latest_stage]
+    latest_prior = prior_month.get(latest_stage)
+    latest_previous_month = previous_month.get(latest_stage)
+    items: list[dict[str, Any]] = []
+    for field, key, name in TEN_DAY_EXPORT_FIELDS[1:]:
+        metric = _ten_day_metric_row(latest_row, latest_prior, latest_previous_month, field)
+        if metric["exportsUsdBillion"] is None:
+            continue
+        items.append({
+            "key": key,
+            "name": name,
+            **metric,
+        })
+    items.sort(key=lambda item: item.get("exportsUsdBillion") or 0.0, reverse=True)
+
+    return {
+        "schemaVersion": 1,
+        "status": "official_preliminary_api",
+        "period": _display_period(latest_month),
+        "periodLabel": f"{latest_month[:4]}년 {int(latest_month[4:6])}월",
+        "latestStage": latest_stage,
+        "latestStageLabel": _ten_day_stage_label(latest_stage),
+        "checkpoints": checkpoints,
+        "items": items,
+        "meta": {
+            "provider": "Korea Customs Service / data.go.kr",
+            "basis": "수출신고수리일 기준 10일 단위 누적 잠정치",
+            "unit": "USD billion (provider source: USD thousand)",
+            "classification": "Korea Customs 10 major export product categories; not HS monthly classification",
+            "queryRange": f"{_display_period(query_start)}~{_display_period(query_end)}",
+            "cacheTtlSec": PROVISIONAL_CACHE_TTL_SEC,
+        },
+        "source": {
+            "name": "관세청 수출 주요품목별 10일 단위 잠정치 통계",
+            "url": "https://www.data.go.kr/data/15157908/openapi.do",
+        },
+    }
+
+
+async def _refresh_provisional_radar() -> dict[str, Any]:
+    async with _PROVISIONAL_CACHE_LOCK:
+        age = time.time() - float(_PROVISIONAL_CACHE.get("timestamp") or 0.0)
+        cached = _PROVISIONAL_CACHE.get("data")
+        if cached is not None and age < PROVISIONAL_CACHE_TTL_SEC:
+            return cached
+        try:
+            data = await asyncio.to_thread(_build_provisional_radar)
+            _PROVISIONAL_CACHE["data"] = data
+            _PROVISIONAL_CACHE["timestamp"] = time.time()
+            _PROVISIONAL_CACHE["lastError"] = None
+            return data
+        except Exception as exc:
+            _PROVISIONAL_CACHE["lastError"] = str(exc)
+            raise
+
+
 def _semiconductor_segment(key: str) -> dict[str, str] | None:
     return next((row for row in SEMICONDUCTOR_SEGMENTS if row["key"] == key), None)
 
@@ -1398,6 +1593,32 @@ async def export_momentum(response: Response):
                 "code": "CUSTOMS_API_UNAVAILABLE",
                 "message": str(exc)[:300],
             },
+        ) from exc
+
+
+@router.get("/api/export-momentum/provisional")
+async def export_momentum_provisional(response: Response):
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=3600"
+    cached = _PROVISIONAL_CACHE.get("data")
+    age = time.time() - float(_PROVISIONAL_CACHE.get("timestamp") or 0.0)
+    if cached is not None and age < PROVISIONAL_CACHE_TTL_SEC:
+        result = copy.deepcopy(cached)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    try:
+        data = await _refresh_provisional_radar()
+        result = copy.deepcopy(data)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    except Exception as exc:
+        if cached:
+            result = copy.deepcopy(cached)
+            result.setdefault("meta", {})["cacheStatus"] = "stale-error"
+            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            return result
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "EXPORT_PROVISIONAL_UNAVAILABLE", "message": str(exc)[:300]},
         ) from exc
 
 
