@@ -344,7 +344,12 @@ def _parallel_optional(builder, rows, latest: str, prior: str, workers: int = 6)
 
 def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
     now = now or datetime.now(KST)
-    end_yyyymm = now.strftime("%Y%m")
+    # The total-trade endpoint may expose current-month partial customs
+    # receipts, while the item/country endpoints are monthly statistics that
+    # are maintained through the previous completed month. Keep the dashboard
+    # on a comparable full-month basis and never mix MTD totals with monthly
+    # item/country figures.
+    end_yyyymm = _month_shift(now.strftime("%Y%m"), -1)
     monthly = _fetch_total_history(end_yyyymm)
     if not monthly:
         raise CustomsApiError("관세청 수출입총괄 API가 월별 데이터를 반환하지 않았습니다.")
@@ -492,13 +497,17 @@ async def warm_export_momentum() -> None:
     try:
         started = time.perf_counter()
         data = await _refresh_cache()
+        warnings = (data.get("meta") or {}).get("warnings") or []
         print(
             f"[EXPORT_MOMENTUM] warm period={data.get('period')} "
             f"history={len(data.get('history') or [])} "
             f"items={len(data.get('items') or [])} "
             f"regions={len(data.get('regions') or [])} "
+            f"warnings={len(warnings)} "
             f"elapsedMs={int((time.perf_counter()-started)*1000)}"
         )
+        for warning in warnings[:3]:
+            print(f"[EXPORT_MOMENTUM] warning: {warning}")
     except Exception as exc:
         print(f"[EXPORT_MOMENTUM] warm failed: {exc}")
 
