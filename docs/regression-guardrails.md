@@ -278,3 +278,9 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 국가별 비중은 해당 HSK 품목의 전세계 총수출액을 분모로 사용한다.
 - 증가/감소 기여는 YoY %가 아니라 전년동월 대비 수출액 증감액을 함께 보여 소규모 기저 왜곡을 줄인다.
 - semiconductor country matrix는 메인 /api/export-momentum 또는 일반 item-detail 호출에 합치지 않고 lazy endpoint + 장시간 캐시로 유지한다.
+
+- 10일 단위 잠정치와 월간 HS 8541/8542 반도체 절대금액을 같은 시계열로 이어 붙이지 않는다. 분류범위가 다르다.
+- 1~10일, 1~20일은 누적치이므로 서로 더하지 않는다.
+- YoY/MoM은 반드시 같은 체크포인트끼리 비교한다.
+- provider 원 단위가 천달러임을 유지하고 이중 단위변환을 하지 않는다.
+- provisional API 실패가 월간 /api/export-momentum 응답을 실패시키지 않도록 별도 캐시/endpoint를 유지한다.
