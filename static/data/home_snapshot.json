@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T20:09:55.940649+00:00",
+  "generatedAt": "2026-10-02T23:48:39.895471+00:00",
   "source": "github-actions-daily-change-v67",
   "heatmap": {
     "results": [
@@ -136,10 +136,10 @@
       {
         "ticker": "TSM",
         "name": "Taiwan Semiconductor Manufactur",
-        "price": 472.92,
-        "change": 2.9878,
+        "price": 472.78,
+        "change": 2.9573,
         "marketCap": 2381628833792.0,
-        "asOf": "2026-10-02T20:00:00+00:00",
+        "asOf": "2026-10-02T20:00:02+00:00",
         "source": "Yahoo daily close",
         "stale": false
       },
