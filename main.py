@@ -151,6 +151,20 @@ async def _warm_default_app_analysis():
         f"jobs={len(results)} failures={failures} elapsedMs={int((time.perf_counter()-started)*1000)}"
     )
 
+
+async def _warm_default_valuation_bands():
+    """Warm expensive historical bands after startup without delaying readiness."""
+    started = time.perf_counter()
+    results = await asyncio.gather(
+        *[asyncio.to_thread(fetch_valuation_bands, ticker, 3) for ticker in DEFAULT_APP_ANALYSIS_TICKERS],
+        return_exceptions=True,
+    )
+    failures = sum(1 for item in results if isinstance(item, Exception) or not item)
+    print(
+        f"[BAND_WARM] defaults={len(DEFAULT_APP_ANALYSIS_TICKERS)} "
+        f"failures={failures} elapsedMs={int((time.perf_counter()-started)*1000)}"
+    )
+
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
 # V37 personalized watchlist news router.
@@ -521,6 +535,7 @@ async def startup_event():
     # Home live refresh is demand-driven by active Home visitors; Home snapshot
     # and full heatmap already use stale-while-revalidate on their own endpoints.
     asyncio.create_task(_analytics_redis_client())
+    asyncio.create_task(_warm_default_valuation_bands())
 
 
 @app.get("/")
@@ -855,9 +870,12 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
     shared = {}
     missing = []
     for ticker in symbols:
-        if not fresh and ticker in HOME_MAJOR_TICKERS:
+        if ticker in HOME_MAJOR_TICKERS:
             market = "KR" if ticker.endswith((".KS", ".KQ")) else "US"
             updated_epoch = float((HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}).get(ticker) or 0)
+            # A detail "fresh" poll should not block first paint on Yahoo I/O when
+            # the shared Home worker already has a recent observation. Open markets
+            # stay tight; closed markets can safely reuse the final session quote.
             max_age = 15.0 if market in open_markets else 600.0
             row = shared_quotes.get(ticker)
             if row and updated_epoch and now - updated_epoch <= max_age:
@@ -896,7 +914,7 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
             "change": "percent change versus previous trading close",
             "asOf": "provider market timestamp when available",
             "currency": "provider currency",
-            "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+            "cache": "recent shared Home quote is reused for first paint, including fresh polls; canonical provider fallback is used when shared data is absent or stale",
             "missingValue": "null/omitted; zero is not used as a missing-value substitute",
         },
     }
