@@ -325,3 +325,12 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 **결정:** 백엔드 성능·시세·캐시·provider routing 변경 전에는 `docs/no-repeat-regression-policy.md`를 반드시 확인하고, 새 기능/새 버그/기존 수정의 회귀 중 하나로 먼저 분류한다. 회귀라면 기존 known-good 계약을 복원하는 것이 우선이며, 두 번째 경쟁 캐시나 provider 경로를 새로 만들지 않는다.
 
 **보호:** `AGENTS.md`가 no-repeat 정책을 최우선 읽기 문서로 지정한다. `docs/regression-guardrails.md`에 fresh quote, provider-free Home live, valuation-band prewarm/singleflight/cache 계약을 명시한다. 반복된 문제가 기존 테스트를 통과했다면 해당 테스트를 강화하거나 새 회귀 테스트를 추가하지 않고는 완료로 보지 않는다.
+
+## 2026-10-02 — 관세청 수출 모멘텀 API
+- Toss 수출 화면은 브라우저에서 data.go.kr를 직접 호출하지 않는다. 공용 FastAPI가 서비스키를 환경변수에서 읽고 `/api/export-momentum`으로 정규화된 JSON만 제공한다.
+- 환경변수는 기존에 저장한 `CUSTOMS_TOTAL_API_KEY`를 우선 사용하고, `DATA_GO_KR_SERVICE_KEY` / `CUSTOMS_API_KEY`도 호환한다. 키 값은 응답·로그·GitHub에 노출하지 않는다.
+- 수출입총괄 API는 최근 24개월을 12개월 이하 구간 두 번으로 조회해 최신 12개월 수출액과 전년동월비를 계산한다.
+- 품목은 HS 프록시(반도체 8541+8542 등)임을 명시한다. 기업 실제 수출액 또는 MTI 공식 주력품목 수치로 표현하지 않는다.
+- 품목별 국가별 API는 HS 계층이 여러 단계로 반환될 경우 최단 HS 레벨만 합산해 중복 집계를 피한다.
+- 현재 승인받은 3개 월간 API에는 1~10일/1~20일 잠정치가 없으므로 월간 데이터에서 해당 값을 추정하거나 생성하지 않는다.
+- 공유 메모리 캐시는 1시간 TTL이며 stale 데이터가 있으면 즉시 반환하고 백그라운드에서 재검증한다.
