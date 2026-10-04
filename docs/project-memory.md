@@ -279,3 +279,10 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 - History begins with the verified 2026-10-02 public snapshot and then accumulates one row per provider source date. Same-date observations replace rather than append.
 - The endpoint is isolated from Home/bootstrap/live quotes/heatmap. The intended Toss consumer is the lazy-loaded Exports > Memory screen.
 - Latest fetch cache is 6h. History uses `CHARTVIEW_DATA_REDIS` when provided, otherwise the existing `CHARTVIEW_ANALYTICS_REDIS`, otherwise process memory. Provider failure keeps the last available observation and marks the result stale.
+
+
+## 2026-10-04 — memory price catalog v2
+- `/api/memory-prices` and legacy `/api/memory-spot` return the same schemaVersion 2 response.
+- Public price groups: `dram-chip`, `dram-module`, `gddr`, `nand-chip`, `nand-wafer`.
+- History is keyed by provider source date and may contain different families on different dates. Same-date values merge idempotently.
+- Do not fabricate HBM/MCP/eMMC/UFS prices. Those appear in `unavailablePriceSeries` until a licensable numeric public source is available.

@@ -303,3 +303,11 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - Keep provider/source date and source URL visible to consumers. A collection timestamp must never be presented as the provider observation date.
 - Same provider date is idempotent; refresh must replace that day's row, not create duplicates.
 - Provider failure keeps previously validated history/stale latest values. Never replace them with zeros or fabricated interpolation.
+
+
+## Memory price catalog v2
+- Never substitute NAND, DRAM, module, SSD, export-unit-value, or another proxy as an HBM/MCP/eMMC/UFS market price.
+- A price series is user-visible only when the public provider exposes a numeric latest price with an identifiable product label and observation date.
+- Paid TrendForce history must not be reconstructed or scraped. Chart View history remains self-accumulated public-latest observations.
+- `/api/memory-spot` remains backward compatible while `/api/memory-prices` is the preferred catalog endpoint.
+- A failure of one provider page must preserve validated groups from the other page and mark only affected groups stale.

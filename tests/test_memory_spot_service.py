@@ -1,7 +1,7 @@
 import asyncio
 
 import memory_spot_service as service
-from memory_spot_service import _merge_history, parse_trendforce_dram_spot
+from memory_spot_service import NAND_SOURCE_URL, _merge_group_results, _merge_history, _parse_public_page, parse_trendforce_dram_spot
 
 
 SAMPLE = """
@@ -61,3 +61,45 @@ def test_failed_fetch_uses_retry_cooldown(monkeypatch):
     assert second["stale"] is True
     assert cache_hit is True
     assert calls["count"] == 1
+
+
+NAND_SAMPLE = """
+<html><body>
+<div>NAND Flash Spot Price</div>
+<div>Last Update 2026-09-21 14:40 (GMT+8)</div>
+<table>
+<tr><th>Item</th><th>Daily High</th><th>Daily Low</th><th>Session High</th><th>Session Low</th><th>Session Average</th><th>Session Change</th></tr>
+<tr><td>SLC 2Gb 256MBx8</td><td>4.55</td><td>4.18</td><td>4.55</td><td>4.18</td><td>4.345</td><td>▲ 0.51 %</td></tr>
+<tr><td>SLC 1Gb 128MBx8</td><td>3.65</td><td>2.90</td><td>3.65</td><td>2.90</td><td>3.358</td><td>— 0.00 %</td></tr>
+<tr><td>MLC 64Gb 8GBx8</td><td>53.50</td><td>35.00</td><td>53.50</td><td>35.00</td><td>40.75</td><td>▲ 2.10 %</td></tr>
+<tr><td>MLC 32Gb 4GBx8</td><td>21.20</td><td>18.70</td><td>21.20</td><td>18.70</td><td>19.30</td><td>▲ 1.40 %</td></tr>
+</table>
+<div>Wafer Spot Price</div>
+<div>Last Update 2026-09-21 14:40 (GMT+8)</div>
+<table>
+<tr><th>Item</th><th>Weekly High</th><th>Weekly Low</th><th>Session High</th><th>Session Low</th><th>Session Average</th><th>Session Change</th></tr>
+<tr><td>512Gb TLC</td><td>22.00</td><td>17.50</td><td>22.00</td><td>17.50</td><td>19.883</td><td>▼ -1.00 %</td></tr>
+<tr><td>256Gb TLC</td><td>20.00</td><td>16.00</td><td>20.00</td><td>16.00</td><td>17.885</td><td>▲ 6.41 %</td></tr>
+<tr><td>128Gb TLC</td><td>15.00</td><td>8.00</td><td>15.00</td><td>8.00</td><td>9.967</td><td>— 0.00 %</td></tr>
+</table>
+</body></html>
+"""
+
+
+def test_parse_nand_chip_and_wafer_groups():
+    payload = _parse_public_page(NAND_SAMPLE, NAND_SOURCE_URL)
+    groups = {group["key"]: group for group in payload["groups"]}
+    assert set(groups) == {"nand-chip", "nand-wafer"}
+    assert groups["nand-chip"]["sourceDate"] == "2026-09-21"
+    assert groups["nand-chip"]["items"][2]["average"] == 40.75
+    assert groups["nand-wafer"]["items"][0]["average"] == 19.883
+    assert groups["nand-wafer"]["items"][1]["changePct"] == 6.41
+
+
+def test_catalog_marks_non_public_hbm_mcp_prices_without_fabricating_values():
+    payload = _merge_group_results([], {})
+    unavailable = {row["key"]: row["reason"] for row in payload["unavailablePriceSeries"]}
+    assert "hbm" in unavailable
+    assert "mcp" in unavailable
+    assert "emmc-ufs" in unavailable
+    assert all("가격" in reason or "수치" in reason for reason in unavailable.values())
