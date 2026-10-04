@@ -428,7 +428,10 @@ def _hs_prefix_metric(
         code = _row_hs_code(row)
         if len(code) != aggregate_len:
             continue
-        by_code[code] = max(by_code.get(code, 0.0), _number(row.get(field)) or 0.0)
+        value = _number(row.get(field))
+        # The first observed value can be negative (balPayments). A synthetic
+        # zero would drop every deficit leaf before the HS group is summed.
+        by_code[code] = max(by_code[code], value) if code in by_code else value
     return sum(by_code.values()) if by_code else None
 
 
