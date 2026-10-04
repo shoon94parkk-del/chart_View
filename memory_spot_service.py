@@ -22,6 +22,7 @@ router = APIRouter()
 
 SOURCE_URL = "https://www.trendforce.com/price/dram/module_spot"
 CACHE_TTL_SEC = 60 * 60 * 6
+FAILURE_RETRY_SEC = 60 * 15
 HISTORY_LIMIT = 365
 REDIS_KEY = "chartview:memory-spot:history:v1"
 
@@ -228,13 +229,18 @@ async def _latest_payload() -> tuple[dict[str, Any], bool]:
         _cache["timestamp"] = now
         return payload, False
     except Exception as exc:
+        retry_timestamp = now - CACHE_TTL_SEC + FAILURE_RETRY_SEC
         if cached:
             fallback = dict(cached)
             fallback["stale"] = True
             fallback["fetchError"] = type(exc).__name__
+            _cache["payload"] = fallback
+            _cache["timestamp"] = retry_timestamp
             return fallback, True
         fallback = _fallback_latest()
         fallback["fetchError"] = type(exc).__name__
+        _cache["payload"] = fallback
+        _cache["timestamp"] = retry_timestamp
         return fallback, False
 
 
