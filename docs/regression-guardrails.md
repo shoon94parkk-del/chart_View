@@ -295,3 +295,11 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 ## 2026-10-04 — Signed metrics and manual retry
 - HS leaf balances may be negative; initialize de-duplication from the first actual value, never zero-clamp. Same-month/same-scope identity must hold within output rounding.
 - Optional relationship force=true is reserved for explicit retry and propagates to news cache bypass. Default cache TTL, response schema and provider limits stay unchanged.
+
+
+## DRAM spot price
+- Do not add TrendForce scraping to Home, startup warm, quote polling, heatmap, stock detail, or `/api/export-momentum` critical paths. It remains an independent lazy endpoint.
+- Do not backfill or reconstruct TrendForce paid historical spot-price datasets. History means Chart View's own daily accumulation of publicly visible latest observations.
+- Keep provider/source date and source URL visible to consumers. A collection timestamp must never be presented as the provider observation date.
+- Same provider date is idempotent; refresh must replace that day's row, not create duplicates.
+- Provider failure keeps previously validated history/stale latest values. Never replace them with zeros or fabricated interpolation.
