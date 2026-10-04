@@ -432,3 +432,11 @@ Relationship evidence accepts optional force=false. Explicit user retry bypasses
 
 ## 2026-10-04 — DRAM 공개소스 실패 재시도 제한
 TrendForce 공개 최신 페이지가 일시적으로 차단되거나 실패해도 `/api/memory-spot` 요청마다 공급자를 다시 호출하지 않는다. 마지막 검증값/부트스트랩을 stale로 유지하고 15분 동안 같은 fallback을 재사용한 뒤에만 공급자를 다시 확인한다. 정상 최신값의 기존 6시간 캐시는 유지한다. Home/quotes/export-momentum 요청 경로는 변경하지 않는다.
+
+
+## 2026-10-04 — 메모리 가격 카탈로그 확장
+- 기존 DRAM 3종 전용 `/api/memory-spot`을 schemaVersion 2 카탈로그로 확장하고 `/api/memory-prices` 별칭을 추가한다.
+- 공개 숫자가 확인되는 TrendForce 최신 표만 수집한다: DRAM 칩, DRAM 모듈, GDDR, NAND SLC/MLC 칩, NAND TLC 웨이퍼.
+- HBM, MCP, eMMC/UFS는 공개 최신 가격표에서 독립 숫자형 가격이 확인되지 않으므로 가격을 추정·대입하지 않고 `unavailablePriceSeries`로 명시한다.
+- MCP는 가격 대신 관세청 HSK 수출액·YoY·MoM·단위가치를 반도체 화면에서 계속 제공한다.
+- 유료 과거 가격은 backfill하지 않고, 공개 최신값의 공급자 기준일을 Chart View가 자체 누적한다.
