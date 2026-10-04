@@ -403,7 +403,14 @@ def _merge_history(history: list[dict[str, Any]], latest: dict[str, Any] | None)
 
     if latest:
         grouped: dict[str, dict[str, Any]] = {}
-        for group in latest.get("groups", []):
+        groups = list(latest.get("groups", []))
+        if not groups and latest.get("items"):
+            groups = [{
+                "sourceDate": latest.get("sourceDate"),
+                "sourceUrl": latest.get("sourceUrl") or DRAM_SOURCE_URL,
+                "items": latest.get("items", []),
+            }]
+        for group in groups:
             date = str(group.get("sourceDate") or "").strip()
             if not date:
                 continue
