@@ -271,3 +271,11 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 - Total history is official monthly customs data; the latest 12 months and YoY are calculated from up to 24 months of official rows.
 - Item cards are explicitly HS-based proxies. Region cards use country-code rows and avoid summing multiple HS hierarchy levels.
 - Cache is server-shared in process, 1h TTL, stale-while-revalidate. It is not part of Home/bootstrap/live-quote work.
+
+
+## 2026-10-04 DRAM spot price
+- Backend endpoint: `GET /api/memory-spot` in `memory_spot_service.py`.
+- It parses only the publicly visible latest TrendForce DRAM spot table for DDR5 16Gb, DDR4 16Gb and DDR4 8Gb. Paid historical datasets are not backfilled.
+- History begins with the verified 2026-10-02 public snapshot and then accumulates one row per provider source date. Same-date observations replace rather than append.
+- The endpoint is isolated from Home/bootstrap/live quotes/heatmap. The intended Toss consumer is the lazy-loaded Exports > Memory screen.
+- Latest fetch cache is 6h. History uses `CHARTVIEW_DATA_REDIS` when provided, otherwise the existing `CHARTVIEW_ANALYTICS_REDIS`, otherwise process memory. Provider failure keeps the last available observation and marks the result stale.
