@@ -420,3 +420,11 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 ## 2026-10-04 — Signed Customs balance and explicit relation retry
 New bugs coordinated with approved Toss insight plan. `_hs_prefix_metric` leaf de-duplication used a zero default in max, dropping negative balPayments. Initialize from the actual first value so deficits remain signed; retain existing exact-parent and shallow HS hierarchy behavior. No frontend recomputation or Web UI change. Regression tests cover mixed/all deficits, duplicate leaf and wrong month, parent hierarchy.
 Relationship evidence accepts optional force=false. Explicit user retry bypasses relationship and upstream news cache; normal requests keep original TTL and provider bounds. Existing callers and API response shape remain compatible. 57 focused Python tests passed and frontend bundle --check passed. Production reconciliation must confirm same-period exports-imports=balance after exact revision deployment.
+
+
+## 2026-10-04 — DRAM 현물가 공개 최신값 + 자체 누적
+- `/api/memory-spot`은 TrendForce 공개 DRAM Spot Price 페이지의 최신 표에서 DDR5 16Gb, DDR4 16Gb, DDR4 8Gb 세션 평균가·변동률·고저가만 읽는다.
+- TrendForce 유료 역사 데이터는 역으로 수집하거나 재배포하지 않는다. Chart View가 공개 최신값을 확인한 날짜부터 일별 스냅샷을 자체 누적한다.
+- 수집은 Home/시세/히트맵 경로에 연결하지 않고 메모리 수출 화면이 열릴 때만 lazy 호출한다. 6시간 서버 캐시와 15분 HTTP 캐시를 사용한다.
+- 동일 sourceDate는 덮어써 중복을 만들지 않는다. Render Key Value가 있으면 별도 namespace에 최대 365개 관측을 보존하고, 없으면 프로세스 메모리로 degrade한다.
+- 원문 수집 실패 시 마지막 검증값/자체 누적 이력을 유지하며 stale로 명시한다. 원문 URL과 기준일을 응답에 포함한다.

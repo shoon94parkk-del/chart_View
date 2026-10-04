@@ -53,6 +53,7 @@ from dart_financial_service import router as dart_financial_router
 from dart_quarter_service import router as dart_quarter_router
 from relationship_evidence_service import router as relationship_evidence_router
 from export_momentum_service import router as export_momentum_router, warm_export_momentum
+from memory_spot_service import router as memory_spot_router
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -177,6 +178,7 @@ app.include_router(dart_financial_router)
 app.include_router(dart_quarter_router)
 app.include_router(relationship_evidence_router)
 app.include_router(export_momentum_router)
+app.include_router(memory_spot_router)
 
 # CORS 설정 - 토스 앱인토스 도메인 허용
 app.add_middleware(
