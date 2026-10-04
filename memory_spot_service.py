@@ -36,16 +36,6 @@ TARGET_ITEMS = {
 # the public latest-price page; paid historical datasets are not backfilled.
 BOOTSTRAP_HISTORY = [
     {
-        "date": "2026-09-24",
-        "provider": "TrendForce",
-        "sourceUrl": "https://www.trendforce.cn/price/dram/dram_spot",
-        "values": {
-            "ddr5-16gb": 57.667,
-            "ddr4-16gb": 83.784,
-            "ddr4-8gb": 45.893,
-        },
-    },
-    {
         "date": "2026-10-02",
         "provider": "TrendForce",
         "sourceUrl": SOURCE_URL,
