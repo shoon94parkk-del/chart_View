@@ -428,3 +428,7 @@ Relationship evidence accepts optional force=false. Explicit user retry bypasses
 - 수집은 Home/시세/히트맵 경로에 연결하지 않고 메모리 수출 화면이 열릴 때만 lazy 호출한다. 6시간 서버 캐시와 15분 HTTP 캐시를 사용한다.
 - 동일 sourceDate는 덮어써 중복을 만들지 않는다. Render Key Value가 있으면 별도 namespace에 최대 365개 관측을 보존하고, 없으면 프로세스 메모리로 degrade한다.
 - 원문 수집 실패 시 마지막 검증값/자체 누적 이력을 유지하며 stale로 명시한다. 원문 URL과 기준일을 응답에 포함한다.
+
+
+## 2026-10-04 — DRAM 공개소스 실패 재시도 제한
+TrendForce 공개 최신 페이지가 일시적으로 차단되거나 실패해도 `/api/memory-spot` 요청마다 공급자를 다시 호출하지 않는다. 마지막 검증값/부트스트랩을 stale로 유지하고 15분 동안 같은 fallback을 재사용한 뒤에만 공급자를 다시 확인한다. 정상 최신값의 기존 6시간 캐시는 유지한다. Home/quotes/export-momentum 요청 경로는 변경하지 않는다.
