@@ -3,6 +3,7 @@ import time
 from unittest.mock import patch
 
 import relationship_evidence_service as service
+import news_service_v37 as news
 from relationship_evidence_service import extract_direct_relations
 
 
@@ -11,6 +12,25 @@ COMPANIES = [
     {"name": "SK하이닉스", "symbol": "000660.KS"},
     {"name": "HLB제약", "symbol": "047920.KQ"},
 ]
+
+def test_explicit_retry_bypasses_failed_relationship_and_news_caches(monkeypatch):
+    service._CACHE.clear()
+    news.NEWS_CACHE.clear()
+    calls = []
+    def provider(symbol, name):
+        calls.append(symbol)
+        return {"items": [], "error": "temporary_failure"} if len(calls) == 1 else {"items": []}
+    monkeypatch.setattr(news, "_fetch_naver_news", provider)
+    first = service.fetch_relationship_evidence("005930.KS", "삼성전자")
+    assert first["reason"] == "news_provider_unavailable"
+    # Ordinary reads reuse existing cache; an explicit retry must reach provider.
+    service.fetch_relationship_evidence("005930.KS", "삼성전자")
+    assert len(calls) == 1
+    retry = service.fetch_relationship_evidence("005930.KS", "삼성전자", force=True)
+    assert len(calls) == 2
+    assert retry["reason"] == "no_evidence_backed_direct_relation"
+    service._CACHE.clear()
+    news.NEWS_CACHE.clear()
 
 def test_shared_suppliers_in_third_party_article_are_not_each_others_contract_party():
     item = {

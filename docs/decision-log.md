@@ -415,3 +415,8 @@ Cold-start live QA found the full 60-company background batch could exceed the f
 - 최근 최대 24개월은 각 과거 시점보다 이전 데이터만 사용해 재추정하고 중앙 절대오차와 범위 적중률을 계산한다.
 - 최소 12개월 유효 완성률 표본이 없으면 추정을 생성하지 않는다.
 - 월말이 이미 발표된 달은 20일(없으면 10일) 시점 추정과 실제 마감값을 비교하는 final-review 모드로 제공한다.
+
+
+## 2026-10-04 — Signed Customs balance and explicit relation retry
+New bugs coordinated with approved Toss insight plan. `_hs_prefix_metric` leaf de-duplication used a zero default in max, dropping negative balPayments. Initialize from the actual first value so deficits remain signed; retain existing exact-parent and shallow HS hierarchy behavior. No frontend recomputation or Web UI change. Regression tests cover mixed/all deficits, duplicate leaf and wrong month, parent hierarchy.
+Relationship evidence accepts optional force=false. Explicit user retry bypasses relationship and upstream news cache; normal requests keep original TTL and provider bounds. Existing callers and API response shape remain compatible. 57 focused Python tests passed and frontend bundle --check passed. Production reconciliation must confirm same-period exports-imports=balance after exact revision deployment.

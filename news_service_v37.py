@@ -313,11 +313,11 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 
 
-def _cached_fetch(symbol: str, name: str) -> dict:
+def _cached_fetch(symbol: str, name: str, *, force: bool = False) -> dict:
     key = f"{symbol}|{name}".upper()
     with _CACHE_LOCK:
         cached = NEWS_CACHE.get(key)
-        if cached and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
+        if cached and not force and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
             return {**cached["data"], "cache": "hit"}
 
     try:

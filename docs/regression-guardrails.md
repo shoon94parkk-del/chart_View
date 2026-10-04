@@ -290,3 +290,8 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 1~10일과 1~20일 모델을 섞지 않는다. 현재 체크포인트와 같은 단계의 역사적 완성률만 사용한다.
 - 10일 단위 관세청 자체 품목분류와 월간 HS 상세 분류를 한 착지모델에 혼합하지 않는다.
 - 유효 표본 12개월 미만이면 임의 보간이나 하드코딩으로 전망치를 만들지 않는다.
+
+
+## 2026-10-04 — Signed metrics and manual retry
+- HS leaf balances may be negative; initialize de-duplication from the first actual value, never zero-clamp. Same-month/same-scope identity must hold within output rounding.
+- Optional relationship force=true is reserved for explicit retry and propagates to news cache bypass. Default cache TTL, response schema and provider limits stay unchanged.

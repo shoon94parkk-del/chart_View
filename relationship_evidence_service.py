@@ -239,7 +239,7 @@ def extract_direct_relations(subject_name: str, subject_symbol: str, news_items:
     return compact
 
 
-def fetch_relationship_evidence(ticker: str, name: str) -> dict:
+def fetch_relationship_evidence(ticker: str, name: str, *, force: bool = False) -> dict:
     symbol = _clean(ticker).upper()
     subject_name = _clean(name)
     if not re.fullmatch(r"\d{6}\.(KS|KQ)", symbol):
@@ -248,10 +248,10 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
     key = f"{symbol}|{subject_name}"
     with _LOCK:
         cached = _CACHE.get(key)
-        if cached and time.time() - cached[0] < CACHE_TTL:
+        if cached and not force and time.time() - cached[0] < CACHE_TTL:
             return {**cached[1], "cache": "hit"}
 
-    fetched = _cached_fetch(symbol, subject_name)
+    fetched = _cached_fetch(symbol, subject_name, force=True) if force else _cached_fetch(symbol, subject_name)
     items = list(fetched.get("items") or [])
     relations = extract_direct_relations(subject_name, symbol, items)
 
@@ -276,10 +276,11 @@ def fetch_relationship_evidence(ticker: str, name: str) -> dict:
 async def relationship_evidence(
     ticker: str = Query(..., min_length=9, max_length=12),
     name: str = Query("", max_length=80),
+    force: bool = False,
 ):
     try:
         return await asyncio.wait_for(
-            asyncio.to_thread(fetch_relationship_evidence, ticker, name),
+            asyncio.to_thread(fetch_relationship_evidence, ticker, name, force=True) if force else asyncio.to_thread(fetch_relationship_evidence, ticker, name),
             timeout=RESPONSE_TIMEOUT,
         )
     except asyncio.TimeoutError:
