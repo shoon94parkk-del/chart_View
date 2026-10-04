@@ -1,3 +1,6 @@
+import asyncio
+
+import memory_spot_service as service
 from memory_spot_service import _merge_history, parse_trendforce_dram_spot
 
 
@@ -38,3 +41,23 @@ def test_merge_history_replaces_same_source_date_without_duplicates():
     same_day = [row for row in history if row["date"] == "2026-10-02"]
     assert len(same_day) == 1
     assert same_day[0]["values"]["ddr4-8gb"] == 46.321
+
+
+def test_failed_fetch_uses_retry_cooldown(monkeypatch):
+    calls = {"count": 0}
+
+    def fail():
+        calls["count"] += 1
+        raise RuntimeError("blocked")
+
+    monkeypatch.setattr(service, "_fetch_latest_sync", fail)
+    service._cache["payload"] = None
+    service._cache["timestamp"] = 0.0
+
+    first, _ = asyncio.run(service._latest_payload())
+    second, cache_hit = asyncio.run(service._latest_payload())
+
+    assert first["stale"] is True
+    assert second["stale"] is True
+    assert cache_hit is True
+    assert calls["count"] == 1
