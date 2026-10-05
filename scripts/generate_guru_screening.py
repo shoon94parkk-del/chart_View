@@ -60,7 +60,20 @@ class DartClient:
         names={name for k in KEYS if k!='basicEps' for name in QUALITY_ACCOUNTS[k][0]}
         rows=[r for r in all_rows if r.get('account_id') in ids or r.get('account_nm','').replace(' ','') in names
               or '주당' in r.get('account_nm','') or 'EarningsLossPerShare' in r.get('account_id','')]
-        return {'year':year,'basis':basis,'periodEnd':f'{year}-{month}-31' if month=='12' else None,
+        # Full-account responses lack dates. Cross-check against official major-account
+        # income periods from the SAME receipt and financial basis, never acc_mt guesses.
+        dates=self.get('fnlttSinglAcnt.json',{'corp_code':corp,'bsns_year':year,'reprt_code':'11011'})
+        incomes=[r for r in dates.get('list',[]) if r.get('rcept_no')==receipt and r.get('fs_div')==basis and r.get('sj_div') in {'IS','CIS'}]
+        periods={}
+        for period in ('thstrm','frmtrm','bfefrmtrm'):
+            found=set()
+            for r in incomes:
+                ds=re.findall(r'(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})',str(r.get(period+'_dt') or ''))
+                if len(ds)==2:
+                    found.add(tuple(f'{int(y):04}-{int(m):02}-{int(d):02}' for y,m,d in ds))
+            if len(found)==1:
+                start,end=next(iter(found));periods[period]={'start':start,'end':end}
+        return {'year':year,'basis':basis,'periodEnd':periods.get('thstrm',{}).get('end'),'periods':periods,
                 'receiptNo':receipt,'filingDate':f'{receipt[:4]}-{receipt[4:6]}-{receipt[6:8]}','rows':rows}
 
     def actions(self, corp, symbol, start, end):
@@ -85,7 +98,7 @@ class DartClient:
         now=datetime.now(KST); target=now.year-1
         base={'symbol':row['symbol'],'classification':classification,'checkedAt':now.isoformat(timespec='seconds'),
               'collection':{'status':'complete','targetYear':target}}
-        if classification['status']=='unsupported': return base
+        if classification['status']!='supported': return base
         if not corp:
             return {**base,'collection':{'status':'complete','reason':'DART 고유번호 연결 부족','targetYear':target}}
         profile=(previous or {}).get('profile') or self.get('company.json',{'corp_code':corp})
@@ -106,20 +119,23 @@ class DartClient:
             old=self.report(corp,target-2,basis,month)
             if old: reports.append(old)
         start=f'{target-3}-01-01'; end=now.date().isoformat()
-        actions=self.actions(corp,row['symbol'],start,end) if latest else {'status':'unknown'}
+        try:
+            actions=self.actions(corp,row['symbol'],start,end) if latest else {'status':'unknown'}
+        except ProviderError as exc:
+            actions={'status':'unknown','source':'OpenDART disclosures','start':start,'end':end,'reason':str(exc)}
         normalized=normalize_reports(reports,symbol=row['symbol'],classification=classification,actions=actions)
         return {**normalized,**base,'corpCode':corp,'reports':reports,'profile':{'acc_mt':month},'actions':actions}
 
 
 def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies: int, max_requests: int, deadline: float) -> dict:
     companies=dict(previous.get('companies') or {})
-    attempted=0; status='complete'; now=datetime.now(KST)
+    attempted=0; errors=0; status='complete'; now=datetime.now(KST)
     def due(row):
         old=companies.get(row['symbol'])
         if not old: return True
         try: return (now-datetime.fromisoformat(old['checkedAt'])).total_seconds()>=86400
         except (KeyError,ValueError,TypeError): return True
-    ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, r['symbol']))
+    ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, str((companies.get(r['symbol']) or {}).get('checkedAt','')), r['symbol']))
     for row in ordered:
         if not due(row): continue
         if attempted>=max_companies or client.requests>=max_requests or time.monotonic()>=deadline:
@@ -133,14 +149,17 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
         except BudgetLimit:
             status='partial'; break
         except ProviderError as exc:
+            errors+=1
             if old: companies[row['symbol']]={**old,'refreshError':str(exc)}
             else: companies[row['symbol']]={'symbol':row['symbol'],'classification':classify_company(row),
                 'checkedAt':now.isoformat(timespec='seconds'),'collection':{'status':'complete','reason':str(exc)}}
         attempted+=1
     current={r['symbol'] for r in universe}
     companies={s:c for s,c in companies.items() if s in current}
+    if errors and status=='complete': status='provider_errors'
     return {'generatedAt':now.isoformat(timespec='seconds'),'companies':companies,
             'collection':{'status':status,'attempted':attempted,'requests':client.requests,
+                          'providerErrorCount':errors,
                           'storedCount':len(companies),'universeCount':len(current)}}
 
 

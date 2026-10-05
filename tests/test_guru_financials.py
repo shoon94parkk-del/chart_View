@@ -11,6 +11,7 @@ def report(year=2025, receipt='20260312001224'):
                 ('CF', 'ifrs-full_CashFlowsFromUsedInOperatingActivities', '영업활동현금흐름', '20'),
                 ('IS', 'ifrs-full_BasicEarningsLossPerShare', '기본주당이익', '1,234.50')]
     return {'year': year, 'basis': 'CFS', 'periodEnd': f'{year}-12-31',
+            'periods':{p:{'start':f'{year-i}-01-01','end':f'{year-i}-12-31'} for i,p in enumerate(('thstrm','frmtrm','bfefrmtrm'))},
             'receiptNo': receipt, 'filingDate': f'{receipt[:4]}-{receipt[4:6]}-{receipt[6:8]}',
             'rows': [dict(sj_div=sj, account_id=aid, account_nm=name, currency='KRW',
                           rcept_no=receipt, account_detail='-', thstrm_amount=value,
@@ -67,6 +68,28 @@ def test_duplicate_accounts_not_summed():
 def test_unknown_actions_not_no_actions():
     result = normalized(actions={'status': 'error', 'events': []})
     assert result['epsComparability']['status'] == 'unknown'
+
+def test_short_or_unverified_income_period_is_not_annual():
+    old,new=report(2023,'20240312001224'),report()
+    new['periods']['thstrm']['start']='2025-07-01'
+    assert normalized([old,new])['annualReportYear']!=2025
+    new=report();new.pop('periods')
+    assert normalized([new])['annual']==[]
+
+def test_short_comparative_period_cannot_supply_eps_or_cash():
+    new=report();new['periods']['frmtrm']['start']='2024-07-01'
+    data=normalized([new])
+    assert data['annual'][-2]['basicEps'] is None
+    assert data['annual'][-2]['operatingCashFlow'] is None
+
+@pytest.mark.parametrize('row',[
+ {'symbol':'330590.KS','name':'롯데리츠','industry':'부동산 임대 및 공급업','mainProducts':'부동산투자'},
+ {'symbol':'088260.KS','name':'이리츠코크렙','industry':'부동산 임대 및 공급업','mainProducts':'부동산투자회사'},
+ {'symbol':'293940.KS','name':'신한알파리츠','industry':'부동산 임대 및 공급업','mainProducts':'비거주 부동산 임대 서비스업'},
+])
+def test_real_estate_type_is_not_assumed_ordinary(row):
+    from guru_financials import classify_company
+    assert classify_company(row)['status'] in {'unsupported','unknown'}
 
 
 def test_split_without_verified_restatement_is_not_comparable():

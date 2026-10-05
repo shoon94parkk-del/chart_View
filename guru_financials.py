@@ -32,6 +32,10 @@ def classify_company(row):
         status = 'unsupported'
     elif re.search(r'금융|은행|보험|신탁|집합투자|증권|기업인수목적', industry):
         status = 'unsupported'
+    elif re.search(r'부동산투자회사|리츠',str(row.get('mainProducts') or '')):
+        status = 'unsupported'
+    elif '부동산' in industry and security != 'common':
+        status = 'unknown'
     elif industry and re.fullmatch(r'\d{6}\.(KS|KQ)', row.get('symbol', '')):
         status = 'supported'
     else:
@@ -57,7 +61,8 @@ def _eps_account(rows):
 def normalize_reports(reports: list[dict], *, symbol: str, classification: dict, actions: dict) -> dict:
     valid = [r for r in reports if r.get('basis') in {'CFS', 'OFS'}
              and isinstance(r.get('year'), int) and re.fullmatch(r'\d{14}', r.get('receiptNo', ''))
-             and r.get('periodEnd') == f"{r['year']}-12-31"]
+             and r.get('periodEnd') == f"{r['year']}-12-31"
+             and (r.get('periods') or {}).get('thstrm') == {'start':f"{r['year']}-01-01",'end':f"{r['year']}-12-31"}]
     basis = 'CFS' if any(r['basis'] == 'CFS' for r in valid) else 'OFS'
     valid = [r for r in valid if r['basis'] == basis]
     values, sources = {}, {}
@@ -73,14 +78,17 @@ def normalize_reports(reports: list[dict], *, symbol: str, classification: dict,
                 account = None
             for offset, period in enumerate(('thstrm_amount', 'frmtrm_amount', 'bfefrmtrm_amount')):
                 year = report['year'] - offset
+                observed = (report.get('periods') or {}).get(period.removesuffix('_amount'))
+                annual_period = observed == {'start':f'{year}-01-01','end':f'{year}-12-31'}
                 values.setdefault(year, {'year': year, **dict.fromkeys(KEYS)})
                 # A newer ambiguous account invalidates its older observations.
-                values[year][key] = amount(account.get(period)) if account else None
+                values[year][key] = amount(account.get(period)) if account and annual_period else None
                 sources.setdefault(str(year), {})[key] = {
                     'receiptNo': report['receiptNo'], 'filingDate': report['filingDate'],
                     'accountId': account.get('account_id') if account else None,
                     'accountName': account.get('account_nm') if account else None,
                     'currency': 'KRW', 'period': period, 'reportYear': report['year'],
+                    'periodStart': (observed or {}).get('start'), 'periodEnd': (observed or {}).get('end'),
                     'sourceUrl': f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={report['receiptNo']}",
                 }
     latest = max(values, default=0)

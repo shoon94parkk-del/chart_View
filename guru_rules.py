@@ -23,6 +23,7 @@ def evaluate_company(company: dict, quote: dict | None, *, strategy: str) -> dic
     classification = (company.get('classification') or {}).get('status')
     if classification == 'unsupported': return stop('unsupported', '일반기업 조건 비교 지원 제외')
     if classification != 'supported': return stop('insufficient', '업종·상품 유형 확인 부족')
+    if company.get('refreshError'): return stop('insufficient','공시 갱신 확인 실패 · 이전 자료 보존')
     if (company.get('collection') or {}).get('status') == 'pending':
         return stop('pending', '연간 재무자료 수집 대기')
     if not quote or quote.get('symbol') != company.get('symbol') or not finite(quote.get('price')) or quote['price'] <= 0:

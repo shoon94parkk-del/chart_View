@@ -99,3 +99,7 @@ def test_lynch_needs_latest_cash_and_debt_not_four_years_of_them():
     for r in c['annual'][:-1]:
         r.pop('operatingCashFlow'); r.pop('liabilities'); r.pop('equity')
     assert evaluate_company(c,quote(),strategy='lynch')['status']=='matched'
+
+def test_failed_refresh_never_publishes_old_company_as_current_verified():
+    c=company();c['refreshError']='DART network error'
+    assert evaluate_company(c,quote(),strategy='lynch')['status']=='insufficient'
