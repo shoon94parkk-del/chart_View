@@ -460,3 +460,11 @@ Classification: user-approved new additive behavior. Original Buffett/Lynch form
 ## 2026-10-05 — Five-method actual quarterly and deployed checkpoint
 
 The nine necessary-quarter checks completed using the existing private Actions key: eighteen requests, no provider errors, seven verified source comparisons and two insufficient reports. No pending records remain. Two companies pass quarterly growth but neither has the required recent volume breakout; O'Neil zero matches is correct. Independently rechecked all80 trend matches and three quality/value alternative matches against stored provider values. Data182cbdf snapshotca7bc07a7c3d4b261df3 was tested (448 Python passes, bundle parity), manually deployed and exact-health/assets/API200/409 verified. Add dated counts/source/CI/deploy evidence to the implementation report and portable handoff. Do not treat this historical checkpoint as a future realtime price or an automatic-publication/native-launch completion.
+
+## 2026-10-06 — Valuation API exposes TTM ROA for dated annual-screen cross-check
+
+**Classification:** additive data-semantics behavior. The Greenblatt reference screen remains a dated annual ROA/PER alternative; its full-market annual selection math is not silently replaced.
+
+**Decision:** `/api/valuation` now exposes `roa` with field-level provenance. Prefer trailing net income divided by the latest reported total assets from Yahoo Fundamentals, with provider return-on-assets only as a fallback. The period is explicitly labeled `TTM net income / latest reported assets`. Existing trailing/forward PER semantics, cache/freshness paths and quote behavior remain unchanged.
+
+**Protection:** this metric is for an explicit current cross-check of already selected annual candidates. It must not be presented as a complete TTM rescreen of the full KIND universe unless a versioned bulk TTM dataset and criteria are implemented. Missing values remain missing.
