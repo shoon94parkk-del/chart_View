@@ -1,0 +1,956 @@
+{
+  "arithmetic": {
+    "snapshotVersion": "ca7bc07a7c3d4b261df3",
+    "tradeDate": "2026-10-02",
+    "counts": {
+      "buffett": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 473,
+        "failedCount": 1896,
+        "matchedCount": 54,
+        "universeCount": 2652,
+        "evaluatedCount": 1950
+      },
+      "lynch": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 1238,
+        "failedCount": 1148,
+        "matchedCount": 37,
+        "universeCount": 2652,
+        "evaluatedCount": 1185
+      },
+      "oneil": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 1300,
+        "failedCount": 1123,
+        "matchedCount": 0,
+        "universeCount": 2652,
+        "evaluatedCount": 1123
+      },
+      "minervini": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 373,
+        "failedCount": 1970,
+        "matchedCount": 80,
+        "universeCount": 2652,
+        "evaluatedCount": 2050
+      },
+      "greenblatt": {
+        "unsupportedCount": 274,
+        "pendingCount": 0,
+        "insufficientCount": 949,
+        "failedCount": 1426,
+        "matchedCount": 3,
+        "universeCount": 2652,
+        "evaluatedCount": 1429
+      }
+    },
+    "marketCoverage": {
+      "eligibleCount": 2253,
+      "observedCount": 2050,
+      "cohort": "KIND supported ordinary companies with verified same-date positive closes",
+      "relativeStrengthMethod": "252-session return midrank percentile; not IBD RS Rating"
+    },
+    "quarterCollection": {
+      "status": "complete",
+      "attempted": 9,
+      "requests": 18,
+      "providerErrorCount": 0,
+      "necessaryCompanyCount": 9
+    },
+    "quarterChecks": [
+      {
+        "symbol": "002380.KS",
+        "available": false,
+        "year": 2026,
+        "quarter": 2,
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "003230.KS",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 60.70577856197619,
+        "revenueGrowth": 39.276767017317084,
+        "receiptNo": "20260814003053",
+        "quarterGrowthPassed": true,
+        "rs": 41.48780487804878,
+        "breakout": null
+      },
+      {
+        "symbol": "010820.KS",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 12.244897959183664,
+        "revenueGrowth": 49.11089110478946,
+        "receiptNo": "20260814002664",
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "033500.KQ",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 140.0,
+        "revenueGrowth": 16.144900828405383,
+        "receiptNo": "20260814002437",
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "045340.KQ",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 13.456464379947231,
+        "revenueGrowth": -0.5905873866618783,
+        "receiptNo": "20260813001058",
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "192820.KS",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 132.75488069414317,
+        "revenueGrowth": 27.476171322107177,
+        "receiptNo": "20260813001436",
+        "quarterGrowthPassed": true,
+        "rs": 82.58536585365853,
+        "breakout": null
+      },
+      {
+        "symbol": "265560.KQ",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": 471.5686274509804,
+        "revenueGrowth": 1.9289521036214285,
+        "receiptNo": "20260814003332",
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "267260.KS",
+        "available": false,
+        "year": 2026,
+        "quarter": 2,
+        "quarterGrowthPassed": false
+      },
+      {
+        "symbol": "339950.KQ",
+        "available": true,
+        "year": 2026,
+        "quarter": 2,
+        "basicEpsGrowth": -69.62025316455696,
+        "revenueGrowth": 2.6715221250615873,
+        "receiptNo": "20260814002807",
+        "quarterGrowthPassed": false
+      }
+    ],
+    "verifiedMatches": [
+      {
+        "strategy": "minervini",
+        "symbol": "068790.KQ",
+        "sma50": 7514.0,
+        "rs": 83.2439024390244
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "050120.KQ",
+        "sma50": 3205.5,
+        "rs": 81.39024390243902
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "083450.KQ",
+        "sma50": 45756.0,
+        "rs": 95.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "443060.KS",
+        "sma50": 213090.0,
+        "rs": 76.17073170731707
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "396300.KQ",
+        "sma50": 4626.0,
+        "rs": 93.78048780487805
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "092230.KS",
+        "sma50": 93682.0,
+        "rs": 85.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "327260.KQ",
+        "sma50": 36518.4,
+        "rs": 99.82926829268293
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "010950.KS",
+        "sma50": 145646.0,
+        "rs": 97.09756097560975
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "096770.KS",
+        "sma50": 129772.0,
+        "rs": 87.6829268292683
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "000500.KS",
+        "sma50": 210884.0,
+        "rs": 99.8780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "121440.KQ",
+        "sma50": 7367.0,
+        "rs": 85.63414634146342
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "007690.KS",
+        "sma50": 38308.0,
+        "rs": 70.8048780487805
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "053260.KQ",
+        "sma50": 6003.9,
+        "rs": 89.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "137080.KQ",
+        "sma50": 6005.0,
+        "rs": 91.97560975609755
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "036800.KQ",
+        "sma50": 6870.4,
+        "rs": 92.17073170731707
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "092730.KQ",
+        "sma50": 22273.2,
+        "rs": 81.97560975609755
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "351320.KQ",
+        "sma50": 2458.7,
+        "rs": 98.21951219512195
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "144960.KQ",
+        "sma50": 10265.2,
+        "rs": 95.6829268292683
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "003490.KS",
+        "sma50": 27947.0,
+        "rs": 84.17073170731707
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "068930.KQ",
+        "sma50": 8424.2,
+        "rs": 82.70731707317073
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "228850.KQ",
+        "sma50": 6963.8,
+        "rs": 87.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "089860.KS",
+        "sma50": 45828.0,
+        "rs": 91.1951219512195
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "098120.KQ",
+        "sma50": 39284.8,
+        "rs": 97.63414634146342
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "093520.KQ",
+        "sma50": 25279.2,
+        "rs": 82.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "446540.KQ",
+        "sma50": 7773.8,
+        "rs": 96.46341463414635
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "059090.KQ",
+        "sma50": 18337.6,
+        "rs": 87.2439024390244
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "033560.KQ",
+        "sma50": 4735.6,
+        "rs": 89.6829268292683
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "086670.KQ",
+        "sma50": 16661.6,
+        "rs": 88.95121951219512
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "143240.KQ",
+        "sma50": 16992.6,
+        "rs": 81.8780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "001820.KS",
+        "sma50": 108276.0,
+        "rs": 99.09756097560975
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "011560.KQ",
+        "sma50": 23057.6,
+        "rs": 92.70731707317073
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "236200.KQ",
+        "sma50": 53901.0,
+        "rs": 89.97560975609755
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "094840.KQ",
+        "sma50": 13057.2,
+        "rs": 93.09756097560975
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "222800.KQ",
+        "sma50": 116668.0,
+        "rs": 99.1951219512195
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "036710.KQ",
+        "sma50": 3905.3,
+        "rs": 95.48780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "037760.KQ",
+        "sma50": 2387.4,
+        "rs": 86.36585365853658
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "096530.KQ",
+        "sma50": 31225.0,
+        "rs": 86.90243902439025
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "013990.KQ",
+        "sma50": 4613.5,
+        "rs": 70.36585365853658
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "159010.KQ",
+        "sma50": 21292.6,
+        "rs": 99.78048780487805
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "052860.KQ",
+        "sma50": 5710.0,
+        "rs": 97.82926829268293
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "059100.KQ",
+        "sma50": 6088.2,
+        "rs": 82.85365853658537
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "052460.KQ",
+        "sma50": 5719.1,
+        "rs": 95.78048780487805
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "121890.KQ",
+        "sma50": 2414.48,
+        "rs": 92.02439024390245
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "097780.KQ",
+        "sma50": 1397.0,
+        "rs": 95.8780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "265740.KQ",
+        "sma50": 6662.0,
+        "rs": 79.82926829268293
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "122640.KQ",
+        "sma50": 27239.2,
+        "rs": 90.21951219512195
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "101160.KQ",
+        "sma50": 29573.0,
+        "rs": 84.70731707317073
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "077500.KS",
+        "sma50": 7053.2,
+        "rs": 86.41463414634147
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "084440.KQ",
+        "sma50": 2516.32,
+        "rs": 98.95121951219512
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "000700.KS",
+        "sma50": 6456.2,
+        "rs": 78.17073170731707
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "041520.KQ",
+        "sma50": 11214.6,
+        "rs": 89.73170731707317
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "134060.KQ",
+        "sma50": 5267.4,
+        "rs": 82.02439024390245
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "064290.KQ",
+        "sma50": 38357.0,
+        "rs": 98.36585365853658
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "071200.KQ",
+        "sma50": 9973.8,
+        "rs": 92.8048780487805
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "417840.KQ",
+        "sma50": 13194.6,
+        "rs": 98.70731707317073
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "217190.KQ",
+        "sma50": 6174.3,
+        "rs": 85.8780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "036930.KQ",
+        "sma50": 176404.0,
+        "rs": 99.6829268292683
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "051160.KQ",
+        "sma50": 9957.4,
+        "rs": 89.4390243902439
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "119850.KQ",
+        "sma50": 48150.0,
+        "rs": 88.70731707317073
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "086060.KQ",
+        "sma50": 4814.2,
+        "rs": 77.48780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "029460.KS",
+        "sma50": 36264.0,
+        "rs": 91.48780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "093640.KQ",
+        "sma50": 4237.8,
+        "rs": 76.95121951219512
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "033780.KS",
+        "sma50": 176080.0,
+        "rs": 84.1219512195122
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "049430.KQ",
+        "sma50": 21095.0,
+        "rs": 93.1951219512195
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "041960.KQ",
+        "sma50": 8886.8,
+        "rs": 87.0
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "192820.KS",
+        "sma50": 247844.0,
+        "rs": 82.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "021240.KS",
+        "sma50": 97164.0,
+        "rs": 71.04878048780488
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "020120.KS",
+        "sma50": 5805.0,
+        "rs": 93.92682926829268
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "219130.KQ",
+        "sma50": 70796.0,
+        "rs": 98.65853658536585
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "084870.KS",
+        "sma50": 2163.64,
+        "rs": 89.2439024390244
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "131290.KQ",
+        "sma50": 241134.0,
+        "rs": 99.58536585365853
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "065690.KQ",
+        "sma50": 1677.02,
+        "rs": 90.51219512195122
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "028670.KS",
+        "sma50": 5726.4,
+        "rs": 88.65853658536585
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "032580.KQ",
+        "sma50": 4899.0,
+        "rs": 99.53658536585365
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "031980.KQ",
+        "sma50": 130526.0,
+        "rs": 99.0
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "005430.KS",
+        "sma50": 83990.0,
+        "rs": 86.1219512195122
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "017890.KQ",
+        "sma50": 14166.4,
+        "rs": 90.60975609756098
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "025890.KS",
+        "sma50": 2502.3,
+        "rs": 83.8780487804878
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "161890.KS",
+        "sma50": 131480.0,
+        "rs": 91.14634146341463
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "003350.KS",
+        "sma50": 12102.4,
+        "rs": 85.29268292682927
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "171090.KQ",
+        "annualROA": 26.399923512727497,
+        "annualPE": 6.944064239437905
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "123330.KQ",
+        "annualROA": 33.40776865493605,
+        "annualPE": 8.989229494614747
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "005690.KS",
+        "annualROA": 25.63354663652524,
+        "annualPE": 18.47988077496274
+      }
+    ]
+  },
+  "backendDeployment": {
+    "revision": "182cbdf7581a1fb41d4c2edf80e6fa8554fe3479",
+    "baseUrl": "https://chart-view-pkv8.onrender.com",
+    "assets": {
+      "static/js/chartview_release_bundle.js": "d9e3f60e31904198b679ec0e4bdd81eb7130b2a80290df176f9a77e6051aafd9",
+      "static/css/chartview_release_bundle.css": "69f5f6c9c4fb3f63a307aa443665a011599565c19347fed21a7af3740a716382",
+      "static/js/ai_daily_widget.js": "2a43ab218166409f546a967476f9951e7fe8aac452f549a1df8caa520c144096"
+    },
+    "snapshotVersion": "ca7bc07a7c3d4b261df3",
+    "tradeDate": "2026-10-02",
+    "proofs": [
+      {
+        "strategy": "buffett",
+        "symbol": "383220.KS",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "buffett",
+        "symbol": "083450.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "buffett",
+        "symbol": "071970.KS",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "lynch",
+        "symbol": "195940.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "lynch",
+        "symbol": "030190.KS",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "lynch",
+        "symbol": "024940.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "068790.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "050120.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "minervini",
+        "symbol": "083450.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "171090.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "123330.KQ",
+        "status": 200,
+        "conflict": 409
+      },
+      {
+        "strategy": "greenblatt",
+        "symbol": "005690.KS",
+        "status": 200,
+        "conflict": 409
+      }
+    ],
+    "counts": {
+      "buffett": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 473,
+        "failedCount": 1896,
+        "matchedCount": 54,
+        "universeCount": 2652,
+        "evaluatedCount": 1950
+      },
+      "lynch": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 1238,
+        "failedCount": 1148,
+        "matchedCount": 37,
+        "universeCount": 2652,
+        "evaluatedCount": 1185
+      },
+      "oneil": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 1300,
+        "failedCount": 1123,
+        "matchedCount": 0,
+        "universeCount": 2652,
+        "evaluatedCount": 1123
+      },
+      "minervini": {
+        "unsupportedCount": 229,
+        "pendingCount": 0,
+        "insufficientCount": 373,
+        "failedCount": 1970,
+        "matchedCount": 80,
+        "universeCount": 2652,
+        "evaluatedCount": 2050
+      },
+      "greenblatt": {
+        "unsupportedCount": 274,
+        "pendingCount": 0,
+        "insufficientCount": 949,
+        "failedCount": 1426,
+        "matchedCount": 3,
+        "universeCount": 2652,
+        "evaluatedCount": 1429
+      }
+    }
+  },
+  "frontendDeployment": {
+    "baseUrl": "https://chart-view-toss.onrender.com",
+    "assetCount": 35,
+    "assets": [
+      {
+        "path": "index.html",
+        "sha256": "7a42273f45517208a89b9373e4fc299c83cc88913f9e33dfd370247cc88607c8"
+      },
+      {
+        "path": "assets/detailReviewSummary-BiwdK_b8.js",
+        "sha256": "3c01e2884af0bd8810b0179f0d0f458aca380b17f6429bb3eaee9131520c6ba6"
+      },
+      {
+        "path": "assets/exportMomentum-DJ0g8etv.css",
+        "sha256": "d02a3fa7d985eedcb9f302635a2a6ff47a98c330d9f2b2c36fa24dadc3c73293"
+      },
+      {
+        "path": "assets/exportMomentumData-DlTQu7Ay.js",
+        "sha256": "02c565eb3d29e6fa91553cee3d659663bb4d986ac41ab7320125e54b540cf837"
+      },
+      {
+        "path": "assets/exportMomentumView-p6nMlmXl.js",
+        "sha256": "e93a2ffa095a79a50f90dc1b18a5066ad228080c8f1401bd5e0f3a78c530e7ce"
+      },
+      {
+        "path": "assets/exportResearchView-RZ_Hohn8.js",
+        "sha256": "bd894f08a27bed12b0ca9096c64b8bfce40d82421debef973cc640671a1beeb0"
+      },
+      {
+        "path": "assets/financialHistoryView-C6pzh8Yo.css",
+        "sha256": "02d50a632de1a9a2f14a85481f5f1a44497683c9320d1b3ff047243816258960"
+      },
+      {
+        "path": "assets/financialHistoryView-T4N3c3gW.js",
+        "sha256": "859fb4ed9864ef83143b7ea9a9238372483a529b8f33f98c741f1bfb7ebb2029"
+      },
+      {
+        "path": "assets/financialQuality-DBoDFLrL.js",
+        "sha256": "1d3a542631cd1b94a8bda7b665d47e791fa414b48fbd90d1b3435802726af7a1"
+      },
+      {
+        "path": "assets/financialQualityView-CpbI4CS1.css",
+        "sha256": "4913b458c700ada02695fddbb0edb9e431dfdb84462e77b31e8ff527d5288c22"
+      },
+      {
+        "path": "assets/financialQualityView-DxEamdHG.js",
+        "sha256": "33423af0d4c5dfe10139d8f7ac8432d77418b1143064bfc16250347f18f43ca5"
+      },
+      {
+        "path": "assets/guruInvestingView-BZ7MO-Fa.css",
+        "sha256": "de5a9d950ac7f713c3e8e87d92378f7526834d9a1dad97da6244de0d302eeed4"
+      },
+      {
+        "path": "assets/guruInvestingView-CbaJCX2n.js",
+        "sha256": "5f95b58fcdbd23a8a78856f050a68dd6c1d05ef97880c3f22f11eb3966054788"
+      },
+      {
+        "path": "assets/homeChangesView---MF2gAb.js",
+        "sha256": "240af720220b2fae0c9dc421d51328b55f70cddc6d4e9017710f3f1293f46063"
+      },
+      {
+        "path": "assets/ideaView-BqhLAijL.css",
+        "sha256": "d03b880446b21d67827b0f37c168fab0a67218bc2c9c9febd6abc22db13fe2ec"
+      },
+      {
+        "path": "assets/ideaView-CfyGwSLT.js",
+        "sha256": "8464ede542b3833f3b68be4d1cfe41df604c2d059087249eb8c62b0e8cd46216"
+      },
+      {
+        "path": "assets/index-BiWhmXhK.js",
+        "sha256": "7ba78f04ac81a9718fe3465627ec101e258e5a4a12eeaed028f7e21bafcad96b"
+      },
+      {
+        "path": "assets/index-DlbRsqEp.css",
+        "sha256": "e5ec8261569465761957641b574b89f9f0bd082c0b01322f9eee8912f3159bb1"
+      },
+      {
+        "path": "assets/industryContextView-CTbXbUND.css",
+        "sha256": "41f1434be2c7f1698176f9ef52680e354084fc0be40edb26fb46c5a9c53a7f8b"
+      },
+      {
+        "path": "assets/industryContextView-t3nLAjdo.js",
+        "sha256": "afa5a7beb9ada0dfbd460c2e5e093309dcb6782aa668743f74a94b33b0d818ef"
+      },
+      {
+        "path": "assets/investmentReview-BfK0-6qh.js",
+        "sha256": "36372149d05a3cf5e8956e382c21ac6bd79a4f74f60e7357a5e509701156ec55"
+      },
+      {
+        "path": "assets/investmentReview-DagPUGCm.css",
+        "sha256": "dbb5ae8762e43bd191e269693269160e8a9bcca03938a03ad35e00d4b4cb2ec8"
+      },
+      {
+        "path": "assets/lightweight-charts.production-d2CSQ3C3.js",
+        "sha256": "9fa946b60a8b2d06d3efdfe9fed21e556c40b72633e871f1a586bd6819f2a3d3"
+      },
+      {
+        "path": "assets/marketMap-CvYyxNKF.css",
+        "sha256": "a890bcb80733ce9a246ce37acd9f18f9f9b91cfabadfc646f9738abc13c5b4d4"
+      },
+      {
+        "path": "assets/marketMapView-DbMn2RUM.js",
+        "sha256": "ba5c780231cb7cb6173ba9d1228011392144cf7e488058cac834723e276c4040"
+      },
+      {
+        "path": "assets/memoryPriceView-DpoxooeQ.js",
+        "sha256": "521e8c03f6fc490776b70ed57cdcd1ad8d752f65f66cf5e20ccfe25c68d38eea"
+      },
+      {
+        "path": "assets/pickLedger-6NV6TvlT.css",
+        "sha256": "5111016a66cc5304a090b0938ceac62a22c07937402b2c1695764ccef2f55710"
+      },
+      {
+        "path": "assets/pickLedger-CYpgV5iv.js",
+        "sha256": "7612805e2a933d76d2fcc6b59c6d17bd38f7ffddd23f711c941ffa1b95208ec3"
+      },
+      {
+        "path": "assets/quarterView-C3AeQURr.js",
+        "sha256": "0bc810dfa8f08715752c70b43875bfcaf146b6afe6d2e9ab2939a552f3d00e0b"
+      },
+      {
+        "path": "assets/reportReviewView-wDeV0K9o.js",
+        "sha256": "fa4e90665ba5e66e62694e0919462a1b35f9a7dc8c8a844e361ee91a6639c865"
+      },
+      {
+        "path": "assets/researchAnalysis-DHsF-5l8.js",
+        "sha256": "0fa57c6c0cf685da1f3f5c5d4c3b755a43bbb7cabcafc736713091865c6beae8"
+      },
+      {
+        "path": "assets/researchCard-BZfmWDM1.css",
+        "sha256": "bbe3122bd4e3387038a472b853742fe9d2538c0739eaa53ca0b76331bd2f775d"
+      },
+      {
+        "path": "assets/researchCard-CUtlU89N.js",
+        "sha256": "1443d2128e296b50b9f815b24dc5aac11790d9e7aca448f42ce73f08e0e43d19"
+      },
+      {
+        "path": "assets/reviewRevisit-BJaPOgpi.js",
+        "sha256": "f4fe55b61d3860144113696e08a60a3ba2e349c77f1d30815537998aece2a749"
+      },
+      {
+        "path": "assets/revisitRefresh-DMvxZ8up.js",
+        "sha256": "bffe455fd57c02a9b96a0a017abc786157f83df1265b6f0079f9f048cad4c4b7"
+      }
+    ],
+    "routes": [
+      {
+        "path": "/gurus/buffett/",
+        "status": 200
+      },
+      {
+        "path": "/gurus/lynch/",
+        "status": 200
+      },
+      {
+        "path": "/gurus/oneil/",
+        "status": 200
+      },
+      {
+        "path": "/gurus/minervini/",
+        "status": 200
+      },
+      {
+        "path": "/gurus/greenblatt/",
+        "status": 200
+      }
+    ]
+  }
+}
