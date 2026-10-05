@@ -39,17 +39,18 @@ def evaluate_company(company: dict, quote: dict | None, *, strategy: str) -> dic
         return stop('insufficient', '공시 시점·출처 확인 부족')
     rows = company.get('annual') or []
     latest = company.get('annualReportYear')
-    if not isinstance(latest, int) or latest != trade_date.year - 1:
+    earliest = trade_date.year - (2 if trade_date.month < 4 else 1)
+    if not isinstance(latest, int) or not earliest <= latest <= trade_date.year - 1:
         return stop('insufficient', '최근 목표 사업연도 확인 부족')
     by_year = {r.get('year'): r for r in rows}
     if len(by_year) != len(rows) or any(y not in by_year for y in range(latest-3, latest+1)):
         return stop('insufficient', '연속 4개 연도 자료 확인 부족')
     rows = [by_year[y] for y in range(latest-3, latest+1)]
-    required = ['equity', 'liabilities', 'operatingCashFlow'] + (['netIncome'] if strategy == 'buffett' else ['basicEps'])
-    needed_rows = rows[1:] if strategy == 'buffett' else rows
-    if any(not finite(r.get(key)) for r in needed_rows for key in required) or not finite(rows[0].get('equity')):
+    required = [(r,k) for r in rows[1:] for k in ('equity','netIncome','operatingCashFlow')] + [(rows[0],'equity')] if strategy=='buffett' else [(r,'basicEps') for r in rows]
+    required += [(rows[-1],k) for k in ('equity','liabilities','operatingCashFlow')]
+    if any(not finite(r.get(k)) for r,k in required):
         return stop('insufficient', '필수 계정 누락·금액 확인 부족')
-    if any(r['equity'] <= 0 for r in rows):
+    if any(r['equity'] <= 0 for r in (rows if strategy=='buffett' else rows[-1:])):
         return stop('failed', '양수 자본 조건 미충족')
     debt = rows[-1]['liabilities']/rows[-1]['equity']*100
     metrics = result['metrics']

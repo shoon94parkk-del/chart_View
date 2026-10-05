@@ -84,3 +84,18 @@ def test_pending_unsupported_and_unknown_classification_are_distinct():
     assert evaluate_company(c, quote(), strategy='buffett')['status'] == 'insufficient'
     c = company(); c['collection']['status'] = 'pending'
     assert evaluate_company(c, quote(), strategy='buffett')['status'] == 'pending'
+
+def test_prior_annual_is_valid_before_annual_filing_deadline():
+    q=quote(); q['date']='2026-02-20'
+    c=company(); c['annualReportYear']=2024
+    for r in c['annual']: r['year']-=1
+    c['sources']={'2024':{'equity':{'filingDate':'2025-03-12'}}}
+    assert evaluate_company(c,q,strategy='buffett')['status']=='matched'
+    q['date']='2026-04-01'
+    assert evaluate_company(c,q,strategy='buffett')['status']=='insufficient'
+
+def test_lynch_needs_latest_cash_and_debt_not_four_years_of_them():
+    c=company()
+    for r in c['annual'][:-1]:
+        r.pop('operatingCashFlow'); r.pop('liabilities'); r.pop('equity')
+    assert evaluate_company(c,quote(),strategy='lynch')['status']=='matched'

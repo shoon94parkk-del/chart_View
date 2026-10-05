@@ -14,7 +14,8 @@ def merge_cache(current, collected):
         old=companies.get(symbol)
         if not old or str(row.get('checkedAt',''))>str(old.get('checkedAt','')):
             companies[symbol]=row
-    return {**current,**{k:v for k,v in collected.items() if k!='companies'},'companies':companies}
+    metadata = collected if str(collected.get('generatedAt','')) >= str(current.get('generatedAt','')) else current
+    return {**metadata,'companies':companies}
 
 
 if __name__=='__main__':

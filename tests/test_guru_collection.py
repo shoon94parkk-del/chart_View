@@ -8,7 +8,8 @@ class FakeClient:
     def collect(self, row, previous):
         self.requests+=1
         if self.limit: raise DartLimit()
-        return {'symbol': row['symbol'], 'collection': {'status': 'complete'}, 'annual': []}
+        from datetime import datetime, timezone
+        return {'symbol': row['symbol'], 'checkedAt':datetime.now(timezone.utc).isoformat(), 'collection': {'status': 'complete'}, 'annual': []}
 
 
 def test_partial_collection_checkpoint_resume():
@@ -33,3 +34,14 @@ def test_merge_never_overwrites_newer_checked_evidence():
     current={'companies':{'005930.KS':{'checkedAt':'2026-10-05T18:00:00+09:00','annual':[{'year':2025,'netIncome':19}]}}}
     older={'companies':{'005930.KS':{'checkedAt':'2026-10-05T17:00:00+09:00','annual':[{'year':2025,'netIncome':15}]}}}
     assert merge_cache(current,older)['companies']['005930.KS']['annual'][0]['netIncome']==19
+
+def test_old_merge_keeps_newer_universe_metadata():
+    from scripts.merge_guru_cache import merge_cache
+    current={'generatedAt':'2026-10-05T18:00:00+09:00','universe':[{'symbol':'000002.KS'}]}
+    old={'generatedAt':'2026-10-05T17:00:00+09:00','universe':[{'symbol':'000001.KS'}]}
+    assert merge_cache(current,old)['universe']==current['universe']
+
+def test_missing_checked_time_is_due_for_verification():
+    u=[{'symbol':'000001.KS','industry':'제조업'}]; client=FakeClient()
+    refresh_cache(u,{'companies':{'000001.KS':{}}},client=client,max_companies=1,max_requests=10,deadline=time.monotonic()+10)
+    assert client.requests==1

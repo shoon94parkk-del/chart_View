@@ -85,6 +85,7 @@ class DartClient:
         now=datetime.now(KST); target=now.year-1
         base={'symbol':row['symbol'],'classification':classification,'checkedAt':now.isoformat(timespec='seconds'),
               'collection':{'status':'complete','targetYear':target}}
+        if classification['status']=='unsupported': return base
         if not corp:
             return {**base,'collection':{'status':'complete','reason':'DART 고유번호 연결 부족','targetYear':target}}
         profile=(previous or {}).get('profile') or self.get('company.json',{'corp_code':corp})
@@ -93,6 +94,11 @@ class DartClient:
         latest=self.report(corp,target,'CFS',month)
         basis='CFS'
         if not latest: latest=self.report(corp,target,'OFS',month); basis='OFS'
+        if not latest and now.month<4:
+            target-=1
+            latest=self.report(corp,target,'CFS',month); basis='CFS'
+            if not latest: latest=self.report(corp,target,'OFS',month); basis='OFS'
+            base['collection']['targetYear']=target
         if latest:
             reports.append(latest)
             older=[r for r in (previous or {}).get('reports',[]) if r.get('year')==target-2 and r.get('basis')==basis]
@@ -112,7 +118,7 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
         old=companies.get(row['symbol'])
         if not old: return True
         try: return (now-datetime.fromisoformat(old['checkedAt'])).total_seconds()>=86400
-        except (KeyError,ValueError,TypeError): return False
+        except (KeyError,ValueError,TypeError): return True
     ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, r['symbol']))
     for row in ordered:
         if not due(row): continue
@@ -162,6 +168,9 @@ def main():
         atomic_json(OUT/'guru_financials.json',cache)
     else:
         universe=cache.get('universe') or prices.get('stocks',[])
+        if not cache:
+            cache={'universe':universe,'companies':{},'collection':{'status':'pending'}}
+            atomic_json(OUT/'guru_financials.json',cache)
     snapshot,evidence=build_snapshot(universe,prices,cache,generated_at=datetime.now(KST).isoformat(timespec='seconds'))
     publish_snapshot(snapshot,evidence,OUT)
     print(json.dumps({'tradeDate':snapshot['tradeDate'],'version':snapshot['snapshotVersion'],

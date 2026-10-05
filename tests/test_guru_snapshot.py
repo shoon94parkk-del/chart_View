@@ -17,7 +17,7 @@ def test_counts_partition_universe():
         universe.append({'symbol': symbol, 'name': f'시험 {i}', 'market': 'KOSPI', 'industry': '일반 제조업'})
         c = copy.deepcopy(company()); c['symbol'] = symbol
         q = dict(quote(), symbol=symbol); prices['stocks'].append(q)
-        if status=='unsupported': c['classification']['status'] = 'unsupported'
+        if status=='unsupported': universe[-1]['industry']='은행 및 금융업'
         if status=='pending': c['collection']['status'] = 'pending'
         if status=='insufficient': c['annual'][0]['equity'] = None
         if status=='failed': c['annual'][-1]['netIncome'] = 0
@@ -57,3 +57,14 @@ def test_corrected_report_invalidates_dependent_metrics():
     after,_=build_snapshot(u,p,f,generated_at='2026-10-05T17:00:00+09:00')
     assert before['snapshotVersion'] != after['snapshotVersion']
     assert after['strategies']['buffett']['matchedCount']==0
+
+def test_current_industry_takes_precedence_over_cached_classification():
+    u,p,f=inputs(); u[0]['industry']='은행 및 금융업'
+    data,_=build_snapshot(u,p,f,generated_at='2026-10-05T17:00:00+09:00')
+    assert data['strategies']['buffett']['unsupportedCount']==1
+
+def test_snapshot_financial_check_time_is_not_refresh_attempt_time():
+    u,p,f=inputs(); f['generatedAt']='2026-10-05T17:00:00+09:00'
+    f['companies']['005930.KS']['checkedAt']='2026-10-01T17:00:00+09:00'
+    data,_=build_snapshot(u,p,f,generated_at=f['generatedAt'])
+    assert data['financialAsOf']=='2026-10-01T17:00:00+09:00'

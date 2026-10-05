@@ -23,7 +23,7 @@ def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, gene
         for symbol, identity in unique.items():
             raw = (financials.get('companies') or {}).get(symbol)
             company = dict(raw or {'symbol': symbol, 'collection': {'status': 'pending'}})
-            company['classification'] = (raw or {}).get('classification') or classify_company(identity)
+            company['classification'] = classify_company(identity)
             evaluation = evaluate_company(company, quotes.get(symbol), strategy=strategy)
             counts[evaluation['status']+'Count'] += 1
             for reason in evaluation['reasons']:
@@ -41,8 +41,10 @@ def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, gene
         results.sort(key=lambda r: (r['name'], r['symbol']))
         strategies[strategy] = {**counts, 'universeCount': len(unique), 'evaluatedCount': counts['matchedCount']+counts['failedCount'],
                                 'results': results, 'missingReasons': reasons}
+    checks = [r['checkedAt'] for r in (financials.get('companies') or {}).values() if r.get('checkedAt')]
     snapshot = {'schemaVersion': 1, 'criteriaVersion': CRITERIA_VERSION, 'generatedAt': generated_at,
-                'tradeDate': trade_date, 'financialAsOf': financials.get('generatedAt') or generated_at,
+                'tradeDate': trade_date, 'financialAsOf': min(checks) if checks else generated_at,
+                'financialCheckedThrough': max(checks) if checks else generated_at,
                 'source': 'OpenDART annual financial statements · KIND universe · Yahoo dated closing prices',
                 'collection': financials.get('collection', {'status': 'pending'}), 'strategies': strategies}
     version_content = {'tradeDate': trade_date, 'criteriaVersion': CRITERIA_VERSION, 'strategies': strategies, 'companies': companies}
