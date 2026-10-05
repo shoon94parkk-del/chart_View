@@ -213,7 +213,8 @@ def main():
         if not cache:
             cache={'universe':universe,'companies':{},'collection':{'status':'pending'}}
             atomic_json(OUT/'guru_financials.json',cache)
-    snapshot,evidence=build_snapshot(universe,prices,cache,generated_at=datetime.now(KST).isoformat(timespec='seconds'))
+    snapshot,evidence=build_snapshot(universe,prices,cache,generated_at=datetime.now(KST).isoformat(timespec='seconds'),
+        market=load_json(OUT/'guru_market.json',{}),quarters=load_json(OUT/'guru_quarters.json',{}))
     publish_snapshot(snapshot,evidence,OUT)
     print(json.dumps({'tradeDate':snapshot['tradeDate'],'version':snapshot['snapshotVersion'],
         'collection':snapshot['collection'],'counts':{s:{k:v for k,v in d.items() if k.endswith('Count')} for s,d in snapshot['strategies'].items()}}))

@@ -294,3 +294,7 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 
 ## 2026-10-05 — Guru investing
 Separate guru_financials/rules/snapshot/service modules and update-guru-screening workflow. Result/evidence snapshotVersion must agree. Cache-only API returns 409 for obsolete versions, 404 missing company, 503 missing evidence. Missing financials remain pending; ambiguous accounts/periods/actions/type remain insufficient. Updated snapshots use dated screener quotes and current universe, with oldest successful verification time exposed. Financial cache retains filtered original accounts, account periods, source receipts and action evidence.
+
+## 2026-10-05 — Five strategy extension and new-PC entry
+
+`docs/CODEX_HANDOFF.md` links both repos and current setup, source/data contracts, scripts and operational limits. `guru_extensions.py` adds oneil/minervini/greenblatt, separate guru_market/quarters caches and necessary-only quarter collection. No visitor or existing screener provider path changed. Greenblatt is ROA/PER alternative, not EBIT/EV. RS is a same-date-close Korean ordinary-company253-history cohort's252-return midrank; no IBD/RSI claim. O'Neil single-quarter data preserves raw source accounts and actual fiscal/receipt/currency/basis verification. The 35-minute Actions job retains original annual bounds and adds market240sec + quarter400/1000/300sec, with conflict-safe checkpoints. Other PC clones main and runs repository scripts rather than depending on ephemeral work/output/credential sessions.

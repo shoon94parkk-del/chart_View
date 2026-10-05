@@ -1,5 +1,7 @@
 # Chart View 📊
 
+**새 PC에서 Codex 개발을 이어갈 때:** [현재 구조·기준·실행·수집·배포 인수인계](docs/CODEX_HANDOFF.md)를 먼저 읽으세요. Toss UI 저장소의 인수인계도 연결되어 있습니다.
+
 한국·미국 주식을 **차트, 밸류에이션, 투자판단 근거**까지 한 화면에서 비교하는 무료 모바일 웹앱입니다.
 
 **Live Demo → https://chart-view-pkv8.onrender.com**

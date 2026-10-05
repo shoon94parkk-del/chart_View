@@ -3,6 +3,7 @@
 Chart View is improved incrementally. Do not rely on chat memory alone and do not silently undo a behavior that was intentionally fixed.
 
 ## Read before editing
+0. `docs/CODEX_HANDOFF.md` (new-PC entry point, current architecture and operational limits)
 1. `docs/no-repeat-regression-policy.md`
 2. `docs/project-memory.md`
 3. `docs/regression-guardrails.md`

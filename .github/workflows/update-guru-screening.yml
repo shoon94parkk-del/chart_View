@@ -15,6 +15,10 @@ on:
       max_requests:
         description: DART request budget
         default: '2400'
+      collect_extensions:
+        description: Collect dated OHLCV and necessary single-quarter EPS/revenue
+        type: boolean
+        default: true
   workflow_run:
     workflows: [Update Korean Stock Screener]
     types: [completed]
@@ -29,7 +33,7 @@ jobs:
   generate:
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.repository.full_name == github.repository)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,11 +53,21 @@ jobs:
           args=()
           if [ "$COLLECT" = 'true' ]; then args+=(--collect); fi
           python scripts/generate_guru_screening.py "${args[@]}" --max-companies "$COMPANY_BUDGET" --max-requests "$REQUEST_BUDGET" --max-seconds 1200
+      - name: Collect bounded trend and growth evidence
+        if: github.event_name != 'workflow_dispatch' || inputs.collect_extensions
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python scripts/generate_guru_market.py --max-seconds 240
+          python scripts/collect_guru_quarters.py --max-companies 400 --max-requests 1000 --max-seconds 300
+          python scripts/generate_guru_screening.py
       - name: Commit cache against current prices
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           cp static/data/guru_financials.json /tmp/guru-collected.json 2>/dev/null || true
+          cp static/data/guru_market.json /tmp/guru-market.json 2>/dev/null || true
+          cp static/data/guru_quarters.json /tmp/guru-quarters.json 2>/dev/null || true
           for attempt in 1 2 3; do
             git fetch origin main
             git restore static/data/guru_screening.json static/data/guru_evidence.json 2>/dev/null || true
@@ -61,8 +75,10 @@ jobs:
             if [ -f /tmp/guru-collected.json ]; then
               python scripts/merge_guru_cache.py /tmp/guru-collected.json
             fi
+            python scripts/merge_guru_extensions.py /tmp/guru-market.json /tmp/guru-quarters.json
             python scripts/generate_guru_screening.py
             git add static/data/guru_financials.json static/data/guru_screening.json static/data/guru_evidence.json
+            git add static/data/guru_market.json static/data/guru_quarters.json 2>/dev/null || true
             if git diff --cached --quiet; then exit 0; fi
             git commit -m 'data: refresh verified guru screening'
             if git push origin HEAD:main; then exit 0; fi
