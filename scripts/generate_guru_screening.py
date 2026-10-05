@@ -36,7 +36,6 @@ class DartClient:
         self.session.headers['User-Agent'] = 'ChartView financial evidence collector'
         self._sessions=threading.local(); self._sessions.session=self.session
         self._lock=threading.Lock(); self._limited=False
-        self._major_dates={}
 
     def _get_session(self):
         if not getattr(self._sessions,'session',None):
@@ -63,28 +62,6 @@ class DartClient:
             if data.get('status') not in {'000','013'}: raise ProviderError('DART status '+str(data.get('status')))
             return data
 
-    def prefetch_periods(self, rows, target):
-        """Batch official major-account dates; never substitute a different filing."""
-        selected={}
-        for row in rows:
-            code=row.get('code') or row['symbol'].split('.')[0]
-            corp=(self.corp_codes.get(code) or {}).get('corpCode')
-            if corp and classify_company(row)['status']=='supported':selected[code]=corp
-        years=[target,target-2]
-        if datetime.now(KST).month<4:years.extend([target-1,target-3])
-        codes=list(selected)
-        for offset in range(0,len(codes),100):
-            chunk=codes[offset:offset+100]
-            for year in years:
-                try:
-                    data=self.get('fnlttMultiAcnt.json',{'corp_code':','.join(selected[c] for c in chunk),
-                                  'bsns_year':year,'reprt_code':'11011'})
-                except ProviderError:continue # A failed optimization falls back to official single-company dates.
-                for item in data.get('list') or []:
-                    code=item.get('stock_code')
-                    if code in chunk and item.get('sj_div') in {'IS','CIS'}:
-                        self._major_dates.setdefault((selected[code],year),[]).append(item)
-
     def report(self, corp, year, basis, month=''):
         data=self.get('fnlttSinglAcntAll.json',{'corp_code':corp,'bsns_year':year,'reprt_code':'11011','fs_div':basis})
         if data.get('status') != '000': return None
@@ -99,10 +76,8 @@ class DartClient:
               or '주당' in r.get('account_nm','') or 'EarningsLossPerShare' in r.get('account_id','')]
         # Full-account responses lack dates. Cross-check against official major-account
         # income periods from the SAME receipt and financial basis, never acc_mt guesses.
-        incomes=[r for r in self._major_dates.get((corp,year),[]) if r.get('rcept_no')==receipt and r.get('fs_div')==basis]
-        if not incomes:
-            dates=self.get('fnlttSinglAcnt.json',{'corp_code':corp,'bsns_year':year,'reprt_code':'11011'})
-            incomes=[r for r in dates.get('list',[]) if r.get('rcept_no')==receipt and r.get('fs_div')==basis and r.get('sj_div') in {'IS','CIS'}]
+        dates=self.get('fnlttSinglAcnt.json',{'corp_code':corp,'bsns_year':year,'reprt_code':'11011'})
+        incomes=[r for r in dates.get('list',[]) if r.get('rcept_no')==receipt and r.get('fs_div')==basis and r.get('sj_div') in {'IS','CIS'}]
         periods={}
         for period in ('thstrm','frmtrm','bfefrmtrm'):
             found=set()
@@ -177,10 +152,6 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
     ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, str((companies.get(r['symbol']) or {}).get('lastAttemptAt') or (companies.get(r['symbol']) or {}).get('checkedAt','')), r['symbol']))
     due_rows=[r for r in ordered if due(r)]
     index=0; stopped=False
-    if hasattr(client,'prefetch_periods'):
-        try:client.prefetch_periods(due_rows[:max_companies],now.year-1)
-        except DartLimit:status='rate_limited';stopped=True
-        except BudgetLimit:status='partial';stopped=True
     with ThreadPoolExecutor(max_workers=2) as pool:
         pending={}
         while pending or (index<len(due_rows) and index<max_companies and not stopped):

@@ -1,6 +1,6 @@
 # Guru reference screening contract
 
-Period collection uses the official [multiple-company major accounts API](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS002&apiId=2019017), in batches of at most 100 companies for the required annual years. Each full-account report is fetched individually. Batch dates must match the stock, receipt and financial basis; missing or changed receipts fall back to single-company dates. Prefetching shares the collector's global request/deadline/020 budget. An unused company-profile/fiscal-month request is removed because a fiscal month does not establish a full annual observation period.
+Period collection uses individual official major-account requests matching the full-account report's receipt and financial basis. A live trial of the official multiple-company API processed only 18 companies in 20 minutes versus 900 in the previous bounded run, so bulk prefetching was removed. The unused company-profile/fiscal-month request remains removed because a fiscal month does not establish an actual annual observation period. Two workers share the request/deadline/020 budget.
 
 This is a new additive, cached analysis surface. The original technical screener and financial-history API remain unchanged.
 
