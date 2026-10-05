@@ -1,5 +1,7 @@
 # Guru reference screening contract
 
+Period collection uses the official [multiple-company major accounts API](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS002&apiId=2019017), in batches of at most 100 companies for the required annual years. Each full-account report is fetched individually. Batch dates must match the stock, receipt and financial basis; missing or changed receipts fall back to single-company dates. Prefetching shares the collector's global request/deadline/020 budget. An unused company-profile/fiscal-month request is removed because a fiscal month does not establish a full annual observation period.
+
 This is a new additive, cached analysis surface. The original technical screener and financial-history API remain unchanged.
 
 `guru_screening.json` has schemaVersion 1, criteriaVersion cv-gurus-v1, snapshotVersion, price tradeDate, financialAsOf, and separate buffett/lynch strategies. Counts partition the unique KIND universe; evaluated=matched+failed. Pending, insufficient and unsupported are distinct. Only matched rows become candidates, sorted by name.
