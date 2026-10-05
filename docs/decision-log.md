@@ -1,5 +1,13 @@
 # Chart View decision log
 
+## 2026-10-05 — Verify collection throughput before retaining an optimization
+
+**Classification:** New behavior, follow-up to the separate guru screening collector. The initial sequential run collected 91 companies within its time budget. Two workers then collected 900 companies / 5,942 requests. A trial of official multiple-company period prefetch collected only 18 companies / 100 requests in 20 minutes, so PR126 removed that prefetch and restored receipt-matched individual annual-period validation. Removing the unused fiscal-month profile request remains valid: it never established an annual observation period.
+
+**Protection:** Two thread-local sessions share locked request/deadline/020 budgets; missing histories precede oldest due rechecks. Collection overlap, budget stop, provider failure, authoritative annual periods and no upfront bulk delay have regression tests. The resumed individual-period run collected 1,049 companies / 6,500 requests without provider errors. This is observed throughput, not a provider latency guarantee.
+
+**Deployment limitation:** GitHub updates did not produce Render deployments despite the auto-deploy setting, and the existing deployment hook secret is absent. The current release is manually deployed and verified against the exact tested main revision. Scheduled collection is configured; scheduled evidence publication to the running backend still needs the existing Render account connection repaired. Do not claim end-to-end daily deployment from a successful collection job alone.
+
 Append-only record of high-risk behavioral decisions. New work should add entries rather than rewrite history.
 
 ## 2026-09-29 — Home chart load guard
