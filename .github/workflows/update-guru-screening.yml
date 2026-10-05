@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Dependencies
-        run: pip install -q -r requirements.txt
+        run: pip install -q -r requirements.txt yfinance
       - name: Collect bounded histories and build dated results
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
@@ -68,3 +68,13 @@ jobs:
             if git push origin HEAD:main; then exit 0; fi
           done
           exit 1
+      - name: Deploy published evidence using existing Render hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo 'Existing Render hook not configured; auto-deploy remains the fallback.'
+            exit 0
+          fi
+          curl --fail --show-error --silent --retry 3 --retry-delay 5 -X POST "$RENDER_DEPLOY_HOOK_URL" > /tmp/guru-render-deploy.json
+          echo 'Published guru evidence deploy requested.'
