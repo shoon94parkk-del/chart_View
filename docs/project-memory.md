@@ -1,5 +1,10 @@
 # Chart View project memory
 
+### 2026-10-05 — Guru collection and deployment follow-up
+- The collector now uses two workers, individual receipt-matched full-year periods and shared locked request/deadline/020 budgets. Do not restore bulk period prefetch based only on a theoretical request reduction; its actual bounded trial was slower. The unused fiscal-month profile call stays removed.
+- `guru_financials.json`, screening results and evidence are versioned together. Missing history is pending; present but unverified history is insufficient. Never relax financial criteria to increase candidate counts.
+- The daily GitHub collection exists, but Render auto-deployment did not follow main updates and its hook secret is missing. Manual exact-revision deployment was required. Existing-account login/connection repair remains necessary for daily backend publication.
+
 Last updated: 2026-09-22
 
 This file is the durable engineering memory for the project. It records current behavior that future work must understand before changing code.
