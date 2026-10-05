@@ -113,3 +113,50 @@ def test_parallel_request_budget_and_020_are_global():
         try:client.get('test',{})
         except DartLimit:pass
     assert client.requests==1
+
+
+def test_batch_periods_use_at_most_100_companies_and_match_receipts():
+    from scripts.generate_guru_screening import DartClient
+    codes={f'{i:06}':{'corpCode':f'{i:08}'} for i in range(201)}
+    client=DartClient('test',codes,20,time.monotonic()+10)
+    calls=[];data=report()
+    def get(endpoint,params):
+        calls.append((endpoint,params))
+        if endpoint=='fnlttMultiAcnt.json':
+            return {'status':'000','list':[{'stock_code':f'{int(c):06}','rcept_no':data['receiptNo'],'fs_div':'CFS','sj_div':'IS',
+                'thstrm_dt':'2025.01.01 ~ 2025.12.31'} for c in params['corp_code'].split(',')]}
+        if endpoint=='fnlttSinglAcntAll.json':return {'status':'000','list':data['rows']}
+        raise AssertionError('Matching batch periods must avoid single-company date requests')
+    client.get=get
+    client.prefetch_periods([{'symbol':f'{i:06}.KS','industry':'제조업'} for i in range(201)],2025)
+    assert len(calls)==6
+    assert all(len(p['corp_code'].split(','))<=100 for _,p in calls)
+    value=client.report('00000001',2025,'CFS','')
+    assert value['periods']['thstrm']=={'start':'2025-01-01','end':'2025-12-31'}
+    assert len(calls)==7
+
+
+def test_batch_stale_receipt_falls_back_to_same_receipt_single_dates():
+    from scripts.generate_guru_screening import DartClient
+    client=DartClient('test',{'000001':{'corpCode':'00000001'}},20,time.monotonic()+10)
+    data=report();calls=[]
+    def get(endpoint,params):
+        calls.append(endpoint)
+        if endpoint=='fnlttMultiAcnt.json':return {'status':'000','list':[{'stock_code':'000001','rcept_no':'20260301000001','fs_div':'CFS','sj_div':'IS','thstrm_dt':'2025.01.01 ~ 2025.12.31'}]}
+        if endpoint=='fnlttSinglAcntAll.json':return {'status':'000','list':data['rows']}
+        return {'status':'000','list':[{'rcept_no':data['receiptNo'],'fs_div':'CFS','sj_div':'IS','thstrm_dt':'2025.07.01 ~ 2025.12.31'}]}
+    client.get=get
+    client.prefetch_periods([{'symbol':'000001.KS','industry':'제조업'}],2025)
+    value=client.report('00000001',2025,'CFS','')
+    assert calls[-1]=='fnlttSinglAcnt.json'
+    assert value['periods']['thstrm']['start']=='2025-07-01'
+
+
+def test_collector_uses_authoritative_dates_without_company_profile_request():
+    from scripts.generate_guru_screening import DartClient
+    client=DartClient('test',{'000001':{'corpCode':'00000001'}},20,time.monotonic()+10)
+    client.get=lambda *a: (_ for _ in ()).throw(AssertionError('No acc_mt profile request needed'))
+    client.report=lambda *a:report()
+    client.actions=lambda *a:{'status':'verified','events':[]}
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert value['reports']
