@@ -24,8 +24,8 @@ def test_partial_collection_checkpoint_resume():
 
 def test_status020_stops_requests():
     client=FakeClient(limit=True)
-    result=refresh_cache([{'symbol':'000001.KS'},{'symbol':'000002.KS'}],{},client=client,max_companies=10,max_requests=10,deadline=time.monotonic()+10)
-    assert client.requests==1
+    result=refresh_cache([{'symbol':'000001.KS'},{'symbol':'000002.KS'},{'symbol':'000003.KS'}],{},client=client,max_companies=10,max_requests=10,deadline=time.monotonic()+10)
+    assert client.requests<=2 # Only requests already in flight when a response says 020 may finish.
     assert result['collection']['status']=='rate_limited'
 
 
@@ -68,3 +68,48 @@ def test_major_account_dates_are_required_for_full_account_report():
     client.get=get
     value=client.report('test',2025,'CFS','12')
     assert value['periods']['thstrm']=={'start':'2025-07-01','end':'2025-12-31'}
+
+def test_collection_overlaps_two_companies_but_never_more():
+    import threading
+    class SlowClient(FakeClient):
+        def __init__(self):super().__init__();self.lock=threading.Lock();self.active=0;self.peak=0
+        def collect(self,row,previous):
+            with self.lock:self.active+=1;self.peak=max(self.peak,self.active)
+            time.sleep(.05)
+            value=super().collect(row,previous)
+            with self.lock:self.active-=1
+            return value
+    client=SlowClient();u=[{'symbol':f'{i:06}.KS','industry':'제조업'} for i in range(5)]
+    result=refresh_cache(u,{},client=client,max_companies=5,max_requests=10,deadline=time.monotonic()+10)
+    assert client.peak==2
+    assert len(result['companies'])==5
+
+def test_parallel_request_budget_and_020_are_global():
+    from concurrent.futures import ThreadPoolExecutor
+    from scripts.generate_guru_screening import DartClient,BudgetLimit
+    import threading
+    calls=[];lock=threading.Lock()
+    class Response:
+        def raise_for_status(self):pass
+        def json(self):return {'status':'000'}
+    class Session:
+        def get(self,*a,**kw):
+            with lock:calls.append(1)
+            time.sleep(.01);return Response()
+    client=DartClient('test',{},5,time.monotonic()+10)
+    client.session=Session()
+    client._get_session=lambda:Session()
+    def request():
+        try:return client.get('test',{})
+        except BudgetLimit:return None
+    with ThreadPoolExecutor(max_workers=2) as pool:list(pool.map(lambda _:request(),range(10)))
+    assert len(calls)==client.requests==5
+    class Limited(Response):
+        def json(self):return {'status':'020'}
+    class LimitedSession(Session):
+        def get(self,*a,**kw):return Limited()
+    client=DartClient('test',{},5,time.monotonic()+10);client.session=LimitedSession();client._get_session=lambda:LimitedSession()
+    for _ in range(2):
+        try:client.get('test',{})
+        except DartLimit:pass
+    assert client.requests==1
