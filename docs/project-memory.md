@@ -286,3 +286,6 @@ Full heatmap keeps its 20 KR / 40 US quote budget. US layout metadata supplies c
 - Public price groups: `dram-chip`, `dram-module`, `gddr`, `nand-chip`, `nand-wafer`.
 - History is keyed by provider source date and may contain different families on different dates. Same-date values merge idempotently.
 - Do not fabricate HBM/MCP/eMMC/UFS prices. Those appear in `unavailablePriceSeries` until a licensable numeric public source is available.
+
+## 2026-10-05 — Guru investing
+Separate guru_financials/rules/snapshot/service modules and update-guru-screening workflow. Result/evidence snapshotVersion must agree. Cache-only API returns 409 for obsolete versions, 404 missing company, 503 missing evidence. Missing financials remain pending; ambiguous accounts/periods/actions/type remain insufficient. Updated snapshots use dated screener quotes and current universe, with oldest successful verification time exposed. Financial cache retains filtered original accounts, account periods, source receipts and action evidence.

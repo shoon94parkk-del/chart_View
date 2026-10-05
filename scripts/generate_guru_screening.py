@@ -133,9 +133,9 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
     def due(row):
         old=companies.get(row['symbol'])
         if not old: return True
-        try: return (now-datetime.fromisoformat(old['checkedAt'])).total_seconds()>=86400
+        try: return (now-datetime.fromisoformat(old.get('lastAttemptAt') or old['checkedAt'])).total_seconds()>=86400
         except (KeyError,ValueError,TypeError): return True
-    ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, str((companies.get(r['symbol']) or {}).get('checkedAt','')), r['symbol']))
+    ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, str((companies.get(r['symbol']) or {}).get('lastAttemptAt') or (companies.get(r['symbol']) or {}).get('checkedAt','')), r['symbol']))
     for row in ordered:
         if not due(row): continue
         if attempted>=max_companies or client.requests>=max_requests or time.monotonic()>=deadline:
@@ -150,7 +150,7 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
             status='partial'; break
         except ProviderError as exc:
             errors+=1
-            if old: companies[row['symbol']]={**old,'refreshError':str(exc)}
+            if old: companies[row['symbol']]={**old,'refreshError':str(exc),'lastAttemptAt':now.isoformat(timespec='seconds')}
             else: companies[row['symbol']]={'symbol':row['symbol'],'classification':classify_company(row),
                 'checkedAt':now.isoformat(timespec='seconds'),'collection':{'status':'complete','reason':str(exc)}}
         attempted+=1

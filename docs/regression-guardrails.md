@@ -311,3 +311,6 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - Paid TrendForce history must not be reconstructed or scraped. Chart View history remains self-accumulated public-latest observations.
 - `/api/memory-spot` remains backward compatible while `/api/memory-prices` is the preferred catalog endpoint.
 - A failure of one provider page must preserve validated groups from the other page and mark only affected groups stale.
+
+## Guru annual screening
+Never infer annual duration from acc_mt alone. Same-receipt income periods must cover Jan 1–Dec 31 for every used annual observation. Do not substitute total earnings or diluted/preferred EPS for common basic EPS. Failed refresh/action verification cannot publish old EPS as freshly verified. Existing-cache refresh priority is oldest check/attempt, not stock code; removed universe symbols cannot return. Viewer API performs no provider calls. Snapshot/evidence versions must match; split/bonus uncertainty excludes Lynch.
