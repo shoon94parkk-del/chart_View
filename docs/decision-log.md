@@ -440,3 +440,7 @@ TrendForce 공개 최신 페이지가 일시적으로 차단되거나 실패해�
 - HBM, MCP, eMMC/UFS는 공개 최신 가격표에서 독립 숫자형 가격이 확인되지 않으므로 가격을 추정·대입하지 않고 `unavailablePriceSeries`로 명시한다.
 - MCP는 가격 대신 관세청 HSK 수출액·YoY·MoM·단위가치를 반도체 화면에서 계속 제공한다.
 - 유료 과거 가격은 backfill하지 않고, 공개 최신값의 공급자 기준일을 Chart View가 자체 누적한다.
+
+## 2026-10-05 — Guru financial criteria and dated evidence
+New behavior: independent annual Buffett/Lynch-inspired Chart View criteria, cache-only evidence API, content-version conflict handling and bounded OpenDART collection. No visitor request performs financial collection. ROE uses total net income / average total equity; leverage is total liabilities/equity. Lynch PER is dated close / annual EPS and PEG uses past three-year percent growth, never TTM/forward labels.
+Fresh review reproduced four issues now covered by regressions: refresh fairness, provider-failure eligibility, real full-year observation dates and unresolved real-estate type. Full account monetary values are paired with major-account income dates from the same receipt/basis; unknown or shortened annual/comparative periods do not pass. KIND financial/confirmed REIT types are excluded; unresolved real-estate types are insufficient. Preserve old evidence on failure but exclude failed verification from current matches. Existing Web bundle unchanged; Toss integration is separate.

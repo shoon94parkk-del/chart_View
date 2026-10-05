@@ -1,0 +1,70 @@
+name: Update Guru Screening
+
+on:
+  schedule:
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+    inputs:
+      collect:
+        description: Collect missing/due official financial histories
+        type: boolean
+        default: true
+      max_companies:
+        description: Company budget
+        default: '400'
+      max_requests:
+        description: DART request budget
+        default: '2400'
+  workflow_run:
+    workflows: [Update Korean Stock Screener]
+    types: [completed]
+
+permissions:
+  contents: write
+concurrency:
+  group: guru-screening
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: pip install -q -r requirements.txt
+      - name: Collect bounded histories and build dated results
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          COLLECT: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.collect) }}
+          COMPANY_BUDGET: ${{ inputs.max_companies || '400' }}
+          REQUEST_BUDGET: ${{ inputs.max_requests || '2400' }}
+        run: |
+          args=()
+          if [ "$COLLECT" = 'true' ]; then args+=(--collect); fi
+          python scripts/generate_guru_screening.py "${args[@]}" --max-companies "$COMPANY_BUDGET" --max-requests "$REQUEST_BUDGET" --max-seconds 1200
+      - name: Commit cache against current prices
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cp static/data/guru_financials.json /tmp/guru-collected.json 2>/dev/null || true
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git restore static/data/guru_screening.json static/data/guru_evidence.json 2>/dev/null || true
+            git reset --hard origin/main
+            if [ -f /tmp/guru-collected.json ]; then
+              python scripts/merge_guru_cache.py /tmp/guru-collected.json
+            fi
+            python scripts/generate_guru_screening.py
+            git add static/data/guru_financials.json static/data/guru_screening.json static/data/guru_evidence.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'data: refresh verified guru screening'
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
