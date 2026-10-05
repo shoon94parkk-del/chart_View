@@ -69,6 +69,14 @@ _SEMICONDUCTOR_COUNTRY_CACHE: dict[str, Any] = {
 }
 _SEMICONDUCTOR_COUNTRY_LOCK = asyncio.Lock()
 
+SEMICONDUCTOR_TREND_CACHE_TTL_SEC = 12 * 60 * 60
+_SEMICONDUCTOR_TREND_CACHE: dict[str, Any] = {
+    "data": None,
+    "timestamp": 0.0,
+    "lastError": None,
+}
+_SEMICONDUCTOR_TREND_LOCK = asyncio.Lock()
+
 # These are explicit HS proxies, not company-level exports and not MTI headline
 # categories. Keeping that distinction visible prevents overclaiming.
 ITEM_GROUPS = (
@@ -507,6 +515,8 @@ def _build_items_from_rows(
             "key": group["key"],
             "name": group["name"],
             "exportsUsdBillion": _billion(current),
+            "priorExportsUsdBillion": _billion(previous) if any(v is not None for v in prior_values) else None,
+            "deltaUsdBillion": _billion(current - previous) if any(v is not None for v in prior_values) else None,
             "exportYoY": _pct(current, previous if any(v is not None for v in prior_values) else None),
             "exportWeightKg": round(current_weight, 3) if any(v is not None for v in current_weights) else None,
             "exportWeightYoY": _pct(
@@ -928,6 +938,8 @@ def _build_semiconductor_breakdown_from_rows(
             "note": segment["note"],
             "period": _display_period(period),
             "exportsUsdBillion": _billion(exports),
+            "priorExportsUsdBillion": _billion(previous),
+            "deltaUsdBillion": _billion(exports - previous) if previous is not None else None,
             "exportYoY": _pct(exports, previous),
             "exportMoM": _pct(exports, previous_month_exports),
             "exportWeightKg": round(weight, 3) if weight is not None else None,
@@ -939,6 +951,153 @@ def _build_semiconductor_breakdown_from_rows(
             "history": [],
         })
     return results
+
+
+def _build_semiconductor_segment_history(
+    segment: dict[str, str],
+    end_yyyymm: str,
+) -> list[dict[str, Any]]:
+    recent_start = _month_shift(end_yyyymm, -11)
+    prior_end = _month_shift(end_yyyymm, -12)
+    prior_start = _month_shift(end_yyyymm, -23)
+    with ThreadPoolExecutor(max_workers=2, thread_name_prefix=f"customs-semi-history-{segment['key']}") as pool:
+        current_future = pool.submit(_fetch_item_range_rows, segment["code"], recent_start, end_yyyymm)
+        prior_future = pool.submit(_fetch_item_range_rows, segment["code"], prior_start, prior_end)
+        current_rows = current_future.result()
+        prior_rows = prior_future.result()
+
+    history: list[dict[str, Any]] = []
+    for offset in range(-11, 1):
+        period = _month_shift(end_yyyymm, offset)
+        prior = _month_shift(period, -12)
+        exports = _hs_prefix_export(current_rows, segment["code"], period)
+        previous = _hs_prefix_export(prior_rows, segment["code"], prior)
+        if exports is None:
+            continue
+        history.append({
+            "period": _display_period(period),
+            "exportsUsdBillion": _billion(exports),
+            "priorExportsUsdBillion": _billion(previous),
+            "deltaUsdBillion": _billion(exports - previous) if previous is not None else None,
+            "exportYoY": _pct(exports, previous),
+        })
+    return history
+
+
+def _build_semiconductor_trends(snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
+    snapshot = snapshot or _CACHE.get("data")
+    if not snapshot:
+        raise CustomsApiError("월간 수출 스냅샷이 아직 준비되지 않았습니다.")
+    raw_period = str(snapshot.get("itemPeriod") or "")
+    period = raw_period.replace("-", "")
+    if not period:
+        raise CustomsApiError("반도체 기준월이 없어 세부 추이를 만들 수 없습니다.")
+
+    breakdown = {
+        row.get("key"): row
+        for row in (snapshot.get("semiconductorBreakdown") or [])
+        if row.get("key")
+    }
+    total = next(
+        (row for row in (snapshot.get("items") or []) if row.get("key") == "semiconductor"),
+        None,
+    ) or {}
+    total_delta = _number(total.get("deltaUsdBillion"))
+    memory_delta = _number((breakdown.get("memory-total") or {}).get("deltaUsdBillion"))
+
+    histories: dict[str, list[dict[str, Any]]] = {}
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=4, thread_name_prefix="customs-semi-trends") as pool:
+        future_map = {
+            pool.submit(_build_semiconductor_segment_history, segment, period): segment
+            for segment in SEMICONDUCTOR_SEGMENTS
+        }
+        for future in as_completed(future_map):
+            segment = future_map[future]
+            try:
+                histories[segment["key"]] = future.result()
+            except Exception as exc:
+                errors.append(f"{segment['name']}: {exc}")
+
+    overall_keys = {"memory-total", "processor-controller", "other-ic"}
+    memory_keys = {"dram", "flash", "sram", "mcp-memory"}
+    segments: list[dict[str, Any]] = []
+    for segment in SEMICONDUCTOR_SEGMENTS:
+        current = breakdown.get(segment["key"]) or {}
+        history = histories.get(segment["key"]) or []
+        latest = history[-1] if history else {}
+        delta = _number(current.get("deltaUsdBillion"))
+        if delta is None:
+            delta = _number(latest.get("deltaUsdBillion"))
+        overall_contribution = (
+            round(delta / total_delta * 100.0, 1)
+            if segment["key"] in overall_keys and delta is not None and total_delta not in (None, 0)
+            else None
+        )
+        memory_contribution = (
+            round(delta / memory_delta * 100.0, 1)
+            if segment["key"] in memory_keys and delta is not None and memory_delta not in (None, 0)
+            else None
+        )
+        segments.append({
+            "key": segment["key"],
+            "name": segment["name"],
+            "code": segment["code"],
+            "group": segment["group"],
+            "note": segment["note"],
+            "period": current.get("period") or latest.get("period") or _display_period(period),
+            "exportsUsdBillion": current.get("exportsUsdBillion", latest.get("exportsUsdBillion")),
+            "priorExportsUsdBillion": current.get("priorExportsUsdBillion", latest.get("priorExportsUsdBillion")),
+            "deltaUsdBillion": delta,
+            "exportYoY": current.get("exportYoY", latest.get("exportYoY")),
+            "overallContributionPct": overall_contribution,
+            "memoryContributionPct": memory_contribution,
+            "history": history,
+        })
+
+    return {
+        "schemaVersion": 1,
+        "period": _display_period(period),
+        "total": {
+            "name": "반도체",
+            "exportsUsdBillion": total.get("exportsUsdBillion"),
+            "priorExportsUsdBillion": total.get("priorExportsUsdBillion"),
+            "deltaUsdBillion": total_delta,
+            "exportYoY": total.get("exportYoY"),
+        },
+        "memoryTotalDeltaUsdBillion": memory_delta,
+        "segments": segments,
+        "meta": {
+            "provider": "Korea Customs Service / data.go.kr",
+            "scope": "2026 HSK semiconductor segment proxies with 12-month history",
+            "overallContributionBasis": "HS 8541+8542 semiconductor net YoY change; memory IC / processor-controller / other IC are partial, non-exhaustive contributors",
+            "memoryContributionBasis": "HS 854232 memory IC net YoY change; DRAM / SRAM / Flash memory / MCP are subcategories",
+            "moduleCaution": "DRAM module 8473304060 is outside HS 8541+8542, so it has no semiconductor-total contribution percentage",
+            "errors": errors[:8],
+            "cacheTtlSec": SEMICONDUCTOR_TREND_CACHE_TTL_SEC,
+        },
+    }
+
+
+async def _refresh_semiconductor_trends() -> dict[str, Any]:
+    async with _SEMICONDUCTOR_TREND_LOCK:
+        snapshot = _CACHE.get("data")
+        if snapshot is None:
+            snapshot = await _refresh_cache()
+        target_period = str(snapshot.get("itemPeriod") or "")
+        cached = _SEMICONDUCTOR_TREND_CACHE.get("data")
+        age = time.time() - float(_SEMICONDUCTOR_TREND_CACHE.get("timestamp") or 0.0)
+        if cached and cached.get("period") == target_period and age < SEMICONDUCTOR_TREND_CACHE_TTL_SEC:
+            return cached
+        try:
+            data = await asyncio.to_thread(_build_semiconductor_trends, snapshot)
+            _SEMICONDUCTOR_TREND_CACHE["data"] = data
+            _SEMICONDUCTOR_TREND_CACHE["timestamp"] = time.time()
+            _SEMICONDUCTOR_TREND_CACHE["lastError"] = None
+            return data
+        except Exception as exc:
+            _SEMICONDUCTOR_TREND_CACHE["lastError"] = str(exc)
+            raise
 
 
 def _ten_day_stage(row: dict[str, str]) -> int | None:
@@ -1991,6 +2150,34 @@ async def export_momentum_provisional(response: Response):
         raise HTTPException(
             status_code=503,
             detail={"code": "EXPORT_PROVISIONAL_UNAVAILABLE", "message": str(exc)[:300]},
+        ) from exc
+
+
+@router.get("/api/export-momentum/semiconductor-trends")
+async def export_momentum_semiconductor_trends(response: Response):
+    response.headers["Cache-Control"] = "public, max-age=900, stale-while-revalidate=43200"
+    snapshot = _CACHE.get("data")
+    target_period = str((snapshot or {}).get("itemPeriod") or "")
+    cached = _SEMICONDUCTOR_TREND_CACHE.get("data")
+    age = time.time() - float(_SEMICONDUCTOR_TREND_CACHE.get("timestamp") or 0.0)
+    if cached is not None and cached.get("period") == target_period and age < SEMICONDUCTOR_TREND_CACHE_TTL_SEC:
+        result = copy.deepcopy(cached)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    try:
+        data = await _refresh_semiconductor_trends()
+        result = copy.deepcopy(data)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    except Exception as exc:
+        if cached:
+            result = copy.deepcopy(cached)
+            result.setdefault("meta", {})["cacheStatus"] = "stale-error"
+            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            return result
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SEMICONDUCTOR_TRENDS_UNAVAILABLE", "message": str(exc)[:300]},
         ) from exc
 
 

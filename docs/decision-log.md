@@ -468,3 +468,10 @@ The nine necessary-quarter checks completed using the existing private Actions k
 **Decision:** `/api/valuation` now exposes `roa` with field-level provenance. Prefer trailing net income divided by the latest reported total assets from Yahoo Fundamentals, with provider return-on-assets only as a fallback. The period is explicitly labeled `TTM net income / latest reported assets`. Existing trailing/forward PER semantics, cache/freshness paths and quote behavior remain unchanged.
 
 **Protection:** this metric is for an explicit current cross-check of already selected annual candidates. It must not be presented as a complete TTM rescreen of the full KIND universe unless a versioned bulk TTM dataset and criteria are implemented. Missing values remain missing.
+
+## 2026-10-06 — Semiconductor segment delta/trend API
+
+- Additive endpoint `/api/export-momentum/semiconductor-trends` serves cached 12-month HSK segment history, current/prior export amounts, YoY delta amount and explicit contribution bases.
+- The main `/api/export-momentum` snapshot only gains `priorExportsUsdBillion` and `deltaUsdBillion`; it does not fetch 12-month segment histories or block the existing monthly response.
+- Overall contribution uses the HS 8541+8542 semiconductor net YoY change only for partial top-level observed categories. Memory children use HS 854232 memory net change. DRAM module 8473304060 has no semiconductor-total contribution.
+- Provider work is cached for 12 hours and starts on explicit semiconductor analysis demand rather than Home/overview startup.
