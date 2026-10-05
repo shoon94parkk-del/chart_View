@@ -390,8 +390,8 @@ FUND_TYPES = [
     "trailingMarketCap", "trailingPeRatio", "trailingPsRatio",
     "trailingBasicEPS", "trailingDilutedEPS", "trailingTotalRevenue",
     "trailingEBITDA", "trailingNetIncome", "trailingOperatingIncome",
-    "quarterlyStockholdersEquity", "quarterlyOrdinarySharesNumber", "quarterlyNetDebt",
-    "annualStockholdersEquity", "annualOrdinarySharesNumber", "annualNetDebt",
+    "quarterlyStockholdersEquity", "quarterlyOrdinarySharesNumber", "quarterlyNetDebt", "quarterlyTotalAssets",
+    "annualStockholdersEquity", "annualOrdinarySharesNumber", "annualNetDebt", "annualTotalAssets",
 ]
 
 
@@ -732,13 +732,21 @@ def fetch_valuation_snapshot(symbol: str, force: bool = False) -> dict[str, Any]
     if dividend_yield is not None:
         dividend_yield *= 100
 
+    trailing_net_income = _number(fund.get("trailingNetIncome"))
     roe = _number(_raw(financial.get("returnOnEquity")))
     if roe is not None:
         roe *= 100
-    elif equity:
-        net_income = _number(fund.get("trailingNetIncome"))
-        if net_income is not None:
-            roe = net_income / equity * 100
+    elif equity and trailing_net_income is not None:
+        roe = trailing_net_income / equity * 100
+
+    latest_assets = _positive(fund.get("quarterlyTotalAssets")) or _positive(fund.get("annualTotalAssets"))
+    roa = trailing_net_income / latest_assets * 100 if trailing_net_income is not None and latest_assets else None
+    roa_method = "trailing net income / latest assets" if roa is not None else None
+    if roa is None:
+        provider_roa = _number(_raw(financial.get("returnOnAssets")))
+        if provider_roa is not None:
+            roa = provider_roa * 100
+            roa_method = "provider"
 
     operating_margin = _number(_raw(financial.get("operatingMargins")))
     if operating_margin is not None:
@@ -802,6 +810,7 @@ def fetch_valuation_snapshot(symbol: str, force: bool = False) -> dict[str, Any]
     ev_ebitda_source = detail_source if detail_has(financial, "ebitda", True) and detail_has(stats, "enterpriseValue", True) else "Yahoo Fundamentals"
     dividend_source = "Naver Finance" if missing_before_naver["dividendYield"] and dividend_yield is not None else detail_source
     roe_source = detail_source if detail_has(financial, "returnOnEquity") else "Yahoo Fundamentals"
+    roa_source = "Yahoo Fundamentals" if latest_assets and trailing_net_income is not None else detail_source
     margin_source = detail_source if detail_has(financial, "operatingMargins") else "Yahoo Fundamentals"
 
     field_meta: dict[str, dict[str, Any]] = {
@@ -821,6 +830,7 @@ def fetch_valuation_snapshot(symbol: str, force: bool = False) -> dict[str, Any]
         "evEbitda": sourced(ev_ebitda_source, period="TTM/latest reported", method="provider or reconstructed"),
         "dividendYield": sourced(dividend_source, period="latest indicated/reported"),
         "roe": sourced(roe_source, period="TTM/latest reported", method="provider or net income / equity"),
+        "roa": sourced(roa_source, period="TTM net income / latest reported assets", method=roa_method or "provider"),
         "operatingMargin": sourced(margin_source, period="TTM", method="provider or operating income / revenue"),
     }
 
@@ -841,6 +851,7 @@ def fetch_valuation_snapshot(symbol: str, force: bool = False) -> dict[str, Any]
         "evEbitda": round(ev_ebitda, 2) if ev_ebitda is not None else None,
         "dividendYield": round(dividend_yield, 2) if dividend_yield is not None else None,
         "roe": round(roe, 2) if roe is not None else None,
+        "roa": round(roa, 2) if roa is not None else None,
         "operatingMargin": round(operating_margin, 2) if operating_margin is not None else None,
         "dataSource": "Yahoo Chart + Fundamentals" + (" + Daily Quote Cache" if cached_detail else (" + QuoteSummary" if detail else "")) + (" + Naver" if naver else ""),
         "fieldMeta": field_meta,
