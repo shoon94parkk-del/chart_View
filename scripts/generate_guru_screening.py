@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import sys
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 import requests
 
@@ -32,19 +34,31 @@ class DartClient:
         self.requests, self.max_requests, self.deadline = 0, max_requests, deadline
         self.session = requests.Session()
         self.session.headers['User-Agent'] = 'ChartView financial evidence collector'
+        self._sessions=threading.local(); self._sessions.session=self.session
+        self._lock=threading.Lock(); self._limited=False
+
+    def _get_session(self):
+        if not getattr(self._sessions,'session',None):
+            self._sessions.session=requests.Session()
+            self._sessions.session.headers['User-Agent']='ChartView financial evidence collector'
+        return self._sessions.session
 
     def get(self, endpoint, params):
-        if self.requests >= self.max_requests or time.monotonic() >= self.deadline: raise BudgetLimit()
         for attempt in range(2):
-            self.requests += 1
+            with self._lock:
+                if self._limited: raise DartLimit()
+                if self.requests >= self.max_requests or time.monotonic() >= self.deadline: raise BudgetLimit()
+                self.requests += 1
             try:
-                r=self.session.get('https://opendart.fss.or.kr/api/'+endpoint,
+                r=self._get_session().get('https://opendart.fss.or.kr/api/'+endpoint,
                                    params={**params, 'crtfc_key': self.key}, timeout=12)
                 r.raise_for_status(); data=r.json()
             except (requests.RequestException, ValueError):
                 if attempt or self.requests>=self.max_requests: raise ProviderError('DART network error') from None
                 continue
-            if data.get('status') == '020': raise DartLimit()
+            if data.get('status') == '020':
+                with self._lock:self._limited=True
+                raise DartLimit()
             if data.get('status') not in {'000','013'}: raise ProviderError('DART status '+str(data.get('status')))
             return data
 
@@ -136,24 +150,33 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
         try: return (now-datetime.fromisoformat(old.get('lastAttemptAt') or old['checkedAt'])).total_seconds()>=86400
         except (KeyError,ValueError,TypeError): return True
     ordered=sorted(universe,key=lambda r:(r['symbol'] in companies, str((companies.get(r['symbol']) or {}).get('lastAttemptAt') or (companies.get(r['symbol']) or {}).get('checkedAt','')), r['symbol']))
-    for row in ordered:
-        if not due(row): continue
-        if attempted>=max_companies or client.requests>=max_requests or time.monotonic()>=deadline:
-            status='partial'; break
-        old=companies.get(row['symbol'])
-        try:
-            value=client.collect(row,old)
-            companies[row['symbol']]=value
-        except DartLimit:
-            status='rate_limited'; break
-        except BudgetLimit:
-            status='partial'; break
-        except ProviderError as exc:
-            errors+=1
-            if old: companies[row['symbol']]={**old,'refreshError':str(exc),'lastAttemptAt':now.isoformat(timespec='seconds')}
-            else: companies[row['symbol']]={'symbol':row['symbol'],'classification':classify_company(row),
-                'checkedAt':now.isoformat(timespec='seconds'),'collection':{'status':'complete','reason':str(exc)}}
-        attempted+=1
+    due_rows=[r for r in ordered if due(r)]
+    index=0; stopped=False
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending={}
+        while pending or (index<len(due_rows) and index<max_companies and not stopped):
+            while len(pending)<2 and index<len(due_rows) and index<max_companies and not stopped:
+                if client.requests>=max_requests or time.monotonic()>=deadline:
+                    status='partial'; stopped=True; break
+                row=due_rows[index];index+=1
+                pending[pool.submit(client.collect,row,companies.get(row['symbol']))]=row
+            if not pending:break
+            finished,_=wait(pending,return_when=FIRST_COMPLETED)
+            for future in finished:
+                row=pending.pop(future);old=companies.get(row['symbol'])
+                try:companies[row['symbol']]=future.result()
+                except DartLimit:status='rate_limited';stopped=True;continue
+                except BudgetLimit:
+                    if status!='rate_limited':status='partial'
+                    stopped=True;continue
+                except ProviderError as exc:
+                    errors+=1
+                    if old:companies[row['symbol']]={**old,'refreshError':str(exc),'lastAttemptAt':now.isoformat(timespec='seconds')}
+                    else:companies[row['symbol']]={'symbol':row['symbol'],'classification':classify_company(row),
+                        'checkedAt':now.isoformat(timespec='seconds'),'collection':{'status':'complete','reason':str(exc)}}
+                attempted+=1
+                if attempted%25==0:print(json.dumps({'progress':attempted,'requests':client.requests,'stored':len(companies)}),flush=True)
+    if index<len(due_rows) and status=='complete':status='partial'
     current={r['symbol'] for r in universe}
     companies={s:c for s,c in companies.items() if s in current}
     if errors and status=='complete': status='provider_errors'
