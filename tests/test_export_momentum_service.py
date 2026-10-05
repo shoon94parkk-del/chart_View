@@ -603,3 +603,38 @@ def test_landing_projection_final_without_10_or_20_stage_shows_actual_only():
     assert projection["status"] == "final"
     assert projection["stage"] == 30
     assert projection["total"] is None
+
+
+def test_momentum_signal_separates_acceleration_turnaround_slowing_and_weakness():
+    assert export_service._momentum_signal(25.0, 15.0, 20.0, 4.0)["key"] == "acceleration"
+    assert export_service._momentum_signal(8.0, -2.0, 3.0, 6.0)["key"] == "turnaround"
+    assert export_service._momentum_signal(18.0, 28.0, 22.0, -3.0)["key"] == "slowing"
+    assert export_service._momentum_signal(-4.0, 2.0, -1.0, -6.0)["key"] == "weak"
+    assert export_service._momentum_signal(12.0, 10.0, 11.0, 1.0)["key"] == "steady"
+
+
+def test_momentum_map_reuses_group_history_and_keeps_explicit_scope(monkeypatch):
+    history = [
+        {"period": "2026-04", "exportsUsdBillion": 4.0, "exportYoY": 4.0, "exportWeightYoY": 1.0, "unitValueYoY": 3.0},
+        {"period": "2026-05", "exportsUsdBillion": 4.2, "exportYoY": 5.0, "exportWeightYoY": 2.0, "unitValueYoY": 3.0},
+        {"period": "2026-06", "exportsUsdBillion": 4.4, "exportYoY": 6.0, "exportWeightYoY": 2.0, "unitValueYoY": 4.0},
+        {"period": "2026-07", "exportsUsdBillion": 4.8, "exportYoY": 10.0, "exportWeightYoY": 4.0, "unitValueYoY": 6.0},
+        {"period": "2026-08", "exportsUsdBillion": 5.1, "exportYoY": 14.0, "exportWeightYoY": 5.0, "unitValueYoY": 8.0},
+        {"period": "2026-09", "exportsUsdBillion": 5.6, "exportYoY": 22.0, "exportWeightYoY": 7.0, "unitValueYoY": 10.0},
+    ]
+    calls = []
+
+    def fake_history(group, period):
+        calls.append((group["key"], period))
+        return history
+
+    monkeypatch.setattr(export_service, "_momentum_history_for_group", fake_history)
+    result = export_service._build_momentum_map({"itemPeriod": "2026-09"})
+
+    assert result["period"] == "2026-09"
+    assert len(result["items"]) == len(export_service.ITEM_GROUPS)
+    assert len(calls) == len(export_service.ITEM_GROUPS)
+    assert result["items"][0]["signal"] == "acceleration"
+    assert result["items"][0]["deltaYoYPp"] == 8.0
+    assert result["items"][0]["avg3mYoY"] == pytest.approx(15.3)
+    assert "six explicit HS proxy groups" in result["meta"]["scope"]

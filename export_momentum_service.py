@@ -45,6 +45,14 @@ DETAIL_CACHE_TTL_SEC = 6 * 60 * 60
 _DETAIL_CACHE: dict[str, dict[str, Any]] = {}
 _DETAIL_CACHE_LOCK = asyncio.Lock()
 
+MOMENTUM_MAP_CACHE_TTL_SEC = 6 * 60 * 60
+_MOMENTUM_MAP_CACHE: dict[str, Any] = {
+    "data": None,
+    "timestamp": 0.0,
+    "lastError": None,
+}
+_MOMENTUM_MAP_LOCK = asyncio.Lock()
+
 PROVISIONAL_CACHE_TTL_SEC = 30 * 60
 _PROVISIONAL_CACHE: dict[str, Any] = {
     "data": None,
@@ -667,6 +675,35 @@ def _build_momentum_summary(history: list[dict[str, Any]]) -> dict[str, Any]:
     result["phaseHistory"] = phase_history
     result["latestPhase"] = phase_history[-1]["phase"] if phase_history else "데이터 부족"
     return result
+
+
+def _momentum_signal(
+    latest_yoy: float | None,
+    previous_yoy: float | None,
+    avg3_yoy: float | None,
+    acceleration3_pp: float | None,
+) -> dict[str, Any]:
+    delta_yoy_pp = (
+        round(latest_yoy - previous_yoy, 1)
+        if latest_yoy is not None and previous_yoy is not None
+        else None
+    )
+    if latest_yoy is None:
+        return {"key": "unknown", "label": "판단 보류", "deltaYoYPp": delta_yoy_pp}
+    if previous_yoy is not None and latest_yoy > 0 and previous_yoy <= 0:
+        return {"key": "turnaround", "label": "턴어라운드", "deltaYoYPp": delta_yoy_pp}
+    if latest_yoy <= 0:
+        return {"key": "weak", "label": "부진", "deltaYoYPp": delta_yoy_pp}
+    if delta_yoy_pp is not None and delta_yoy_pp >= 5:
+        return {"key": "acceleration", "label": "가속", "deltaYoYPp": delta_yoy_pp}
+    if delta_yoy_pp is not None and delta_yoy_pp <= -5:
+        return {"key": "slowing", "label": "성장 둔화", "deltaYoYPp": delta_yoy_pp}
+    if avg3_yoy is not None and avg3_yoy > 0 and acceleration3_pp is not None:
+        if acceleration3_pp >= 5:
+            return {"key": "acceleration", "label": "가속", "deltaYoYPp": delta_yoy_pp}
+        if acceleration3_pp <= -5:
+            return {"key": "slowing", "label": "성장 둔화", "deltaYoYPp": delta_yoy_pp}
+    return {"key": "steady", "label": "성장 유지", "deltaYoYPp": delta_yoy_pp}
 
 
 def _country_export(rows: list[dict[str, str]], yyyymm: str) -> float | None:
@@ -1513,6 +1550,117 @@ async def _refresh_item_detail(key: str) -> dict[str, Any]:
         return data
 
 
+def _momentum_history_for_group(group: dict[str, Any], period: str) -> list[dict[str, Any]]:
+    cached = _DETAIL_CACHE.get(group["key"])
+    if cached and time.time() - float(cached.get("timestamp") or 0.0) < DETAIL_CACHE_TTL_SEC:
+        detail = cached.get("data") or {}
+        detail_period = str(detail.get("period") or "").replace("-", "")
+        history = detail.get("history") or []
+        if detail_period == period and history:
+            return copy.deepcopy(history)
+    return _build_group_history(group, period)
+
+
+def _build_momentum_map(snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
+    snapshot = snapshot or _CACHE.get("data")
+    if not snapshot:
+        raise CustomsApiError("월간 수출 스냅샷이 아직 준비되지 않았습니다.")
+    raw_period = str(snapshot.get("itemPeriod") or "")
+    period = raw_period.replace("-", "")
+    if not period:
+        raise CustomsApiError("품목 기준월이 없어 모멘텀 지도를 만들 수 없습니다.")
+
+    histories: dict[str, list[dict[str, Any]]] = {}
+    warnings: list[str] = []
+    with ThreadPoolExecutor(max_workers=3, thread_name_prefix="customs-momentum-map") as pool:
+        future_map = {
+            pool.submit(_momentum_history_for_group, group, period): group
+            for group in ITEM_GROUPS
+        }
+        for future in as_completed(future_map):
+            group = future_map[future]
+            try:
+                histories[group["key"]] = future.result()
+            except Exception as exc:
+                warnings.append(f"{group['name']}: {exc}")
+
+    rows: list[dict[str, Any]] = []
+    for group in ITEM_GROUPS:
+        history = histories.get(group["key"]) or []
+        if not history:
+            continue
+        latest = history[-1]
+        previous = history[-2] if len(history) >= 2 else {}
+        summary = _build_momentum_summary(history)
+        export_momentum = summary.get("exports") or {}
+        signal = _momentum_signal(
+            latest.get("exportYoY"),
+            previous.get("exportYoY"),
+            export_momentum.get("avg3mYoY"),
+            export_momentum.get("accelerationPp"),
+        )
+        rows.append({
+            "key": group["key"],
+            "name": group["name"],
+            "period": latest.get("period"),
+            "exportsUsdBillion": latest.get("exportsUsdBillion"),
+            "exportYoY": latest.get("exportYoY"),
+            "previousExportYoY": previous.get("exportYoY"),
+            "deltaYoYPp": signal["deltaYoYPp"],
+            "avg3mYoY": export_momentum.get("avg3mYoY"),
+            "acceleration3mPp": export_momentum.get("accelerationPp"),
+            "latestPhase": summary.get("latestPhase"),
+            "signal": signal["key"],
+            "signalLabel": signal["label"],
+            "note": group["note"],
+        })
+
+    return {
+        "schemaVersion": 1,
+        "period": _display_period(period),
+        "items": rows,
+        "meta": {
+            "provider": "Korea Customs Service / data.go.kr",
+            "scope": "Chart View six explicit HS proxy groups; not all Korean export categories",
+            "classification": (
+                "turnaround: latest YoY crossed above 0; weak: latest YoY <= 0; "
+                "acceleration/slowing: latest monthly YoY change >= +5pp / <= -5pp; "
+                "3-month acceleration is used only when monthly change is within +/-5pp"
+            ),
+            "warnings": warnings[:3],
+            "cacheTtlSec": MOMENTUM_MAP_CACHE_TTL_SEC,
+        },
+    }
+
+
+async def _refresh_momentum_map() -> dict[str, Any]:
+    async with _MOMENTUM_MAP_LOCK:
+        snapshot = _CACHE.get("data")
+        if snapshot is None:
+            snapshot = await _refresh_cache()
+        target_period = str(snapshot.get("itemPeriod") or "")
+        cached = _MOMENTUM_MAP_CACHE.get("data")
+        age = time.time() - float(_MOMENTUM_MAP_CACHE.get("timestamp") or 0.0)
+        if cached and cached.get("period") == target_period and age < MOMENTUM_MAP_CACHE_TTL_SEC:
+            return cached
+        try:
+            data = await asyncio.to_thread(_build_momentum_map, snapshot)
+            _MOMENTUM_MAP_CACHE["data"] = data
+            _MOMENTUM_MAP_CACHE["timestamp"] = time.time()
+            _MOMENTUM_MAP_CACHE["lastError"] = None
+            return data
+        except Exception as exc:
+            _MOMENTUM_MAP_CACHE["lastError"] = str(exc)
+            raise
+
+
+async def _background_momentum_map_refresh() -> None:
+    try:
+        await _refresh_momentum_map()
+    except Exception as exc:
+        print(f"[EXPORT_MOMENTUM] momentum map warm failed: {exc}")
+
+
 def _parallel_optional(builder, rows, latest: str, prior: str, workers: int = 6):
     results = []
     errors = []
@@ -1750,6 +1898,8 @@ async def warm_export_momentum() -> None:
         )
         for warning in warnings[:3]:
             print(f"[EXPORT_MOMENTUM] warning: {warning}")
+        if data.get("itemPeriod"):
+            asyncio.create_task(_background_momentum_map_refresh())
     except Exception as exc:
         print(f"[EXPORT_MOMENTUM] warm failed: {exc}")
 
@@ -1787,6 +1937,34 @@ async def export_momentum(response: Response):
                 "code": "CUSTOMS_API_UNAVAILABLE",
                 "message": str(exc)[:300],
             },
+        ) from exc
+
+
+@router.get("/api/export-momentum/momentum-map")
+async def export_momentum_map(response: Response):
+    response.headers["Cache-Control"] = "public, max-age=600, stale-while-revalidate=21600"
+    snapshot = _CACHE.get("data")
+    target_period = str((snapshot or {}).get("itemPeriod") or "")
+    cached = _MOMENTUM_MAP_CACHE.get("data")
+    age = time.time() - float(_MOMENTUM_MAP_CACHE.get("timestamp") or 0.0)
+    if cached is not None and cached.get("period") == target_period and age < MOMENTUM_MAP_CACHE_TTL_SEC:
+        result = copy.deepcopy(cached)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    try:
+        data = await _refresh_momentum_map()
+        result = copy.deepcopy(data)
+        result.setdefault("meta", {})["cacheStatus"] = "fresh"
+        return result
+    except Exception as exc:
+        if cached:
+            result = copy.deepcopy(cached)
+            result.setdefault("meta", {})["cacheStatus"] = "stale-error"
+            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            return result
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "EXPORT_MOMENTUM_MAP_UNAVAILABLE", "message": str(exc)[:300]},
         ) from exc
 
 
