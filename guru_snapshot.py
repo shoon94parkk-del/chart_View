@@ -6,17 +6,30 @@ import os
 from pathlib import Path
 
 from guru_financials import classify_company
-from guru_rules import CRITERIA_VERSION, evaluate_company
+from guru_rules import CRITERIA_VERSION, evaluate_company, finite
+from guru_extensions import STRATEGIES, evaluate_extension, technical_metrics, relative_strength
 
 
-def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, generated_at: str) -> tuple[dict, dict]:
+def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, generated_at: str, market=None, quarters=None) -> tuple[dict, dict]:
     trade_date = prices.get('tradeDate')
     if not trade_date:
         raise ValueError('Missing validated trade date')
     quotes = {r['symbol']: dict(r, currency='KRW') for r in prices.get('stocks', []) if r.get('date') == trade_date}
     companies, strategies = {}, {}
     unique = {r['symbol']: r for r in universe}
-    for strategy in ('buffett', 'lynch'):
+    technical = {}
+    market_rows = (market or {}).get('companies') or {}
+    # A relative-return cohort needs a verified close on the same trading date.
+    # Missing/stale quotes remain insufficient in the FULL screening universe.
+    eligible_count = sum(classify_company(r)['status']=='supported' and s in quotes
+                         and finite(quotes[s].get('price')) and quotes[s]['price']>0 for s,r in unique.items())
+    for symbol, identity in unique.items():
+        if classify_company(identity)['status']!='supported': continue
+        quote=quotes.get(symbol)
+        value=technical_metrics((market_rows.get(symbol) or {}).get('bars'),trade_date)
+        if value and quote and finite(quote.get('price')) and quote['price']>0 and abs(value['price']/quote['price']-1)<=.001: technical[symbol]=value
+    relative_strength(technical,eligible_count)
+    for strategy in STRATEGIES:
         counts = {k+'Count': 0 for k in ('unsupported', 'pending', 'insufficient', 'failed', 'matched')}
         results = []
         reasons = {}
@@ -24,7 +37,9 @@ def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, gene
             raw = (financials.get('companies') or {}).get(symbol)
             company = dict(raw or {'symbol': symbol, 'collection': {'status': 'pending'}})
             company['classification'] = classify_company(identity)
-            evaluation = evaluate_company(company, quotes.get(symbol), strategy=strategy)
+            evaluation = (evaluate_company(company, quotes.get(symbol), strategy=strategy) if strategy in {'buffett','lynch'} else
+                evaluate_extension(company,quotes.get(symbol),strategy=strategy,technical=technical.get(symbol),
+                    quarter=((quarters or {}).get('companies') or {}).get(symbol)))
             counts[evaluation['status']+'Count'] += 1
             for reason in evaluation['reasons']:
                 if evaluation['status'] in {'insufficient','unsupported'}: reasons[reason] = reasons.get(reason,0)+1
@@ -36,17 +51,31 @@ def build_snapshot(universe: list[dict], prices: dict, financials: dict, *, gene
             evidence = companies.setdefault(symbol, {'symbol': symbol, 'name': identity.get('name') or symbol,
                 'basis': company.get('basis'), 'currency': company.get('currency'), 'annual': company.get('annual', []),
                 'sources': company.get('sources', {}), 'epsComparability': company.get('epsComparability'),
+                'quarter': ((quarters or {}).get('companies') or {}).get(symbol),
+                'technical': technical.get(symbol), 'dailyBars': (market_rows.get(symbol) or {}).get('bars'),
                 'checkedAt': company.get('checkedAt'), 'strategies': {}})
             evidence['strategies'][strategy] = evaluation
-        results.sort(key=lambda r: (r['name'], r['symbol']))
+        if strategy=='greenblatt':
+            results.sort(key=lambda r:(r['metrics']['annualPE'],r['symbol']))
+            for i,row in enumerate(results,1):
+                row['metrics']['valueRank']=i
+            excluded=results[30:]; results=results[:30]
+            counts['matchedCount']-=len(excluded); counts['failedCount']+=len(excluded)
+            for row in excluded:
+                evidence=companies[row['symbol']]; evidence['strategies'].pop(strategy)
+                if not evidence['strategies']: del companies[row['symbol']]
+        else: results.sort(key=lambda r: (r['name'], r['symbol']))
         strategies[strategy] = {**counts, 'universeCount': len(unique), 'evaluatedCount': counts['matchedCount']+counts['failedCount'],
                                 'results': results, 'missingReasons': reasons}
     checks = [r['checkedAt'] for r in (financials.get('companies') or {}).values() if r.get('checkedAt')]
     snapshot = {'schemaVersion': 1, 'criteriaVersion': CRITERIA_VERSION, 'generatedAt': generated_at,
                 'tradeDate': trade_date, 'financialAsOf': min(checks) if checks else generated_at,
                 'financialCheckedThrough': max(checks) if checks else generated_at,
-                'source': 'OpenDART annual financial statements · KIND universe · Yahoo dated closing prices',
+                'source': 'OpenDART annual and single-quarter financial statements · KIND universe · Yahoo dated OHLCV',
+                'marketCoverage': {'eligibleCount':eligible_count,'observedCount':len(technical),'cohort':'KIND supported ordinary companies with verified same-date positive closes','relativeStrengthMethod':'252-session return midrank percentile; not IBD RS Rating'},
                 'collection': financials.get('collection', {'status': 'pending'}), 'strategies': strategies}
+    snapshot['extensionCollection']={'market':(market or {}).get('collection',{'status':'pending'}),
+                                     'quarters':(quarters or {}).get('collection',{'status':'pending'})}
     version_content = {'tradeDate': trade_date, 'criteriaVersion': CRITERIA_VERSION, 'strategies': strategies, 'companies': companies}
     version = hashlib.sha256(json.dumps(version_content, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()[:20]
     snapshot['snapshotVersion'] = version

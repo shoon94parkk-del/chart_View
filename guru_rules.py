@@ -4,7 +4,7 @@ from datetime import date
 import math
 
 EPSILON = 1e-9
-CRITERIA_VERSION = 'cv-gurus-v1'
+CRITERIA_VERSION = 'cv-gurus-v2'
 
 
 def finite(value):
