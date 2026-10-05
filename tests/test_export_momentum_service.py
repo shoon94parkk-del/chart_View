@@ -638,3 +638,86 @@ def test_momentum_map_reuses_group_history_and_keeps_explicit_scope(monkeypatch)
     assert result["items"][0]["deltaYoYPp"] == 8.0
     assert result["items"][0]["avg3mYoY"] == pytest.approx(15.3)
     assert "six explicit HS proxy groups" in result["meta"]["scope"]
+
+
+def test_semiconductor_segment_history_keeps_explicit_prior_delta_and_yoy(monkeypatch):
+    segment = next(row for row in export_service.SEMICONDUCTOR_SEGMENTS if row["key"] == "dram")
+    calls = []
+    def fake_range(code, start, end):
+        calls.append((code, start, end))
+        if end == "202609":
+            return [
+                {"year": "2026.08", "hsCode": code, "expDlr": "2000000000"},
+                {"year": "2026.09", "hsCode": code, "expDlr": "3000000000"},
+            ]
+        return [
+            {"year": "2025.08", "hsCode": code, "expDlr": "1000000000"},
+            {"year": "2025.09", "hsCode": code, "expDlr": "1500000000"},
+        ]
+    monkeypatch.setattr(export_service, "_fetch_item_range_rows", fake_range)
+    history = export_service._build_semiconductor_segment_history(segment, "202609")
+    assert calls == [
+        ("8542321010", "202510", "202609"),
+        ("8542321010", "202410", "202509"),
+    ] or calls == [
+        ("8542321010", "202410", "202509"),
+        ("8542321010", "202510", "202609"),
+    ]
+    assert history[-1]["period"] == "2026-09"
+    assert history[-1]["exportsUsdBillion"] == pytest.approx(3.0)
+    assert history[-1]["priorExportsUsdBillion"] == pytest.approx(1.5)
+    assert history[-1]["deltaUsdBillion"] == pytest.approx(1.5)
+    assert history[-1]["exportYoY"] == 100.0
+
+
+def test_semiconductor_trends_separates_total_and_memory_contribution_basis(monkeypatch):
+    history = [
+        {"period": "2026-08", "exportsUsdBillion": 1.0, "priorExportsUsdBillion": 0.8, "deltaUsdBillion": 0.2, "exportYoY": 25.0},
+        {"period": "2026-09", "exportsUsdBillion": 1.2, "priorExportsUsdBillion": 0.9, "deltaUsdBillion": 0.3, "exportYoY": 33.3},
+    ]
+    monkeypatch.setattr(export_service, "_build_semiconductor_segment_history", lambda segment, period: history)
+    breakdown = []
+    deltas = {
+        "memory-total": 4.0,
+        "dram": 2.0,
+        "flash": 1.0,
+        "sram": -0.2,
+        "mcp-memory": 1.2,
+        "dram-module": 0.8,
+        "processor-controller": 1.5,
+        "other-ic": 0.5,
+    }
+    for segment in export_service.SEMICONDUCTOR_SEGMENTS:
+        delta = deltas[segment["key"]]
+        breakdown.append({
+            "key": segment["key"],
+            "name": segment["name"],
+            "period": "2026-09",
+            "exportsUsdBillion": 5.0,
+            "priorExportsUsdBillion": 5.0 - delta,
+            "deltaUsdBillion": delta,
+            "exportYoY": 20.0,
+        })
+    result = export_service._build_semiconductor_trends({
+        "itemPeriod": "2026-09",
+        "items": [{
+            "key": "semiconductor",
+            "name": "반도체",
+            "exportsUsdBillion": 30.0,
+            "priorExportsUsdBillion": 20.0,
+            "deltaUsdBillion": 10.0,
+            "exportYoY": 50.0,
+        }],
+        "semiconductorBreakdown": breakdown,
+    })
+    memory = next(row for row in result["segments"] if row["key"] == "memory-total")
+    dram = next(row for row in result["segments"] if row["key"] == "dram")
+    module = next(row for row in result["segments"] if row["key"] == "dram-module")
+    assert memory["overallContributionPct"] == 40.0
+    assert memory["memoryContributionPct"] is None
+    assert dram["overallContributionPct"] is None
+    assert dram["memoryContributionPct"] == 50.0
+    assert module["overallContributionPct"] is None
+    assert module["memoryContributionPct"] is None
+    assert len(dram["history"]) == 2
+    assert "non-exhaustive" in result["meta"]["overallContributionBasis"]
