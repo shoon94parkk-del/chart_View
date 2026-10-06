@@ -164,13 +164,24 @@ def _http_json(url: str, params: dict[str, Any] | None = None, timeout: float = 
     return r.json()
 
 
+def _request_timezone(symbol: str):
+    # The comparison UI supports Korean and US markets. Other Yahoo suffixes
+    # retain their market calendar when used through the shared API.
+    zones = {'.KS': 'Asia/Seoul', '.KQ': 'Asia/Seoul', '.T': 'Asia/Tokyo',
+             '.HK': 'Asia/Hong_Kong', '.L': 'Europe/London', '.TO': 'America/Toronto', '.AX': 'Australia/Sydney'}
+    name = next((zone for suffix, zone in zones.items() if symbol.upper().endswith(suffix)),
+                'Asia/Seoul' if symbol.upper() in {'^KS11', '^KQ11'} else 'America/New_York')
+    return ZoneInfo(name)
+
+
 def _chart_result(symbol: str, *, period: str = "5d", interval: str = "1d", start: str | None = None, end: str | None = None, events: str | None = None) -> dict[str, Any]:
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
     params: dict[str, Any] = {"interval": interval, "includePrePost": "false", "includeAdjustedClose": "true"}
     if start and end:
         # Yahoo period2 is exclusive, so include the user's end date by adding one day.
-        start_dt = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        end_dt = datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+        tz = _request_timezone(symbol)
+        start_dt = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=tz)
+        end_dt = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)).replace(tzinfo=tz)
         params.update({"period1": int(start_dt.timestamp()), "period2": int(end_dt.timestamp())})
     else:
         params["range"] = period
@@ -206,6 +217,12 @@ def _load_compare_stock(symbol: str, period: str, start: str | None, end: str | 
         values = adjusted if len(adjusted) == len(timestamps) else closes
         price_basis = "adjusted_close" if values is adjusted else "close"
         points = [(int(ts), float(value)) for ts, value in zip(timestamps, values) if _positive(value) is not None]
+        tz = ZoneInfo(meta['exchangeTimezoneName']) if meta.get('exchangeTimezoneName') else (_request_timezone(symbol) if start and end else timezone.utc)
+        session_date = lambda ts: datetime.fromtimestamp(ts, tz=tz).date().isoformat()
+        if start and end:
+            # Some provider responses include a current/live bar beyond period2.
+            # Filter before the baseline and return are calculated, not only labels.
+            points = [(ts, value) for ts, value in points if start <= session_date(ts) <= end]
         if not points:
             return None
 
@@ -226,8 +243,10 @@ def _load_compare_stock(symbol: str, period: str, start: str | None, end: str | 
             "quoteSource": "Yahoo Chart",
             "quoteAsOf": datetime.fromtimestamp(meta["regularMarketTime"], tz=timezone.utc).isoformat() if meta.get("regularMarketTime") else None,
             "requestedPeriod": period,
-            "startDate": datetime.fromtimestamp(points[0][0], tz=timezone.utc).date().isoformat(),
-            "endDate": datetime.fromtimestamp(points[-1][0], tz=timezone.utc).date().isoformat(),
+            "startDate": session_date(points[0][0]),
+            "endDate": session_date(points[-1][0]),
+            "requestedRange": {"start": start, "end": end} if start and end else None,
+            "exchangeTimezone": str(tz),
             "observations": len(points),
         }
     except Exception as exc:

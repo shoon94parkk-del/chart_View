@@ -9,7 +9,7 @@ between screens merely because each screen used a different provider/cache.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import threading
 import time
 from typing import Any, Callable
@@ -56,9 +56,14 @@ def _is_korean_stock(symbol: str) -> bool:
     return normalized.endswith((".KS", ".KQ")) and normalized.split(".", 1)[0].isdigit()
 
 
-def _quote_session_fields(status: Any) -> dict[str, Any]:
+def _quote_session_fields(status: Any, traded_at: Any = None) -> dict[str, Any]:
     normalized = str(status or "").strip().upper()
-    if normalized == "CLOSE":
+    try:
+        observed = datetime.fromisoformat(str(traded_at))
+        verified_close = observed.tzinfo is not None and observed.astimezone(timezone(timedelta(hours=9))).strftime('%H:%M') == '15:30'
+    except (ValueError, TypeError):
+        verified_close = False
+    if normalized == "CLOSE" and verified_close:
         return {
             "marketStatus": "CLOSE",
             "sessionType": "regular",
@@ -72,7 +77,7 @@ def _quote_session_fields(status: Any) -> dict[str, Any]:
         }
     return {
         "marketStatus": normalized or None,
-        "sessionType": "regular",
+        "sessionType": "unknown",
         "priceBasis": "provider_latest",
     }
 
@@ -121,7 +126,7 @@ def _basic_index_quote(symbol: str) -> dict[str, Any]:
         "currency": "KRW",
         "source": "Naver Finance KRX/Koscom",
         "delayTime": data.get("delayTime"),
-        **_quote_session_fields(data.get("marketStatus")),
+        **_quote_session_fields(data.get("marketStatus"), traded_at),
     }
 
 
@@ -189,7 +194,7 @@ def _basic_stock_quote(symbol: str) -> dict[str, Any]:
         "currency": "KRW",
         "source": "Naver Finance KRX/Koscom",
         "delayTime": data.get("delayTime"),
-        **_quote_session_fields(data.get("marketStatus")),
+        **_quote_session_fields(data.get("marketStatus"), data.get("localTradedAt")),
     }
 
 
