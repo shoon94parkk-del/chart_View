@@ -57,17 +57,25 @@ def test_seed_reviews_are_post_pick_and_verified():
                 assert evidence["sourceUrl"].startswith("http")
         else:
             assert review["evidence"] == []
-            assert pick["status"] == "PENDING_REVIEW"
+            if pick["status"] == "EXIT":
+                assert pick["decision"]["finalizedByUser"] is True
+            else:
+                assert pick["status"] == "PENDING_REVIEW"
 
 
 def test_p1_state_does_not_invent_sell_signals():
     statuses = [row["status"] for row in MONITOR["picks"]]
     assert statuses
-    assert set(statuses) <= {"KEEP", "PENDING_REVIEW"}
+    assert set(statuses) <= {"KEEP", "PENDING_REVIEW", "EXIT"}
     assert statuses.count("KEEP") > 0
     assert statuses.count("PENDING_REVIEW") > 0
     assert statuses.count("WATCH") == 0
     assert statuses.count("SELL_REVIEW") == 0
+    for row in MONITOR["picks"]:
+        if row["status"] == "EXIT":
+            assert row["decision"]["finalizedByUser"] is True
+            assert row["decision"]["exitDate"]
+            assert row["decision"]["exitPrice"] is not None
 
 
 def test_pick_management_is_part_of_single_boot_bundle():
