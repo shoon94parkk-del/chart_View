@@ -61,3 +61,16 @@ def test_wrong_revision_and_wrong_asset_fail(monkeypatch, tmp_path):
     contents[next(iter(contents))] = b"stale bundle"
     with pytest.raises(ValueError, match="asset mismatch"):
         release.verify("https://example.test", expected, attempts=1)
+
+@pytest.mark.parametrize("source", ["Yahoo Chart regularMarketPrice + official previousClose", "Yahoo Chart 5m + official previousClose atomic snapshot", "Yahoo Chart daily atomic snapshot"])
+def test_current_atomic_quote_source_names_remain_approved(source):
+    data = snapshot()
+    data["results"][2]["source"] = source
+    assert len(validate_market_snapshot(data, NOW)) == 8
+
+
+def test_unknown_global_quote_source_still_fails():
+    data = snapshot()
+    data["results"][2]["source"] = "unknown global provider"
+    with pytest.raises(AssertionError, match="unapproved source"):
+        validate_market_snapshot(data, NOW)

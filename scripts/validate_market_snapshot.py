@@ -4,7 +4,9 @@ import math
 from zoneinfo import ZoneInfo
 
 REQUIRED = ("^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X")
-KOREA_SOURCES = {"Naver Finance KRX/Koscom", "Naver Finance realtime polling", "Yahoo Chart 5m"}
+YAHOO_SOURCES = {"Yahoo Chart 5m", "Yahoo Chart regularMarketPrice + official previousClose",
+                 "Yahoo Chart 5m + official previousClose atomic snapshot", "Yahoo Chart daily atomic snapshot"}
+KOREA_SOURCES = {"Naver Finance KRX/Koscom", "Naver Finance realtime polling"} | YAHOO_SOURCES
 
 
 def validate_market_snapshot(data, now=None):
@@ -15,7 +17,7 @@ def validate_market_snapshot(data, now=None):
     for ticker in REQUIRED:
         assert ticker in rows, f"missing quote: {ticker}"
         row = rows[ticker]
-        allowed = KOREA_SOURCES if ticker in ("^KS11", "^KQ11") else {"Yahoo Chart 5m"}
+        allowed = KOREA_SOURCES if ticker in ("^KS11", "^KQ11") else YAHOO_SOURCES
         assert row.get("source") in allowed, f"unapproved source: {ticker} / {row.get('source')}"
         for field in ("price", "change"):
             value = row.get(field)
