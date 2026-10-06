@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:46:30+09:00",
+  "generatedAt": "2026-10-06T17:48:24+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-10-06T17:20:00+09:00",
   "policy": {
@@ -1314,11 +1314,12 @@
       "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": "2026-09-28T13:20:00+09:00",
-        "lastReviewedTradeDate": "2026-09-28",
+        "lastReviewedAt": "2026-10-06T17:28:00+09:00",
+        "lastReviewedTradeDate": "2026-10-06",
         "thesisChecks": {
           "earnings": "OK",
           "customer": "OK",
+          "orders": "OK",
           "industry": "OK",
           "pricing": "OK"
         },
@@ -1333,10 +1334,21 @@
             "materiality": "supporting",
             "independentKey": "earnings_and_pricing",
             "category": "earnings"
+          },
+          {
+            "verified": true,
+            "publishedAt": "2026-10-06",
+            "sourceTitle": "삼성전기, 글로벌 기업과 2천900억 AI 서버용 MLCC 공급계약",
+            "sourceUrl": "https://www.yna.co.kr/amp/view/AKR20261006088900003",
+            "fact": "삼성전기가 글로벌 대형 기업과 약 2,900억원 규모의 AI 서버용 MLCC 공급계약을 체결함.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "ai_server_mlcc_2900_20261006",
+            "category": "orders"
           }
         ],
-        "reason": "9월 28일 새 전망에서 AI 서버용 MLCC·FC-BGA 수요와 가격·제품 믹스 개선으로 3분기 영업이익 눈높이가 올라가 기존 AI 부품 성장 논리가 강화됐습니다.",
-        "reviewKey": "2026-09-28T13:20:00+09:00"
+        "reason": "10월 6일 글로벌 대형 고객과 약 2,900억원 규모 AI 서버용 MLCC 공급계약이 새로 확인돼 AI 서버향 MLCC 수요·고객 확장이라는 기존 투자논리가 추가 강화됐습니다. 추천 이후 중대한 부정 근거는 확인되지 않았습니다.",
+        "reviewKey": "2026-10-06T17:28:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -1388,13 +1400,14 @@
       "statusLabel": "유지",
       "needsUserReview": false,
       "monitor": {
-        "lastReviewedAt": "2026-09-30T18:45:00+09:00",
-        "lastReviewedTradeDate": "2026-09-30",
+        "lastReviewedAt": "2026-10-06T17:28:00+09:00",
+        "lastReviewedTradeDate": "2026-10-06",
         "thesisChecks": {
           "earnings": "OK",
           "product": "OK",
           "industry": "OK",
-          "customer": "OK"
+          "customer": "OK",
+          "orders": "OK"
         },
         "evidence": [
           {
@@ -1407,10 +1420,21 @@
             "materiality": "supporting",
             "independentKey": "ai_dc_modular_cooling",
             "category": "product"
+          },
+          {
+            "verified": true,
+            "publishedAt": "2026-10-06",
+            "sourceTitle": "LG전자, 북미향 AI데이터센터 냉각솔루션 장기 공급 계약",
+            "sourceUrl": "https://www.yna.co.kr/amp/view/AKR20261006041651008",
+            "fact": "LG전자가 북미 AI 데이터센터 시장에서 총 5GW 규모 냉각솔루션 장기 공급 계약을 확보함.",
+            "direction": "positive",
+            "materiality": "supporting",
+            "independentKey": "north_america_aidc_cooling_5gw_20261006",
+            "category": "orders"
           }
         ],
-        "reason": "추천 이후 9월 29일 LG전자가 AI 데이터센터용 모듈형 냉각 인프라를 공개해 HVAC·AI 데이터센터 냉각 사업 확장 논리가 새 펀더멘털 근거로 확인됐습니다. 기존 투자논리를 훼손하는 검증된 부정 신호는 확인되지 않았습니다.",
-        "reviewKey": "2026-09-30T18:45:00+09:00"
+        "reason": "10월 6일 북미 AI 데이터센터용 냉각솔루션 총 5GW 규모 장기공급 계약이 새로 확인돼, 추천 당시 HVAC·AIDC 냉각 사업 확장 논리가 실제 대규모 수주로 이어지고 있습니다. 중대한 부정 근거는 확인되지 않았습니다.",
+        "reviewKey": "2026-10-06T17:28:00+09:00"
       },
       "decision": {
         "finalizedByUser": false,
@@ -2166,5 +2190,5 @@
       }
     }
   ],
-  "reviewSourceUpdated": "2026-10-06T17:21:00+09:00"
+  "reviewSourceUpdated": "2026-10-06T17:28:00+09:00"
 }
