@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T16:03:42+09:00",
+  "generatedAt": "2026-10-06T17:06:14+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-10-02T18:09:00+09:00",
   "policy": {
@@ -1605,11 +1605,11 @@
       "technical": {
         "tradeDate": "2026-10-06",
         "scoreAtPick": 30.0,
-        "score": 29.0,
+        "score": 28.0,
         "previousTradeDate": "2026-10-02",
         "previousScore": 29.0,
-        "dayDelta": 0.0,
-        "deltaFromPick": -1.0,
+        "dayDelta": -1.0,
+        "deltaFromPick": -2.0,
         "rsi14": 57.2,
         "ret5": 10.92,
         "ret20": 5.34,
