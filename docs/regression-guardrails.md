@@ -321,3 +321,5 @@ Do not calculate quarterly basic EPS by subtracting cumulative weighted-average 
 ## 2026-10-06 date and quote basis
 
 Comparison start/end are inclusive market-calendar dates; provider-exclusive period2 must be translated to the next local midnight. Filter all returned observations to the requested range before return normalization, including provider-appended live bars. Weekends use actual observations only. Preserve adjusted close and existing caches/SWR. Market CLOSE alone must not label an unknown/late latest observation as a regular-session close; missing timezone/time stays unknown. Existing 15:30 validated-close and after-hours exclusion tests remain gates.
+
+2026-10-06: phase3 live smoke uses behavioral quote session/date tests rather than retired 1d/5m source string matching. Keep current atomic session snapshot behavior; do not restore old code merely to satisfy stale CI.
