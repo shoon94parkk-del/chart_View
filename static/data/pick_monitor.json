@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:06:14+09:00",
+  "generatedAt": "2026-10-06T17:46:30+09:00",
   "source": "static/data/ai_daily_rankings.json",
-  "sourceUpdated": "2026-10-02T18:09:00+09:00",
+  "sourceUpdated": "2026-10-06T17:20:00+09:00",
   "policy": {
     "automaticExitAllowed": false,
     "userConfirmationRequiredForExit": true,
@@ -2046,6 +2046,125 @@
         ],
         "advisoryOnly": true
       }
+    },
+    {
+      "pickId": "2026-10-06:119850",
+      "code": "119850",
+      "symbol": "119850.KQ",
+      "name": "지엔씨에너지",
+      "pickDate": "2026-10-06",
+      "rank": 1,
+      "pickPrice": 51300,
+      "changePctAtPick": -3.93,
+      "scoreAtPick": 84,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "AI 데이터센터 비상발전기 수주잔고 확대, 당진 생산·테스트 CAPA 증설, Baudouin 외부 공급망 활용 및 데이터센터·발전사업 확장이 성장축.",
+        "pillars": [
+          "AI 데이터센터 비상발전기 수주잔고 확대, 당진 생산·테스트 CAPA 증설, Baudouin 외부 공급망 활용 및 데이터센터·발전사업 확장이 성장축."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-06T17:21:00+09:00",
+        "lastReviewedTradeDate": "2026-10-06",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 6일 신규 PICK. 다음 점검에서 AI 데이터센터 비상발전기 신규 수주, 수주잔고, 당진 CAPA 활용률, Baudouin 조달 확대, 자체 데이터센터·발전사업 진행을 검증합니다.",
+        "reviewKey": "2026-10-06T17:21:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-06",
+        "scoreAtPick": 21.0,
+        "score": 21.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 54.8,
+        "ret5": -3.8,
+        "ret20": 27.12,
+        "change1d": -0.56,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
+      }
+    },
+    {
+      "pickId": "2026-10-06:101160",
+      "code": "101160",
+      "symbol": "101160.KQ",
+      "name": "월덱스",
+      "pickDate": "2026-10-06",
+      "rank": 2,
+      "pickPrice": 32900,
+      "changePctAtPick": -0.3,
+      "scoreAtPick": 83,
+      "gradeAtPick": "사용자 확정",
+      "originalThesis": {
+        "summary": "Etch 공정용 Silicon Ring·Electrode·Quartz 소모품의 반복매출과 FAB 가동률·미세화·고사양 소재 확장에 따른 안정적 성장.",
+        "pillars": [
+          "Etch 공정용 Silicon Ring·Electrode·Quartz 소모품의 반복매출과 FAB 가동률·미세화·고사양 소재 확장에 따른 안정적 성장."
+        ],
+        "invalidationCriteria": [],
+        "catalysts": [],
+        "keyMetrics": [],
+        "source": "legacy_reason",
+        "completeness": "legacy_baseline"
+      },
+      "status": "PENDING_REVIEW",
+      "statusLabel": "검토 대기",
+      "needsUserReview": false,
+      "monitor": {
+        "lastReviewedAt": "2026-10-06T17:21:00+09:00",
+        "lastReviewedTradeDate": "2026-10-06",
+        "thesisChecks": {
+          "evidence": "PENDING"
+        },
+        "evidence": [],
+        "reason": "2026년 10월 6일 신규 PICK. 다음 점검에서 Etch용 Silicon·Quartz·SiC 소모품 매출, 주요 고객 FAB 가동률, 신규 CAPEX·고사양 제품 믹스와 2030 투자계획 진행을 검증합니다.",
+        "reviewKey": "2026-10-06T17:21:00+09:00"
+      },
+      "decision": {
+        "finalizedByUser": false,
+        "exitDate": null,
+        "exitPrice": null
+      },
+      "technical": {
+        "tradeDate": "2026-10-06",
+        "scoreAtPick": 24.0,
+        "score": 24.0,
+        "previousTradeDate": null,
+        "previousScore": null,
+        "dayDelta": null,
+        "deltaFromPick": 0.0,
+        "rsi14": 63.4,
+        "ret5": 8.93,
+        "ret20": 13.82,
+        "change1d": -0.15,
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
+        "advisoryOnly": true
+      }
     }
-  ]
+  ],
+  "reviewSourceUpdated": "2026-10-06T17:21:00+09:00"
 }
