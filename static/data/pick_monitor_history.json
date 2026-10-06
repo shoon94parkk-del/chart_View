@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-06T17:48:24+09:00",
+  "updated": "2026-10-06T18:02:00+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -508,6 +508,36 @@
       "at": "2026-10-06T17:48:24+09:00",
       "status": "KEEP",
       "reviewKey": "2026-10-06T17:28:00+09:00"
+    },
+    {
+      "eventType": "USER_EXIT_CONFIRMED",
+      "pickId": "2026-09-15:121600",
+      "at": "2026-10-06T18:02:00+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "EXIT",
+      "exitDate": "2026-10-06",
+      "exitPrice": 63700,
+      "reason": "사용자 전량매도 확정"
+    },
+    {
+      "eventType": "USER_EXIT_CONFIRMED",
+      "pickId": "2026-09-15:033640",
+      "at": "2026-10-06T18:02:00+09:00",
+      "from": "KEEP",
+      "to": "EXIT",
+      "exitDate": "2026-10-06",
+      "exitPrice": 32300,
+      "reason": "사용자 전량매도 확정"
+    },
+    {
+      "eventType": "USER_EXIT_CONFIRMED",
+      "pickId": "2026-10-01:355150",
+      "at": "2026-10-06T18:02:00+09:00",
+      "from": "PENDING_REVIEW",
+      "to": "EXIT",
+      "exitDate": "2026-10-06",
+      "exitPrice": 24850,
+      "reason": "사용자 전량매도 확정"
     }
   ]
 }
