@@ -11,15 +11,32 @@ _ACTION = re.compile(r'주식배당|주식분할|주식병합|무상증자|주�
 _FINANCIAL = re.compile(r'사업보고서|반기보고서|분기보고서')
 
 
+class _ReviewInvalid(ValueError):
+    """Internal, nonsecret validation code; never a provider message."""
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(reason)
+
+
 def _day(value):
     if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
-        raise ValueError('invalid_date')
-    return date.fromisoformat(value)
+        raise _ReviewInvalid('invalid_date')
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise _ReviewInvalid('invalid_date') from None
 
 
 def _integer(value):
     if isinstance(value, bool) or not re.fullmatch(r'\d+', str(value)):
-        raise ValueError('invalid_pagination')
+        raise _ReviewInvalid('invalid_pagination')
+    return int(value)
+
+
+def _safe_count(value):
+    """Only bounded numeric shape metadata, never arbitrary response values."""
+    if isinstance(value, bool) or not re.fullmatch(r'\d{1,9}', str(value)):
+        return None
     return int(value)
 
 
@@ -69,7 +86,8 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
     requests_before = getattr(client, 'requests', 0)
     metadata = {'status': 'unavailable', 'eligibleCount': 0, 'updatedCount': 0,
                 'blockedCount': 0, 'requests': 0, 'start': None, 'end': trade_date,
-                'checkedAt': checked_at, 'reason': None}
+                'checkedAt': checked_at, 'reason': None,
+                'diagnostics': {'stage': 'bounds'}}
 
     def finish(value, status, reason=None):
         metadata.update(status=status, reason=reason,
@@ -81,7 +99,8 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
         end = _day(trade_date)
         checked = datetime.fromisoformat(checked_at)
         if checked.tzinfo is None or end > checked.date() or not isinstance(max_pages, int) or isinstance(max_pages, bool) or not 1 <= max_pages <= 100:
-            raise ValueError('invalid_review_bounds')
+            raise _ReviewInvalid('invalid_review_bounds')
+        metadata['diagnostics']['stage'] = 'targets'
         universe = {row.get('symbol') for row in original.get('universe', [])}
         targets = {}
         corp_codes = getattr(client, 'corp_codes', {})
@@ -116,42 +135,64 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
             return finish(original, 'unavailable', 'review_window_exceeds_31_days')
         filings, seen, expected = [], set(), None
         for page in range(1, max_pages + 1):
+            metadata['diagnostics'] = {'stage': 'request', 'requestedPage': page}
             packet = client.get('list.json', {'bgn_de': window_start.strftime('%Y%m%d'),
                 'end_de': end.strftime('%Y%m%d'), 'page_count': 100, 'page_no': page,
                 'sort': 'date', 'sort_mth': 'asc'})
+            if not isinstance(packet, dict):
+                raise _ReviewInvalid('invalid_response_shape')
+            status = packet.get('status')
+            metadata['diagnostics'].update(stage='pagination',
+                responseStatus=status if status in {'000','013','010','011','012','020','100','101','800','900','901'} else 'other',
+                pageNo=_safe_count(packet.get('page_no')), pageCount=_safe_count(packet.get('page_count')),
+                totalCount=_safe_count(packet.get('total_count')), totalPages=_safe_count(packet.get('total_page')),
+                rowCount=len(packet['list']) if isinstance(packet.get('list'), list) and len(packet['list'])<=100 else None,
+                missingFields=[key for key in ('page_no','page_count','total_count','total_page','list') if key not in packet])
             if packet.get('status') == '013':
                 if page != 1 or packet.get('list'):
-                    raise ValueError('incomplete_pagination')
+                    raise _ReviewInvalid('incomplete_pagination')
                 break
             if packet.get('status') != '000':
-                raise ValueError('provider_status_not_success')
+                raise _ReviewInvalid('provider_status_not_success')
             total, pages = _integer(packet.get('total_count')), _integer(packet.get('total_page'))
             current, size = _integer(packet.get('page_no')), _integer(packet.get('page_count'))
             rows = packet.get('list')
             if (current != page or size != 100 or pages != (total + 99) // 100 or
                     not isinstance(rows, list) or len(rows) != max(0, min(100, total - (page - 1) * 100)) or
                     expected is not None and expected != (total, pages)):
-                raise ValueError('invalid_pagination')
+                raise _ReviewInvalid('invalid_pagination')
             expected = total, pages
-            for row in rows:
+            metadata['diagnostics']['stage'] = 'filings'
+            for row_index, row in enumerate(rows):
+                metadata['diagnostics'].update(rowIndex=row_index, invalidFields=[])
                 if not isinstance(row, dict):
-                    raise ValueError('invalid_filing')
+                    raise _ReviewInvalid('invalid_filing')
                 corp, receipt, observed, name = [row.get(k) for k in ('corp_code', 'rcept_no', 'rcept_dt', 'report_nm')]
-                if (not re.fullmatch(r'\d{8}', str(corp or '')) or not re.fullmatch(r'\d{14}', str(receipt or '')) or
-                        not re.fullmatch(r'\d{8}', str(observed or '')) or receipt in seen or
-                        not isinstance(name, str) or not name.strip()):
-                    raise ValueError('invalid_filing_identity')
+                invalid = []
+                for key, value, size in [('corp_code',corp,8),('rcept_no',receipt,14),('rcept_dt',observed,8)]:
+                    if not re.fullmatch(r'\d{'+str(size)+r'}', str(value or '')):
+                        invalid.append(key)
+                if receipt in seen:
+                    invalid.append('duplicate_receipt')
+                if not isinstance(name, str) or not name.strip():
+                    invalid.append('report_nm')
+                if invalid:
+                    metadata['diagnostics']['invalidFields'] = invalid
+                    raise _ReviewInvalid('invalid_filing_identity')
                 day = _day(f'{observed[:4]}-{observed[4:6]}-{observed[6:]}')
+                metadata['diagnostics'].update(dateWithinWindow=window_start <= day <= end,
+                                               receiptDateMatches=receipt[:8] == observed)
                 if not window_start <= day <= end or receipt[:8] != observed:
-                    raise ValueError('invalid_filing_date')
+                    raise _ReviewInvalid('invalid_filing_date')
                 seen.add(receipt)
                 filings.append((corp, day, name, receipt))
             if page >= pages:
                 if len(filings) != total:
-                    raise ValueError('incomplete_pagination')
+                    raise _ReviewInvalid('incomplete_pagination')
                 break
         else:
-            raise ValueError('page_budget_incomplete')
+            raise _ReviewInvalid('page_budget_incomplete')
+        metadata['diagnostics']['stage'] = 'apply'
         result = deepcopy(original)
         by_corp = {}
         for corp, day, name, receipt in filings:
@@ -181,6 +222,20 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
                 metadata['blockedCount'] += 1
             metadata['updatedCount'] += 1
         return finish(result, 'complete')
-    except Exception:
-        # Never expose a provider exception containing its authenticated URL/key.
-        return finish(original, 'unavailable', 'disclosure_review_not_completed')
+    except _ReviewInvalid as error:
+        return finish(original, 'unavailable', error.reason)
+    except Exception as error:
+        # Classify only known exception names. Never log messages, repr, URLs,
+        # headers, response bodies or arbitrary provider exception attributes.
+        name = type(error).__name__
+        known = {'DartLimit': ('rate_limited','dart_rate_limit'),
+                 'BudgetLimit': ('budget_exhausted','review_budget_exhausted'),
+                 'ProviderError': ('provider_error','provider_request_failed'),
+                 'TimeoutError': ('provider_error','provider_timeout'),
+                 'ReadTimeout': ('provider_error','provider_timeout'),
+                 'ConnectTimeout': ('provider_error','provider_timeout'),
+                 'ConnectionError': ('provider_error','provider_connection_failed'),
+                 'HTTPError': ('provider_error','provider_http_failed')}
+        status, reason = known.get(name, ('unavailable','unexpected_review_error'))
+        metadata['diagnostics']['exceptionType'] = name if name in known else 'UnexpectedError'
+        return finish(original, status, reason)

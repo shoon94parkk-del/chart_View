@@ -133,7 +133,7 @@ def test_any_partial_or_invalid_scan_rolls_back_the_entire_company_batch(failure
     if failure == 'changingtotal': responses[1]['total_count'] = 102
     result = refresh(before, Client(responses))
     assert result['companies'] == before['companies']
-    assert result['actionCollection']['status'] == 'unavailable'
+    assert result['actionCollection']['status'] == ('provider_error' if failure == 'timeout' else 'unavailable')
     assert result['actionCollection']['updatedCount'] == 0
     assert 'must-not-leak' not in str(result['actionCollection'])
 
@@ -205,3 +205,64 @@ def test_reparse_never_changes_mismatched_basis_or_period_inventory():
     row.update(reports=reports(), basis='OFS', annualReportYear=2025)
     before = {'companies': {row['symbol']: row}}
     assert renormalize_cached_reports(before)['companies'] == before['companies']
+
+
+@pytest.mark.parametrize('name,status,reason', [
+    ('DartLimit','rate_limited','dart_rate_limit'),
+    ('BudgetLimit','budget_exhausted','review_budget_exhausted'),
+    ('ProviderError','provider_error','provider_request_failed'),
+    ('TimeoutError','provider_error','provider_timeout'),
+    ('ValueError','unavailable','unexpected_review_error'),
+])
+def test_provider_diagnostics_use_only_known_class_and_enum_never_messages(name, status, reason):
+    error = type(name, (Exception,), {})('https://provider?crtfc_key=must-not-leak')
+    before = cache()
+    result = refresh(before, Client([error]))
+    assert result['companies'] == before['companies']
+    metadata = result['actionCollection']
+    assert metadata['status'] == status
+    assert metadata['reason'] == reason
+    assert metadata['diagnostics']['stage'] == 'request'
+    assert metadata['diagnostics']['exceptionType'] == (name if name != 'ValueError' else 'UnexpectedError')
+    assert 'must-not-leak' not in str(metadata)
+    assert 'https:' not in str(metadata)
+
+
+def test_invalid_pagination_reports_bounded_shape_without_response_body_or_values():
+    response = packets([filing()])[0]
+    response['page_count'] = 'crtfc_key=must-not-leak'
+    response['message'] = 'https://provider?crtfc_key=must-not-leak'
+    result = refresh(cache(), Client([response]))
+    metadata = result['actionCollection']
+    assert metadata['reason'] == 'invalid_pagination'
+    assert metadata['diagnostics'] == {'stage':'pagination','requestedPage':1,'responseStatus':'000',
+        'pageNo':1,'pageCount':None,'totalCount':1,'totalPages':1,'rowCount':1,'missingFields':[]}
+    assert 'must-not-leak' not in str(metadata)
+
+
+@pytest.mark.parametrize('field', ['corp_code','rcept_no','rcept_dt','report_nm'])
+def test_invalid_filing_identifies_only_the_field_without_sensitive_value(field):
+    response = packets([filing()])[0]
+    response['list'][0][field] = ''
+    result = refresh(cache(), Client([response]))
+    assert result['companies'] == cache()['companies']
+    assert result['actionCollection']['reason'] == 'invalid_filing_identity'
+    assert result['actionCollection']['diagnostics']['invalidFields'] == [field]
+
+
+def test_date_relation_diagnostics_preserve_fail_closed_before_any_scope_change():
+    response = packets([filing()])[0]
+    response['list'][0]['rcept_no'] = '20261005000001'
+    result = refresh(cache(), Client([response]))
+    assert result['companies'] == cache()['companies']
+    metadata = result['actionCollection']
+    assert metadata['reason'] == 'invalid_filing_date'
+    assert metadata['diagnostics']['dateWithinWindow'] is True
+    assert metadata['diagnostics']['receiptDateMatches'] is False
+
+
+def test_non_mapping_response_is_an_explicit_safe_shape_error():
+    result = refresh(cache(), Client(['https://provider?crtfc_key=must-not-leak']))
+    assert result['actionCollection']['reason'] == 'invalid_response_shape'
+    assert result['companies'] == cache()['companies']
+    assert 'must-not-leak' not in str(result['actionCollection'])
