@@ -182,7 +182,9 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
                 day = _day(f'{observed[:4]}-{observed[4:6]}-{observed[6:]}')
                 metadata['diagnostics'].update(dateWithinWindow=window_start <= day <= end,
                                                receiptDateMatches=receipt[:8] == observed)
-                if not window_start <= day <= end or receipt[:8] != observed:
+                # OpenDART documents rcept_no as an identifier and rcept_dt as
+                # the reception date; their prefixes need not match.
+                if not window_start <= day <= end:
                     raise _ReviewInvalid('invalid_filing_date')
                 seen.add(receipt)
                 filings.append((corp, day, name, receipt))
