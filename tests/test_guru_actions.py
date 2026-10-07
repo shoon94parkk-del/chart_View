@@ -250,15 +250,49 @@ def test_invalid_filing_identifies_only_the_field_without_sensitive_value(field)
     assert result['actionCollection']['diagnostics']['invalidFields'] == [field]
 
 
-def test_date_relation_diagnostics_preserve_fail_closed_before_any_scope_change():
+def test_official_receipt_identifier_prefix_does_not_override_reception_date():
     response = packets([filing()])[0]
     response['list'][0]['rcept_no'] = '20261005000001'
-    result = refresh(cache(), Client([response]))
-    assert result['companies'] == cache()['companies']
+    before = cache()
+    result = refresh(before, Client([response]))
     metadata = result['actionCollection']
-    assert metadata['reason'] == 'invalid_filing_date'
+    assert metadata['status'] == 'complete'
+    assert metadata['reason'] is None
+    assert metadata['updatedCount'] == 2
     assert metadata['diagnostics']['dateWithinWindow'] is True
     assert metadata['diagnostics']['receiptDateMatches'] is False
+    for symbol, row in result['companies'].items():
+        assert row['epsComparability']['status'] == 'verified'
+        assert row['epsComparability']['end'] == '2026-10-07'
+        for field in ('checkedAt','annual','sources','reports'):
+            assert row[field] == before['companies'][symbol][field]
+
+
+def test_last_page_split_with_unrelated_receipt_prefix_uses_actual_reception_date():
+    rows = [filing(i, corp='99999999') for i in range(1, 101)]
+    split = filing(101, name='주식분할결정')
+    split['rcept_no'] = '20261005000101'
+    rows.append(split)
+    before = cache()
+    result = refresh(before, Client(packets(rows)))
+    assert result['actionCollection']['status'] == 'complete'
+    assert result['actionCollection']['blockedCount'] == 1
+    affected = result['companies']['002460.KS']
+    assert affected['epsComparability']['status'] == 'unknown'
+    assert affected['actions']['events'] == [{'date':'20261006','name':'주식분할결정','receiptNo':'20261005000101'}]
+    assert affected['annual'] == before['companies']['002460.KS']['annual']
+    assert result['companies']['003090.KS']['epsComparability']['status'] == 'verified'
+
+
+@pytest.mark.parametrize('observed', ['20261008','20261005','20260230'])
+def test_receipt_identifier_cannot_make_outside_or_invalid_actual_date_valid(observed):
+    response = packets([filing()])[0]
+    response['list'][0].update(rcept_no='20261006000001', rcept_dt=observed)
+    before = cache()
+    result = refresh(before, Client([response]))
+    assert result['companies'] == before['companies']
+    assert result['actionCollection']['status'] == 'unavailable'
+    assert result['actionCollection']['reason'] in {'invalid_date','invalid_filing_date'}
 
 
 def test_non_mapping_response_is_an_explicit_safe_shape_error():
