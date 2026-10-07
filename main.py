@@ -28,6 +28,7 @@ import secrets
 import json
 from heatmap_metadata import us_universe, korean_metadata, quote_order
 from heatmap_refresh_policy import needs_refresh as heatmap_needs_refresh
+from heatmap_snapshot import eligible_markets, load_snapshot, merge_seed_rows
 try:
     import redis.asyncio as redis_async
 except Exception:
@@ -1414,7 +1415,7 @@ async def _fetch_full_heatmap_quotes(tickers, on_progress=None):
 
 
 def _seed_full_heatmap_from_local():
-    """Fast cold-start seed without trusting legacy US price/change values."""
+    """Fast canonical warm seed; legacy US layout never supplies quote values."""
     try:
         sources = _load_home_insight_sources()
         screener = sources.get("screener") or {}
@@ -1456,7 +1457,8 @@ def _seed_full_heatmap_from_local():
         # For US, only seed symbols that already have a verified current Home quote.
         # The legacy heatmap file supplies universe/weights, never quote values.
         us_rows = []
-        for meta in _load_full_heatmap_us_rows():
+        us_metadata = _load_full_heatmap_us_rows()
+        for meta in us_metadata:
             live = home_rows.get(meta.get("ticker")) or {}
             if live.get("price") is None or live.get("change") is None:
                 continue
@@ -1473,13 +1475,22 @@ def _seed_full_heatmap_from_local():
                 "stale": bool(live.get("stale", False)),
             })
 
+        eligible = eligible_markets(FULL_HEATMAP_KR_TICKERS, us_metadata)
+        snapshot = load_snapshot(
+            os.path.join(os.path.dirname(__file__), "static", "data", "full_heatmap_snapshot.json"), eligible,
+        )
+        current_rows = ((FULL_HEATMAP_CACHE.get("data") or {}).get("results") or []) + kr_rows + us_rows
+        results = merge_seed_rows((snapshot or {}).get("results") or [], current_rows, eligible)
+        counts = {market: sum(row.get("market") == market for row in results) for market in ("KR", "US")}
         data = {
-            "results": kr_rows + us_rows,
-            "generatedAt": datetime.now(KST).isoformat(),
-            "source": "canonical-seed-no-legacy-quotes",
-            "counts": {"KR": len(kr_rows), "US": len(us_rows)},
-            "complete": len(kr_rows) >= len(FULL_HEATMAP_KR_TICKERS) and len(us_rows) >= FULL_HEATMAP_US_LIMIT,
+            "results": results,
+            "generatedAt": snapshot["generatedAt"] if snapshot else datetime.now(KST).isoformat(),
+            "source": "canonical-snapshot-warm-seed" if snapshot else "canonical-seed-no-legacy-quotes",
+            "counts": counts,
+            "complete": counts["KR"] >= len(FULL_HEATMAP_KR_TICKERS) and counts["US"] >= FULL_HEATMAP_US_LIMIT,
         }
+        if snapshot:
+            data["snapshotCapturedAt"] = snapshot["snapshotCapturedAt"]
         if data["results"]:
             FULL_HEATMAP_CACHE["data"] = data
             FULL_HEATMAP_CACHE["timestamp"] = 0.0

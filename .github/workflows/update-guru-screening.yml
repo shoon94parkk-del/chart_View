@@ -19,6 +19,10 @@ on:
         description: Collect dated OHLCV and necessary single-quarter EPS/revenue
         type: boolean
         default: true
+      refresh_actions:
+        description: Review the bounded missing official disclosure window before histories
+        type: boolean
+        default: true
   workflow_run:
     workflows: [Update Korean Stock Screener]
     types: [completed]
@@ -47,10 +51,12 @@ jobs:
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           COLLECT: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.collect) }}
+          REFRESH_ACTIONS: ${{ github.event_name != 'workflow_dispatch' || inputs.refresh_actions }}
           COMPANY_BUDGET: ${{ inputs.max_companies || '400' }}
           REQUEST_BUDGET: ${{ inputs.max_requests || '2400' }}
         run: |
           args=()
+          if [ "$REFRESH_ACTIONS" = 'true' ]; then args+=(--refresh-actions); fi
           if [ "$COLLECT" = 'true' ]; then args+=(--collect); fi
           python scripts/generate_guru_screening.py "${args[@]}" --max-companies "$COMPANY_BUDGET" --max-requests "$REQUEST_BUDGET" --max-seconds 1200
       - name: Collect bounded trend and growth evidence

@@ -44,10 +44,16 @@ def classify_company(row):
 
 
 def _eps_account(rows):
+    basic_ids = {'ifrs-full_BasicEarningsLossPerShare', 'ifrs_BasicEarningsLossPerShare'}
+    diluted_ids = {'ifrs-full_DilutedEarningsLossPerShare', 'ifrs_DilutedEarningsLossPerShare'}
     eligible = [r for r in rows if r.get('sj_div') in {'IS', 'CIS'}
                 and str(r.get('account_detail') or '-').strip() in {'', '-'}
-                and '우선' not in r.get('account_nm', '') and '희석' not in r.get('account_nm', '')
-                and (r.get('account_id') in {'ifrs-full_BasicEarningsLossPerShare', 'ifrs_BasicEarningsLossPerShare'}
+                and '우선' not in r.get('account_nm', '')
+                and r.get('account_id') not in diluted_ids
+                and ('희석' not in r.get('account_nm', '') or
+                     r.get('account_id') in basic_ids and
+                     re.search(r'기본(?:및|과|/|·|ㆍ)희석', r.get('account_nm', '').replace(' ', '')))
+                and (r.get('account_id') in basic_ids
                      or re.fullmatch(r'(보통주)?기본주당(이익|손익|순이익)(\(손실\))?', r.get('account_nm', '').replace(' ', '')))]
     ordinary = [r for r in eligible if '보통' in r.get('account_nm', '')]
     eligible = ordinary or eligible

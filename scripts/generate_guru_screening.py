@@ -16,6 +16,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from guru_financials import normalize_reports, classify_company, KEYS
+from guru_actions import refresh_action_windows, renormalize_cached_reports
 from guru_snapshot import build_snapshot, publish_snapshot, atomic_json
 from dart_financial_service import QUALITY_ACCOUNTS
 
@@ -193,19 +194,29 @@ def load_json(path, default):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--collect',action='store_true'); parser.add_argument('--max-companies',type=int,default=400)
+    parser.add_argument('--refresh-actions',action='store_true',help='Review only the missing official disclosure window, within the same request budget')
     parser.add_argument('--max-requests',type=int,default=2400); parser.add_argument('--max-seconds',type=int,default=1200)
     args=parser.parse_args()
     prices=load_json(OUT/'screener.json',{})
-    cache=load_json(OUT/'guru_financials.json',{})
-    if args.collect:
-        from scripts.generate_screener import load_universe
-        universe=load_universe()
+    cache=renormalize_cached_reports(load_json(OUT/'guru_financials.json',{}))
+    client=None
+    if args.collect or args.refresh_actions:
         key=os.environ.get('DART_API_KEY','').strip()
         if not key: raise RuntimeError('DART_API_KEY is required')
         corp_codes=load_json(OUT/'dart_corp_codes.json',{}).get('companies',{})
         deadline=time.monotonic()+max(1,args.max_seconds)
-        cache=refresh_cache(universe,cache,client=DartClient(key,corp_codes,max(1,args.max_requests),deadline),
+        client=DartClient(key,corp_codes,max(1,args.max_requests),deadline)
+    if args.refresh_actions:
+        cache=refresh_action_windows(cache,client=client,trade_date=prices.get('tradeDate'),
+            checked_at=datetime.now(KST).isoformat(timespec='seconds'))
+        print(json.dumps({'actionCollection':cache.get('actionCollection')}))
+    if args.collect:
+        from scripts.generate_screener import load_universe
+        universe=load_universe()
+        action_metadata=cache.get('actionCollection')
+        cache=refresh_cache(universe,cache,client=client,
                             max_companies=max(1,args.max_companies),max_requests=max(1,args.max_requests),deadline=deadline)
+        if action_metadata:cache['actionCollection']=action_metadata
         cache['universe']=universe
         atomic_json(OUT/'guru_financials.json',cache)
     else:
@@ -213,6 +224,7 @@ def main():
         if not cache:
             cache={'universe':universe,'companies':{},'collection':{'status':'pending'}}
             atomic_json(OUT/'guru_financials.json',cache)
+    atomic_json(OUT/'guru_financials.json',cache)
     snapshot,evidence=build_snapshot(universe,prices,cache,generated_at=datetime.now(KST).isoformat(timespec='seconds'),
         market=load_json(OUT/'guru_market.json',{}),quarters=load_json(OUT/'guru_quarters.json',{}))
     publish_snapshot(snapshot,evidence,OUT)
