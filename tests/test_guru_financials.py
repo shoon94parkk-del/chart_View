@@ -105,3 +105,33 @@ def test_negative_and_non_finite_numbers_preserve_missing():
     result = normalized([data])
     assert result['annual'][-1]['netIncome'] == -1234
     assert result['annual'][-1]['equity'] is None
+
+
+@pytest.mark.parametrize('account_id', ['ifrs-full_BasicEarningsLossPerShare', 'ifrs_BasicEarningsLossPerShare'])
+def test_explicit_combined_label_preserves_official_basic_eps_account(account_id):
+    data = report()
+    data['rows'][-1].update(account_id=account_id, account_nm='보통주 기본 및 희석주당순이익', thstrm_amount='2,916')
+    result = normalized([data])
+    assert result['annual'][-1]['basicEps'] == 2916
+    assert result['sources']['2025']['basicEps']['accountId'] == account_id
+    assert result['sources']['2025']['basicEps']['accountName'] == '보통주 기본 및 희석주당순이익'
+
+
+@pytest.mark.parametrize('account_id,label', [
+    ('ifrs-full_BasicEarningsLossPerShare', '희석주당이익'),
+    ('ifrs-full_BasicEarningsLossPerShare', '우선주 기본 및 희석주당이익'),
+    ('ifrs-full_DilutedEarningsLossPerShare', '기본주당이익'),
+    ('ifrs-full_DilutedEarningsLossPerShare', '기본 및 희석주당이익'),
+    ('custom_CombinedEps', '기본 및 희석주당이익'),
+])
+def test_combined_label_does_not_accept_diluted_preferred_or_unverified_custom_eps(account_id, label):
+    data = report()
+    data['rows'][-1].update(account_id=account_id, account_nm=label)
+    assert normalized([data])['annual'][-1]['basicEps'] is None
+
+
+def test_combined_basic_eps_remains_ambiguous_with_duplicate_accounts():
+    data = report()
+    data['rows'][-1]['account_nm'] = '기본 및 희석주당이익'
+    data['rows'].append(copy.deepcopy(data['rows'][-1]))
+    assert normalized([data])['annual'][-1]['basicEps'] is None

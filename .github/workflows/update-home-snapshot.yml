@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/generate_home_snapshot.py'
+      - 'scripts/save_full_heatmap_snapshot.py'
+      - 'heatmap_snapshot.py'
       - '.github/workflows/update-home-snapshot.yml'
 
 permissions:
@@ -31,11 +33,16 @@ jobs:
         run: pip install requests
       - name: Generate persistent snapshot
         run: python scripts/generate_home_snapshot.py
+      - name: Preserve a verified complete full heatmap for cold visits
+        # One ordinary existing API request; partial/failure keeps the last file.
+        continue-on-error: true
+        run: python scripts/save_full_heatmap_snapshot.py
       - name: Commit refreshed snapshot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add static/data/home_snapshot.json
+          if [ -f static/data/full_heatmap_snapshot.json ]; then git add static/data/full_heatmap_snapshot.json; fi
           if git diff --cached --quiet; then
             echo "No snapshot changes"
           else
