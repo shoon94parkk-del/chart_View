@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-07T16:04:40+09:00",
+  "updated": "2026-10-08T07:56:00+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -538,6 +538,27 @@
       "exitDate": "2026-10-06",
       "exitPrice": 24850,
       "reason": "사용자 전량매도 확정"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-07:278470",
+      "at": "2026-10-08T07:56:00+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-07:445180",
+      "at": "2026-10-08T07:56:00+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-07:009450",
+      "at": "2026-10-08T07:56:00+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
     }
   ]
 }

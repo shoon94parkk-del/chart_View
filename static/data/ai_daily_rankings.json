@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-06T17:20:00+09:00",
+  "updated": "2026-10-07T21:53:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -754,6 +754,159 @@
             "technical": 24
           },
           "reason": "Etch 공정용 Silicon Ring·Electrode·Quartz 소모품의 반복매출과 FAB 가동률·미세화·고사양 소재 확장에 따른 안정적 성장."
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-07",
+      "status": "사용자 확정 TOP3 — 2026-10-07 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-10-07",
+        "analyzedAt": "2026-10-07T21:53:00+09:00",
+        "candidateFile": "static/data/screener.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v3-guru-second-order",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "278470",
+          "symbol": "278470.KS",
+          "name": "에이피알",
+          "close": 379000,
+          "previousClose": 361000,
+          "changePct": 4.99,
+          "totalScore": 86,
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 5,
+            "catalystRisk": 8,
+            "technical": 23
+          },
+          "reason": "K뷰티 해외 성장과 메디큐브·AGE-R 확장, 자체 생산 내재화 및 의료미용/EBD·PDRN·PN 원료로 TAM을 넓히는 공격적 성장 구조.",
+          "monitoring": {
+            "summary": "해외 K뷰티 성장과 자체생산 내재화에 더해 홈뷰티기기에서 의료미용으로 사업영역을 확장하는 성장 경로를 추적한다.",
+            "thesisPillars": [
+              "북미·유럽 중심 해외 매출 고성장",
+              "자체 생산 확대에 따른 마진 개선",
+              "AGE-R에서 의료미용·PDRN/PN 원료로 TAM 확대"
+            ],
+            "invalidationCriteria": [
+              "해외 매출 성장률의 구조적 둔화",
+              "광고비·재고 부담 급증으로 수익성 훼손",
+              "의료미용 확장 및 생산 내재화 일정의 의미 있는 지연"
+            ],
+            "catalysts": [
+              "북미·유럽 판매 성장",
+              "생산 내재화 효과",
+              "의료미용/EBD 및 PDRN·PN 신규 사업 진척"
+            ],
+            "keyMetrics": [
+              "해외 매출 비중",
+              "영업이익률",
+              "광고선전비율",
+              "재고자산 증가율"
+            ]
+          },
+          "grade": "사용자 확정"
+        },
+        {
+          "rank": 2,
+          "code": "445180",
+          "symbol": "445180.KQ",
+          "name": "퓨릿",
+          "close": 9800,
+          "previousClose": 9990,
+          "changePct": -1.9,
+          "totalScore": 87,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 14,
+            "valuation": 10,
+            "catalystRisk": 9,
+            "technical": 24
+          },
+          "reason": "반도체 FAB 가동률·웨이퍼 투입량 증가에 따라 PGME·PGMEA·EEP·EL 고순도 케미컬 사용량이 늘고 증류·생산 CAPA 확대가 성장축.",
+          "monitoring": {
+            "summary": "선단 메모리 가동률과 웨이퍼 투입 증가가 고순도 공정 케미컬 출하량 증가로 이어지는 소모성 소재 구조와 증설 효과를 추적한다.",
+            "thesisPillars": [
+              "FAB 가동률·웨이퍼 투입 증가에 따른 소모성 케미컬 Q 증가",
+              "PGME·PGMEA·EEP·EL 제품 포트폴리오 분산",
+              "증류탑 및 신규 생산거점 CAPA 확대"
+            ],
+            "invalidationCriteria": [
+              "주요 고객 FAB 가동률의 장기 하락",
+              "증설·고객 인증 일정의 의미 있는 지연",
+              "원가·수율 악화로 영업 레버리지 훼손"
+            ],
+            "catalysts": [
+              "메모리 업황 및 가동률 회복",
+              "증류 CAPA 증설",
+              "신규 생산거점 가동 및 고객 확대"
+            ],
+            "keyMetrics": [
+              "매출 성장률",
+              "영업이익률",
+              "가동률·출하량",
+              "CAPA 증설 진행률"
+            ]
+          },
+          "grade": "사용자 확정"
+        },
+        {
+          "rank": 3,
+          "code": "009450",
+          "symbol": "009450.KS",
+          "name": "경동나비엔",
+          "close": 62100,
+          "previousClose": 61000,
+          "changePct": 1.8,
+          "totalScore": 83,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 12,
+            "valuation": 10,
+            "catalystRisk": 9,
+            "technical": 22
+          },
+          "reason": "북미 Tankless Water Heater 채널을 기반으로 HVAC·Heat Pump·Hybrid Heating을 추가해 동일 고객·유통망에서 판매 카테고리를 확대하는 성장 구조.",
+          "monitoring": {
+            "summary": "북미 온수기에서 확보한 유통망을 HVAC·Heat Pump로 확장해 고객당 판매 제품 수와 북미 매출을 늘리는 전략을 추적한다.",
+            "thesisPillars": [
+              "북미 Tankless Water Heater의 강한 기존 채널",
+              "HVAC·Heat Pump·Hybrid Heating으로 카테고리 확장",
+              "기존 유통망 활용에 따른 신규시장 진입비용 절감"
+            ],
+            "invalidationCriteria": [
+              "북미 온수기 수요의 구조적 둔화",
+              "HVAC·Heat Pump 상용화·채널 확장의 지연",
+              "관세·환율·판촉비 상승으로 수익성 악화"
+            ],
+            "catalysts": [
+              "북미 HVAC·Heat Pump 판매 확대",
+              "에코허브 CAPA 활용",
+              "제품 믹스 개선에 따른 이익률 상승"
+            ],
+            "keyMetrics": [
+              "북미 매출 성장률",
+              "영업이익률",
+              "HVAC·Heat Pump 매출",
+              "북미 유통망·판매량"
+            ]
+          },
+          "grade": "사용자 확정"
         }
       ]
     }
