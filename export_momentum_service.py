@@ -222,6 +222,17 @@ class CustomsApiError(RuntimeError):
     pass
 
 
+def _safe_provider_error(error: Any) -> str:
+    """Never format provider exceptions, URLs, response bodies or credentials."""
+    if isinstance(error, requests.Timeout):
+        return "관세청 데이터 연결이 지연되고 있어요."
+    if isinstance(error, requests.ConnectionError):
+        return "관세청 데이터 제공처에 연결하지 못했어요."
+    if isinstance(error, requests.HTTPError):
+        return "관세청 데이터 제공처 응답을 확인하지 못했어요."
+    return "관세청 데이터를 확인하지 못했어요."
+
+
 def service_key() -> str:
     """Return the configured data.go.kr key without exposing it to clients.
 
@@ -297,7 +308,7 @@ def _parse_xml_payload(payload: bytes) -> list[dict[str, str]]:
     try:
         root = ET.fromstring(payload)
     except ET.ParseError as exc:
-        raise CustomsApiError(f"관세청 XML 파싱 실패: {exc}") from exc
+        raise CustomsApiError("관세청 XML 파싱 실패: 응답 형식을 확인하지 못했습니다.") from None
 
     result_code = (
         root.findtext(".//resultCode")
@@ -313,11 +324,11 @@ def _parse_xml_payload(payload: bytes) -> list[dict[str, str]]:
     ).strip()
 
     if result_code and result_code not in {"00", "0"}:
-        raise CustomsApiError(f"관세청 API 오류 {result_code}: {result_msg or '응답 오류'}")
+        raise CustomsApiError("관세청 API 오류: 제공처 응답을 확인하지 못했습니다.")
     if result_msg and any(token in result_msg.upper() for token in (
         "SERVICE KEY", "SERVICE_KEY", "PERMISSION", "ACCESS DENIED", "NOT REGISTERED"
     )):
-        raise CustomsApiError(f"관세청 API 인증 오류: {result_msg}")
+        raise CustomsApiError("관세청 API 인증 오류: 제공처 인증을 확인하지 못했습니다.")
 
     rows: list[dict[str, str]] = []
     for item in root.findall(".//item"):
@@ -334,8 +345,11 @@ def _request_rows(url: str, **params: str) -> list[dict[str, str]]:
             "Render 환경변수 CUSTOMS_TOTAL_API_KEY(또는 DATA_GO_KR_SERVICE_KEY)가 없습니다."
         )
     query = {"serviceKey": key, **params}
-    response = requests.get(url, params=query, timeout=REQUEST_TIMEOUT)
-    response.raise_for_status()
+    try:
+        response = requests.get(url, params=query, timeout=REQUEST_TIMEOUT)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CustomsApiError(_safe_provider_error(exc)) from None
     return _parse_xml_payload(response.content)
 
 
@@ -406,7 +420,7 @@ def _find_item_period_candidate(latest: str, max_back: int = 3) -> str | None:
             if _item_period_available(period):
                 return period
         except Exception as exc:
-            print(f"[EXPORT_MOMENTUM] item period probe {period} failed: {exc}")
+            print(f"[EXPORT_MOMENTUM] item period probe {period} failed: {_safe_provider_error(exc)}")
     return None
 
 
@@ -897,7 +911,7 @@ def _fetch_semiconductor_previous_month_rows(period: str) -> list[dict[str, str]
             except Exception as exc:
                 # MoM is an enrichment; do not take down the full export
                 # snapshot when one targeted segment query is unavailable.
-                print(f"[EXPORT_MOMENTUM] semiconductor MoM {segment['key']} failed: {exc}")
+                print(f"[EXPORT_MOMENTUM] semiconductor MoM {segment['key']} failed: {_safe_provider_error(exc)}")
     return rows
 
 
@@ -1017,7 +1031,7 @@ def _build_semiconductor_trends(snapshot: dict[str, Any] | None = None) -> dict[
             try:
                 histories[segment["key"]] = future.result()
             except Exception as exc:
-                errors.append(f"{segment['name']}: {exc}")
+                errors.append(f"{segment['name']}: {_safe_provider_error(exc)}")
 
     overall_keys = {"memory-total", "processor-controller", "other-ic"}
     memory_keys = {"dram", "flash", "sram", "mcp-memory"}
@@ -1096,7 +1110,7 @@ async def _refresh_semiconductor_trends() -> dict[str, Any]:
             _SEMICONDUCTOR_TREND_CACHE["lastError"] = None
             return data
         except Exception as exc:
-            _SEMICONDUCTOR_TREND_CACHE["lastError"] = str(exc)
+            _SEMICONDUCTOR_TREND_CACHE["lastError"] = _safe_provider_error(exc)
             raise
 
 
@@ -1459,7 +1473,7 @@ async def _refresh_provisional_radar() -> dict[str, Any]:
             _PROVISIONAL_CACHE["lastError"] = None
             return data
         except Exception as exc:
-            _PROVISIONAL_CACHE["lastError"] = str(exc)
+            _PROVISIONAL_CACHE["lastError"] = _safe_provider_error(exc)
             raise
 
 
@@ -1541,7 +1555,7 @@ def _build_semiconductor_country_matrix(snapshot: dict[str, Any]) -> dict[str, A
                 if row:
                     results[segment["key"]].append(row)
             except Exception as exc:
-                errors.append(f"{segment['name']}·{country['name']}: {exc}")
+                errors.append(f"{segment['name']}·{country['name']}: {_safe_provider_error(exc)}")
 
     segment_rows: list[dict[str, Any]] = []
     market_order = {row["code"]: index for index, row in enumerate(SEMICONDUCTOR_COUNTRY_MARKETS)}
@@ -1603,7 +1617,7 @@ async def _refresh_semiconductor_country_matrix() -> dict[str, Any]:
             _SEMICONDUCTOR_COUNTRY_CACHE["lastError"] = None
             return data
         except Exception as exc:
-            _SEMICONDUCTOR_COUNTRY_CACHE["lastError"] = str(exc)
+            _SEMICONDUCTOR_COUNTRY_CACHE["lastError"] = _safe_provider_error(exc)
             raise
 
 
@@ -1741,7 +1755,7 @@ def _build_momentum_map(snapshot: dict[str, Any] | None = None) -> dict[str, Any
             try:
                 histories[group["key"]] = future.result()
             except Exception as exc:
-                warnings.append(f"{group['name']}: {exc}")
+                warnings.append(f"{group['name']}: {_safe_provider_error(exc)}")
 
     rows: list[dict[str, Any]] = []
     for group in ITEM_GROUPS:
@@ -1809,7 +1823,7 @@ async def _refresh_momentum_map() -> dict[str, Any]:
             _MOMENTUM_MAP_CACHE["lastError"] = None
             return data
         except Exception as exc:
-            _MOMENTUM_MAP_CACHE["lastError"] = str(exc)
+            _MOMENTUM_MAP_CACHE["lastError"] = _safe_provider_error(exc)
             raise
 
 
@@ -1817,7 +1831,7 @@ async def _background_momentum_map_refresh() -> None:
     try:
         await _refresh_momentum_map()
     except Exception as exc:
-        print(f"[EXPORT_MOMENTUM] momentum map warm failed: {exc}")
+        print(f"[EXPORT_MOMENTUM] momentum map warm failed: {_safe_provider_error(exc)}")
 
 
 def _parallel_optional(builder, rows, latest: str, prior: str, workers: int = 6):
@@ -1832,7 +1846,7 @@ def _parallel_optional(builder, rows, latest: str, prior: str, workers: int = 6)
                 if value:
                     results.append(value)
             except Exception as exc:
-                errors.append(f"{row.get('name')}: {exc}")
+                errors.append(f"{row.get('name')}: {_safe_provider_error(exc)}")
     order = {row["name"]: idx for idx, row in enumerate(rows)}
     results.sort(key=lambda item: order.get(item.get("name"), 999))
     return results, errors
@@ -1907,7 +1921,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
                 item_period,
             )
     except Exception as exc:
-        item_errors.append(f"품목 데이터: {exc}")
+        item_errors.append(f"품목 데이터: {_safe_provider_error(exc)}")
 
     region_errors: list[str] = []
     region_period = None
@@ -1923,7 +1937,7 @@ def _build_snapshot(now: datetime | None = None) -> dict[str, Any]:
                 workers=5,
             )
     except Exception as exc:
-        region_errors.append(f"국가 데이터: {exc}")
+        region_errors.append(f"국가 데이터: {_safe_provider_error(exc)}")
 
     # A non-semiconductor total is only comparable when the HS detail month is
     # the same month as the headline total. Do not mix September totals with
@@ -2009,7 +2023,7 @@ def _with_cache_meta(data: dict[str, Any], state: str) -> dict[str, Any]:
     result = copy.deepcopy(data)
     result.setdefault("meta", {})["cacheStatus"] = state
     if _CACHE.get("lastError"):
-        result["meta"]["lastRefreshError"] = str(_CACHE["lastError"])[:240]
+        result["meta"]["lastRefreshError"] = _safe_provider_error(_CACHE["lastError"])
     return result
 
 
@@ -2026,7 +2040,7 @@ async def _refresh_cache() -> dict[str, Any]:
             _CACHE["lastError"] = None
             return data
         except Exception as exc:
-            _CACHE["lastError"] = str(exc)
+            _CACHE["lastError"] = _safe_provider_error(exc)
             raise
         finally:
             _CACHE["refreshing"] = False
@@ -2036,7 +2050,7 @@ async def _background_refresh() -> None:
     try:
         await _refresh_cache()
     except Exception as exc:
-        print(f"[EXPORT_MOMENTUM] background refresh failed: {exc}")
+        print(f"[EXPORT_MOMENTUM] background refresh failed: {_safe_provider_error(exc)}")
 
 
 async def warm_export_momentum() -> None:
@@ -2056,11 +2070,11 @@ async def warm_export_momentum() -> None:
             f"elapsedMs={int((time.perf_counter()-started)*1000)}"
         )
         for warning in warnings[:3]:
-            print(f"[EXPORT_MOMENTUM] warning: {warning}")
+            print(f"[EXPORT_MOMENTUM] warning: {_safe_provider_error(warning)}")
         if data.get("itemPeriod"):
             asyncio.create_task(_background_momentum_map_refresh())
     except Exception as exc:
-        print(f"[EXPORT_MOMENTUM] warm failed: {exc}")
+        print(f"[EXPORT_MOMENTUM] warm failed: {_safe_provider_error(exc)}")
 
 
 @router.get("/api/export-momentum")
@@ -2094,7 +2108,7 @@ async def export_momentum(response: Response):
             status_code=503,
             detail={
                 "code": "CUSTOMS_API_UNAVAILABLE",
-                "message": str(exc)[:300],
+                "message": _safe_provider_error(exc),
             },
         ) from exc
 
@@ -2119,11 +2133,11 @@ async def export_momentum_map(response: Response):
         if cached:
             result = copy.deepcopy(cached)
             result.setdefault("meta", {})["cacheStatus"] = "stale-error"
-            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            result["meta"]["lastRefreshError"] = _safe_provider_error(exc)
             return result
         raise HTTPException(
             status_code=503,
-            detail={"code": "EXPORT_MOMENTUM_MAP_UNAVAILABLE", "message": str(exc)[:300]},
+            detail={"code": "EXPORT_MOMENTUM_MAP_UNAVAILABLE", "message": _safe_provider_error(exc)},
         ) from exc
 
 
@@ -2145,11 +2159,11 @@ async def export_momentum_provisional(response: Response):
         if cached:
             result = copy.deepcopy(cached)
             result.setdefault("meta", {})["cacheStatus"] = "stale-error"
-            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            result["meta"]["lastRefreshError"] = _safe_provider_error(exc)
             return result
         raise HTTPException(
             status_code=503,
-            detail={"code": "EXPORT_PROVISIONAL_UNAVAILABLE", "message": str(exc)[:300]},
+            detail={"code": "EXPORT_PROVISIONAL_UNAVAILABLE", "message": _safe_provider_error(exc)},
         ) from exc
 
 
@@ -2173,11 +2187,11 @@ async def export_momentum_semiconductor_trends(response: Response):
         if cached:
             result = copy.deepcopy(cached)
             result.setdefault("meta", {})["cacheStatus"] = "stale-error"
-            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            result["meta"]["lastRefreshError"] = _safe_provider_error(exc)
             return result
         raise HTTPException(
             status_code=503,
-            detail={"code": "SEMICONDUCTOR_TRENDS_UNAVAILABLE", "message": str(exc)[:300]},
+            detail={"code": "SEMICONDUCTOR_TRENDS_UNAVAILABLE", "message": _safe_provider_error(exc)},
         ) from exc
 
 
@@ -2199,11 +2213,11 @@ async def export_momentum_semiconductor_countries(response: Response):
         if cached:
             result = copy.deepcopy(cached)
             result.setdefault("meta", {})["cacheStatus"] = "stale-error"
-            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            result["meta"]["lastRefreshError"] = _safe_provider_error(exc)
             return result
         raise HTTPException(
             status_code=503,
-            detail={"code": "SEMICONDUCTOR_COUNTRY_UNAVAILABLE", "message": str(exc)[:300]},
+            detail={"code": "SEMICONDUCTOR_COUNTRY_UNAVAILABLE", "message": _safe_provider_error(exc)},
         ) from exc
 
 
@@ -2230,9 +2244,9 @@ async def export_momentum_item_detail(key: str, response: Response):
         if cached and cached.get("data"):
             result = copy.deepcopy(cached["data"])
             result.setdefault("meta", {})["cacheStatus"] = "stale-error"
-            result["meta"]["lastRefreshError"] = str(exc)[:240]
+            result["meta"]["lastRefreshError"] = _safe_provider_error(exc)
             return result
         raise HTTPException(
             status_code=503,
-            detail={"code": "EXPORT_ITEM_DETAIL_UNAVAILABLE", "message": str(exc)[:300]},
+            detail={"code": "EXPORT_ITEM_DETAIL_UNAVAILABLE", "message": _safe_provider_error(exc)},
         ) from exc

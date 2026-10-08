@@ -58,3 +58,25 @@ CLI의 `--symbols`는 `--collect`와 현재 KIND 종목을 요구한다. 선택 
 원공시 없는 총 EPS·연간/단일분기·기업행동 불명확, 실제 253일 부족·종가 불일치·기업유형 미지원·비12월 결산은 계속 insufficient/unsupported로 둔다. 공식 자료가 있어도 선정 기준에 미달하면 미선정을 유지한다. 원자료를 합성하거나 알려진 과거 값을 오늘 관측으로 바꾸지 않는다. 전체 daily 자료 게시/서버 배포 자동 연결과 Toss native release는 별도 미완료다.
 
 다른 Codex에서는 두 저장소의 최신 main·AGENTS/기억 문서·필수 QA를 읽는다. [전체 서버·도구·skill 복사용 시작 요청](https://github.com/shoon94parkk-del/chart-view-toss/blob/main/docs/CODEX_BOOTSTRAP_PROMPT.md)과 [이관 가이드](https://github.com/shoon94parkk-del/chart-view-toss/blob/main/docs/CODEX_TRANSFER.md)를 사용한다. 역할 지침·Git 기억을 재사용하되 e2e/claude-mem은 여전히 source-only이며 자동 MCP/worker/기억 수집 완료로 표현하지 않는다.
+
+## 후속 실제 공식 수집·배포 확인
+
+위 미완료 표시는 사전 검증 시점의 기록이다. 이후 [PR137](https://github.com/shoon94parkk-del/chart_View/pull/137)의 빌드·회귀·모바일 9개 검사를 통과해 main에 반영했다. [공식 수집37732042491](https://github.com/shoon94parkk-del/chart_View/actions/runs/37732042491)은 지정11회사만 **116요청, 오류0, complete**로 재검증했다. 데이터 commit **`40404bead3c724fb292b15cc90a661a6a1149320`**, snapshot **`b2ba5d2228cce4a89f35`**다. 선택 회사 외 캐시2,641개와 universe/market/quarters/screener는 동일하다. 보존 캐시2,652개와 활성 KIND universe2,651개의 분모를 혼동하지 않는다.
+
+삼성전자와 정정공시 대상의 기업행동·EPS 비교 검증이 회복됐다. 이지스는 실제 정정 사업보고서 receipt `20261006000023`으로 갱신했다. 연간수치는 같고 추가 필요한 분기수집은0이다. 삼성의 실제 공시 페이지 수는 기록하지 않았으므로 고정20페이지가 삼성 unknown의 직접 원인이라고 단정하지 않는다.
+
+| 전략 | 선정 | 평가 가능 | 자료 부족 |
+|---|---:|---:|---:|
+| 버핏 |54|1,949|473|
+| 린치 |41|1,266|1,156|
+| 오닐 |1|1,203|1,219|
+| 미너비니 |82|2,089|333|
+| 그린블라트 |3|1,480|897|
+
+공식 단계는 자료 부족을 린치6/오닐6/그린8 줄였지만 추가 선정0이다. 독립 사후검사 **3,489개 통과**: 실제 원계정250개, 전체181후보 종가·근거와 미너비니82개 산술·조건을 대조했다. Actions Python3.11과 로컬3.12의7개 버핏 평균값은 최대7.11e-15 차이가 있어 산술을 작은 명시적 허용오차로 비교했다. 실제 게시 payload의 SHA256은 b2ba 버전과 정확히 일치하며 로컬 재생성으로 게시본을 덮지 않았다.
+
+최종 데이터 pytest627/Node38/bundle 검사를 통과한 main40404be를 기존 수동 Render 경로로 게시했다. deploy **`dep-db3ijr6gekts73eulskg`**, live **2026-10-08 05:29:23 UTC**. 실제 health revision·HTML/JS/CSS 해시, 서버 JSON·공개 CDN·저장 원본 일치, 다섯 전략 근거200/이전 버전409를 확인했다. [최종 데이터 CI37732353574](https://github.com/shoon94parkk-del/chart_View/actions/runs/37732353574)의 check/7모바일/4운영 검사 **12개 모두 성공**했다. 이전 source-only main의 운영 검사만 데이터 갱신 후 취소하고 최종 SHA 전체 검사를 새로 실행했다.
+
+Toss Android·작은 iPhone의 거장5전략/미국40히트맵 **4/4 통과**. 추가 실제 핵심검사5개 중 삼성 검색·시세/선정성과/PER3개는 통과했다. 수출2개와 별도 iPhone 수출복구1개는 관세청 `apis.data.go.kr` 연결 시간 초과/503으로 실패했다. 정상 오류 안내가 표시되지만 수출 기능 검증 완료로 기록하지 않는다. 검증된 전체 signed-balance snapshot이 없어 구형 정적 자료나 시험 fixture를 대입하지 않았다.
+
+또한 기존 관세청 예외 문자열이 서비스키를 공개 오류에 포함하는 결함을 발견했다. 최소 수정은 공개 오류·캐시 메타·warning·로그에서 원문을 제외하고 고정 안내만 사용한다. 기존 오류 코드·stale 금액/날짜·부호 있는 수지·공급자 예산은 유지한다. 신규 보안 회귀19개, 기존 수출 회귀 포함54개가 통과했고 이 문서 시점에는 보안 수정 CI/재배포 확인이 진행 중이다. 원시 진단 trace/report의 공급자 query 키는 제거했다. 기존 키는 노출 가능성을 전제로 공공데이터포털에서 재발급 후 Render에 교체해야 한다; 실제 재발급·교체 완료는 주장하지 않는다.
