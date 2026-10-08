@@ -2192,6 +2192,8 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
   'use strict';
 
   let cachePromise = null;
+  let cachePayload = null;
+  let annotationVersion = 0;
   const MOBILE_BREAKPOINT = 720;
   const ymd = (value) => {
     if (!value) return '';
@@ -2206,7 +2208,11 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     if (!cachePromise) {
       cachePromise = fetch('/static/data/valuation_cache.json', { cache: 'no-store' })
         .then((r) => r.ok ? r.json() : { quotes: {} })
-        .catch(() => ({ quotes: {} }));
+        .catch(() => ({ quotes: {} }))
+        .then((payload) => {
+          cachePayload = payload && typeof payload === 'object' ? payload : { quotes: {} };
+          return cachePayload;
+        });
     }
     return cachePromise;
   }
@@ -2330,28 +2336,26 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     cell.classList.add('valuation-compact-cell');
   }
 
-  async function annotateTable() {
-    const table = document.querySelector('#per-table-container .per-table');
-    if (!table || typeof perData === 'undefined' || typeof METRIC_CONFIG === 'undefined') return;
-
-    const payload = await loadQuoteCache();
-    const quotes = payload.quotes || {};
-    const config = METRIC_CONFIG[currentMetric] || METRIC_CONFIG.overview;
+  function applyAnnotation(table, data, metric, compact, payload) {
+    const quotes = payload?.quotes || {};
+    const config = METRIC_CONFIG[metric] || METRIC_CONFIG.overview;
     const keys = ['stock', 'price', ...config.columns.map((c) => c.key)];
     const headers = ['종목', '현재가', ...config.columns.map((c) => c.label)];
-    const compact = compactMode();
-
     table.classList.toggle('valuation-compact-table', compact);
     table.querySelectorAll('tbody tr').forEach((row) => {
       const ticker = row.querySelector('.stock-ticker')?.textContent?.trim();
-      const stock = perData.find((s) => s.ticker === ticker);
+      const stock = data.find((s) => s.ticker === ticker);
       if (!stock) return;
       const quoteRow = quotes[ticker] || null;
       Array.from(row.children).forEach((cell, index) => {
         cell.dataset.label = headers[index] || '';
         if (index === 0) return;
         const key = keys[index];
-        const text = provenance(stock, key, quoteRow, payload.generatedAt);
+        // Exact API provenance and missing values do not depend on the optional
+        // cache. Never claim a cache source/date before that request completes.
+        const text = payload || stock.fieldMeta?.[key]?.source || !present(stock[key])
+          ? provenance(stock, key, quoteRow, payload?.generatedAt)
+          : '출처 확인 중';
         if (compact) {
           const column = index >= 2 ? config.columns[index - 2] : null;
           applyCompactCell(cell, text, formatCompactValue(stock, key, column));
@@ -2367,12 +2371,34 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
 
     const src = document.querySelector('.per-source');
     if (src) {
-      const date = ymd(payload.generatedAt) || today();
+      const date = ymd(payload?.generatedAt);
       const wanted = compact
-        ? `${date} 기준 · 가격/컨센서스: Yahoo 캐시 · 재무지표: Yahoo Fundamentals/Naver 보완 · 셀별 출처는 길게 눌러 확인`
+        ? !payload
+          ? '가격/컨센서스·재무지표 출처 확인 중 · 셀별 출처는 길게 눌러 확인'
+          : date
+            ? `${date} 기준 · 가격/컨센서스: Yahoo 캐시 · 재무지표: Yahoo Fundamentals/Naver 보완 · 셀별 출처는 길게 눌러 확인`
+            : '캐시 출처 확인 불가 · 셀별 출처는 길게 눌러 확인'
         : '각 수치 아래에 데이터 기준과 출처를 표시합니다 · 없는 값은 - 표시';
       if (src.textContent !== wanted) src.textContent = wanted;
     }
+  }
+
+  async function annotateTable() {
+    const table = document.querySelector('#per-table-container .per-table');
+    if (!table || typeof perData === 'undefined' || typeof METRIC_CONFIG === 'undefined') return;
+
+    const version = ++annotationVersion;
+    const data = perData;
+    const metric = currentMetric;
+    const compact = compactMode();
+    // Labels, card layout and API values must paint even if this cache never
+    // responds. Its only late contribution is existing provenance metadata.
+    applyAnnotation(table, data, metric, compact, cachePayload);
+    const payload = await loadQuoteCache();
+    if (version !== annotationVersion
+      || document.querySelector('#per-table-container .per-table') !== table
+      || perData !== data || currentMetric !== metric || compactMode() !== compact) return;
+    applyAnnotation(table, data, metric, compact, payload);
   }
 
   function init() {
@@ -7564,10 +7590,16 @@ window.__CHARTVIEW_RELEASE_BUNDLE__ = true;
     const container = document.getElementById('per-table-container');
     if (!container) return;
     container.querySelectorAll('td').forEach((cell) => {
-      if (cell.querySelector('.v40-cell-basis')) return;
+      if (cell.classList.contains('valuation-compact-cell')) return;
       const meta = cell.querySelector('.metric-provenance');
       const text = meta?.textContent?.trim() || cell.dataset.provenance || cell.title || '';
       if (!text) return;
+      const existing = cell.querySelector('.v40-cell-basis');
+      if (existing) {
+        const paragraph = existing.querySelector('p');
+        if (paragraph && paragraph.textContent !== text) paragraph.textContent = text;
+        return;
+      }
       const details = document.createElement('details');
       details.className = 'v40-cell-basis';
       details.innerHTML = `<summary>기준 보기</summary><p>${text.replaceAll('<','&lt;').replaceAll('>','&gt;')}</p>`;

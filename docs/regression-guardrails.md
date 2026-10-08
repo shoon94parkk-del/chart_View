@@ -349,3 +349,11 @@ A bounded actual global DART scan returned status000/1250 filings13pages, but ro
 ## 2026-10-08 — Customs errors never reveal provider credentials
 
 Never reflect provider exception strings, URLs/query parameters, XML authentication messages or arbitrary error bodies into HTTP detail, warnings, cached lastRefreshError or logs. Use the fixed safe provider-error helper. Preserve503 codes and original stale dates/values; timeout cannot justify inventing a snapshot, making child exports a signed overview, or promoting the old static example to current data. Verify error paths with a fake query secret and a non-formatable exception. Live provider outage is distinct from deterministic regressions or a verified complete export UI.
+
+
+### Optional valuation metadata and mobile presentation
+Basic mobile table class, accessible cell labels and compact values must be applied from current valuation data without awaiting the optional quote-cache response. Pending/failed provenance enrichment cannot block the cards. Late enrichment must use the current attached table and metric, never a captured old render. Preserve formatting and dated source semantics, and cover pending/failure/metric replacement with regression tests.
+
+The release UI basis-control annotator must skip valuation-compact-cell elements. Keep their title/dataset provenance and desktop disclosure controls; avoid mutually re-inserting/removing child nodes. Verify both annotators together as well as the real mobile layout.
+
+When optional metadata completes, the existing desktop basis disclosure body must match current provenance. Update text only when changed, preserving the disclosure object/open state and avoiding observer churn.

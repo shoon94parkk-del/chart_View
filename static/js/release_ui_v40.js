@@ -187,10 +187,16 @@
     const container = document.getElementById('per-table-container');
     if (!container) return;
     container.querySelectorAll('td').forEach((cell) => {
-      if (cell.querySelector('.v40-cell-basis')) return;
+      if (cell.classList.contains('valuation-compact-cell')) return;
       const meta = cell.querySelector('.metric-provenance');
       const text = meta?.textContent?.trim() || cell.dataset.provenance || cell.title || '';
       if (!text) return;
+      const existing = cell.querySelector('.v40-cell-basis');
+      if (existing) {
+        const paragraph = existing.querySelector('p');
+        if (paragraph && paragraph.textContent !== text) paragraph.textContent = text;
+        return;
+      }
       const details = document.createElement('details');
       details.className = 'v40-cell-basis';
       details.innerHTML = `<summary>기준 보기</summary><p>${text.replaceAll('<','&lt;').replaceAll('>','&gt;')}</p>`;
