@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T16:05:10+09:00",
+  "updated": "2026-10-08T18:27:20+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -629,6 +629,42 @@
       "grade": "사용자 확정",
       "reason": "북미 Tankless Water Heater 채널을 기반으로 HVAC·Heat Pump·Hybrid Heating을 추가해 동일 고객·유통망에서 판매 카테고리를 확대하는 성장 구조.",
       "score": 83,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-08",
+      "rank": 1,
+      "symbol": "082920.KQ",
+      "code": "082920",
+      "name": "비츠로셀",
+      "recommendedPrice": 27950.0,
+      "currentPrice": 27950.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-08",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "스마트미터용 리튬일차전지 수출을 캐시카우로 두고 Oil&Gas 고온전지·Innova 배터리팩과 방산용 특수전지 비중을 높이며 해외 고부가 매출을 확장하는 구조.",
+      "score": 78,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-08",
+      "rank": 2,
+      "symbol": "033500.KQ",
+      "code": "033500",
+      "name": "동성화인텍",
+      "recommendedPrice": 15210.0,
+      "currentPrice": 15210.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-08",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "LNG선·FLNG용 초저온 PU 보냉재가 매출의 대부분을 차지하며 조선소 LNG선 수주잔고의 매출 전환과 가동률 상승이 영업이익 레버리지로 연결되는 구조.",
+      "score": 67,
       "analysisSource": "사용자 최종 선택"
     }
   ]
