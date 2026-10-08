@@ -490,3 +490,8 @@ US 17→21→40 cold population is normal bounded provider progress, but cannot 
 ## 2026-10-07 Official reception date versus receipt identifier
 
 A bounded actual global DART scan returned status000/1250 filings13pages, but row0 had a valid in-window reception date and a receipt identifier with a different date prefix. The new incremental helper had assumed an equality not guaranteed by official API docs. Remove only that assumption: rcept_no is a unique14-digit identifier; rcept_dt is the authoritative validated reception date. Keep exact corp binding, duplicates/real dates/window/pagination/atomic failure protection and financial source dates unchanged. Target45 tests/whole564 tests protect mismatch-at-last-page corporate events and immutable annual evidence. This corrects a new collector bug, not a relaxed selection or financial criterion.
+
+
+## 2026-10-08 — Codex transfer audit documents existing publication guard
+
+Classification: documentation correction to match the reviewed frontend older-publication guard; no backend code, provider data or deployment configuration change. Link the Toss repository Codex tool/skill transfer guide. Same-day CDN result/evidence publication can precede the manually deployed backend, producing a correct409. Latest-result recovery must not downgrade the newer publication to an older server snapshot; publish the exact tested data revision and verify same-version200. Preserve daily collection versus manual deployment distinction and native release gates.
