@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-07T21:53:00+09:00",
+  "updated": "2026-10-08T17:55:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -904,6 +904,116 @@
               "영업이익률",
               "HVAC·Heat Pump 매출",
               "북미 유통망·판매량"
+            ]
+          },
+          "grade": "사용자 확정"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-08",
+      "status": "사용자 확정 2종목 — 2026-10-08 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-10-08",
+        "analyzedAt": "2026-10-08T17:55:00+09:00",
+        "candidateFile": "static/data/screener.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v3-guru-second-order",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "082920",
+          "symbol": "082920.KQ",
+          "name": "비츠로셀",
+          "close": 27950,
+          "previousClose": 29550,
+          "changePct": -5.41,
+          "totalScore": 78,
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 14,
+            "valuation": 9,
+            "catalystRisk": 9,
+            "technical": 12
+          },
+          "reason": "스마트미터용 리튬일차전지 수출을 캐시카우로 두고 Oil&Gas 고온전지·Innova 배터리팩과 방산용 특수전지 비중을 높이며 해외 고부가 매출을 확장하는 구조.",
+          "monitoring": {
+            "summary": "스마트미터용 BOBBIN 전지의 높은 수출 기반 위에 Oil&Gas 고온전지·Innova와 방산 특수전지의 고부가 매출 비중이 확대되는지를 추적한다.",
+            "thesisPillars": [
+              "스마트미터용 BOBBIN 리튬일차전지의 글로벌 수출 기반과 장기 교체·보급 수요",
+              "Oil&Gas용 고온전지와 Innova 배터리팩·솔루션으로 이어지는 북미 Downhole 성장",
+              "앰플전지·열전지 등 방산용 특수전지 수출 확대와 제품 믹스 개선"
+            ],
+            "invalidationCriteria": [
+              "스마트미터 주요 해외 고객의 발주 및 수출 성장의 구조적 둔화",
+              "Oil&Gas 시추·Downhole 수요 둔화 또는 Innova 통합 성과의 의미 있는 미달",
+              "방산 특수전지 수주 지연과 고부가 제품 믹스 악화로 수익성 훼손"
+            ],
+            "catalysts": [
+              "북미·유럽 스마트미터 공급 확대",
+              "Oil&Gas 고온전지 및 Innova 매출 성장",
+              "방산용 앰플·열전지 수출 확대"
+            ],
+            "keyMetrics": [
+              "수출·해외매출 비중",
+              "BOBBIN/고온전지/방산 제품 매출 비중",
+              "Oil&Gas·Innova 매출 성장률",
+              "영업이익률"
+            ]
+          },
+          "grade": "사용자 확정"
+        },
+        {
+          "rank": 2,
+          "code": "033500",
+          "symbol": "033500.KQ",
+          "name": "동성화인텍",
+          "close": 15210,
+          "previousClose": 15660,
+          "changePct": -2.87,
+          "totalScore": 67,
+          "scores": {
+            "companyGrowth": 32,
+            "industry": 14,
+            "valuation": 10,
+            "catalystRisk": 9,
+            "technical": 2
+          },
+          "reason": "LNG선·FLNG용 초저온 PU 보냉재가 매출의 대부분을 차지하며 조선소 LNG선 수주잔고의 매출 전환과 가동률 상승이 영업이익 레버리지로 연결되는 구조.",
+          "monitoring": {
+            "summary": "PU 단열재 중심의 LNG선 보냉재 매출이 한국 조선소 LNG선·FLNG 수주잔고의 인도 일정과 함께 성장하고 이익률이 개선되는지를 추적한다.",
+            "thesisPillars": [
+              "2025년 기준 PU 단열재 사업부문이 매출의 약 96.2%를 차지하는 LNG 보냉재 집중 구조",
+              "국내 조선소 LNG선·FLNG 수주잔고의 건조 진행에 따른 보냉재 매출 인식",
+              "생산 가동률 및 고부가 프로젝트 믹스 개선에 따른 영업이익 레버리지"
+            ],
+            "invalidationCriteria": [
+              "글로벌 LNG선 신규 발주의 구조적 둔화와 조선소 수주잔고 감소",
+              "주요 조선소 건조 일정 지연·취소로 보냉재 매출 인식이 장기간 이연",
+              "원재료·판가·제품 믹스 악화로 영업이익률이 구조적으로 하락"
+            ],
+            "catalysts": [
+              "국내 조선사의 LNG선·FLNG 신규 수주",
+              "기존 수주잔고의 건조·납품 전환",
+              "가동률 상승과 제품 믹스 개선"
+            ],
+            "keyMetrics": [
+              "PU 단열재 매출 비중",
+              "수주잔고",
+              "분기 매출 성장률",
+              "영업이익률"
             ]
           },
           "grade": "사용자 확정"
