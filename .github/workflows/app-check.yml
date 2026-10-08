@@ -187,6 +187,7 @@ jobs:
     needs: [check, mobile]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         suite: [production_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42]
     runs-on: ubuntu-latest

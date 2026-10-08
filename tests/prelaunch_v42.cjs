@@ -82,7 +82,11 @@ const valuationStocks = [
  await page.evaluate(()=>window.switchTab('fwdper'));
  await page.waitForSelector('#fwdper-tab.active .per-table tbody tr');
  await page.waitForFunction(()=>document.querySelector('#fwdper-tab .per-table tbody tr td:nth-child(2)')?.dataset.label === '현재가');
- await page.waitForTimeout(600);
+ await page.waitForFunction(()=>{
+   const row=document.querySelector('#fwdper-tab .per-table tbody tr');
+   const cells=Array.from(row?.children || []).slice(1);
+   return cells.length>0 && cells.some(cell=>/Yahoo|예상 기간|조회/.test(cell.title || ''));
+ });
  const valuationLayout=await page.evaluate(()=>{
    const container=document.getElementById('per-table-container');
    const table=container.querySelector('.per-table');
