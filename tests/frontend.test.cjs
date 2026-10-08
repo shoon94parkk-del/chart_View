@@ -133,3 +133,236 @@ test('passwordless watchlist sync keeps local-first behavior and explicit risk c
   assert.match(service, /MAX_WATCHLIST = 20/);
   assert.match(service, /PROFILE_SYNC_DATABASE_URL/);
 });
+
+// A small DOM adapter exercises the real annotator without adding a CI browser
+// dependency. Deferred responses stay unresolved until the test releases them.
+function valuationHarness() {
+  class Element {
+    constructor(text = '') {
+      this.nodeType = 1;
+      this._text = text;
+      this.childNodes = text ? [{ nodeType: 3, textContent: text }] : [];
+      this.children = [];
+      this.dataset = {};
+      this.title = '';
+      const classes = new Set();
+      this.classList = {
+        add: value => classes.add(value), remove: value => classes.delete(value),
+        contains: value => classes.has(value),
+        toggle: (value, enabled) => enabled ? classes.add(value) : classes.delete(value),
+      };
+    }
+    get textContent() { return this.childNodes.length ? this.childNodes.map(n => n.textContent).join('') : this._text; }
+    set textContent(value) { this._text = value; this.childNodes = [{ nodeType: 3, textContent: value }]; this.children = []; }
+    replaceChildren(...nodes) { this._text = ''; this.childNodes = nodes; this.children = nodes.filter(n => n.nodeType === 1); }
+    append(...nodes) { this.replaceChildren(...this.childNodes, ...nodes); }
+    appendChild(node) { this.append(node); }
+    set innerHTML(value) { this.textContent = value.replace(/<[^>]+>/g, ''); }
+    removeAttribute(name) { if (name === 'title') this.title = ''; }
+    querySelector(selector) {
+      if (selector === ':scope > .metric-value-wrap > .metric-value-main') return this.querySelector('.metric-value-wrap')?.querySelector('.metric-value-main') || null;
+      const cls = selector.replace(':scope > ', '').slice(1);
+      for (const node of this.children) {
+        if (node.className === cls || node.classList.contains(cls)) return node;
+        const found = node.querySelector(selector);
+        if (found) return found;
+      }
+      return null;
+    }
+  }
+  const makeTable = ticker => {
+    const cells = [new Element(ticker), new Element('old price'), new Element('old metric')];
+    const row = { children: cells, querySelector: selector => selector === '.stock-ticker' ? { textContent: ticker } : null };
+    const table = new Element();
+    table.querySelectorAll = selector => selector === 'tbody tr' ? [row] : [];
+    table.cells = cells;
+    return table;
+  };
+  let table = makeTable('AAPL');
+  const source = new Element();
+  let mobile = true;
+  let resolve, reject, requests = 0;
+  const response = new Promise((yes, no) => { resolve = yes; reject = no; });
+  const context = vm.createContext({
+    window: { matchMedia: () => ({ matches: mobile }) },
+    document: {
+      readyState: 'loading', addEventListener() {},
+      querySelector: selector => selector === '.per-source' ? source : selector === '#per-table-container .per-table' ? table : null,
+      getElementById: id => id === 'per-table-container' ? { querySelectorAll: () => table.cells } : null,
+      createTextNode: text => ({ nodeType: 3, textContent: text }),
+      createElement: () => new Element(),
+    },
+    Node: { TEXT_NODE: 3, ELEMENT_NODE: 1 },
+    fetch: () => { requests += 1; return response; },
+    perData: [{ ticker: 'AAPL', price: 250.15, forwardPE: 28.4, pbr: 45.1 }],
+    currentMetric: 'overview',
+    METRIC_CONFIG: { overview: { columns: [{ key: 'forwardPE', label: 'FWD PER', format: 'number' }] }, pbr: { columns: [{ key: 'pbr', label: 'PBR', format: 'number' }] } },
+    formatValue: value => value == null ? '-' : Number(value).toFixed(1),
+  });
+  const code = fs.readFileSync('static/js/valuation_meta.js', 'utf8').replace(/\}\)\(\);\s*$/, 'window.test = { annotateTable }; })();');
+  vm.runInContext(code, context);
+  const basisCode = fs.readFileSync('static/js/release_ui_v40.js', 'utf8').replace(/\}\)\(\);\s*$/, 'window.basisTest = { addBasisControls }; })();');
+  vm.runInContext(basisCode, context);
+  return {
+    context, source, annotate: () => context.window.test.annotateTable(),
+    addBasisControls: () => context.window.basisTest.addBasisControls(),
+    get table() { return table; }, get requests() { return requests; },
+    replaceTable(ticker = 'AAPL') { table = makeTable(ticker); return table; },
+    setMobile(value) { mobile = value; },
+    reply(payload, ok = true) { resolve({ ok, json: async () => payload }); }, fail: reject,
+  };
+}
+
+test('valuation mobile cards paint API labels and values before an unresolved optional cache', async () => {
+  const h = valuationHarness();
+  const annotation = h.annotate();
+  const cells = h.table.cells;
+  assert.ok(h.table.classList.contains('valuation-compact-table'));
+  assert.deepEqual(cells.map(cell => cell.dataset.label), ['종목', '현재가', 'FWD PER']);
+  assert.equal(cells[1].textContent, '$250.15');
+  assert.equal(cells[2].textContent, '28.4');
+  assert.equal(cells[1].title, '출처 확인 중');
+  assert.doesNotMatch(h.source.textContent, /Yahoo 캐시|기준/);
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1, forwardPE: 2 } } });
+  await annotation;
+  assert.match(cells[1].title, /2026\.10\.07.*Yahoo 일일 캐시/);
+  assert.match(cells[2].title, /예상 기간 미확인.*Yahoo 컨센서스 캐시/);
+  assert.equal(cells[1].textContent, '$250.15', 'cache must never overwrite API values');
+  assert.equal(cells[2].textContent, '28.4');
+});
+
+for (const failure of ['network', 'http']) {
+  test(`valuation optional cache ${failure} failure preserves cards, absent values and exact API provenance`, async () => {
+    const h = valuationHarness();
+    h.context.perData = [{ ticker: '005930.KS', price: 266000, forwardPE: null, fieldMeta: { price: { source: 'Naver', asOf: '2026-10-07T15:30:00+09:00', period: 'latest trading value', method: 'provider' } } }];
+    h.replaceTable('005930.KS');
+    const annotation = h.annotate();
+    assert.equal(h.table.cells[1].textContent, '₩266,000');
+    assert.match(h.table.cells[1].title, /2026\.10\.07.*최근 거래값.*Naver/);
+    assert.equal(h.table.cells[2].textContent, '-');
+    assert.match(h.table.cells[2].title, /컨센서스 데이터 없음/);
+    if (failure === 'network') h.fail(new Error('unavailable')); else h.reply(null, false);
+    await annotation;
+    assert.equal(h.table.cells[1].textContent, '₩266,000');
+    assert.match(h.table.cells[1].title, /Naver/);
+    assert.equal(h.table.cells[2].textContent, '-');
+    assert.doesNotMatch(h.source.textContent, /Yahoo 캐시|기준/);
+    assert.match(h.source.textContent, /캐시 출처 확인 불가/);
+  });
+}
+
+test('valuation late cache ignores a replaced table and annotates only the current render', async () => {
+  const h = valuationHarness();
+  const oldTable = h.table;
+  const old = h.annotate();
+  h.replaceTable();
+  const current = h.annotate();
+  assert.equal(h.requests, 1, 'optional cache request remains singleflight');
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+  await Promise.all([old, current]);
+  assert.equal(oldTable.cells[1].title, '출처 확인 중');
+  assert.match(h.table.cells[1].title, /Yahoo 일일 캐시/);
+});
+
+test('valuation late cache cannot apply an old metric to a reused table', async () => {
+  const h = valuationHarness();
+  const old = h.annotate();
+  h.context.currentMetric = 'pbr';
+  const current = h.annotate();
+  assert.equal(h.table.cells[2].dataset.label, 'PBR');
+  assert.equal(h.table.cells[2].textContent, '45.1');
+  h.reply({ quotes: { AAPL: { priceToBook: 3 } } });
+  await Promise.all([old, current]);
+  assert.equal(h.table.cells[2].dataset.label, 'PBR');
+  assert.equal(h.table.cells[2].textContent, '45.1');
+  assert.doesNotMatch(h.table.cells[2].title, /컨센서스/);
+});
+
+test('valuation desktop labels and existing values remain available during cache delay', async () => {
+  const h = valuationHarness();
+  h.setMobile(false);
+  h.table.cells[1].textContent = '$250.15';
+  h.table.cells[2].textContent = '28.4';
+  const annotation = h.annotate();
+  assert.equal(h.table.classList.contains('valuation-compact-table'), false);
+  assert.equal(h.table.cells[1].dataset.label, '현재가');
+  assert.equal(h.table.cells[1].querySelector('.metric-value-main').textContent, '$250.15');
+  assert.equal(h.table.cells[1].querySelector('.metric-provenance').textContent, '출처 확인 중');
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+  await annotation;
+  assert.equal(h.table.cells[1].querySelector('.metric-value-main').textContent, '$250.15');
+  assert.match(h.table.cells[1].querySelector('.metric-provenance').textContent, /Yahoo 일일 캐시/);
+});
+
+test('valuation reentry uses completed optional metadata immediately without another request', async () => {
+  const h = valuationHarness();
+  const first = h.annotate();
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+  await first;
+  h.replaceTable();
+  const next = h.annotate();
+  assert.match(h.table.cells[1].title, /Yahoo 일일 캐시/);
+  assert.equal(h.table.cells[1].textContent, '$250.15');
+  assert.equal(h.requests, 1);
+  await next;
+});
+
+test('valuation compact cells stay value-only when the actual release UI decorator runs before and after cache completion', async () => {
+  const h = valuationHarness();
+  const annotation = h.annotate();
+  h.addBasisControls();
+  assert.deepEqual(h.table.cells.slice(1).map(cell => cell.textContent), ['$250.15', '28.4']);
+  assert.ok(h.table.cells.slice(1).every(cell => !cell.querySelector('.v40-cell-basis')));
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1, forwardPE: 2 } } });
+  await annotation;
+  h.addBasisControls();
+  await h.annotate();
+  h.addBasisControls();
+  assert.deepEqual(h.table.cells.slice(1).map(cell => cell.textContent), ['$250.15', '28.4']);
+  assert.ok(h.table.cells.slice(1).every(cell => cell.children.length === 0));
+  assert.match(h.table.cells[1].title, /Yahoo 일일 캐시/);
+  assert.equal(h.table.cells[1].dataset.provenance, h.table.cells[1].title);
+});
+
+test('valuation release UI keeps desktop basis controls and removes them when switching to compact cards', async () => {
+  const h = valuationHarness();
+  h.setMobile(false);
+  h.table.cells[1].textContent = '$250.15';
+  h.table.cells[2].textContent = '28.4';
+  const first = h.annotate();
+  h.addBasisControls();
+  assert.ok(h.table.cells[1].querySelector('.v40-cell-basis'));
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+  await first;
+  h.addBasisControls();
+  assert.ok(h.table.cells[1].querySelector('.v40-cell-basis'));
+  assert.equal(h.table.cells[1].querySelector('.metric-value-main').textContent, '$250.15');
+  h.setMobile(true);
+  await h.annotate();
+  h.addBasisControls();
+  assert.equal(h.table.cells[1].querySelector('.v40-cell-basis'), null);
+  assert.equal(h.table.cells[1].textContent, '$250.15');
+  assert.match(h.table.cells[1].title, /Yahoo 일일 캐시/);
+  h.setMobile(false);
+  await h.annotate();
+  h.addBasisControls();
+  assert.ok(h.table.cells[1].querySelector('.v40-cell-basis'));
+  assert.equal(h.table.cells[1].querySelector('.metric-value-main').textContent, '$250.15');
+});
+
+for (const change of ['table', 'metric', 'data', 'viewport']) {
+  test(`valuation late cache ignores an obsolete ${change} without another annotation`, async () => {
+    const h = valuationHarness();
+    const original = h.table;
+    const annotation = h.annotate();
+    if (change === 'table') h.replaceTable();
+    if (change === 'metric') h.context.currentMetric = 'pbr';
+    if (change === 'data') h.context.perData = [{ ticker: 'AAPL', price: 999 }];
+    if (change === 'viewport') h.setMobile(false);
+    h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+    await annotation;
+    assert.equal(original.cells[1].title, '출처 확인 중');
+    assert.equal(original.cells[1].textContent, '$250.15');
+    assert.doesNotMatch(h.source.textContent, /Yahoo 캐시|기준/);
+  });
+}

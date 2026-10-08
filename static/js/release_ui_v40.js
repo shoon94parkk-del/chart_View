@@ -187,6 +187,7 @@
     const container = document.getElementById('per-table-container');
     if (!container) return;
     container.querySelectorAll('td').forEach((cell) => {
+      if (cell.classList.contains('valuation-compact-cell')) return;
       if (cell.querySelector('.v40-cell-basis')) return;
       const meta = cell.querySelector('.metric-provenance');
       const text = meta?.textContent?.trim() || cell.dataset.provenance || cell.title || '';
