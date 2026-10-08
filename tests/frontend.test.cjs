@@ -153,17 +153,25 @@ function valuationHarness() {
       };
     }
     get textContent() { return this.childNodes.length ? this.childNodes.map(n => n.textContent).join('') : this._text; }
-    set textContent(value) { this._text = value; this.childNodes = [{ nodeType: 3, textContent: value }]; this.children = []; }
+    set textContent(value) { this.textWrites = (this.textWrites || 0) + 1; this._text = value; this.childNodes = [{ nodeType: 3, textContent: value }]; this.children = []; }
     replaceChildren(...nodes) { this._text = ''; this.childNodes = nodes; this.children = nodes.filter(n => n.nodeType === 1); }
     append(...nodes) { this.replaceChildren(...this.childNodes, ...nodes); }
     appendChild(node) { this.append(node); }
-    set innerHTML(value) { this.textContent = value.replace(/<[^>]+>/g, ''); }
+    set innerHTML(value) {
+      const nodes = Array.from(value.matchAll(/<(summary|p)>(.*?)<\/\1>/g), ([, tag, text]) => {
+        const node = new Element(text);
+        node.tagName = tag;
+        return node;
+      });
+      this.replaceChildren(...nodes);
+    }
     removeAttribute(name) { if (name === 'title') this.title = ''; }
     querySelector(selector) {
       if (selector === ':scope > .metric-value-wrap > .metric-value-main') return this.querySelector('.metric-value-wrap')?.querySelector('.metric-value-main') || null;
-      const cls = selector.replace(':scope > ', '').slice(1);
+      const simple = selector.replace(':scope > ', '');
+      const cls = simple.slice(1);
       for (const node of this.children) {
-        if (node.className === cls || node.classList.contains(cls)) return node;
+        if (simple.startsWith('.') ? node.className === cls || node.classList.contains(cls) : node.tagName === simple) return node;
         const found = node.querySelector(selector);
         if (found) return found;
       }
@@ -190,7 +198,7 @@ function valuationHarness() {
       querySelector: selector => selector === '.per-source' ? source : selector === '#per-table-container .per-table' ? table : null,
       getElementById: id => id === 'per-table-container' ? { querySelectorAll: () => table.cells } : null,
       createTextNode: text => ({ nodeType: 3, textContent: text }),
-      createElement: () => new Element(),
+      createElement: tag => { const node = new Element(); node.tagName = tag; return node; },
     },
     Node: { TEXT_NODE: 3, ELEMENT_NODE: 1 },
     fetch: () => { requests += 1; return response; },
@@ -348,6 +356,38 @@ test('valuation release UI keeps desktop basis controls and removes them when sw
   h.addBasisControls();
   assert.ok(h.table.cells[1].querySelector('.v40-cell-basis'));
   assert.equal(h.table.cells[1].querySelector('.metric-value-main').textContent, '$250.15');
+});
+
+test('valuation delayed desktop provenance updates the existing open basis body without replacing focused controls', async () => {
+  const h = valuationHarness();
+  h.setMobile(false);
+  h.table.cells[1].textContent = '$250.15';
+  const annotation = h.annotate();
+  h.addBasisControls();
+  const cell = h.table.cells[1];
+  const details = cell.querySelector('.v40-cell-basis');
+  const paragraph = details.querySelector('p');
+  const summary = details.querySelector('summary');
+  assert.equal(paragraph.textContent, '출처 확인 중');
+  details.open = true;
+  h.context.document.activeElement = summary;
+  h.reply({ generatedAt: '2026-10-07T12:00:00+09:00', quotes: { AAPL: { regularMarketPrice: 1 } } });
+  await annotation;
+  h.addBasisControls();
+  assert.equal(cell.querySelector('.v40-cell-basis'), details);
+  assert.equal(details.querySelector('p'), paragraph);
+  assert.equal(details.querySelector('summary'), summary);
+  assert.equal(details.open, true);
+  assert.equal(h.context.document.activeElement, summary);
+  assert.equal(paragraph.textContent, cell.querySelector('.metric-provenance').textContent);
+  assert.match(paragraph.textContent, /2026\.10\.07.*Yahoo 일일 캐시/);
+  assert.equal(cell.querySelector('.metric-value-main').textContent, '$250.15');
+  const writes = paragraph.textWrites;
+  assert.equal(writes, 1, 'late metadata changes the existing body exactly once');
+  h.addBasisControls();
+  assert.equal(paragraph.textWrites, writes, 'identical metadata must not create another DOM mutation');
+  assert.equal(details.open, true);
+  assert.equal(h.context.document.activeElement, summary);
 });
 
 for (const change of ['table', 'metric', 'data', 'viewport']) {

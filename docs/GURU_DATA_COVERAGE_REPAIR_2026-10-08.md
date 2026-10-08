@@ -90,6 +90,8 @@ Toss Android·작은 iPhone의 거장5전략/미국40히트맵 **4/4 통과**. �
 
 독립 검토로 Web valuation_meta의 선택적 정적 캐시 await가 기본 모바일 카드 class/label/값 표시까지 지연시키는 기존 취약점을 확인했다. 캐시와 기본 표시를 분리하는 최소 수정·지연 회귀를 진행하며 금융값·조건·기준일은 바꾸지 않는다. 최종 SHA/CI/배포 영수증은 해당 후속 PR에 기록한다.
 
-추가 최소 수정은 별도 Web UI의 기본 모바일 표시와 선택적 출처 보강을 분리한다. 실제 브라우저에서 release_ui_v40의 기준 보기 삽입과 valuation_meta의 제거가 충돌했으므로 compact 셀은 추가 삽입하지 않게 했다. 기존 long-press title/dataset 출처와 데스크톱 기준 보기는 유지한다. 신규 행동 회귀13개를 기존 Node 파일에 추가했고 최종 Python646/Node51/두 bundle 정합성이 통과했다. 캐시를 응답하지 않게 보류한 실제390px prelaunch 전체 검사가 통과했다. 이전 source에서 지연 회귀11개가 실패하고 compact guard 제거 시 공존 회귀2개가 실패함도 확인했다.
+추가 최소 수정은 별도 Web UI의 기본 모바일 표시와 선택적 출처 보강을 분리한다. 실제 브라우저에서 release_ui_v40의 기준 보기 삽입과 valuation_meta의 제거가 충돌했으므로 compact 셀은 추가 삽입하지 않게 했다. 기존 long-press title/dataset 출처와 데스크톱 기준 보기는 유지한다. 신규 행동 회귀14개를 기존 Node 파일에 추가했고 최종 Python646/Node52/두 bundle 정합성이 통과했다. 캐시를 응답하지 않게 보류한 실제390px prelaunch 전체 검사가 통과했다. 이전 source에서 지연 회귀11개가 실패하고 compact guard 제거 시 공존 회귀2개가 실패함도 확인했다.
 
 보안후 warm 운영 재검사는 Android·작은iPhone 거장/40종목 히트맵4개, 실제 핵심5개, iPhone JS복구1개 모두 통과했다. 히트맵 DOM 교체 중 일회성 scroll/evaluate가 끊기는 scratch harness는 불필요한 scroll을 제거하고 Playwright의 fresh locator 가시성·viewport 검사와 실제 응답-가격 관계를 그대로 유지했다. 이10개 검사는 main5d74 배포에 대한 증거이며 후속 Web 수정의 최종 게시 영수증과 구분한다.
+
+독립 배포 전 리뷰는 초기 pending 메타로 생성된 데스크톱 기준 보기가 늦은 메타를 반영하지 않는 추가 회귀를 재현했다. 기존 본문만 변경할 때 갱신하도록 보완하고 객체·펼침·포커스를 보존했다. 실제 데스크톱 브라우저에서 pending→공급자 날짜/출처 갱신, API 가격 불변, 펼침·키보드 포커스 유지가 통과했다. 독립 최종 소스 리뷰에서 추가 차단 문제를 찾지 못했다.

@@ -355,3 +355,5 @@ Never reflect provider exception strings, URLs/query parameters, XML authenticat
 Basic mobile table class, accessible cell labels and compact values must be applied from current valuation data without awaiting the optional quote-cache response. Pending/failed provenance enrichment cannot block the cards. Late enrichment must use the current attached table and metric, never a captured old render. Preserve formatting and dated source semantics, and cover pending/failure/metric replacement with regression tests.
 
 The release UI basis-control annotator must skip valuation-compact-cell elements. Keep their title/dataset provenance and desktop disclosure controls; avoid mutually re-inserting/removing child nodes. Verify both annotators together as well as the real mobile layout.
+
+When optional metadata completes, the existing desktop basis disclosure body must match current provenance. Update text only when changed, preserving the disclosure object/open state and avoiding observer churn.
