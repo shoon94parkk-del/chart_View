@@ -95,3 +95,10 @@ Toss Android·작은 iPhone의 거장5전략/미국40히트맵 **4/4 통과**. �
 보안후 warm 운영 재검사는 Android·작은iPhone 거장/40종목 히트맵4개, 실제 핵심5개, iPhone JS복구1개 모두 통과했다. 히트맵 DOM 교체 중 일회성 scroll/evaluate가 끊기는 scratch harness는 불필요한 scroll을 제거하고 Playwright의 fresh locator 가시성·viewport 검사와 실제 응답-가격 관계를 그대로 유지했다. 이10개 검사는 main5d74 배포에 대한 증거이며 후속 Web 수정의 최종 게시 영수증과 구분한다.
 
 독립 배포 전 리뷰는 초기 pending 메타로 생성된 데스크톱 기준 보기가 늦은 메타를 반영하지 않는 추가 회귀를 재현했다. 기존 본문만 변경할 때 갱신하도록 보완하고 객체·펼침·포커스를 보존했다. 실제 데스크톱 브라우저에서 pending→공급자 날짜/출처 갱신, API 가격 불변, 펼침·키보드 포커스 유지가 통과했다. 독립 최종 소스 리뷰에서 추가 차단 문제를 찾지 못했다.
+
+
+## 기존 자동 수집 작업의 최신 거래이력 합류
+
+검증 중 기존 [Update Guru Screening37735609514](https://github.com/shoon94parkk-del/chart_View/actions/runs/37735609514)이 성공해 `2452347`을 게시했다. 새 snapshot은 `db62fd4a9da816a05e8f`, 가격기준은10/07이다. 재무 company 및 단일분기 company 값은 변경0이며 collection11/116은 앞선 공식 수집의 보존 기록이다. 이번 자동 실행에서 DART11회사/116요청을 다시 수행했다고 표현하지 않는다.
+
+유효 거래이력 관측이 미너비니2,089→2,127로 늘어 자료부족333→295, 선정82는 유지됐다. 다른4전략의 선정·평가·자료부족 수는 위 표와 같다. 기존 최신 main 데이터를 작업 브랜치에 합류해 Python646/Node52와 bundle 검사를 다시 통과했으며 이전 b2ba 자료로 덮지 않았다. 후속 PR의 최종 SHA·CI·Render·실제 브라우저 영수증을 확인한다.
