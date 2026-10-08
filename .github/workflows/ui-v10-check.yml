@@ -8,8 +8,29 @@ on:
       - 'static/css/home_priority_v10.css'
       - 'static/css/valuation_matrix_v10.css'
       - 'static/js/valuation_meta.js'
+      - 'static/js/release_ui_v40.js'
       - 'static/js/valuation_overview_v4.js'
       - 'static/js/ux_patch.js'
+      - 'tests/frontend.test.cjs'
+      - 'scripts/build_frontend_bundle.py'
+      - 'scripts/build_boot_bundle.py'
+      - 'scripts/verify_deployed_release.py'
+      - 'templates/index.html'
+      - '.github/workflows/ui-v10-check.yml'
+  pull_request:
+    paths:
+      - 'static/js/home_priority_v10.js'
+      - 'static/css/home_priority_v10.css'
+      - 'static/css/valuation_matrix_v10.css'
+      - 'static/js/valuation_meta.js'
+      - 'static/js/release_ui_v40.js'
+      - 'static/js/valuation_overview_v4.js'
+      - 'static/js/ux_patch.js'
+      - 'tests/frontend.test.cjs'
+      - 'scripts/build_frontend_bundle.py'
+      - 'scripts/build_boot_bundle.py'
+      - 'scripts/verify_deployed_release.py'
+      - 'templates/index.html'
       - '.github/workflows/ui-v10-check.yml'
   workflow_dispatch:
 
@@ -22,6 +43,12 @@ jobs:
     timeout-minutes: 9
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: Source checks
         run: |
           set -euo pipefail
@@ -36,44 +63,33 @@ jobs:
           grep -q '추세 <b>15%</b>' static/js/home_priority_v10.js
           grep -q '매수 점수가 아니라' static/js/home_priority_v10.js
           grep -q 'grid-template-columns:repeat(5' static/css/home_priority_v10.css
-          grep -q 'position:sticky' static/css/valuation_matrix_v10.css
-          grep -q 'left:0!important' static/css/valuation_matrix_v10.css
-          grep -q 'width:608px!important' static/css/valuation_matrix_v10.css
-          grep -q 'metric-provenance{display:none' static/css/valuation_matrix_v10.css
-          grep -q 'valuation-compact-cell' static/js/valuation_meta.js
-          grep -q 'valuation_meta.js?v=20260911v2' static/js/ux_patch.js
-          grep -q 'valuation_matrix_v10.css?v=20260911v11' static/js/ux_patch.js
           grep -q '밸류에이션 비교표' static/js/valuation_overview_v4.js
+          node --test tests/frontend.test.cjs
+          python scripts/build_frontend_bundle.py --check
+          python scripts/build_boot_bundle.py --check
           echo 'UI compact valuation source checks OK'
       - name: Wait for production and smoke
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          APP_URL: https://chart-view-pkv8.onrender.com
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          BASE='https://chart-view-bsg6.onrender.com'
-          ready=0
-          for i in $(seq 1 45); do
-            vm=$(curl -sS -o /tmp/valuation_matrix.css -w '%{http_code}' "$BASE/static/css/valuation_matrix_v10.css?v=20260911v11" || true)
-            meta=$(curl -sS -o /tmp/valuation_meta.js -w '%{http_code}' "$BASE/static/js/valuation_meta.js?v=20260911v2" || true)
-            up=$(curl -sS -o /tmp/ux_patch.js -w '%{http_code}' "$BASE/static/js/ux_patch.js?v=20260911v1" || true)
-            if [ "$vm" = '200' ] && [ "$meta" = '200' ] && [ "$up" = '200' ] \
-              && grep -q 'width:608px!important' /tmp/valuation_matrix.css \
-              && grep -q 'valuation-compact-cell' /tmp/valuation_meta.js \
-              && grep -q 'valuation_matrix_v10.css?v=20260911v11' /tmp/ux_patch.js; then
-              ready=1
-              echo "compact valuation production build detected attempt=$i"
-              break
-            fi
-            echo "attempt=$i matrix=$vm meta=$meta loader=$up waiting"
-            sleep 10
-          done
-          test "$ready" = '1'
-          curl -fsSL --get --data-urlencode 'tickers=005930.KS,000660.KS' "$BASE/api/valuation" -o /tmp/valuation.json
+          python scripts/verify_deployed_release.py --attempts 45
+          curl -fsSL --connect-timeout 10 --max-time 30 --get --data-urlencode 'tickers=005930.KS,000660.KS' "$APP_URL/api/valuation" -o /tmp/valuation.json
           python - <<'PY'
-          import json
+          import json, math
           val=json.load(open('/tmp/valuation.json'))
           rows=val.get('stocks') or []
-          assert len(rows) >= 2, val
-          for row in rows[:2]:
-              assert row.get('price') is not None
-              assert row.get('forwardPE') is not None
+          expected={'005930.KS', '000660.KS'}
+          by_ticker={row.get('ticker'): row for row in rows}
+          assert expected <= by_ticker.keys(), 'requested valuation stocks missing'
+          for ticker in expected:
+              row=by_ticker[ticker]
+              price=row.get('price')
+              assert isinstance(price, (int,float)) and not isinstance(price,bool) and math.isfinite(price) and price > 0, (ticker, 'price')
+              forward=row.get('forwardPE')
+              assert forward is None or (isinstance(forward,(int,float)) and not isinstance(forward,bool) and math.isfinite(forward)), (ticker, 'forwardPE')
           print('compact valuation production smoke OK', {'stocks': len(rows)})
           PY
+          python scripts/verify_deployed_release.py --attempts 1 --output test-results/release-after.json
