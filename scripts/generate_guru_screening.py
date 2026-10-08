@@ -1,7 +1,7 @@
 """Bounded official financial collection; visitors only read saved results."""
 from __future__ import annotations
 import argparse
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
@@ -93,16 +93,58 @@ class DartClient:
 
     def actions(self, corp, symbol, start, end):
         # Check all official disclosure names across the EPS observation interval.
-        events=[]
-        for page in range(1, 21):
+        def invalid():
+            raise ProviderError('DART disclosure pagination verification failed')
+        def integer(value):
+            if isinstance(value,bool) or not re.fullmatch(r'\d+',str(value)):
+                invalid()
+            return int(value)
+        try:
+            if not re.fullmatch(r'\d{8}',str(corp or '')):
+                invalid()
+            if not all(isinstance(day,str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',day) for day in (start,end)):
+                invalid()
+            first,last=date.fromisoformat(start),date.fromisoformat(end)
+            if first>last:invalid()
+        except (TypeError,ValueError):
+            invalid()
+        events=[]; seen=set(); expected=None; page=1
+        while True:
+            # get() retains the existing shared request/deadline/020 limits.
+            # A large issuer can exceed twenty pages without an artificial cap.
             data=self.get('list.json',{'corp_code':corp,'bgn_de':start.replace('-',''),'end_de':end.replace('-',''),
                                       'page_count':100,'page_no':page})
-            for row in data.get('list') or []:
+            if not isinstance(data,dict):invalid()
+            if data.get('status')=='013':
+                if page!=1 or data.get('list'):invalid()
+                break
+            if data.get('status')!='000':invalid()
+            total,pages=integer(data.get('total_count')),integer(data.get('total_page'))
+            current,size=integer(data.get('page_no')),integer(data.get('page_count'))
+            rows=data.get('list')
+            if (current!=page or size!=100 or pages!=(total+99)//100 or
+                    not isinstance(rows,list) or len(rows)!=max(0,min(100,total-(page-1)*100)) or
+                    expected is not None and expected!=(total,pages)):
+                invalid()
+            expected=total,pages
+            for row in rows:
+                if not isinstance(row,dict):invalid()
+                receipt,observed,name=row.get('rcept_no'),row.get('rcept_dt'),row.get('report_nm')
+                if (row.get('corp_code')!=corp or not isinstance(receipt,str) or not re.fullmatch(r'\d{14}',receipt) or
+                        not re.fullmatch(r'\d{8}',str(observed or '')) or receipt in seen or
+                        not isinstance(name,str) or not name.strip()):
+                    invalid()
+                try:day=date.fromisoformat(f'{observed[:4]}-{observed[4:6]}-{observed[6:]}')
+                except (TypeError,ValueError):invalid()
+                # rcept_no is an identifier; rcept_dt is the authoritative date.
+                if not first<=day<=last:invalid()
+                seen.add(receipt)
                 if re.search(r'주식배당|주식분할|주식병합|무상증자|주식분할.*병합',row.get('report_nm','')):
-                    events.append({'date':row.get('rcept_dt'),'name':row.get('report_nm'),'receiptNo':row.get('rcept_no')})
-            if int(data.get('total_page') or 0)<=page: break
-        else:
-            return {'status':'unknown','source':'OpenDART disclosures','start':start,'end':end,'events':events}
+                    events.append({'date':observed,'name':name,'receiptNo':receipt})
+            if page>=pages:
+                if len(seen)!=total:invalid()
+                break
+            page+=1
         return {'status':'verified','source':'OpenDART disclosures: split/reverse split/stock dividend/bonus issue',
                 'start':start,'end':end,'events':events}
 
@@ -142,10 +184,15 @@ class DartClient:
         return {**normalized,**base,'corpCode':corp,'reports':reports,'profile':profile,'actions':actions}
 
 
-def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies: int, max_requests: int, deadline: float) -> dict:
+def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies: int, max_requests: int, deadline: float, symbols: list[str] | None = None) -> dict:
     companies=dict(previous.get('companies') or {})
+    current={r['symbol'] for r in universe}
+    selected=None if symbols is None else set(symbols)
+    if selected is not None and (not selected or selected-current):
+        raise ValueError('Selected symbols must belong to the current KIND universe')
     attempted=0; errors=0; status='complete'; now=datetime.now(KST)
     def due(row):
+        if selected is not None:return row['symbol'] in selected
         old=companies.get(row['symbol'])
         if not old: return True
         try: return (now-datetime.fromisoformat(old.get('lastAttemptAt') or old['checkedAt'])).total_seconds()>=86400
@@ -178,7 +225,6 @@ def refresh_cache(universe: list[dict], previous: dict, *, client, max_companies
                 attempted+=1
                 if attempted%25==0:print(json.dumps({'progress':attempted,'requests':client.requests,'stored':len(companies)}),flush=True)
     if index<len(due_rows) and status=='complete':status='partial'
-    current={r['symbol'] for r in universe}
     companies={s:c for s,c in companies.items() if s in current}
     if errors and status=='complete': status='provider_errors'
     return {'generatedAt':now.isoformat(timespec='seconds'),'companies':companies,
@@ -194,28 +240,39 @@ def load_json(path, default):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--collect',action='store_true'); parser.add_argument('--max-companies',type=int,default=400)
+    parser.add_argument('--symbols',help='Explicit comma-separated current KIND symbols to reverify within the existing budgets')
     parser.add_argument('--refresh-actions',action='store_true',help='Review only the missing official disclosure window, within the same request budget')
     parser.add_argument('--max-requests',type=int,default=2400); parser.add_argument('--max-seconds',type=int,default=1200)
     args=parser.parse_args()
+    symbols=None
+    if args.symbols is not None:
+        symbols=[symbol.strip() for symbol in args.symbols.split(',')]
+        if (not args.collect or not all(re.fullmatch(r'\d{6}\.(KS|KQ)',symbol) for symbol in symbols)):
+            parser.error('--symbols requires --collect and comma-separated Korean tickers')
     prices=load_json(OUT/'screener.json',{})
     cache=renormalize_cached_reports(load_json(OUT/'guru_financials.json',{}))
     client=None
     if args.collect or args.refresh_actions:
         key=os.environ.get('DART_API_KEY','').strip()
         if not key: raise RuntimeError('DART_API_KEY is required')
-        corp_codes=load_json(OUT/'dart_corp_codes.json',{}).get('companies',{})
         deadline=time.monotonic()+max(1,args.max_seconds)
+        if args.collect:
+            from scripts.generate_screener import load_universe
+            universe=load_universe()
+            if symbols is not None and set(symbols)-{row['symbol'] for row in universe}:
+                parser.error('--symbols contains a ticker outside the current KIND universe')
+        corp_codes=load_json(OUT/'dart_corp_codes.json',{}).get('companies',{})
         client=DartClient(key,corp_codes,max(1,args.max_requests),deadline)
-    if args.refresh_actions:
+    # Explicit selection performs those companies' full action checks below;
+    # do not add an unrelated global disclosure scan to a targeted retry.
+    if args.refresh_actions and symbols is None:
         cache=refresh_action_windows(cache,client=client,trade_date=prices.get('tradeDate'),
             checked_at=datetime.now(KST).isoformat(timespec='seconds'))
         print(json.dumps({'actionCollection':cache.get('actionCollection')}))
     if args.collect:
-        from scripts.generate_screener import load_universe
-        universe=load_universe()
         action_metadata=cache.get('actionCollection')
         cache=refresh_cache(universe,cache,client=client,
-                            max_companies=max(1,args.max_companies),max_requests=max(1,args.max_requests),deadline=deadline)
+                            max_companies=max(1,args.max_companies),max_requests=max(1,args.max_requests),deadline=deadline,symbols=symbols)
         if action_metadata:cache['actionCollection']=action_metadata
         cache['universe']=universe
         atomic_json(OUT/'guru_financials.json',cache)

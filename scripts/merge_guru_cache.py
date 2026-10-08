@@ -11,10 +11,25 @@ from guru_snapshot import atomic_json
 from guru_actions import renormalize_cached_reports
 
 
+def _refresh_failure_patch(old, row):
+    # A failed recollection does not change financial checkedAt. Preserve its
+    # later attempt without attaching it to different receipts/annual evidence.
+    excluded={'actions','epsComparability','refreshError','lastAttemptAt'}
+    if {k:v for k,v in old.items() if k not in excluded}!={k:v for k,v in row.items() if k not in excluded}:
+        return None
+    if not isinstance(row.get('refreshError'),str) or not row['refreshError'].strip():return None
+    try:
+        attempt=datetime.fromisoformat(row['lastAttemptAt'])
+        previous=datetime.fromisoformat(old.get('lastAttemptAt') or old['checkedAt'])
+        if attempt.tzinfo is None or previous.tzinfo is None or attempt<=previous:return None
+    except (KeyError,ValueError,TypeError):return None
+    return {**old,'refreshError':row['refreshError'],'lastAttemptAt':row['lastAttemptAt']}
+
+
 def _action_patch(old, row):
     # Same financial evidence is mandatory: never attach a review of an older
     # receipt to newly collected/changed annual values, even at an equal time.
-    excluded={'actions','epsComparability'}
+    excluded={'actions','epsComparability','refreshError','lastAttemptAt'}
     if {k:v for k,v in old.items() if k not in excluded}!={k:v for k,v in row.items() if k not in excluded}:
         return None
     actions=row.get('actions') or {}; prior=old.get('actions') or {}
@@ -42,6 +57,8 @@ def merge_cache(current, collected):
         if not old or str(row.get('checkedAt',''))>str(old.get('checkedAt','')):
             companies[symbol]=row
         elif row.get('checkedAt')==old.get('checkedAt'):
+            failed=_refresh_failure_patch(old,row)
+            if failed:old=failed;companies[symbol]=old
             patch=_action_patch(old,row)
             if patch:companies[symbol]=patch
     metadata = collected if str(collected.get('generatedAt','')) >= str(current.get('generatedAt','')) else current
