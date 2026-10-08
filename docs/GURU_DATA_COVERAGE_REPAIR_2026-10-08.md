@@ -102,3 +102,22 @@ Toss Android·작은 iPhone의 거장5전략/미국40히트맵 **4/4 통과**. �
 검증 중 기존 [Update Guru Screening37735609514](https://github.com/shoon94parkk-del/chart_View/actions/runs/37735609514)이 성공해 `2452347`을 게시했다. 새 snapshot은 `db62fd4a9da816a05e8f`, 가격기준은10/07이다. 재무 company 및 단일분기 company 값은 변경0이며 collection11/116은 앞선 공식 수집의 보존 기록이다. 이번 자동 실행에서 DART11회사/116요청을 다시 수행했다고 표현하지 않는다.
 
 유효 거래이력 관측이 미너비니2,089→2,127로 늘어 자료부족333→295, 선정82는 유지됐다. 다른4전략의 선정·평가·자료부족 수는 위 표와 같다. 기존 최신 main 데이터를 작업 브랜치에 합류해 Python646/Node52와 bundle 검사를 다시 통과했으며 이전 b2ba 자료로 덮지 않았다. 후속 PR의 최종 SHA·CI·Render·실제 브라우저 영수증을 확인한다.
+
+## 모바일 표시 수정의 최종 게시 검증
+
+[PR139](https://github.com/shoon94parkk-del/chart_View/pull/139)의 모바일 기본 표시·두 annotator 충돌·데스크톱 출처 갱신 수정과 [PR140](https://github.com/shoon94parkk-del/chart_View/pull/140)의 현재 UI 검증 정렬, [PR141](https://github.com/shoon94parkk-del/chart_View/pull/141)의 실제 출처 완료 대기·공용 운영 검사 순차 실행을 main에 반영했다. 최종 application revision은 `45cb5bbb6842787f0a91eaa61cb4edf702baad21`, Render deploy `dep-db3jtejncjis73ani0m0`는 **2026-10-08 06:58:09 UTC** live다.
+
+- [App Regression Check37740365786](https://github.com/shoon94parkk-del/chart_View/actions/runs/37740365786): 핵심 검사1, 격리 모바일7, 공용 운영4 **12/12 성공**. [Production Mobile Verification37740958442](https://github.com/shoon94parkk-del/chart_View/actions/runs/37740958442)도 성공했다.
+- 실제 Toss 서버 추가 검사 **10/10 성공**: 삼성 검색/응답-가격, DRAM12개월/선택 변화, 선정 성과 분모, 수출 키보드, PER 결측/0, Android·작은 iPhone의5거장·미국40종목 및 실제 시세 대조, iPhone JS실패 후 재시도. fixture 회귀와 구분하며 외부 응답을 그대로 전달한 검사다.
+- `/health`의 정확한 SHA, release3개와 boot2개 자산 해시, 서버/CDN/로컬 snapshot `db62fd4a9da816a05e8f` 일치, 다섯 전략 첫 후보의 같은 버전 근거200/오래된 버전409를 확인했다. Python646/Node52 및 독립 원자료 대조3,489·후속 거래이력437 assertions가 통과했다. 각 실행은 중복 합산하지 않는다.
+- 로컬 임시 증거: `/workspace/scratch/chartview-guru-coverage-fix-20261008/`의 `backend-completion-release.json`, `backend-final-web-boot.json`, `backend-guru-publication-final.json`, `completion-live-results.json`, `live-qa/final-*/report/index.html` 및 `results/`. 임시 실행환경 소멸 후 보존을 보장하지 않으며 GitHub 실행 artifact는 각 workflow 보존 기간을 따른다.
+
+이는 위 SHA와10/07 거래일 자료의 게시 영수증이다. 과거 cold navigation·제공자503 실패를 지우지 않았으며 동시 사용자 성능 SLA나 모든 제공자 장애 해소를 주장하지 않는다. 관세청 키 재발급·기존 Render 환경 교체는 아직 연결되지 않은 사용자 계정 작업이다.
+
+## 장 마감 기준일 변경 시 공시 pagination 변동
+
+최종 확인 도중 [스크리너37740834161](https://github.com/shoon94parkk-del/chart_View/actions/runs/37740834161)이10/08 종가를 게시하고 [거장37741302266](https://github.com/shoon94parkk-del/chart_View/actions/runs/37741302266)이 snapshot `07804579ae34364e5c41`를 생성했다. 원 연간재무 값은 변경0이다. 그러나 증분 공시 스캔3페이지의 전체 공시 수가 앞 페이지와 달라 `invalid_pagination`으로 전부 취소되었고1,577개 기업의 검증 종료일은10/07에 남았다.10/08 가격에10/07 EPS 비교 검증을 붙이지 않는 기존 guard가 올바르게 차단하여 린치41→2, 오닐1→0, 그린블라트3→1로 줄었다. 기존 검증 기준을 낮추거나 오래된 가격으로 덮지 않는다.
+
+공시 목록이 변하는 경우 첫 페이지부터 완전한 새 pass를 한 번만 재시도한다. 자체 응답 형식·행 수·신원·날짜·중복 검증을 통과한 응답에서 전체 수/페이지 수만 달라진 경우에 한정하며, 이전 pass 관측을 모두 폐기한다. 두 pass 전체의 page 예산과 기존 공유 request/deadline/020 한도를 유지하고 완전한 한 pass에서만 종료일을 연장한다. 계속 변하거나 잘못된 응답은 그대로 자료 부족으로 남는다. 실제 공식 재확인 및 최종 최신 자료 배포 결과는 후속 PR 영수증에 기록한다.
+
+기존 [공식 workflow37742086617](https://github.com/shoon94parkk-del/chart_View/actions/runs/37742086617)을 전체 재무 재수집 없이 공시 증분 확인만 실행했다. 실제7요청으로1,577개 범위를 연장했으며 새 분기·반기 정정 공시가 있는7개 회사는 계속 보류했다. snapshot `03232669e4beb07d832b`의 기준일은10/08이고 버핏54·린치41·오닐1·미너비니80·그린블라트3개다. 독립 검사7,780개가 원 금융값·raw report·financial checkedAt 불변, 검증 범위 연장과7개 보류, 후보179행의 가격·근거·EPS기간 및 미너비니 계산을 통과했다.10/07의82개를 최신 선정 수로 표현하지 않는다. 이번 재확인은 앞선 코드 수정 전 실행이므로 새 자동 재시도 분기를 실제 공급자에서 실행했다고 주장하지 않으며, 재시도는 결정론적 회귀로 검증한다.
