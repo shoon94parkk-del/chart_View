@@ -236,7 +236,7 @@ def test_invalid_pagination_reports_bounded_shape_without_response_body_or_value
     metadata = result['actionCollection']
     assert metadata['reason'] == 'invalid_pagination'
     assert metadata['diagnostics'] == {'stage':'pagination','requestedPage':1,'responseStatus':'000',
-        'pageNo':1,'pageCount':None,'totalCount':1,'totalPages':1,'rowCount':1,'missingFields':[]}
+        'scanPass':1,'pageNo':1,'pageCount':None,'totalCount':1,'totalPages':1,'rowCount':1,'missingFields':[]}
     assert 'must-not-leak' not in str(metadata)
 
 
@@ -300,3 +300,125 @@ def test_non_mapping_response_is_an_explicit_safe_shape_error():
     assert result['actionCollection']['reason'] == 'invalid_response_shape'
     assert result['companies'] == cache()['companies']
     assert 'must-not-leak' not in str(result['actionCollection'])
+
+
+def moving_packets(old_total=677, new_total=678, changed_page=3):
+    old_rows = [filing(i) for i in range(1, old_total + 1)]
+    old_rows[0]['report_nm'] = '주식분할결정'
+    old = packets(old_rows)
+    new_rows = [filing(i) for i in range(1, new_total + 1)]
+    new = packets(new_rows)
+    return old[:changed_page - 1] + [new[changed_page - 1]], new
+
+
+@pytest.mark.parametrize('old_total,new_total,changed_page', [(677,678,3), (200,201,2), (202,201,2)])
+def test_changed_totals_restart_the_entire_frozen_scan_then_apply_only_the_stable_pass(old_total, new_total, changed_page):
+    moving, stable = moving_packets(old_total, new_total, changed_page)
+    stable[-1]['list'][-1]['report_nm'] = '주식분할결정'
+    stable[-1]['list'][-1]['corp_code'] = '00123457'
+    before = cache()
+    untouched = deepcopy(before)
+    client = Client(moving + stable)
+    result = refresh(before, client)
+    assert before == untouched
+    metadata = result['actionCollection']
+    assert metadata['status'] == 'complete'
+    assert metadata['updatedCount'] == 2
+    assert metadata['blockedCount'] == 1
+    assert metadata['paginationRestarts'] == 1
+    assert metadata['diagnostics']['scanPass'] == 2
+    assert metadata['requests'] == changed_page + len(stable)
+    assert [params['page_no'] for _, params in client.calls] == list(range(1,changed_page+1)) + list(range(1,len(stable)+1))
+    assert metadata['paginationChanges'] == [{'scanPass':1, 'requestedPage':changed_page,
+        'previousTotalCount':old_total, 'previousTotalPages':(old_total+99)//100,
+        'totalCount':new_total, 'totalPages':(new_total+99)//100}]
+    for _, params in client.calls:
+        assert {k:v for k,v in params.items() if k != 'page_no'} == {
+            'bgn_de':'20261006','end_de':'20261007','page_count':100,'sort':'date','sort_mth':'asc'}
+    assert result['companies']['002460.KS']['epsComparability']['status'] == 'verified', 'discarded pass events must not leak'
+    affected = result['companies']['003090.KS']
+    assert affected['epsComparability']['status'] == 'unknown'
+    assert affected['actions']['events'][0]['receiptNo'] == stable[-1]['list'][-1]['rcept_no']
+    for symbol, row in result['companies'].items():
+        assert row['actions']['end'] == row['epsComparability']['end'] == '2026-10-07'
+        for field in ('checkedAt','annual','sources','reports','collection'):
+            assert row[field] == before['companies'][symbol][field]
+
+
+def test_perpetually_changing_totals_stop_after_two_passes_without_advancing_any_company():
+    first, _ = moving_packets(200,201,2)
+    second, _ = moving_packets(201,202,2)
+    before = cache()
+    client = Client(first + second)
+    result = refresh(before, client)
+    assert result['companies'] == before['companies']
+    assert result['collection'] == before['collection']
+    assert result['actionCollection']['updatedCount'] == 0
+    assert result['actionCollection']['reason'] == 'pagination_totals_changed'
+    assert result['actionCollection']['diagnostics']['scanPass'] == 2
+    assert len(result['actionCollection']['paginationChanges']) == 2
+    assert client.requests == 4
+
+
+@pytest.mark.parametrize('failure', ['count','wrongpage','outofrange','duplicate','identity','date','malformedtotal'])
+def test_changed_totals_do_not_retry_a_response_that_is_also_invalid(failure):
+    moving, stable = moving_packets(200,201,2)
+    packet = moving[-1]
+    if failure == 'count': packet['list'] = []
+    if failure == 'wrongpage': packet['page_no'] = 1
+    if failure == 'outofrange': packet.update(total_count=1,total_page=1,list=[])
+    if failure == 'duplicate': packet['list'][0] = moving[0]['list'][0]
+    if failure == 'identity': packet['list'][0]['corp_code'] = ''
+    if failure == 'date': packet['list'][0]['rcept_dt'] = '20261008'
+    if failure == 'malformedtotal': packet['total_count'] = 'crtfc_key=must-not-leak'
+    before = cache()
+    client = Client(moving + stable)
+    result = refresh(before, client)
+    assert result['companies'] == before['companies']
+    assert result['actionCollection']['status'] == 'unavailable'
+    assert client.requests == 2
+    assert 'paginationRestarts' not in result['actionCollection']
+    assert 'must-not-leak' not in str(result['actionCollection'])
+
+
+def test_zero_count_success_is_not_an_empty_or_retriable_review():
+    packet = {'status':'000','page_no':1,'page_count':100,'total_count':0,'total_page':0,'list':[]}
+    before = cache()
+    client = Client([packet,{'status':'013'}])
+    result = refresh(before,client)
+    assert result['companies'] == before['companies']
+    assert result['actionCollection']['reason'] == 'invalid_pagination'
+    assert client.requests == 1
+
+
+@pytest.mark.parametrize('max_pages', [2,3])
+def test_restarted_scan_shares_the_original_total_page_budget(max_pages):
+    moving, stable = moving_packets(200,201,2)
+    before = cache()
+    client = Client(moving + stable)
+    result = refresh(before, client, max_pages=max_pages)
+    assert result['companies'] == before['companies']
+    assert result['actionCollection']['reason'] == 'page_budget_incomplete'
+    assert client.requests == max_pages
+    assert result['actionCollection']['updatedCount'] == 0
+
+
+@pytest.mark.parametrize('name,status,reason', [
+    ('BudgetLimit','budget_exhausted','review_budget_exhausted'),
+    ('DartLimit','rate_limited','dart_rate_limit'),
+    ('TimeoutError','provider_error','provider_timeout'),
+])
+def test_restart_does_not_reset_shared_request_deadline_rate_or_provider_limits(name,status,reason):
+    moving, stable = moving_packets(200,201,2)
+    error = type(name,(Exception,),{})('https://provider?crtfc_key=must-not-leak')
+    before = cache()
+    client = Client(moving + [error] + stable)
+    result = refresh(before, client)
+    assert result['companies'] == before['companies']
+    metadata = result['actionCollection']
+    assert metadata['status'] == status
+    assert metadata['reason'] == reason
+    assert metadata['requests'] == client.requests == 3
+    assert metadata['diagnostics']['scanPass'] == 2
+    assert metadata['updatedCount'] == 0
+    assert 'must-not-leak' not in str(metadata)

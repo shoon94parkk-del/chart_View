@@ -80,6 +80,7 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
 
     client.get enforces the collector's shared request/deadline/020 limits. Only
     complete, identity-bound pagination can advance a previously verified scope.
+    Valid changing totals may restart once within the same total page budget.
     Financial values, source receipts and financial checkedAt are never changed.
     """
     original = deepcopy(cache)
@@ -133,67 +134,92 @@ def refresh_action_windows(cache, *, client, trade_date, checked_at, max_pages=1
         metadata['start'] = window_start.isoformat()
         if (end - window_start).days >= 31:
             return finish(original, 'unavailable', 'review_window_exceeds_31_days')
-        filings, seen, expected = [], set(), None
-        for page in range(1, max_pages + 1):
-            metadata['diagnostics'] = {'stage': 'request', 'requestedPage': page}
-            packet = client.get('list.json', {'bgn_de': window_start.strftime('%Y%m%d'),
-                'end_de': end.strftime('%Y%m%d'), 'page_count': 100, 'page_no': page,
-                'sort': 'date', 'sort_mth': 'asc'})
-            if not isinstance(packet, dict):
-                raise _ReviewInvalid('invalid_response_shape')
-            status = packet.get('status')
-            metadata['diagnostics'].update(stage='pagination',
-                responseStatus=status if status in {'000','013','010','011','012','020','100','101','800','900','901'} else 'other',
-                pageNo=_safe_count(packet.get('page_no')), pageCount=_safe_count(packet.get('page_count')),
-                totalCount=_safe_count(packet.get('total_count')), totalPages=_safe_count(packet.get('total_page')),
-                rowCount=len(packet['list']) if isinstance(packet.get('list'), list) and len(packet['list'])<=100 else None,
-                missingFields=[key for key in ('page_no','page_count','total_count','total_page','list') if key not in packet])
-            if packet.get('status') == '013':
-                if page != 1 or packet.get('list'):
-                    raise _ReviewInvalid('incomplete_pagination')
+        # A live disclosure listing may gain rows between pages. Restart only
+        # a valid response whose totals changed; all page reads across both
+        # passes still share max_pages and the client's request/deadline limits.
+        pages_used = 0
+        for scan_pass in range(2):
+            filings, seen, expected = [], set(), None
+            try:
+                for page in range(1, max_pages - pages_used + 1):
+                    pages_used += 1
+                    metadata['diagnostics'] = {'stage': 'request', 'requestedPage': page,
+                                               'scanPass': scan_pass + 1}
+                    packet = client.get('list.json', {'bgn_de': window_start.strftime('%Y%m%d'),
+                        'end_de': end.strftime('%Y%m%d'), 'page_count': 100, 'page_no': page,
+                        'sort': 'date', 'sort_mth': 'asc'})
+                    if not isinstance(packet, dict):
+                        raise _ReviewInvalid('invalid_response_shape')
+                    status = packet.get('status')
+                    metadata['diagnostics'].update(stage='pagination',
+                        responseStatus=status if status in {'000','013','010','011','012','020','100','101','800','900','901'} else 'other',
+                        pageNo=_safe_count(packet.get('page_no')), pageCount=_safe_count(packet.get('page_count')),
+                        totalCount=_safe_count(packet.get('total_count')), totalPages=_safe_count(packet.get('total_page')),
+                        rowCount=len(packet['list']) if isinstance(packet.get('list'), list) and len(packet['list'])<=100 else None,
+                        missingFields=[key for key in ('page_no','page_count','total_count','total_page','list') if key not in packet])
+                    if packet.get('status') == '013':
+                        if page != 1 or packet.get('list'):
+                            raise _ReviewInvalid('incomplete_pagination')
+                        break
+                    if packet.get('status') != '000':
+                        raise _ReviewInvalid('provider_status_not_success')
+                    total, pages = _integer(packet.get('total_count')), _integer(packet.get('total_page'))
+                    current, size = _integer(packet.get('page_no')), _integer(packet.get('page_count'))
+                    rows = packet.get('list')
+                    if (total <= 0 or not 1 <= current <= pages or current != page or
+                            size != 100 or pages != (total + 99) // 100 or
+                            not isinstance(rows, list) or len(rows) != max(0, min(100, total - (page - 1) * 100))):
+                        raise _ReviewInvalid('invalid_pagination')
+                    metadata['diagnostics']['stage'] = 'filings'
+                    for row_index, row in enumerate(rows):
+                        metadata['diagnostics'].update(rowIndex=row_index, invalidFields=[])
+                        if not isinstance(row, dict):
+                            raise _ReviewInvalid('invalid_filing')
+                        corp, receipt, observed, name = [row.get(k) for k in ('corp_code', 'rcept_no', 'rcept_dt', 'report_nm')]
+                        invalid = []
+                        for key, value, size in [('corp_code',corp,8),('rcept_no',receipt,14),('rcept_dt',observed,8)]:
+                            if not re.fullmatch(r'\d{'+str(size)+r'}', str(value or '')):
+                                invalid.append(key)
+                        if receipt in seen:
+                            invalid.append('duplicate_receipt')
+                        if not isinstance(name, str) or not name.strip():
+                            invalid.append('report_nm')
+                        if invalid:
+                            metadata['diagnostics']['invalidFields'] = invalid
+                            raise _ReviewInvalid('invalid_filing_identity')
+                        day = _day(f'{observed[:4]}-{observed[4:6]}-{observed[6:]}')
+                        metadata['diagnostics'].update(dateWithinWindow=window_start <= day <= end,
+                                                       receiptDateMatches=receipt[:8] == observed)
+                        # OpenDART documents rcept_no as an identifier and rcept_dt as
+                        # the reception date; their prefixes need not match.
+                        if not window_start <= day <= end:
+                            raise _ReviewInvalid('invalid_filing_date')
+                        seen.add(receipt)
+                        filings.append((corp, day, name, receipt))
+                    if expected is not None and expected != (total, pages):
+                        metadata.setdefault('paginationChanges', []).append({
+                            'scanPass': scan_pass + 1, 'requestedPage': page,
+                            'previousTotalCount': _safe_count(expected[0]),
+                            'previousTotalPages': _safe_count(expected[1]),
+                            'totalCount': _safe_count(total), 'totalPages': _safe_count(pages)})
+                        metadata['diagnostics'].update(stage='pagination',
+                            previousTotalCount=_safe_count(expected[0]),
+                            previousTotalPages=_safe_count(expected[1]))
+                        raise _ReviewInvalid('pagination_totals_changed')
+                    expected = total, pages
+                    if page >= pages:
+                        if len(filings) != total:
+                            raise _ReviewInvalid('incomplete_pagination')
+                        break
+                else:
+                    raise _ReviewInvalid('page_budget_incomplete')
                 break
-            if packet.get('status') != '000':
-                raise _ReviewInvalid('provider_status_not_success')
-            total, pages = _integer(packet.get('total_count')), _integer(packet.get('total_page'))
-            current, size = _integer(packet.get('page_no')), _integer(packet.get('page_count'))
-            rows = packet.get('list')
-            if (current != page or size != 100 or pages != (total + 99) // 100 or
-                    not isinstance(rows, list) or len(rows) != max(0, min(100, total - (page - 1) * 100)) or
-                    expected is not None and expected != (total, pages)):
-                raise _ReviewInvalid('invalid_pagination')
-            expected = total, pages
-            metadata['diagnostics']['stage'] = 'filings'
-            for row_index, row in enumerate(rows):
-                metadata['diagnostics'].update(rowIndex=row_index, invalidFields=[])
-                if not isinstance(row, dict):
-                    raise _ReviewInvalid('invalid_filing')
-                corp, receipt, observed, name = [row.get(k) for k in ('corp_code', 'rcept_no', 'rcept_dt', 'report_nm')]
-                invalid = []
-                for key, value, size in [('corp_code',corp,8),('rcept_no',receipt,14),('rcept_dt',observed,8)]:
-                    if not re.fullmatch(r'\d{'+str(size)+r'}', str(value or '')):
-                        invalid.append(key)
-                if receipt in seen:
-                    invalid.append('duplicate_receipt')
-                if not isinstance(name, str) or not name.strip():
-                    invalid.append('report_nm')
-                if invalid:
-                    metadata['diagnostics']['invalidFields'] = invalid
-                    raise _ReviewInvalid('invalid_filing_identity')
-                day = _day(f'{observed[:4]}-{observed[4:6]}-{observed[6:]}')
-                metadata['diagnostics'].update(dateWithinWindow=window_start <= day <= end,
-                                               receiptDateMatches=receipt[:8] == observed)
-                # OpenDART documents rcept_no as an identifier and rcept_dt as
-                # the reception date; their prefixes need not match.
-                if not window_start <= day <= end:
-                    raise _ReviewInvalid('invalid_filing_date')
-                seen.add(receipt)
-                filings.append((corp, day, name, receipt))
-            if page >= pages:
-                if len(filings) != total:
-                    raise _ReviewInvalid('incomplete_pagination')
-                break
-        else:
-            raise _ReviewInvalid('page_budget_incomplete')
+            except _ReviewInvalid as error:
+                if error.reason != 'pagination_totals_changed' or scan_pass == 1:
+                    raise
+                if pages_used >= max_pages:
+                    raise _ReviewInvalid('page_budget_incomplete') from None
+                metadata['paginationRestarts'] = 1
         metadata['diagnostics']['stage'] = 'apply'
         result = deepcopy(original)
         by_corp = {}
