@@ -54,7 +54,7 @@ jobs:
           done
       - name: API and frontend regressions
         run: |
-          pip install -q -r requirements.txt pytest httpx
+          pip install -q -r requirements.txt pytest httpx yfinance
           python -m pytest -q
           node --test tests/frontend.test.cjs
           node --test tests/live_quotes_v56_contract.cjs

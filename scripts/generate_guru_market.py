@@ -23,6 +23,10 @@ def frame_bars(frame,trade_date):
         day=dt.date().isoformat()
         if day>trade_date: continue
         vals=[r[k] for k in ('Close','High','Low','Volume')]
+        # Batched frames share an index: an issuer listed later gets entirely
+        # empty leading rows from its peers. They are not observed OHLCV bars.
+        # Partial rows and gaps after the first observation remain invalid.
+        if not rows and all(pd.isna(v) for v in vals): continue
         if any(pd.isna(v) for v in vals): return None
         rows.append([day,*[float(v) for v in vals]])
     rows=rows[-273:]

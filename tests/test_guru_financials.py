@@ -135,3 +135,74 @@ def test_combined_basic_eps_remains_ambiguous_with_duplicate_accounts():
     data['rows'][-1]['account_nm'] = '기본 및 희석주당이익'
     data['rows'].append(copy.deepcopy(data['rows'][-1]))
     assert normalized([data])['annual'][-1]['basicEps'] is None
+
+
+@pytest.mark.parametrize('label', [
+    '기본(희석)주당순이익(손실)', '기본(희석)주당순이익',
+    '보통주 기본(희석)주당이익', '기본주당이익및희석주당이익(손실)',
+    '기본주당손익 및 희석주당손익',
+])
+def test_retained_explicit_combined_basic_labels_keep_original_provenance(label):
+    data = report()
+    data['rows'][-1].update(account_nm=label, thstrm_amount='307', frmtrm_amount='114')
+    result = normalized([data])
+    assert result['annual'][-1]['basicEps'] == 307
+    assert result['annual'][-2]['basicEps'] == 114
+    assert result['sources']['2025']['basicEps']['accountName'] == label
+    assert result['sources']['2025']['basicEps']['receiptNo'] == data['receiptNo']
+
+
+@pytest.mark.parametrize('account_id', ['-표준계정코드 미사용-', None, ''])
+def test_explicit_nonstandard_basic_net_profit_loss_eps(account_id):
+    data = report()
+    data['rows'][-1].update(account_id=account_id, account_nm='보통주 기본주당순손익', thstrm_amount='1,342')
+    assert normalized([data])['annual'][-1]['basicEps'] == 1342
+
+
+@pytest.mark.parametrize('account_id,label', [
+    ('ifrs-full_BasicEarningsLossPerShareFromContinuingOperations', '보통주기본주당이익'),
+    ('ifrs-full_BasicEarningsLossPerShareFromDiscontinuedOperations', '기본주당순이익'),
+    ('ifrs-full_ProfitLossAttributableToOrdinaryEquityHoldersOfParentEntity', '기본주당손익'),
+    ('ifrs-full_ProfitLossAttributableToOrdinaryEquityHoldersOfParentEntity', '보통주기본주당순손익'),
+    ('ifrs-full_BasicEarningsLossPerShare', '계속영업기본주당이익'),
+    ('ifrs-full_BasicEarningsLossPerShare', '중단영업기본(희석)주당손익'),
+    ('custom_CombinedEps', '기본(희석)주당순이익'),
+    ('-표준계정코드 미사용-', '우선주기본주당순손익'),
+    ('ifrs-full_DilutedEarningsLossPerShare', '기본(희석)주당순이익'),
+])
+def test_component_or_monetary_account_cannot_be_reinterpreted_as_total_basic_eps(account_id, label):
+    data = report()
+    data['rows'][-1].update(account_id=account_id, account_nm=label)
+    assert normalized([data])['annual'][-1]['basicEps'] is None
+
+
+@pytest.mark.parametrize('invalid', ['duplicate', 'currency', 'receipt', 'short_period'])
+def test_new_explicit_basic_labels_do_not_bypass_financial_verification(invalid):
+    data = report()
+    data['rows'][-1]['account_nm'] = '기본(희석)주당순이익'
+    if invalid == 'duplicate': data['rows'].append(copy.deepcopy(data['rows'][-1]))
+    if invalid == 'currency': data['rows'][-1]['currency'] = 'USD'
+    if invalid == 'receipt': data['rows'][-1]['rcept_no'] = '20260313000001'
+    if invalid == 'short_period': data['periods']['thstrm']['start'] = '2025-07-01'
+    assert all(row['basicEps'] is None for row in normalized([data])['annual'])
+
+
+def test_cached_component_eps_is_invalidated_without_changing_financial_dates_or_values():
+    from guru_actions import renormalize_cached_reports
+    raw = report()
+    row = normalized([raw])
+    row.update(reports=[raw], checkedAt='2026-10-05T18:00:00+09:00',
+               collection={'status':'complete'}, actions={'status':'verified','events':[]})
+    raw['rows'][-1].update(account_id='ifrs-full_BasicEarningsLossPerShareFromContinuingOperations',
+                           account_nm='보통주기본주당이익')
+    for year in row['sources'].values():
+        year['basicEps']['accountId'] = raw['rows'][-1]['account_id']
+        year['basicEps']['accountName'] = raw['rows'][-1]['account_nm']
+    before = copy.deepcopy(row)
+    after = renormalize_cached_reports({'companies':{row['symbol']:row}})['companies'][row['symbol']]
+    assert row == before
+    assert all(r['basicEps'] is None for r in after['annual'])
+    for key in ('checkedAt','collection','actions','epsComparability','reports'):
+        assert after[key] == before[key]
+    for old,new in zip(before['annual'],after['annual']):
+        assert {k:v for k,v in old.items() if k!='basicEps'} == {k:v for k,v in new.items() if k!='basicEps'}

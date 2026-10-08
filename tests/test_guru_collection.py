@@ -1,4 +1,6 @@
 import time
+from copy import deepcopy
+import pytest
 from scripts.generate_guru_screening import refresh_cache, DartLimit
 from test_guru_financials import report
 
@@ -131,3 +133,148 @@ def test_refresh_does_not_delay_companies_for_upfront_bulk_requests():
     client=IndividuallyVerified()
     result=refresh_cache([{'symbol':'000001.KS','industry':'제조업'}],{},client=client,max_companies=1,max_requests=10,deadline=time.monotonic()+10)
     assert result['collection']['attempted']==1
+
+
+def action_client(total=2100, *, mutate=None, max_requests=30, max_seconds=10):
+    from scripts.generate_guru_screening import DartClient
+    calls=[]
+    class Response:
+        def __init__(self,packet):self.packet=packet
+        def raise_for_status(self):pass
+        def json(self):return self.packet
+    class Session:
+        def get(self,url,params,timeout):
+            page=params['page_no'];calls.append(page)
+            start=(page-1)*100
+            rows=[{'corp_code':'00126380','rcept_no':f'20260301{i:06}',
+                   'rcept_dt':'20261007','report_nm':'대량보유상황보고서'}
+                  for i in range(start,min(start+100,total))]
+            if rows and page==(total+99)//100:rows[-1]['report_nm']='주식분할결정'
+            packet={'status':'000','page_no':page,'page_count':100,
+                    'total_count':total,'total_page':(total+99)//100,'list':rows}
+            if mutate:mutate(packet,page)
+            return Response(packet)
+    client=DartClient('fake',{},max_requests,time.monotonic()+max_seconds)
+    client._get_session=lambda:Session()
+    return client,calls
+
+
+def test_full_action_review_passes_twenty_pages_and_checks_the_last_event():
+    client,calls=action_client()
+    result=client.actions('00126380','005930.KS','2022-01-01','2026-10-08')
+    assert calls==list(range(1,22))
+    assert result['status']=='verified'
+    assert result['events']==[{'date':'20261007','name':'주식분할결정','receiptNo':'20260301002099'}]
+    # The reception date and receipt identifier prefix intentionally differ.
+    assert client.requests==21
+
+
+@pytest.mark.parametrize('invalid', ['partial013','wrongpage','count','total','corp','receipt','date','duplicate','name'])
+def test_full_action_review_never_certifies_partial_or_malformed_pagination(invalid):
+    from scripts.generate_guru_screening import ProviderError
+    def mutate(packet,page):
+        if page!=2:return
+        if invalid=='partial013':packet.clear();packet['status']='013';return
+        if invalid=='wrongpage':packet['page_no']=1
+        if invalid=='count':packet['list']=[]
+        if invalid=='total':packet['total_count']+=1
+        if invalid=='corp':packet['list'][0]['corp_code']='99999999'
+        if invalid=='receipt':packet['list'][0]['rcept_no']='bad'
+        if invalid=='date':packet['list'][0]['rcept_dt']='20260230'
+        if invalid=='duplicate':packet['list'][0]['rcept_no']='20260301000000'
+        if invalid=='name':packet['list'][0]['report_nm']=''
+    client,calls=action_client(total=101,mutate=mutate)
+    with pytest.raises(ProviderError,match='pagination verification failed'):
+        client.actions('00126380','005930.KS','2022-01-01','2026-10-08')
+    assert calls==[1,2]
+
+
+@pytest.mark.parametrize('stop', ['requests','deadline','020'])
+def test_full_action_review_keeps_shared_budget_and_rate_limit_stops(stop):
+    from scripts.generate_guru_screening import BudgetLimit
+    def mutate(packet,page):
+        if stop=='020' and page==3:packet.clear();packet['status']='020'
+    client,calls=action_client(max_requests=3,mutate=mutate)
+    if stop=='deadline':client.deadline=time.monotonic()-1
+    with pytest.raises(DartLimit if stop=='020' else BudgetLimit):
+        client.actions('00126380','005930.KS','2022-01-01','2026-10-08')
+    assert len(calls)==(0 if stop=='deadline' else 3)
+    if stop=='020':
+        with pytest.raises(DartLimit):client.get('list.json',{})
+        assert len(calls)==3
+
+
+def test_empty_initial_action_review_is_distinct_from_partial_no_data():
+    client,_=action_client()
+    client.get=lambda *args:{'status':'013'}
+    assert client.actions('00126380','005930.KS','2022-01-01','2026-10-08')['status']=='verified'
+
+
+def test_selected_retry_overrides_only_its_daily_cooldown_and_preserves_all_other_companies():
+    from datetime import datetime,timezone
+    universe=[{'symbol':f'{i:06}.KS','industry':'제조업'} for i in range(3)]
+    before={'companies':{r['symbol']:{'symbol':r['symbol'],'checkedAt':datetime.now(timezone.utc).isoformat(),'annual':[{'year':2025,'basicEps':100+i}]} for i,r in enumerate(universe)}}
+    untouched=deepcopy(before);client=FakeClient()
+    result=refresh_cache(universe,before,client=client,max_companies=1,max_requests=10,
+                         deadline=time.monotonic()+10,symbols=['000001.KS'])
+    assert before==untouched
+    assert client.requests==result['collection']['attempted']==1
+    assert set(result['companies'])==set(before['companies'])
+    for symbol in ['000000.KS','000002.KS']:assert result['companies'][symbol]==before['companies'][symbol]
+
+
+def test_invalid_selected_symbol_fails_before_any_company_request():
+    client=FakeClient()
+    with pytest.raises(ValueError,match='current KIND universe'):
+        refresh_cache([{'symbol':'000001.KS'}],{},client=client,max_companies=5,max_requests=10,
+                      deadline=time.monotonic()+10,symbols=['999999.KS'])
+    assert client.requests==0
+
+
+def test_selected_retry_respects_company_budget_and_preserves_unselected_due_rows():
+    from datetime import datetime,timedelta,timezone
+    universe=[{'symbol':f'{i:06}.KS','industry':'제조업'} for i in range(4)]
+    before={'companies':{r['symbol']:{'checkedAt':(datetime.now(timezone.utc)-timedelta(days=5)).isoformat(),'annual':[{'year':2025}]} for r in universe}}
+    result=refresh_cache(universe,before,client=FakeClient(),max_companies=1,max_requests=10,
+                         deadline=time.monotonic()+10,symbols=['000001.KS','000002.KS'])
+    assert result['collection']['attempted']==1 and result['collection']['status']=='partial'
+    for symbol in ['000000.KS','000003.KS']:assert result['companies'][symbol]==before['companies'][symbol]
+
+
+def test_symbols_cli_selects_one_fresh_company_without_global_scan_or_cache_loss(monkeypatch):
+    from datetime import datetime,timezone
+    import scripts.generate_guru_screening as module
+    import scripts.generate_screener as screener
+    universe=[{'symbol':f'{i:06}.KS','industry':'제조업'} for i in range(2)]
+    previous={'universe':universe,'companies':{r['symbol']:{'symbol':r['symbol'],'checkedAt':datetime.now(timezone.utc).isoformat(),'annual':[{'year':2025}]} for r in universe}}
+    monkeypatch.setenv('DART_API_KEY','fake')
+    monkeypatch.setattr(module.sys,'argv',['collector','--collect','--refresh-actions','--symbols','000001.KS'])
+    monkeypatch.setattr(screener,'load_universe',lambda:universe)
+    monkeypatch.setattr(module,'load_json',lambda path,default:deepcopy(previous) if path.name=='guru_financials.json' else {})
+    client=FakeClient()
+    monkeypatch.setattr(module,'DartClient',lambda *args:client)
+    monkeypatch.setattr(module,'refresh_action_windows',lambda *args,**kwargs:pytest.fail('Targeted full review must not start a global action scan'))
+    writes=[]
+    monkeypatch.setattr(module,'atomic_json',lambda path,value:writes.append((path.name,deepcopy(value))))
+    def build(current,prices,cache,**kwargs):
+        assert current==universe and cache['universe']==universe
+        assert cache['companies']['000000.KS']==previous['companies']['000000.KS']
+        assert set(cache['companies'])=={'000000.KS','000001.KS'}
+        return {'tradeDate':'2026-10-07','snapshotVersion':'test','collection':cache['collection'],'strategies':{}},{}
+    monkeypatch.setattr(module,'build_snapshot',build)
+    monkeypatch.setattr(module,'publish_snapshot',lambda *args:None)
+    module.main()
+    assert client.requests==1 and writes
+
+
+@pytest.mark.parametrize('symbols', ['999999.KS','bad','000001.KS,'])
+def test_symbols_cli_rejects_unknown_or_malformed_requests_before_dart_collection(monkeypatch,symbols):
+    import scripts.generate_guru_screening as module
+    import scripts.generate_screener as screener
+    monkeypatch.setenv('DART_API_KEY','fake')
+    monkeypatch.setattr(module.sys,'argv',['collector','--collect','--symbols',symbols])
+    monkeypatch.setattr(module,'load_json',lambda *args:{})
+    monkeypatch.setattr(screener,'load_universe',lambda:[{'symbol':'000001.KS'}])
+    monkeypatch.setattr(module,'DartClient',lambda *args:pytest.fail('Invalid selection must not create a DART client'))
+    with pytest.raises(SystemExit) as error:module.main()
+    assert error.value.code==2
