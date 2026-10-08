@@ -1,6 +1,6 @@
 # 새 PC Codex 인수인계 — Chart View 공유 서버
 
-최종 갱신: 2026-10-05 KST. 최신 main과 이 문서가 작업 시작점이다. 대화 기록·이전 PC의 work/outputs/임시 경로에 의존하지 않는다.
+최종 갱신: 2026-10-08 KST. 최신 main과 이 문서가 작업 시작점이다. 대화 기록·이전 PC의 work/outputs/임시 경로에 의존하지 않는다.
 
 ## 두 저장소와 서비스
 
@@ -44,7 +44,7 @@ python -m venv .venv
 .venv/Scripts/python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-저장된 guru 데이터의 계산/조회에는 DART 키가 없어도 된다. 실제 공급자 수집은 기존 GitHub Actions Secret `DART_API_KEY`를 사용한다. 키/훅/토큰을 문서·커밋·대화에 쓰지 않는다. 새 PC에서 GitHub/Codex/Render 인증은 본인의 기존 계정으로 한다. 로컬 브라우저 관심·메모와 인증 세션은 clone으로 이동하지 않는다.
+저장된 guru 데이터의 계산/조회에는 DART 키가 없어도 된다. 실제 공급자 수집은 기존 GitHub Actions Secret `DART_API_KEY`를 사용한다. 키/훅/토큰을 문서·커밋·대화에 쓰지 않는다. 새 PC에서 GitHub/Codex/Render 인증은 본인의 기존 계정으로 한다. 프런트의 [Codex 도구·skill 이관](https://github.com/shoon94parkk-del/chart-view-toss/blob/main/docs/CODEX_TRANSFER.md)은 설치된 도구와 조사만 한 프로젝트, 플랫폼 skill 재연결을 구분한다. 로컬 브라우저 관심·메모와 인증 세션은 clone으로 이동하지 않는다.
 
 ## 재현·수집 명령
 
@@ -73,6 +73,6 @@ GitHub Actions **Update Guru Screening**는05:00KST 일정 및 성공한 기술�
 4. 세 공용Web 자산의 Git canonical blob 해시/HTML release key 정합성과 guru 결과·증거 버전을 검증.
 5. 전략별 실제 후보 API200·오래된 버전409, 모든 F 직접 전략 경로HTTP200, 모바일320/390/430 동선을 검증.
 
-표시상Live만으로 완료라고 말하지 않는다. 데이터 커밋도 서버 근거 파일을 바꾸므로 새 배포가 필요하다. F raw GitHub CDN이 B보다 먼저 갱신되면 명시적 최신 결과 확인은 B snapshot으로 복구한다. 배포를 연속 중복 실행하지 않는다.
+표시상Live만으로 완료라고 말하지 않는다. 데이터 커밋도 서버 근거 파일을 바꾸므로 새 배포가 필요하다. F raw GitHub CDN이 B보다 먼저 갱신되면 명시적 최신 결과 확인은 B snapshot을 재조회한다. F는 기준일·생성시각이 더 오래된 B 결과로 현재 목록을 되돌리지 않고 안내와 정확한 근거 버전을 유지한다. 최신 CDN 근거의409는 B에 같은 데이터 snapshot/evidence를 게시한 뒤200으로 확인해야 한다. 배포를 연속 중복 실행하지 않는다.
 
 실제 Android/iOS Toss Sandbox, 공개 제출/정책/데이터 공급자 권리는 프런트 `P0_RELEASE_GATE.md`에 남아 있다. 웹 미리보기 검증과 구분한다. 최종 배포 SHA·PR·운영 개수는 계획의 검증 기록과 GitHub Actions/Render를 확인한다. 옛 인수인계 숫자를 오늘 실시간 값으로 간주하지 않는다.
