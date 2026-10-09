@@ -206,3 +206,52 @@ def test_cached_component_eps_is_invalidated_without_changing_financial_dates_or
         assert after[key] == before[key]
     for old,new in zip(before['annual'],after['annual']):
         assert {k:v for k,v in old.items() if k!='basicEps'} == {k:v for k,v in new.items() if k!='basicEps'}
+
+@pytest.mark.parametrize('account_id', ['-표준계정코드 미사용-',None,''])
+@pytest.mark.parametrize('label', ['기본및희석주당이익','보통주 기본 및 희석주당이익','기본(희석)주당순이익','기본주당이익 및 희석주당이익(손실)'])
+def test_explicit_nonstandard_combined_total_eps_uses_original_amount(account_id,label):
+    data=report();data['rows'][-1].update(account_id=account_id,account_nm=label,thstrm_amount='-2,916')
+    result=normalized([data])
+    assert result['annual'][-1]['basicEps']==-2916
+    assert result['sources']['2025']['basicEps']['accountName']==label
+    assert result['sources']['2025']['basicEps']['accountId']==account_id
+
+
+@pytest.mark.parametrize('label',['기본 및 희석주당이익','보통주기본및희석주당이익'])
+def test_nonstandard_combined_eps_duplicates_remain_ambiguous(label):
+    data=report();data['rows'][-1].update(account_id='-표준계정코드 미사용-',account_nm=label)
+    data['rows'].append(copy.deepcopy(data['rows'][-1]))
+    assert normalized([data])['annual'][-1]['basicEps'] is None
+
+
+@pytest.mark.parametrize('account_id', ['ifrs-full_BasicEarningsLossPerShare', '-표준계정코드 미사용-'])
+def test_nonstandard_combined_fallback_never_displaces_identified_basic_eps(account_id):
+    data=report(2023,'20240312001224')
+    data['rows'][-1].update(account_id=account_id,account_nm='기본주당이익',frmtrm_amount='4,787')
+    combined=copy.deepcopy(data['rows'][-1])
+    combined.update(account_id='-표준계정코드 미사용-',account_nm='기본및희석주당이익',frmtrm_amount='4,837')
+    data['rows'].append(combined)
+    result=normalized([data])
+    assert result['annual'][-2]['basicEps']==4787
+    assert result['sources']['2022']['basicEps']['accountName']=='기본주당이익'
+
+
+def test_nonstandard_combined_fallback_cannot_resolve_existing_ambiguous_basic_eps():
+    data=report()
+    data['rows'].append(copy.deepcopy(data['rows'][-1]))
+    combined=copy.deepcopy(data['rows'][-1])
+    combined.update(account_id='-표준계정코드 미사용-',account_nm='보통주 기본 및 희석주당이익')
+    data['rows'].append(combined)
+    assert normalized([data])['annual'][-1]['basicEps'] is None
+
+
+@pytest.mark.parametrize('invalid', ['currency','receipt','short_period','component','detail'])
+def test_nonstandard_combined_eps_preserves_source_and_whole_total_guards(invalid):
+    data=report()
+    data['rows'][-1].update(account_id='-표준계정코드 미사용-',account_nm='기본 및 희석주당이익')
+    if invalid=='currency':data['rows'][-1]['currency']='USD'
+    if invalid=='receipt':data['rows'][-1]['rcept_no']='20260313000001'
+    if invalid=='short_period':data['periods']['thstrm']['start']='2025-07-01'
+    if invalid=='component':data['rows'][-1]['account_nm']='계속영업 기본 및 희석주당이익'
+    if invalid=='detail':data['rows'][-1]['account_detail']='사업부문'
+    assert all(row['basicEps'] is None for row in normalized([data])['annual'])

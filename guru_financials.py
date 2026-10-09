@@ -67,6 +67,20 @@ def _eps_account(rows):
     eligible = [r for r in rows if r.get('sj_div') in {'IS', 'CIS'}
                 and str(r.get('account_detail') or '-').strip() in {'', '-'}
                 and identified_basic(r)]
+    if not eligible:
+        # Some issuers explicitly report one combined basic/diluted total using
+        # DART's unused account ID. It is a fallback, never allowed to displace
+        # an already identifiable Basic EPS row or resolve duplicate totals.
+        def combined_nonstandard(row):
+            label=re.sub(r'\s', '', str(row.get('account_nm') or ''))
+            if row.get('account_id') not in {'-표준계정코드 미사용-', None, ''}:
+                return False
+            return bool(re.fullmatch(r'(보통주)?기본(?:및|과|/|·|ㆍ)희석주당(이익|손익|순이익)(\(손실\))?',label) or
+                        re.fullmatch(r'(보통주)?기본\(희석\)주당(이익|손익|순이익)(\(손실\))?',label) or
+                        re.fullmatch(r'(보통주)?기본주당(이익|손익|순이익)(\(손실\))?(및|과|/|·|ㆍ)희석주당(이익|손익|순이익)(\(손실\))?',label))
+        eligible=[r for r in rows if r.get('sj_div') in {'IS', 'CIS'}
+                  and str(r.get('account_detail') or '-').strip() in {'', '-'}
+                  and combined_nonstandard(r)]
     ordinary = [r for r in eligible if '보통' in r.get('account_nm', '')]
     eligible = ordinary or eligible
     for sj in ('IS', 'CIS'):

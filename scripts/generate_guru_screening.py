@@ -175,6 +175,23 @@ class DartClient:
             # Always recheck the older filing: corrections also change historical EPS.
             old=self.report(corp,target-2,basis,month)
             if old: reports.append(old)
+            # An older report may be unavailable even though the following
+            # official annual filing reports that year's comparative values.
+            # Dates still come from the same receipt/basis major accounts.
+            observed=normalize_reports(reports,symbol=row['symbol'],classification=classification,actions={})
+            earliest=target-3
+            covered=any(source.get('periodStart')==f'{earliest}-01-01'
+                        and source.get('periodEnd')==f'{earliest}-12-31'
+                        for source in observed['sources'].get(str(earliest),{}).values())
+            earliest_row=next((value for value in observed['annual'] if value['year']==earliest),{})
+            latest_row=next((value for value in observed['annual'] if value['year']==target),{})
+            # Empty comparatives are not coverage. Do not refetch merely
+            # because the entire filing is in an unsupported currency, though.
+            empty_comparative=(any(latest_row.get(key) is not None for key in KEYS)
+                               and not any(earliest_row.get(key) is not None for key in KEYS))
+            if not covered or empty_comparative:
+                bridge=self.report(corp,target-1,basis,month)
+                if bridge: reports.append(bridge)
         start=f'{target-3}-01-01'; end=now.date().isoformat()
         try:
             actions=self.actions(corp,row['symbol'],start,end) if latest else {'status':'unknown'}
