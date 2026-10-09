@@ -357,3 +357,8 @@ Basic mobile table class, accessible cell labels and compact values must be appl
 The release UI basis-control annotator must skip valuation-compact-cell elements. Keep their title/dataset provenance and desktop disclosure controls; avoid mutually re-inserting/removing child nodes. Verify both annotators together as well as the real mobile layout.
 
 When optional metadata completes, the existing desktop basis disclosure body must match current provenance. Update text only when changed, preserving the disclosure object/open state and avoiding observer churn.
+## 2026-10-09 — Annual comparative bridge and nonstandard combined EPS
+
+- Four-year coverage requires actual full-year comparative period evidence; a placeholder year with null values is not proof. Missing/short earliest periods or entirely empty earlier amounts may trigger one intervening official annual report on the existing basis. Healthy four-year reports and currency-only exclusions must not add requests. No basis mixing, artificial year/date/value creation or budget/rate-limit bypass.
+- New explicit nonstandard combined EPS must remain fallback-only after original Basic EPS candidate identification. Canonical/prior-identifiable values and their provenance outrank fallback; existing ambiguities stay rejected. Whole-total identity, IS/CIS/detail, exact receipt, KRW and period checks apply unchanged. Keep actual negative values; do not clear events or advance checkedAt via saved-report normalization.
+- Protect with tests/test_guru_collection.py and tests/test_guru_financials.py; actual official backfill, exact-main health/assets/versioned evidence and Toss mobile counts must be separately verified before claiming publication.

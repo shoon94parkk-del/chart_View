@@ -278,3 +278,92 @@ def test_symbols_cli_rejects_unknown_or_malformed_requests_before_dart_collectio
     monkeypatch.setattr(module,'DartClient',lambda *args:pytest.fail('Invalid selection must not create a DART client'))
     with pytest.raises(SystemExit) as error:module.main()
     assert error.value.code==2
+
+@pytest.fixture
+def annual_collector(monkeypatch):
+    import scripts.generate_guru_screening as module
+    from datetime import datetime
+    class FixedDate(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 10, 9, tzinfo=module.KST)
+    monkeypatch.setattr(module, 'datetime', FixedDate)
+    def build(reports):
+        client=module.DartClient('test',{'000001':{'corpCode':'00000001'}},20,time.monotonic()+10)
+        calls=[]
+        def get_report(corp,year,basis,month=''):
+            calls.append((year,basis))
+            value=reports.get((year,basis))
+            if isinstance(value,Exception):raise value
+            return deepcopy(value)
+        client.report=get_report
+        client.actions=lambda *args:{'status':'verified','source':'official disclosures','start':'2022-01-01','end':'2026-10-09','events':[]}
+        return client,calls
+    return build
+
+
+def test_missing_pre_listing_report_uses_official_next_year_comparative(annual_collector):
+    client,calls=annual_collector({(2025,'CFS'):report(),(2024,'CFS'):report(2024,'20250312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert [r['year'] for r in value['annual']]==[2022,2023,2024,2025]
+    assert value['sources']['2022']['equity']['receiptNo']=='20250312001224'
+    assert value['sources']['2022']['equity']['period']=='bfefrmtrm_amount'
+    assert value['sources']['2023']['equity']['receiptNo']=='20260312001224'
+    assert calls==[(2025,'CFS'),(2023,'CFS'),(2024,'CFS')]
+
+
+def test_invalid_older_annual_period_can_be_backfilled_from_verified_comparative(annual_collector):
+    invalid=report(2023,'20240312001224');invalid['periods']['thstrm']['start']='2023-07-01'
+    client,_=annual_collector({(2025,'CFS'):report(),(2023,'CFS'):invalid,(2024,'CFS'):report(2024,'20250312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert value['annual'][0]['year']==2022
+    assert value['sources']['2022']['equity']['periodStart']=='2022-01-01'
+
+
+def test_present_year_with_short_comparative_period_still_fetches_verified_bridge(annual_collector):
+    old=report(2023,'20240312001224');old['periods']['frmtrm']['start']='2022-07-01'
+    client,calls=annual_collector({(2025,'CFS'):report(),(2023,'CFS'):old,(2024,'CFS'):report(2024,'20250312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert value['annual'][0]['basicEps']==1234.5
+    assert value['sources']['2022']['basicEps']['periodStart']=='2022-01-01'
+    assert calls==[(2025,'CFS'),(2023,'CFS'),(2024,'CFS')]
+
+
+def test_empty_older_comparative_amounts_can_use_official_bridge(annual_collector):
+    old=report(2023,'20240312001224')
+    for account in old['rows']:account['frmtrm_amount']=''
+    client,calls=annual_collector({(2025,'CFS'):report(),(2023,'CFS'):old,(2024,'CFS'):report(2024,'20250312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert value['annual'][0]['equity']==100
+    assert value['sources']['2022']['equity']['receiptNo']=='20250312001224'
+    assert calls==[(2025,'CFS'),(2023,'CFS'),(2024,'CFS')]
+
+
+def test_currency_excluded_four_year_report_does_not_trigger_empty_comparative_retry(annual_collector):
+    old,new=report(2023,'20240312001224'),report()
+    for data in (old,new):
+        for account in data['rows']:account['currency']='USD'
+    client,calls=annual_collector({(2025,'CFS'):new,(2023,'CFS'):old})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert all(annual['equity'] is None for annual in value['annual'])
+    assert calls==[(2025,'CFS'),(2023,'CFS')]
+
+
+def test_complete_four_year_evidence_does_not_fetch_an_extra_report(annual_collector):
+    client,calls=annual_collector({(2025,'CFS'):report(),(2023,'CFS'):report(2023,'20240312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert len(value['annual'])==4
+    assert calls==[(2025,'CFS'),(2023,'CFS')]
+
+
+def test_comparative_fallback_never_mixes_basis_or_invents_missing_year(annual_collector):
+    client,calls=annual_collector({(2025,'CFS'):report(),(2024,'OFS'):report(2024,'20250312001224')})
+    value=client.collect({'symbol':'000001.KS','industry':'제조업'},None)
+    assert [r['year'] for r in value['annual']]==[2023,2024,2025]
+    assert (2024,'OFS') not in calls
+
+
+def test_comparative_fallback_keeps_shared_stop_budget(annual_collector):
+    from scripts.generate_guru_screening import BudgetLimit
+    client,_=annual_collector({(2025,'CFS'):report(),(2024,'CFS'):BudgetLimit()})
+    with pytest.raises(BudgetLimit):client.collect({'symbol':'000001.KS','industry':'제조업'},None)
