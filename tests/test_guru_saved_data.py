@@ -39,9 +39,14 @@ def test_saved_financial_evidence_has_actual_same_basis_receipt_amounts(saved):
                 reports = [r for r in original['reports']
                            if r['receiptNo'] == source['receiptNo'] and r['basis'] == company['basis']]
                 assert len(reports) == 1, (symbol, year, key)
+                assert reports[0]['periods'][source['period'].removesuffix('_amount')] == {
+                    'start': source['periodStart'], 'end': source['periodEnd']}
+                statements = {'IS', 'CIS'} if key in {'netIncome', 'basicEps'} else {'CF'} if key == 'operatingCashFlow' else {'BS'}
                 accounts = [r for r in reports[0]['rows']
                             if r.get('account_id') == source['accountId']
                             and r.get('account_nm') == source['accountName']
+                            and r.get('sj_div') in statements
+                            and str(r.get('account_detail') or '-').strip() in {'', '-'}
                             and r.get('rcept_no') == source['receiptNo'] and r.get('currency') == 'KRW']
                 assert any(amount(r.get(source['period'])) == value for r in accounts), (symbol, year, key)
 
