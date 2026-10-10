@@ -919,70 +919,70 @@
     "005930": {
       "annual": [
         {
-          "operatingProfit": -11526297000000,
-          "revenue": 170374090000000,
+          "operatingProfit": 6566976000000,
+          "revenue": 258935494000000,
           "year": 2023
         },
         {
-          "operatingProfit": 12361034000000,
-          "revenue": 209052241000000,
+          "operatingProfit": 32725961000000,
+          "revenue": 300870903000000,
           "year": 2024
         },
         {
-          "operatingProfit": 23603619000000,
-          "revenue": 238043009000000,
+          "operatingProfit": 43601051000000,
+          "revenue": 333605938000000,
           "year": 2025
         }
       ],
       "annualReportYear": 2025,
       "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260310002820",
       "available": true,
-      "basis": "별도재무제표",
+      "basis": "연결재무제표",
       "currency": "KRW",
       "interim": {
-        "operatingProfit": 49236027000000,
-        "priorOperatingProfit": 1469273000000,
-        "priorRevenue": 55534871000000,
-        "quarter": 1,
-        "revenue": 109277909000000,
+        "operatingProfit": 146725209000000,
+        "priorOperatingProfit": 11361329000000,
+        "priorRevenue": 153706820000000,
+        "quarter": 2,
+        "revenue": 305372914000000,
         "singleQuarter": {
-          "operatingProfit": 49236027000000,
-          "revenue": 109277909000000
+          "operatingProfit": 89492412000000,
+          "revenue": 171499470000000
         },
         "year": 2026
       },
-      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515002181",
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003699",
       "parserVersion": 3,
       "quality": {
         "annual": [
           {
-            "assets": 296857289000000,
-            "equity": 224787774000000,
-            "inventories": 29338151000000,
-            "liabilities": 72069515000000,
-            "netIncome": 25397099000000,
-            "operatingCashFlow": 34455084000000,
-            "receivables": 27363016000000,
+            "assets": 455905980000000,
+            "equity": 363677865000000,
+            "inventories": 51625874000000,
+            "liabilities": 92228115000000,
+            "netIncome": 15487100000000,
+            "operatingCashFlow": 44137427000000,
+            "receivables": 36647393000000,
             "year": 2023
           },
           {
-            "assets": 324966127000000,
-            "equity": 236396657000000,
-            "inventories": 29154115000000,
-            "liabilities": 88569470000000,
-            "netIncome": 23582565000000,
-            "operatingCashFlow": 52491497000000,
-            "receivables": 33840357000000,
+            "assets": 514531948000000,
+            "equity": 402192070000000,
+            "inventories": 51754865000000,
+            "liabilities": 112339878000000,
+            "netIncome": 34451351000000,
+            "operatingCashFlow": 72982621000000,
+            "receivables": 43623073000000,
             "year": 2024
           },
           {
-            "assets": 358902051000000,
-            "equity": 254330083000000,
-            "inventories": 28051916000000,
-            "liabilities": 104571968000000,
-            "netIncome": 33686601000000,
-            "operatingCashFlow": 68733956000000,
-            "receivables": 42081734000000,
+            "assets": 566942110000000,
+            "equity": 436320337000000,
+            "inventories": 52636828000000,
+            "liabilities": 130621773000000,
+            "netIncome": 45206805000000,
+            "operatingCashFlow": 85315148000000,
+            "receivables": 51127642000000,
             "year": 2025
           }
         ],
@@ -1056,87 +1056,87 @@
             "assets": {
               "accountId": "ifrs-full_Assets",
               "accountName": "자산총계",
-              "currentPeriod": "제 58 기 1분기말",
+              "currentPeriod": "제 58 기 반기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 57 기말",
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "BS"
             },
             "equity": {
               "accountId": "ifrs-full_Equity",
               "accountName": "자본총계",
-              "currentPeriod": "제 58 기 1분기말",
+              "currentPeriod": "제 58 기 반기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 57 기말",
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "BS"
             },
             "inventories": {
               "accountId": "ifrs-full_Inventories",
               "accountName": "재고자산",
-              "currentPeriod": "제 58 기 1분기말",
+              "currentPeriod": "제 58 기 반기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 57 기말",
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "BS"
             },
             "liabilities": {
               "accountId": "ifrs-full_Liabilities",
               "accountName": "부채총계",
-              "currentPeriod": "제 58 기 1분기말",
+              "currentPeriod": "제 58 기 반기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 57 기말",
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "BS"
             },
             "netIncome": {
               "accountId": "ifrs-full_ProfitLoss",
-              "accountName": "분기순이익",
-              "currentPeriod": "제 58 기 1분기",
-              "previousInterimPeriod": "제 57 기 1분기",
+              "accountName": "반기순이익",
+              "currentPeriod": "제 58 기 반기",
+              "previousInterimPeriod": "제 57 기 반기",
               "previousPeriod": null,
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "IS"
             },
             "operatingCashFlow": {
               "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
               "accountName": "영업활동현금흐름",
-              "currentPeriod": "제 58 기 1분기",
-              "previousInterimPeriod": "제 57 기 1분기",
+              "currentPeriod": "제 58 기 반기",
+              "previousInterimPeriod": "제 57 기 반기",
               "previousPeriod": null,
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "CF"
             },
             "receivables": {
               "accountId": "ifrs-full_CurrentTradeReceivables",
               "accountName": "매출채권",
-              "currentPeriod": "제 58 기 1분기말",
+              "currentPeriod": "제 58 기 반기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 57 기말",
-              "receiptNo": "20260515002181",
+              "receiptNo": "20260814003699",
               "statement": "BS"
             }
           },
           "balanceComparison": "previous_year_end",
           "current": {
-            "assets": 404509604000000,
-            "equity": 284420372000000,
-            "inventories": 30889508000000,
-            "liabilities": 120089232000000,
-            "netIncome": 39924263000000,
-            "operatingCashFlow": 36009857000000,
-            "receivables": 71257262000000
+            "assets": 759480516000000,
+            "equity": 579309676000000,
+            "inventories": 71389118000000,
+            "liabilities": 180170840000000,
+            "netIncome": 118849733000000,
+            "operatingCashFlow": 145355192000000,
+            "receivables": 96408968000000
           },
           "previous": {
-            "assets": 358902051000000,
-            "equity": 254330083000000,
-            "inventories": 28051916000000,
-            "liabilities": 104571968000000,
-            "netIncome": 6387197000000,
-            "operatingCashFlow": 14330619000000,
-            "receivables": 42081734000000
+            "assets": 566942110000000,
+            "equity": 436320337000000,
+            "inventories": 52636828000000,
+            "liabilities": 130621773000000,
+            "netIncome": 13339313000000,
+            "operatingCashFlow": 33941002000000,
+            "receivables": 51127642000000
           },
-          "quarter": 1,
+          "quarter": 2,
           "year": 2026
         }
       },
@@ -2522,35 +2522,35 @@
     "068270": {
       "annual": [
         {
-          "operatingProfit": 638489472608,
-          "revenue": 1873430064117,
+          "operatingProfit": 651481422157,
+          "revenue": 2176431531380,
           "year": 2023
         },
         {
-          "operatingProfit": 1211013945929,
-          "revenue": 3709213742987,
+          "operatingProfit": 492015534847,
+          "revenue": 3557303554371,
           "year": 2024
         },
         {
-          "operatingProfit": 918952338732,
-          "revenue": 2928637506047,
+          "operatingProfit": 1168471345595,
+          "revenue": 4162495108881,
           "year": 2025
         }
       ],
       "annualReportYear": 2025,
       "annualSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260316001415",
       "available": true,
-      "basis": "별도재무제표",
+      "basis": "연결재무제표",
       "currency": "KRW",
       "interim": {
-        "operatingProfit": 764113715675,
-        "priorOperatingProfit": 803062058495,
-        "priorRevenue": 1852979532553,
+        "operatingProfit": 773661225753,
+        "priorOperatingProfit": 391887649948,
+        "priorRevenue": 1803369024709,
         "quarter": 2,
-        "revenue": 1812322535783,
+        "revenue": 2538678712902,
         "singleQuarter": {
-          "operatingProfit": 388472171573,
-          "revenue": 893667830228
+          "operatingProfit": 451791591338,
+          "revenue": 1393692794953
         },
         "year": 2026
       },
@@ -2559,33 +2559,33 @@
       "quality": {
         "annual": [
           {
-            "assets": 19296618135029,
-            "equity": 17040573155434,
-            "inventories": 2170988802690,
-            "liabilities": 2256044979595,
-            "netIncome": 563268080305,
-            "operatingCashFlow": 500166880182,
-            "receivables": 1249005300841,
+            "assets": 19956813831274,
+            "equity": 17125794307235,
+            "inventories": 3038708399955,
+            "liabilities": 2831019524039,
+            "netIncome": 539706505110,
+            "operatingCashFlow": 537158606192,
+            "receivables": 939169490610,
             "year": 2023
           },
           {
-            "assets": 20241375786274,
-            "equity": 17569313293255,
-            "inventories": 1556000634378,
-            "liabilities": 2672062493019,
-            "netIncome": 1004841104456,
-            "operatingCashFlow": 744199738378,
-            "receivables": 2612064794955,
+            "assets": 21055222437706,
+            "equity": 17580062368691,
+            "inventories": 2765942959864,
+            "liabilities": 3475160069015,
+            "netIncome": 418883310404,
+            "operatingCashFlow": 901870301325,
+            "receivables": 1215250840801,
             "year": 2024
           },
           {
-            "assets": 21813010247799,
-            "equity": 17409723386976,
-            "inventories": 1441107973170,
-            "liabilities": 4403286860823,
-            "netIncome": 847542675067,
-            "operatingCashFlow": 427594217542,
-            "receivables": 3662583667127,
+            "assets": 22334900189800,
+            "equity": 17352529819114,
+            "inventories": 2803460062651,
+            "liabilities": 4982370370686,
+            "netIncome": 1031483789240,
+            "operatingCashFlow": 646050776661,
+            "receivables": 1790421768686,
             "year": 2025
           }
         ],
@@ -2722,22 +2722,22 @@
           },
           "balanceComparison": "previous_year_end",
           "current": {
-            "assets": 21899213754025,
-            "equity": 17804233855645,
-            "inventories": 1454792076711,
-            "liabilities": 4094979898380,
-            "netIncome": 727598164321,
-            "operatingCashFlow": 669089004495,
-            "receivables": 3419101429802
+            "assets": 23703154446039,
+            "equity": 18048159641063,
+            "inventories": 2940520653882,
+            "liabilities": 5654994804976,
+            "netIncome": 721161387676,
+            "operatingCashFlow": 651436274413,
+            "receivables": 2220125281692
           },
           "previous": {
-            "assets": 21813010247799,
-            "equity": 17409723386976,
-            "inventories": 1441107973170,
-            "liabilities": 4403286860823,
-            "netIncome": 575777783296,
-            "operatingCashFlow": 172493304937,
-            "receivables": 3662583667127
+            "assets": 22334900189800,
+            "equity": 17352529819114,
+            "inventories": 2803460062651,
+            "liabilities": 4982370370686,
+            "netIncome": 171633060805,
+            "operatingCashFlow": 301588686974,
+            "receivables": 1790421768686
           },
           "quarter": 2,
           "year": 2026
@@ -3207,6 +3207,6 @@
       "ticker": "373220.KS"
     }
   },
-  "generatedAt": "2026-10-09T10:31:29+09:00",
+  "generatedAt": "2026-10-10T10:09:08+09:00",
   "source": "OpenDART fnlttSinglAcntAll"
 }
