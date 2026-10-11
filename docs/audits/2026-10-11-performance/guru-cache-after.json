@@ -1,0 +1,40 @@
+{
+  "project_id": "github:shoon94parkk-del/chart_View",
+  "base_sha": "fcf8038b4d12c01de8447ebc34d79955240c52ab",
+  "stage": "after",
+  "environment": "local CPython3.12.14; existing checked-in data; direct handler calls",
+  "method": "One successful prime, then 5 sequential valid-version and 5 sequential obsolete-version requests, counting Path.read_text calls; no main app import, startup, network or providers.",
+  "not_production_speed_claim": true,
+  "evidence": {
+    "bytes": 4141596,
+    "version": "f02782944aae036e73e1",
+    "ticker": "483650.KS",
+    "companies": 162
+  },
+  "measurements": {
+    "guru_current_version_warm": {
+      "n": 5,
+      "ms": [
+        0.048,
+        0.005,
+        0.002,
+        0.002,
+        0.002
+      ],
+      "median_ms": 0.002,
+      "read_text_calls": 0
+    },
+    "guru_stale_version_409": {
+      "n": 5,
+      "ms": [
+        0.02,
+        0.005,
+        0.003,
+        0.002,
+        0.002
+      ],
+      "median_ms": 0.003,
+      "read_text_calls": 0
+    }
+  }
+}

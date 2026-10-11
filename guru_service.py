@@ -22,7 +22,9 @@ def get_guru_evidence(ticker: str, version: str) -> dict:
         stat=EVIDENCE_PATH.stat()
         key=(str(EVIDENCE_PATH),stat.st_mtime_ns,stat.st_size,stat.st_ino)
         with _lock:
-            if key!=_cache_key or _cache.get('snapshotVersion')!=version:
+            # The file identity controls reloads. An obsolete client version
+            # must get 409 from the same cache, without reparsing unchanged data.
+            if key!=_cache_key:
                 data=json.loads(EVIDENCE_PATH.read_text(encoding='utf-8'))
                 if not isinstance(data.get('companies'),dict) or not data.get('snapshotVersion'): raise ValueError()
                 _cache=data; _cache_key=key
