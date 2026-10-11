@@ -7,13 +7,14 @@ a shared in-process cache for every user.
 from __future__ import annotations
 
 import asyncio
+import calendar
 import copy
 import os
 import re
 import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from typing import Any
 from urllib.parse import unquote
 from zoneinfo import ZoneInfo
@@ -1114,6 +1115,46 @@ async def _refresh_semiconductor_trends() -> dict[str, Any]:
             raise
 
 
+def _kr_holidays_for_year(year: int) -> set[date]:
+    """Korean statutory holidays incl. substitute holidays (holidays library)."""
+    from holidays import country_holidays
+
+    return set(country_holidays("KR", years=[year], observed=True).keys())
+
+
+def _provisional_business_day_count(yyyymm: str, stage: int) -> int | None:
+    """Trading-window day count; do not extrapolate if holiday calendar unavailable."""
+    match = re.fullmatch(r"(\d{4})(\d{2})", str(yyyymm))
+    if not match or stage not in (10, 20, 30):
+        return None
+    year, month = map(int, match.groups())
+    try:
+        days_in_month = calendar.monthrange(year, month)[1]
+        last_day = min(stage, days_in_month) if stage != 30 else days_in_month
+        holidays = _kr_holidays_for_year(year)
+    except (ValueError, ImportError, KeyError):
+        return None
+    return sum(
+        1 for day in range(1, last_day + 1)
+        if (current := date(year, month, day)).weekday() < 5 and current not in holidays
+    )
+
+
+def _provisional_business_day_context(yyyymm: str, stage: int) -> dict[str, Any]:
+    previous = _month_shift(yyyymm, -1)
+    prior_year = _month_shift(yyyymm, -12)
+    current_days = _provisional_business_day_count(yyyymm, stage)
+    previous_days = _provisional_business_day_count(previous, stage)
+    prior_year_days = _provisional_business_day_count(prior_year, stage)
+    return {
+        "stage": stage,
+        "current": current_days,
+        "previousMonth": previous_days,
+        "priorYear": prior_year_days,
+        "basis": "calendar weekdays excluding KR statutory/substitute holidays",
+    }
+
+
 def _ten_day_stage(row: dict[str, str]) -> int | None:
     raw = str(row.get("priodDt") or "").strip()
     if not raw:
@@ -1441,6 +1482,7 @@ def _build_provisional_radar(now: datetime | None = None) -> dict[str, Any]:
         "periodLabel": f"{latest_month[:4]}년 {int(latest_month[4:6])}월",
         "latestStage": latest_stage,
         "latestStageLabel": _ten_day_stage_label(latest_stage),
+        "businessDays": _provisional_business_day_context(latest_month, latest_stage),
         "checkpoints": checkpoints,
         "items": items,
         "landingProjection": landing_projection,
