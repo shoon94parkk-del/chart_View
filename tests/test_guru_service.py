@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 from unittest.mock import patch
 import pytest
 from fastapi import HTTPException
@@ -37,3 +39,65 @@ def test_cache_replacement_reloads(tmp_path,monkeypatch):
     assert service.get_guru_evidence('005930.KS','v1')['snapshotVersion']=='v1'
     cache(tmp_path,'v2')
     assert service.get_guru_evidence('005930.KS','v2')['snapshotVersion']=='v2'
+
+
+@pytest.mark.parametrize('prime_current_version', [False, True])
+def test_obsolete_versions_reuse_unchanged_evidence_file(tmp_path, monkeypatch, prime_current_version):
+    path = cache(tmp_path)
+    monkeypatch.setattr(service, 'EVIDENCE_PATH', path)
+    reads = []
+    original_read = Path.read_text
+
+    def counted_read(file, *args, **kwargs):
+        reads.append(file)
+        return original_read(file, *args, **kwargs)
+
+    monkeypatch.setattr(Path, 'read_text', counted_read)
+    if prime_current_version:
+        service.get_guru_evidence('005930.KS', 'v1')
+
+    for version in ['old', 'another-old', 'old']:
+        with pytest.raises(HTTPException) as error:
+            service.get_guru_evidence('005930.KS', version)
+        assert error.value.status_code == 409
+        assert error.value.detail == {'code': 'snapshot_changed', 'currentVersion': 'v1'}
+
+    assert service.get_guru_evidence('005930.KS', 'v1') == {
+        'symbol': '005930.KS', 'annual': [], 'snapshotVersion': 'v1',
+        'tradeDate': None, 'criteriaVersion': None,
+    }
+    assert reads == [path]
+
+
+def test_atomic_replacement_with_same_size_and_timestamp_reloads(tmp_path, monkeypatch):
+    path = cache(tmp_path)
+    monkeypatch.setattr(service, 'EVIDENCE_PATH', path)
+    assert service.get_guru_evidence('005930.KS', 'v1')['snapshotVersion'] == 'v1'
+    old_stat = path.stat()
+    replacement = tmp_path / 'replacement.json'
+    replacement.write_text(json.dumps({
+        'snapshotVersion': 'v2',
+        'companies': {'005930.KS': {'symbol': '005930.KS', 'annual': []}},
+    }), encoding='utf-8')
+    os.utime(replacement, ns=(old_stat.st_atime_ns, old_stat.st_mtime_ns))
+    replacement.replace(path)
+    assert path.stat().st_size == old_stat.st_size
+    assert path.stat().st_mtime_ns == old_stat.st_mtime_ns
+    assert path.stat().st_ino != old_stat.st_ino
+
+    with pytest.raises(HTTPException) as error:
+        service.get_guru_evidence('005930.KS', 'v1')
+    assert error.value.status_code == 409
+    assert error.value.detail == {'code': 'snapshot_changed', 'currentVersion': 'v2'}
+    assert service.get_guru_evidence('005930.KS', 'v2')['snapshotVersion'] == 'v2'
+
+
+def test_evidence_update_for_same_snapshot_version_reloads(tmp_path, monkeypatch):
+    path = cache(tmp_path)
+    monkeypatch.setattr(service, 'EVIDENCE_PATH', path)
+    assert service.get_guru_evidence('005930.KS', 'v1')['annual'] == []
+    path.write_text(json.dumps({
+        'snapshotVersion': 'v1',
+        'companies': {'005930.KS': {'symbol': '005930.KS', 'annual': [{'year': 2025}]}},
+    }), encoding='utf-8')
+    assert service.get_guru_evidence('005930.KS', 'v1')['annual'] == [{'year': 2025}]
