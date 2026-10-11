@@ -546,3 +546,9 @@ On the saved 6cafaf3 baseline, actual revised normalization restores41 annual EP
 Reuse the existing Python CI for provider-free integration of the published snapshot, retained original receipts/amounts and cache-only API. Assert exact source basis/currency/account/receipt/calendar period and original amount, plus independent annual ROE/cash/debt/EPS-growth/PEG/ROA arithmetic. Compare selected financial/evidence records and immutable snapshot versions; verify API200/409 without importing the provider-running main app. Do not assume the mutable independently published screener cache is the same immutable quote snapshot, hardcode daily prices/counts or add provider calls. The representative official7-company backfill and three-device actual-UI/local-API proof are documented separately from final live publication.
 
 Official bounded backfill completed for248 targeted companies through three existing workflow runs (7/203partial/39retry;1648requests). Preserve the first one-company network failure until successful official retry, then remove its refreshError through the normal collector. Raw-value5045 checks plus full snapshot/candidate/metric recomputation pass. Insufficient counts fall Buffett477→353, Lynch1163→1059, O'Neil1199→1102, Greenblatt904→897; Minervini is unchanged. Buffett57/Lynch42 add3/1 legitimate candidates; criteria and existing candidates remain intact. The source coverage report distinguishes actual remaining gaps from implementation connection failures and records production verification separately.
+
+## 2026-10-11 — 10일 단위 잠정 수출 영업일 메타데이터
+- 기존 `/api/export-momentum/provisional`에 선택 필드 `businessDays`를 추가한다. 당월/전월/전년동월 동일 stage 기준 영업일 수를 계산한다. 주말과 대한민국 법정/대체공휴일(holidays 라이브러리)을 제외한다.
+- 계산 실패 시 일수 null 반환, 기존 수출액·YoY/MoM 원자료는 불변으로 유지한다.
+- Toss 수출 요약은 기본 원자료, 영업일 보정 ON에서만 일평균 수출액 비교를 사용한다. 관세청 API 10개 대분류를 DRAM/NAND 등 10일치 세부 품목과 혼합하지 않는다.
+- 테스트: `tests/test_export_momentum_service.py` (2026.10 및 전월/전년 기간).
