@@ -460,6 +460,23 @@ def test_semiconductor_country_matrix_is_configured_market_comparison(monkeypatc
 
 
 
+
+def test_provisional_business_days_respect_korean_substitute_holidays(monkeypatch):
+    from datetime import date
+
+    observed = {
+        2025: {date(2025, 10, 3), date(2025, 10, 6), date(2025, 10, 7), date(2025, 10, 8), date(2025, 10, 9)},
+        2026: {date(2026, 10, 5), date(2026, 10, 9)},
+    }
+    monkeypatch.setattr(export_service, "_kr_holidays_for_year", lambda year: observed.get(year, set()))
+    result = export_service._provisional_business_day_context("202610", 10)
+    assert result["current"] == 5
+    assert result["previousMonth"] == 8
+    assert result["priorYear"] == 3
+    assert export_service._provisional_business_day_count("202610", 20) >= 5
+    assert export_service._provisional_business_day_count("202610", 30) >= 5
+    assert export_service._provisional_business_day_count("202613", 10) is None
+
 def test_ten_day_stage_parses_provider_period_labels_and_dates():
     assert export_service._ten_day_stage({"priodDt": "01~10"}) == 10
     assert export_service._ten_day_stage({"priodDt": "01~20"}) == 20
