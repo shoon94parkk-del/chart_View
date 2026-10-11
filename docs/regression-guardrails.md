@@ -52,6 +52,7 @@ These rules come from bugs already seen in production. Do not remove a guardrail
 - `python scripts/build_frontend_bundle.py --check` passes.
 - Exact tested SHA must equal deployed Render revision.
 - Render status `live` alone is insufficient.
+- Guru release readiness also requires the tested result to equal both raw GitHub and deployed results before/after actual same-version candidate evidence checks for all five strategies. Keep valid empty/unavailable coverage explicit and never substitute a candidate. Collection success or a deploy request is not publication verification; daily raw-main/manual-Render lag still needs manual exact-SHA publication. See `docs/guru-publication-readiness.md`.
 
 ## Adopted P1 UX
 - Home order remains Market -> Watchlist -> PICK -> News unless intentionally redesigned.

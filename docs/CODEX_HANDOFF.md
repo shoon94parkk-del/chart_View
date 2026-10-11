@@ -75,4 +75,6 @@ GitHub Actions **Update Guru Screening**는05:00KST 일정 및 성공한 기술�
 
 표시상Live만으로 완료라고 말하지 않는다. 데이터 커밋도 서버 근거 파일을 바꾸므로 새 배포가 필요하다. F raw GitHub CDN이 B보다 먼저 갱신되면 명시적 최신 결과 확인은 B snapshot을 재조회한다. F는 기준일·생성시각이 더 오래된 B 결과로 현재 목록을 되돌리지 않고 안내와 정확한 근거 버전을 유지한다. 최신 CDN 근거의409는 B에 같은 데이터 snapshot/evidence를 게시한 뒤200으로 확인해야 한다. 배포를 연속 중복 실행하지 않는다.
 
+2026-10-11 U01/T2: 기존 `scripts/verify_deployed_release.py`는 이제 로컬 검증 결과·CDN·B의 동일 snapshot, 5개 전략별 실제 후보 근거200/빈 결과·자료부족 구분, 고의 비현재 버전409, 검증 종료 시 버전 유지를 함께 검사한다. 수집 성공은 게시 완료가 아니며 hook 미설정 workflow 요약에는 수동 게시 대기를 표시한다. [게시 완료 기준·정확한 SHA 수동 복구 절차](guru-publication-readiness.md)를 따른다. 이 검증 추가만으로 일일 CDN/B 게시 시차가 제거되지는 않는다.
+
 실제 Android/iOS Toss Sandbox, 공개 제출/정책/데이터 공급자 권리는 프런트 `P0_RELEASE_GATE.md`에 남아 있다. 웹 미리보기 검증과 구분한다. 최종 배포 SHA·PR·운영 개수는 계획의 검증 기록과 GitHub Actions/Render를 확인한다. 옛 인수인계 숫자를 오늘 실시간 값으로 간주하지 않는다.

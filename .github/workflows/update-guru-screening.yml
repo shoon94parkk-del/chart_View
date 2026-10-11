@@ -100,8 +100,11 @@ jobs:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-            echo 'Existing Render hook not configured; auto-deploy remains the fallback.'
+            echo 'Guru data committed; backend publication is pending manual exact-revision deployment.'
+            echo 'After deployment run scripts/verify_deployed_release.py with the tested full EXPECTED_SHA.'
+            echo '### Guru data generated; publication not verified' >> "$GITHUB_STEP_SUMMARY"
+            echo 'The existing Render hook is not configured. Manually deploy the tested main revision, then verify revision, assets, CDN/backend snapshot and five-strategy evidence with scripts/verify_deployed_release.py.' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           curl --fail --show-error --silent --retry 3 --retry-delay 5 -X POST "$RENDER_DEPLOY_HOOK_URL" > /tmp/guru-render-deploy.json
-          echo 'Published guru evidence deploy requested.'
+          echo 'Guru evidence deploy requested; publication still requires scripts/verify_deployed_release.py.'

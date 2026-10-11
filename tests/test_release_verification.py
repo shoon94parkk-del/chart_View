@@ -33,6 +33,8 @@ def test_invalid_market_metadata_fails(field, value):
 
 def test_wrong_revision_and_wrong_asset_fail(monkeypatch, tmp_path):
     expected = "a" * 40
+    # Guru transport/state coverage lives in test_guru_publication.py.
+    monkeypatch.setattr(release, "verify_guru_publication", lambda base: {"snapshotVersion": "tested"})
     monkeypatch.setattr(release, "ROOT", tmp_path)
     contents = {}
     html = ""

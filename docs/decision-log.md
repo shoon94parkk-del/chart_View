@@ -552,3 +552,7 @@ Official bounded backfill completed for248 targeted companies through three exis
 - 계산 실패 시 일수 null 반환, 기존 수출액·YoY/MoM 원자료는 불변으로 유지한다.
 - Toss 수출 요약은 기본 원자료, 영업일 보정 ON에서만 일평균 수출액 비교를 사용한다. 관세청 API 10개 대분류를 DRAM/NAND 등 10일치 세부 품목과 혼합하지 않는다.
 - 테스트: `tests/test_export_momentum_service.py` (2026.10 및 전월/전년 기간).
+
+## 2026-10-11 — Guru publication completion includes actual same-version evidence
+
+Classification: recurring operational publication gap plus a missing release-verification guard. Local evidence/result publication and same-version API409 are already correct. Raw GitHub main becomes visible independently of manual Render deployment; do not claim local atomic file replacement synchronizes the hosts. Extend the existing exact-revision/assets verifier to compare the tested result with both hosts before/after actual representative evidence checks for all five strategies, validate saved candidate bindings/coverage, and require deliberate non-current409 with the expected current version. Explicitly report empty/unavailable strategies without substituting candidates. The no-hook collection summary records publication pending instead of suggesting unobserved auto-deploy success. Retain manual exact-SHA publication, existing frontend rollback protection, provider-free API and all collection budgets. No new hook, service, credential or runtime fallback. Fifteen RED regressions became GREEN; target46/full714 pass and both bundle checks pass. Live lag remains pending manual publication; see [readiness procedure](guru-publication-readiness.md).
