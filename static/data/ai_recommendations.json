@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-12T16:03:51+09:00",
+  "updated": "2026-10-12T16:57:22+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -665,6 +665,42 @@
       "grade": "사용자 확정",
       "reason": "LNG선·FLNG용 초저온 PU 보냉재가 매출의 대부분을 차지하며 조선소 LNG선 수주잔고의 매출 전환과 가동률 상승이 영업이익 레버리지로 연결되는 구조.",
       "score": 67,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-12",
+      "rank": 1,
+      "symbol": "166090.KQ",
+      "code": "166090",
+      "name": "하나머티리얼즈",
+      "recommendedPrice": 64100.0,
+      "currentPrice": 64100.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-12",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "Dry Etch 공정용 Silicon·SiC Ring/Electrode 중심의 소모성 부품 구조로 FAB 가동률·3D NAND 고단화·미세화가 Q 증가로 이어지고, 2026년 상반기 매출 +49.5% 대비 영업이익 +174.8%의 강한 이익 레버리지가 확인된 성장주.",
+      "score": 94,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-12",
+      "rank": 2,
+      "symbol": "062040.KS",
+      "code": "062040",
+      "name": "산일전기",
+      "recommendedPrice": 212500.0,
+      "currentPrice": 212500.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-12",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "변압기 매출 비중 약 98%의 수출형 전력기기 업체로 미국 전력망 교체·재생에너지·AI 데이터센터 전력수요가 특수변압기 수주잔고와 CAPA 증설을 통해 중장기 매출 성장으로 연결되는 구조.",
+      "score": 91,
       "analysisSource": "사용자 최종 선택"
     }
   ]
