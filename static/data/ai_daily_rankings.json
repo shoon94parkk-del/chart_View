@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T18:27:00+09:00",
+  "updated": "2026-10-12T16:38:00+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -1014,6 +1014,116 @@
               "수주잔고",
               "분기 매출 성장률",
               "영업이익률"
+            ]
+          },
+          "grade": "사용자 확정"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-12",
+      "status": "사용자 확정 2종목 — 2026-10-12 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-5.6 Sol",
+        "candidateTradeDate": "2026-10-12",
+        "analyzedAt": "2026-10-12T16:38:00+09:00",
+        "candidateFile": "static/data/screener.json"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v3-guru-second-order",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "166090",
+          "symbol": "166090.KQ",
+          "name": "하나머티리얼즈",
+          "close": 64100,
+          "previousClose": 64200,
+          "changePct": -0.16,
+          "totalScore": 94,
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 14,
+            "valuation": 9,
+            "catalystRisk": 7,
+            "technical": 29
+          },
+          "reason": "Dry Etch 공정용 Silicon·SiC Ring/Electrode 중심의 소모성 부품 구조로 FAB 가동률·3D NAND 고단화·미세화가 Q 증가로 이어지고, 2026년 상반기 매출 +49.5% 대비 영업이익 +174.8%의 강한 이익 레버리지가 확인된 성장주.",
+          "monitoring": {
+            "summary": "Dry Etch용 Silicon·SiC 소모성 부품의 출하 증가가 FAB 가동률 회복과 선단공정 확대를 타고 매출·영업이익 레버리지로 이어지는지를 추적한다.",
+            "thesisPillars": [
+              "Etch 공정용 Silicon Ring·Electrode·SiC 부품의 반복 교체형 소모성 매출",
+              "3D NAND 고단화·미세화와 웨이퍼 투입 증가에 따른 Etch intensity 상승",
+              "가동률 상승과 고부가 제품 믹스 개선에 따른 영업이익 레버리지"
+            ],
+            "invalidationCriteria": [
+              "주요 메모리 고객 FAB 가동률 또는 웨이퍼 투입량의 구조적 하락",
+              "주요 고객 인증·점유율 확대 지연이나 경쟁 심화로 단가·점유율 훼손",
+              "CAPA 확대에도 수율·원가 악화로 영업이익률 개선이 중단"
+            ],
+            "catalysts": [
+              "메모리 FAB 가동률 회복과 NAND 고단화",
+              "Silicon·SiC 부품 출하량 증가",
+              "고부가 제품 비중 확대와 CAPA 가동률 상승"
+            ],
+            "keyMetrics": [
+              "반도체 부품 매출 성장률",
+              "영업이익률",
+              "FAB 가동률·웨이퍼 투입량",
+              "Silicon·SiC 제품 믹스와 CAPA"
+            ]
+          },
+          "grade": "사용자 확정"
+        },
+        {
+          "rank": 2,
+          "code": "062040",
+          "symbol": "062040.KS",
+          "name": "산일전기",
+          "close": 212500,
+          "previousClose": 222500,
+          "changePct": -4.49,
+          "totalScore": 91,
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 7,
+            "catalystRisk": 7,
+            "technical": 28
+          },
+          "reason": "변압기 매출 비중 약 98%의 수출형 전력기기 업체로 미국 전력망 교체·재생에너지·AI 데이터센터 전력수요가 특수변압기 수주잔고와 CAPA 증설을 통해 중장기 매출 성장으로 연결되는 구조.",
+          "monitoring": {
+            "summary": "미국 전력망·재생에너지·AI 데이터센터 투자 증가가 특수변압기 수주잔고와 생산능력 확대를 거쳐 매출·이익 성장으로 실현되는지를 추적한다.",
+            "thesisPillars": [
+              "변압기 중심의 높은 수출 비중과 북미 전력 인프라 투자 수혜",
+              "특수변압기 중심의 높은 수주잔고가 향후 매출 가시성을 제공",
+              "생산 CAPA 확대와 고마진 제품 믹스가 영업이익 성장을 뒷받침"
+            ],
+            "invalidationCriteria": [
+              "북미 전력망·데이터센터 투자 둔화로 신규 수주가 구조적으로 약화",
+              "수주잔고의 납기 지연·취소 또는 증설 일정 차질",
+              "구리·전기강판 등 원재료 상승이나 가격 경쟁으로 마진이 구조적으로 하락"
+            ],
+            "catalysts": [
+              "북미 특수변압기 신규수주",
+              "증설 CAPA 가동",
+              "AI 데이터센터·재생에너지 전력 인프라 투자 확대"
+            ],
+            "keyMetrics": [
+              "수주잔고와 신규수주",
+              "변압기 수출 비중",
+              "CAPA 증설 진행률",
+              "매출 성장률과 영업이익률"
             ]
           },
           "grade": "사용자 확정"
