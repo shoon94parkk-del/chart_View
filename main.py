@@ -24,6 +24,7 @@ import os
 import threading
 import re
 import hashlib
+import math
 import secrets
 import json
 from heatmap_metadata import us_universe, korean_metadata, quote_order
@@ -395,6 +396,55 @@ def _seed_home_live_from_snapshot(snapshot: dict | None) -> None:
         }
 
 
+def _quote_has_value(row) -> bool:
+    if not isinstance(row, dict) or isinstance(row.get("price"), bool):
+        return False
+    try:
+        price = float(row.get("price"))
+        change = row.get("change")
+        return math.isfinite(price) and price > 0 and (
+            change is None or (not isinstance(change, bool) and math.isfinite(float(change)))
+        )
+    except (TypeError, ValueError, OverflowError):
+        return False
+
+
+def _quote_observed_epoch(row):
+    """Compare provider observations only; lookup time is not a quote date."""
+    try:
+        stamp = datetime.fromisoformat(str((row or {}).get("asOf") or "").replace("Z", "+00:00"))
+        return stamp.timestamp() if stamp.tzinfo is not None else None
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _quote_can_publish(row, previous, *, started_at=0.0, updated_at=0.0) -> bool:
+    if not _quote_has_value(row):
+        return False
+    if not _quote_has_value(previous):
+        return True
+    incoming = _quote_observed_epoch(row)
+    observed = _quote_observed_epoch(previous)
+    if observed is not None and (incoming is None or incoming < observed):
+        return False
+    # A foreground request may have published while this provider was waiting.
+    # Equal/unknown observations cannot prove that a late result is newer.
+    if updated_at > started_at and (incoming is None or observed is None or incoming <= observed):
+        return False
+    return True
+
+
+def _publish_home_quote(ticker, row, started_at) -> bool:
+    previous = HOME_LIVE_CACHE["quotes"].get(ticker)
+    updated = float((HOME_LIVE_CACHE.get("quoteUpdatedEpoch") or {}).get(ticker) or 0)
+    if not _quote_can_publish(row, previous, started_at=started_at, updated_at=updated):
+        return False
+    HOME_LIVE_CACHE["quotes"][ticker] = row
+    HOME_LIVE_CACHE["quoteUpdatedEpoch"][ticker] = time.time()
+    HOME_LIVE_CACHE["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    return True
+
+
 def _home_live_results() -> list[dict]:
     quotes = HOME_LIVE_CACHE.get("quotes") or {}
     return [dict(quotes[ticker]) for ticker in HOME_MAJOR_TICKERS if ticker in quotes]
@@ -412,8 +462,18 @@ async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
                 for ticker in tickers:
                     symbols.append(ticker)
                     market_by_symbol[ticker] = market
+            started_at = time.time()
+            published = set()
+
+            async def one(ticker):
+                item = await _background_market_call(fetch_quote_snapshot, ticker)
+                # Publication stays on the event loop after provider I/O returns.
+                if _publish_home_quote(ticker, item, started_at):
+                    published.add(ticker)
+                return item
+
             fetched = await asyncio.gather(
-                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in symbols],
+                *[one(ticker) for ticker in symbols],
                 return_exceptions=True,
             )
             now_epoch = time.time()
@@ -424,15 +484,13 @@ async def _refresh_home_live(markets: dict[str, list[str]]) -> None:
                 if isinstance(item, Exception):
                     errors.append(f"{ticker}: {item}")
                     continue
-                if not item:
+                if not _quote_has_value(item):
                     errors.append(f"{ticker}: empty quote")
                     continue
-                HOME_LIVE_CACHE["quotes"][ticker] = item
-                HOME_LIVE_CACHE["quoteUpdatedEpoch"][ticker] = now_epoch
-                good_markets.add(market_by_symbol[ticker])
+                if ticker in published:
+                    good_markets.add(market_by_symbol[ticker])
 
             if good_markets:
-                HOME_LIVE_CACHE["updatedAt"] = now_iso
                 for market in good_markets:
                     HOME_LIVE_CACHE["marketUpdatedAt"][market] = now_iso
                     HOME_LIVE_CACHE["marketUpdatedEpoch"][market] = now_epoch
@@ -900,8 +958,7 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
         elif item:
             by_ticker[ticker] = item
             if ticker in HOME_MAJOR_TICKERS:
-                HOME_LIVE_CACHE["quotes"][ticker] = item
-                HOME_LIVE_CACHE["quoteUpdatedEpoch"][ticker] = time.time()
+                _publish_home_quote(ticker, item, now)
         else:
             errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
 
@@ -1184,14 +1241,16 @@ STOCK_DATABASE = [
 
 
 MARKET_NOW_TICKERS = ["^KS11", "^KQ11", "^GSPC", "^IXIC", "^TNX", "^VIX", "CL=F", "KRW=X"]
+MARKET_NOW_PRIMARY_TICKERS = tuple(MARKET_NOW_TICKERS[:4])
 MARKET_NOW_CACHE = {"data": None, "timestamp": 0.0, "refreshing": False, "scheduled": False}
 MARKET_NOW_TTL = 12
 MARKET_NOW_REFRESH_GUARD = 5
 MARKET_NOW_REFRESH_DELAY_SEC = 0.75
+MARKET_NOW_INITIAL_WAIT_SEC = 2.0
 MARKET_NOW_LOCK = asyncio.Lock()
 
 
-async def _refresh_market_now(force: bool = False):
+async def _refresh_market_now(force: bool = False, _primary_ready=None):
     """Refresh one shared market snapshot while keeping the last successful rows available."""
     now = time.time()
     cached = MARKET_NOW_CACHE.get("data")
@@ -1206,52 +1265,55 @@ async def _refresh_market_now(force: bool = False):
 
         MARKET_NOW_CACHE["refreshing"] = True
         try:
-            previous = {
-                row.get("ticker"): row
-                for row in ((cached or {}).get("results") or [])
-                if isinstance(row, dict) and row.get("ticker")
-            }
-            fetched = await asyncio.gather(
-                *[_background_market_call(fetch_quote_snapshot, ticker) for ticker in MARKET_NOW_TICKERS],
-                return_exceptions=True,
-            )
-            results, errors = [], []
-            for ticker, row in zip(MARKET_NOW_TICKERS, fetched):
-                if isinstance(row, Exception) or not row:
-                    old = previous.get(ticker)
-                    if old:
-                        results.append({**old, "stale": True})
-                    errors.append({"ticker": ticker, "message": str(row) if isinstance(row, Exception) else "시세 데이터를 가져오지 못했습니다."})
-                    continue
-                results.append({
-                    "ticker": ticker,
-                    "name": row.get("name") or ticker,
-                    "price": row.get("price"),
-                    "previousClose": row.get("previousClose"),
-                    "change": row.get("change"),
-                    "currency": row.get("currency"),
-                    "asOf": row.get("asOf"),
-                    "sessionDate": row.get("sessionDate"),
-                    "previousSessionDate": row.get("previousSessionDate"),
-                    "stale": False,
-                    "source": row.get("source") or "Yahoo Chart",
-                })
+            errors, settled = {}, set()
 
-            if not results and cached:
-                return cached
+            async def one(ticker):
+                try:
+                    row = await _background_market_call(fetch_quote_snapshot, ticker)
+                except Exception as exc:
+                    row = exc
+                current = MARKET_NOW_CACHE.get("data") or cached or {}
+                rows = {item["ticker"]: item for item in (current.get("results") or [])
+                        if isinstance(item, dict) and item.get("ticker")}
+                previous = rows.get(ticker)
+                if _quote_can_publish(row, previous):
+                    rows[ticker] = {
+                        "ticker": ticker,
+                        "name": row.get("name") or ticker,
+                        "price": row.get("price"),
+                        "previousClose": row.get("previousClose"),
+                        "change": row.get("change"),
+                        "currency": row.get("currency"),
+                        "asOf": row.get("asOf"),
+                        "sessionDate": row.get("sessionDate"),
+                        "previousSessionDate": row.get("previousSessionDate"),
+                        "stale": False,
+                        "source": row.get("source") or "Yahoo Chart",
+                    }
+                else:
+                    if previous and not _quote_has_value(row):
+                        rows[ticker] = {**previous, "stale": True}
+                    errors[ticker] = {"ticker": ticker, "message": str(row) if isinstance(row, Exception)
+                                     else "시세 데이터를 가져오지 못했거나 이전 관측보다 오래됐습니다."}
+                now_kst = datetime.utcnow() + timedelta(hours=9)
+                MARKET_NOW_CACHE["data"] = {
+                    "results": [rows[symbol] for symbol in MARKET_NOW_TICKERS if symbol in rows],
+                    "errors": [errors[symbol] for symbol in MARKET_NOW_TICKERS if symbol in errors],
+                    "timestamp": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
+                    "date": now_kst.strftime("%Y-%m-%d"),
+                    "basis": "previous_close",
+                    "source": "Yahoo Finance Chart",
+                }
+                # The shared TTL clock stays unchanged until all eight settle.
+                settled.add(ticker)
+                if _primary_ready is not None and set(MARKET_NOW_PRIMARY_TICKERS) <= settled:
+                    _primary_ready.set()
+                return row
 
-            now_kst = datetime.utcnow() + timedelta(hours=9)
-            data = {
-                "results": results,
-                "errors": errors,
-                "timestamp": now_kst.strftime("%Y-%m-%d %H:%M:%S"),
-                "date": now_kst.strftime("%Y-%m-%d"),
-                "basis": "previous_close",
-                "source": "Yahoo Finance Chart",
-            }
-            MARKET_NOW_CACHE["data"] = data
+            await asyncio.gather(*[one(ticker) for ticker in MARKET_NOW_TICKERS])
+            data = MARKET_NOW_CACHE.get("data") or cached or {"results": [], "errors": []}
             MARKET_NOW_CACHE["timestamp"] = time.time()
-            audit = {row.get("ticker"): row for row in results if row.get("ticker") in {"^GSPC", "^IXIC"}}
+            audit = {row.get("ticker"): row for row in data["results"] if row.get("ticker") in {"^GSPC", "^IXIC"}}
             if audit:
                 print("[MARKET_AUDIT] " + json.dumps(audit, ensure_ascii=False, sort_keys=True))
             return data
@@ -1263,31 +1325,78 @@ def _schedule_market_now_refresh(delay: float = MARKET_NOW_REFRESH_DELAY_SEC) ->
     """Queue stale refresh after the current navigation burst has been served."""
     if MARKET_NOW_CACHE.get("refreshing") or MARKET_NOW_CACHE.get("scheduled"):
         return False
-    MARKET_NOW_CACHE["scheduled"] = True
+    _owned_market_now_refresh(delay=delay)
+    return True
+
+
+def _owned_market_now_refresh(delay=0.0, force=False):
+    """Share one refresh lifecycle; its event contains no additional quote data."""
+    current = MARKET_NOW_CACHE.get("refreshTask")
+    if current is not None and not current.done():
+        return current, MARKET_NOW_CACHE["primaryReady"]
+    primary_ready = asyncio.Event()
+
+    def release_owner(owner):
+        primary_ready.set()
+        if MARKET_NOW_CACHE.get("refreshTask") is owner:
+            MARKET_NOW_CACHE["refreshTask"] = None
+            MARKET_NOW_CACHE["primaryReady"] = None
+            MARKET_NOW_CACHE["scheduled"] = False
 
     async def runner():
         try:
-            await asyncio.sleep(delay)
-            await _refresh_market_now(force=False)
+            if delay:
+                await asyncio.sleep(delay)
+            return await _refresh_market_now(force=force, _primary_ready=primary_ready)
         finally:
-            MARKET_NOW_CACHE["scheduled"] = False
+            release_owner(asyncio.current_task())
 
-    asyncio.create_task(runner())
-    return True
+    def owner_done(completed):
+        # Also release a task cancelled before its coroutine got its first turn.
+        release_owner(completed)
+        if not completed.cancelled():
+            completed.exception()
+
+    task = asyncio.create_task(runner())
+    # Creation and ownership are atomic on this event loop, with no await between.
+    MARKET_NOW_CACHE["refreshTask"] = task
+    MARKET_NOW_CACHE["primaryReady"] = primary_ready
+    MARKET_NOW_CACHE["scheduled"] = True
+    # Ordinary cold callers can return before the owner; consume later failures.
+    task.add_done_callback(owner_done)
+    return task, primary_ready
 
 
 @app.get("/api/market-now")
 async def market_now(fresh: bool = False):
     """Return shared market cache first; refresh stale data after a short response-first grace."""
+    handler_started = time.perf_counter()
+    ready_wait_ms = 0.0
     data = MARKET_NOW_CACHE.get("data")
     if fresh:
         try:
-            data = await _refresh_market_now(force=True) or data
+            task, _ = _owned_market_now_refresh(force=True)
+            wait_started = time.perf_counter()
+            data = await asyncio.shield(task) or data
+            ready_wait_ms = (time.perf_counter() - wait_started) * 1000
         except Exception as exc:
             print(f"[MARKET NOW] foreground refresh failed: {exc}")
-    elif not data:
+    elif not data or (
+        MARKET_NOW_CACHE.get("refreshTask") is not None
+        and not MARKET_NOW_CACHE.get("timestamp")
+        and not any(_quote_has_value(row) for row in ((data or {}).get("results") or []))
+    ):
         try:
-            data = await _refresh_market_now(force=True)
+            task, primary_ready = _owned_market_now_refresh(force=True)
+            wait_started = time.perf_counter()
+            try:
+                # This timeout cancels only this subscriber's Event wait.
+                # The shared owner continues publishing actual observations.
+                await asyncio.wait_for(primary_ready.wait(), timeout=MARKET_NOW_INITIAL_WAIT_SEC)
+            except asyncio.TimeoutError:
+                pass
+            ready_wait_ms = (time.perf_counter() - wait_started) * 1000
+            data = MARKET_NOW_CACHE.get("data")
         except Exception as exc:
             print(f"[MARKET NOW] first refresh failed: {exc}")
     else:
@@ -1296,16 +1405,25 @@ async def market_now(fresh: bool = False):
             _schedule_market_now_refresh()
 
     payload = dict(data or {"results": [], "errors": []})
-    payload["cacheAgeSec"] = round(max(0.0, time.time() - MARKET_NOW_CACHE.get("timestamp", 0)), 1)
+    completed_at = float(MARKET_NOW_CACHE.get("timestamp") or 0)
+    payload["cacheAgeSec"] = round(max(0.0, time.time() - completed_at), 1) if completed_at else None
     payload["refreshing"] = bool(MARKET_NOW_CACHE.get("refreshing"))
     payload["refreshScheduled"] = bool(MARKET_NOW_CACHE.get("scheduled"))
     payload["cacheMode"] = "stale-while-revalidate"
+    pending_response = (
+        (payload["refreshing"] or payload["refreshScheduled"])
+        and (not completed_at or len(payload.get("results") or []) < len(MARKET_NOW_TICKERS))
+    )
     headers = {
         "Cache-Control": (
             "no-store"
-            if fresh
+            if fresh or pending_response
             else "public, max-age=5, s-maxage=5, stale-while-revalidate=20"
-        )
+        ),
+        "Server-Timing": (
+            f"market-ready;dur={ready_wait_ms:.3f}, "
+            f"market-handler;dur={(time.perf_counter() - handler_started) * 1000:.3f}"
+        ),
     }
     return JSONResponse(content=payload, headers=headers)
 

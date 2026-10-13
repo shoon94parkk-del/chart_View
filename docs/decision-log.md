@@ -1,5 +1,9 @@
 # Chart View decision log
 
+## 2026-10-13 — Publish completed Home rows within the existing refresh owner
+
+Home live and market refreshes now publish each verified dated canonical row on the event loop before the full gather finishes. General cold market HTTP waits primary completion or2s, then returns actual progress; pending responses use no-store/null completed-cache age. The same transient owner/Event in the existing market cache protects concurrent cold/fresh requests and caller cancellation. Fresh still waits all8; full batch timestamp, pools2/1, providers, quote JSON contract and TTLs remain unchanged. A controlled20s provider-free HTTP experiment changes first readiness20,092→61ms(extra held) and20,069→2,003ms(primary held), with all8 completion still20s/provider8 unchanged. This is not attribution of the user's unseen20s request or a production SLA. Preserve newer/dated values, failure status and exact deployed-source proof. Full Python748/Node52 and CI invariants pass on latest fca5ee8 plus patch; PR/exact main deployment remain the release gate. See [implementation and evidence](HOME_DATA_WAIT_2026-10-13.md).
+
 ## 2026-10-05 — Verify collection throughput before retaining an optimization
 
 **Classification:** New behavior, follow-up to the separate guru screening collector. The initial sequential run collected 91 companies within its time budget. Two workers then collected 900 companies / 5,942 requests. A trial of official multiple-company period prefetch collected only 18 companies / 100 requests in 20 minutes, so PR126 removed that prefetch and restored receipt-matched individual annual-period validation. Removing the unused fiscal-month profile request remains valid: it never established an annual observation period.
