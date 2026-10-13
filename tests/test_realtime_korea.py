@@ -22,7 +22,7 @@ def test_basic_kospi_quote_parses_realtime_fields(monkeypatch):
         "marketStatus": "OPEN",
         "delayTime": 0,
     }
-    monkeypatch.setattr(rk.requests, "get", lambda *args, **kwargs: FakeResponse(payload))
+    monkeypatch.setattr(rk.provider_http, "get", lambda *args, **kwargs: FakeResponse(payload))
     row = rk.fetch_korean_index_quote("^KS11")
     assert row["price"] == 6955.42
     assert row["change"] == 0.66

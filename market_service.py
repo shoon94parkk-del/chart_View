@@ -20,6 +20,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import requests
+import provider_http
 from request_coalescing import singleflight
 
 UA = (
@@ -159,7 +160,7 @@ def _number(value: Any) -> float | None:
 
 
 def _http_json(url: str, params: dict[str, Any] | None = None, timeout: float = 9.0) -> dict[str, Any]:
-    r = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+    r = provider_http.get(url, params=params, headers=HEADERS, timeout=timeout)
     r.raise_for_status()
     return r.json()
 

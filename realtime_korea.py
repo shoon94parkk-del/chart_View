@@ -14,7 +14,8 @@ import threading
 import time
 from typing import Any, Callable
 
-import requests
+import provider_http
+from request_coalescing import singleflight
 
 INDEX_MAP = {
     "^KS11": ("KOSPI", "코스피"),
@@ -102,7 +103,7 @@ def _cache_put(symbol: str, row: dict[str, Any]) -> dict[str, Any]:
 
 def _basic_index_quote(symbol: str) -> dict[str, Any]:
     code, label = INDEX_MAP[symbol]
-    response = requests.get(
+    response = provider_http.get(
         f"https://m.stock.naver.com/api/index/{code}/basic",
         headers=HEADERS,
         timeout=(2.5, 4.5),
@@ -132,7 +133,7 @@ def _basic_index_quote(symbol: str) -> dict[str, Any]:
 
 def _polling_index_quote(symbol: str) -> dict[str, Any]:
     code, label = INDEX_MAP[symbol]
-    response = requests.get(
+    response = provider_http.get(
         "https://polling.finance.naver.com/api/realtime",
         params={"query": f"SERVICE_INDEX:{code}"},
         headers=HEADERS,
@@ -169,7 +170,7 @@ def _polling_index_quote(symbol: str) -> dict[str, Any]:
 
 def _basic_stock_quote(symbol: str) -> dict[str, Any]:
     code = symbol.split(".", 1)[0]
-    response = requests.get(
+    response = provider_http.get(
         f"https://m.stock.naver.com/api/stock/{code}/basic",
         headers=HEADERS,
         timeout=(2.5, 4.5),
@@ -200,7 +201,7 @@ def _basic_stock_quote(symbol: str) -> dict[str, Any]:
 
 def _polling_stock_quote(symbol: str) -> dict[str, Any]:
     code = symbol.split(".", 1)[0]
-    response = requests.get(
+    response = provider_http.get(
         "https://polling.finance.naver.com/api/realtime",
         params={"query": f"SERVICE_ITEM:{code}"},
         headers=HEADERS,
@@ -233,10 +234,10 @@ def _polling_stock_quote(symbol: str) -> dict[str, Any]:
     }
 
 
-def fetch_korean_index_quote(symbol: str) -> dict[str, Any]:
-    symbol = _normalize(symbol)
-    if symbol not in INDEX_MAP:
-        raise ValueError("unsupported Korean index")
+@singleflight
+def _load_korean_index_quote(symbol: str) -> dict[str, Any]:
+    # The canonical provider owner alone updates the existing five-second cache.
+    # A waiter reaching this owner after another burst finished can reuse it.
     cached = _cache_get(symbol)
     if cached:
         return cached
@@ -247,10 +248,8 @@ def fetch_korean_index_quote(symbol: str) -> dict[str, Any]:
     return _cache_put(symbol, row)
 
 
-def fetch_korean_stock_quote(symbol: str) -> dict[str, Any]:
-    symbol = _normalize(symbol)
-    if not _is_korean_stock(symbol):
-        raise ValueError("unsupported Korean stock")
+@singleflight
+def _load_korean_stock_quote(symbol: str) -> dict[str, Any]:
     cached = _cache_get(symbol)
     if cached:
         return cached
@@ -259,6 +258,27 @@ def fetch_korean_stock_quote(symbol: str) -> dict[str, Any]:
     except Exception:
         row = _polling_stock_quote(symbol)
     return _cache_put(symbol, row)
+
+
+def fetch_korean_index_quote(symbol: str) -> dict[str, Any]:
+    symbol = _normalize(symbol)
+    if symbol not in INDEX_MAP:
+        raise ValueError("unsupported Korean index")
+    cached = _cache_get(symbol)
+    if cached:
+        return cached
+    # Keep caller-owned dictionaries while sharing only in-flight provider work.
+    return dict(_load_korean_index_quote(symbol))
+
+
+def fetch_korean_stock_quote(symbol: str) -> dict[str, Any]:
+    symbol = _normalize(symbol)
+    if not _is_korean_stock(symbol):
+        raise ValueError("unsupported Korean stock")
+    cached = _cache_get(symbol)
+    if cached:
+        return cached
+    return dict(_load_korean_stock_quote(symbol))
 
 
 def _naver_quote(symbol: str) -> dict[str, Any] | None:

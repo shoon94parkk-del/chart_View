@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-10-13T23:27:57.266499+00:00",
+  "sourceBase": "8e0531e834e7235957f8b841b6bebcb3eed6fe6c",
+  "packageUnchanged": true,
+  "classification": "Regression of existing canonical singleflight protection plus transport connection reuse",
+  "changes": {
+    "koreanCanonical": "Existing request_coalescing.singleflight protects normalized index/stock owner, existing5s cache, separate caller dicts; direct quote/compare/valuation share one provider work item",
+    "http": "One standardRequestsSession per thread reused by YahooChart andNaver; existingURL/headers/params/timeouts/proxyCA/default0 retries preserved"
+  },
+  "verification": {
+    "pythonPassed": 761,
+    "focusedIntegratedPassed": 23,
+    "nodeCIContractsPassed": 52,
+    "releaseBundleCheck": true,
+    "bootBundleCheck": true,
+    "staticCIAndMarketInvariants": true,
+    "syntax": true,
+    "independentReview": "no blockers"
+  },
+  "controlledProviderCalls": {
+    "sixConcurrentStockMisses": {
+      "before": 6,
+      "after": 1
+    },
+    "sixConcurrentIndexMisses": {
+      "before": 6,
+      "after": 1
+    },
+    "quoteCompareValuationMiss": {
+      "before": 3,
+      "after": 1
+    },
+    "meaning": "Real canonical functions with held fake provider inputs, no external calls; counts are not a measured production latency improvement"
+  },
+  "legacyExtraGlob": {
+    "beforePassed": 12,
+    "beforeFailed": 6,
+    "afterPassed": 12,
+    "afterFailed": 6,
+    "meaning": "Additional older JS regex scripts outside the requiredCI52 fail identically on unchanged baseline files; no assertion weakened or unrelatedWebUI change"
+  },
+  "limits": [
+    "The exact original20s incident has no correlated request-start trace",
+    "First deployed deadline/progress fix still showed8.6s index/13.9s watch in burst workload; no claimofcompleteperformancefixfromthatpass",
+    "CPU reached.15/.15 duringthatworkload, memory47%, no restart; correlationdoesnotidentifyonehandler",
+    "Latest source base preserves newer automaticmacro/Guru/Home/fullheatmap snapshots; natural before/after providerdata/time/caches differ"
+  ]
+}

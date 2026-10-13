@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-10-13T14:36:43.324Z",
+  "frontendSource": "02cb31170ce4ce78cc724611189e06a1e4347bac",
+  "backendSource": "78021f77ed75e1322efa3b3a848744d2571f837f",
+  "measurements": [
+    {
+      "profile": "saved3",
+      "run": 0,
+      "scenario": "hash",
+      "shellMs": 197.20000000298023,
+      "marketAllFourMs": 1787.1000000014901,
+      "watchAllThreePriceMs": 3668.2000000029802,
+      "watchRefreshLabelEndedMs": 4961.89999999851,
+      "finishMs": 10241.443198,
+      "settled": "settled"
+    },
+    {
+      "profile": "saved3",
+      "run": 1,
+      "scenario": "hash",
+      "shellMs": 161,
+      "marketAllFourMs": 8558.69999999553,
+      "watchAllThreePriceMs": 13858.29999999702,
+      "watchRefreshLabelEndedMs": 5145.69999999553,
+      "finishMs": 60278.54274999999,
+      "settled": "observation_limit"
+    },
+    {
+      "profile": "saved3",
+      "run": 2,
+      "scenario": "hash",
+      "shellMs": 106,
+      "marketAllFourMs": 4152.19999999553,
+      "watchAllThreePriceMs": 4248.79999999702,
+      "watchRefreshLabelEndedMs": 4262,
+      "finishMs": 5075.579524000001,
+      "settled": "settled"
+    },
+    {
+      "profile": "empty",
+      "run": 0,
+      "scenario": "hash",
+      "shellMs": 116.79999999701977,
+      "marketAllFourMs": 7724.29999999702,
+      "watchAllThreePriceMs": null,
+      "watchRefreshLabelEndedMs": null,
+      "finishMs": 60228.557741,
+      "settled": "observation_limit"
+    },
+    {
+      "profile": "empty",
+      "run": 1,
+      "scenario": "hash",
+      "shellMs": 196,
+      "marketAllFourMs": 503.80000000447035,
+      "watchAllThreePriceMs": null,
+      "watchRefreshLabelEndedMs": null,
+      "finishMs": 609.6984620000003,
+      "settled": "settled"
+    },
+    {
+      "profile": "empty",
+      "run": 2,
+      "scenario": "hash",
+      "shellMs": 101.80000000447035,
+      "marketAllFourMs": 360.30000000447035,
+      "watchAllThreePriceMs": null,
+      "watchRefreshLabelEndedMs": null,
+      "finishMs": 429.4961329999787,
+      "settled": "settled"
+    }
+  ],
+  "meaning": "Firstdeadline/progressrelease, sameharness cold browser underrealHome/Heatmap navigation, notservercold/SLA; includes timeoutandrecovery"
+}
