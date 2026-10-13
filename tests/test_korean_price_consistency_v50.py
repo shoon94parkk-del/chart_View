@@ -37,7 +37,7 @@ def test_korean_stock_price_is_identical_across_quote_compare_and_valuation(monk
             "delayTime": 0,
         })
 
-    monkeypatch.setattr(realtime_korea.requests, "get", fake_get)
+    monkeypatch.setattr(realtime_korea.provider_http, "get", fake_get)
 
     module = SimpleNamespace(
         fetch_quote_snapshot=lambda symbol: {
@@ -90,7 +90,7 @@ def test_korean_stock_basic_failure_uses_realtime_polling(monkeypatch):
             }]}]}
         })
 
-    monkeypatch.setattr(realtime_korea.requests, "get", fake_get)
+    monkeypatch.setattr(realtime_korea.provider_http, "get", fake_get)
     quote = realtime_korea.fetch_korean_stock_quote("005930.KS")
 
     assert quote["price"] == 266000
@@ -119,7 +119,7 @@ def test_closed_korean_stock_is_explicit_regular_close(monkeypatch):
             },
         })
 
-    monkeypatch.setattr(realtime_korea.requests, "get", fake_get)
+    monkeypatch.setattr(realtime_korea.provider_http, "get", fake_get)
     quote = realtime_korea.fetch_korean_stock_quote("005930.KS")
 
     assert quote["price"] == 276000
@@ -134,7 +134,7 @@ def test_closed_korean_stock_is_explicit_regular_close(monkeypatch):
 def test_non_korean_symbols_keep_original_provider(monkeypatch):
     reset_quote_cache()
     monkeypatch.setattr(
-        realtime_korea.requests,
+        realtime_korea.provider_http,
         "get",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Naver must not be called")),
     )
