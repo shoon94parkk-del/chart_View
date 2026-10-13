@@ -309,13 +309,13 @@
         if (!document.querySelector('link[data-top10-history-v1]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = '/static/css/top10_history_v1.css?v=20261013v2';
+            link.href = '/static/css/top10_history_v1.css?v=20261013v3';
             link.dataset.top10HistoryV1 = '1';
             head.appendChild(link);
         }
         if (!document.querySelector('script[data-top10-history-v1]')) {
             const script = document.createElement('script');
-            script.src = '/static/js/top10_history_v1.js?v=20261013v2';
+            script.src = '/static/js/top10_history_v1.js?v=20261013v3';
             script.defer = true;
             script.dataset.top10HistoryV1 = '1';
             document.body.appendChild(script);
