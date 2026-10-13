@@ -1,0 +1,1391 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-10-13T17:20:00+09:00",
+  "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
+  "policy": {
+    "noFabrication": true,
+    "selectedMeaning": "user_confirmed=사용자 최종 선택, legacy_saved=초기 저장 원장에 남은 종목",
+    "scoreMeaning": "score는 당시 대화에서 제시된 원점수를 그대로 보존하며 날짜 간 절대 비교용으로 정규화하지 않는다."
+  },
+  "days": [
+    {
+      "tradeDate": "2026-09-14",
+      "coverage": "partial",
+      "source": "conversation+legacy_rankings",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "012450",
+          "name": "한화에어로스페이스",
+          "score": 91
+        },
+        {
+          "rank": 2,
+          "code": "272210",
+          "name": "한화시스템",
+          "score": 88
+        },
+        {
+          "rank": 3,
+          "code": "064290",
+          "name": "인텍플러스",
+          "score": 86
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "012450",
+          "name": "한화에어로스페이스",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "272210",
+          "name": "한화시스템",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "064290",
+          "name": "인텍플러스",
+          "status": "legacy_saved"
+        }
+      ],
+      "note": "당시 TOP10 전체는 생성되지 않았고 실제 제시·저장된 TOP3만 복원."
+    },
+    {
+      "tradeDate": "2026-09-15",
+      "coverage": "partial",
+      "source": "legacy_rankings",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "121600",
+          "name": "나노신소재",
+          "score": 88
+        },
+        {
+          "rank": 2,
+          "code": "023160",
+          "name": "태광",
+          "score": 87
+        },
+        {
+          "rank": 3,
+          "code": "033640",
+          "name": "네패스",
+          "score": 84
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "121600",
+          "name": "나노신소재",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "023160",
+          "name": "태광",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "033640",
+          "name": "네패스",
+          "status": "legacy_saved"
+        }
+      ],
+      "note": "당시 TOP10 전체 원문이 없어 저장된 TOP3만 보존."
+    },
+    {
+      "tradeDate": "2026-09-16",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "222800",
+          "name": "심텍",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "095340",
+          "name": "ISC",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "003160",
+          "name": "디아이",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "000660",
+          "name": "SK하이닉스",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "253590",
+          "name": "네오셈",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "204620",
+          "name": "글로벌텍스프리",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "121600",
+          "name": "나노신소재",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "443060",
+          "name": "HD현대마린솔루션",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "036930",
+          "name": "주성엔지니어링",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "005930",
+          "name": "삼성전자",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "003160",
+          "name": "디아이",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "204620",
+          "name": "글로벌텍스프리",
+          "status": "legacy_saved"
+        },
+        {
+          "code": "000660",
+          "name": "SK하이닉스",
+          "status": "legacy_saved"
+        }
+      ],
+      "note": "최종 선택 체계 전환기라 선택 표시는 당시 저장 원장 기준."
+    },
+    {
+      "tradeDate": "2026-09-17",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "095340",
+          "name": "ISC",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "251970",
+          "name": "펌텍코리아",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "000660",
+          "name": "SK하이닉스",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "062040",
+          "name": "산일전기",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "012450",
+          "name": "한화에어로스페이스",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "036930",
+          "name": "주성엔지니어링",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "039030",
+          "name": "이오테크닉스",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "064290",
+          "name": "인텍플러스",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "204620",
+          "name": "글로벌텍스프리",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "105560",
+          "name": "KB금융",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "251970",
+          "name": "펌텍코리아",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "039030",
+          "name": "이오테크닉스",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-18",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "010120",
+          "name": "LS ELECTRIC",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "000660",
+          "name": "SK하이닉스",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "003160",
+          "name": "디아이",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "251970",
+          "name": "펌텍코리아",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "039030",
+          "name": "이오테크닉스",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "204620",
+          "name": "글로벌텍스프리",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "272210",
+          "name": "한화시스템",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "121600",
+          "name": "나노신소재",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "064290",
+          "name": "인텍플러스",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "012450",
+          "name": "한화에어로스페이스",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "010120",
+          "name": "LS ELECTRIC",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-21",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "005930",
+          "name": "삼성전자",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "298040",
+          "name": "효성중공업",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "042700",
+          "name": "한미반도체",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "010120",
+          "name": "LS ELECTRIC",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "000660",
+          "name": "SK하이닉스",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "064290",
+          "name": "인텍플러스",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "204620",
+          "name": "글로벌텍스프리",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "039030",
+          "name": "이오테크닉스",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "251970",
+          "name": "펌텍코리아",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "003160",
+          "name": "디아이",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "005930",
+          "name": "삼성전자",
+          "status": "user_confirmed"
+        },
+        {
+          "code": null,
+          "name": "효성중공업",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "064290",
+          "name": "인텍플러스",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-22",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "089030",
+          "name": "테크윙",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "086390",
+          "name": "유니테스트",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "417840",
+          "name": "저스템",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "440110",
+          "name": "파두",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "006260",
+          "name": "LS",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "009150",
+          "name": "삼성전기",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "295310",
+          "name": "에이치브이엠",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "183300",
+          "name": "코미코",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "011790",
+          "name": "SKC",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "033100",
+          "name": "제룡전기",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "089030",
+          "name": "테크윙",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "086390",
+          "name": "유니테스트",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "417840",
+          "name": "저스템",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-23",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "009150",
+          "name": "삼성전기",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "007660",
+          "name": "이수페타시스",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "062040",
+          "name": "산일전기",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "060370",
+          "name": "LS마린솔루션",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "031980",
+          "name": "피에스케이홀딩스",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "042700",
+          "name": "한미반도체",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "140860",
+          "name": "파크시스템스",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "036930",
+          "name": "주성엔지니어링",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "443060",
+          "name": "HD현대마린솔루션",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "445090",
+          "name": "에이직랜드",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "007660",
+          "name": "이수페타시스",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "009150",
+          "name": "삼성전기",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-28",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "066570",
+          "name": "LG전자",
+          "score": 93
+        },
+        {
+          "rank": 2,
+          "code": "218410",
+          "name": "RFHIC",
+          "score": 92
+        },
+        {
+          "rank": 3,
+          "code": "060370",
+          "name": "LS마린솔루션",
+          "score": 90
+        },
+        {
+          "rank": 4,
+          "code": "112290",
+          "name": "와이씨켐",
+          "score": 90
+        },
+        {
+          "rank": 5,
+          "code": "240810",
+          "name": "원익IPS",
+          "score": 88
+        },
+        {
+          "rank": 6,
+          "code": "095340",
+          "name": "ISC",
+          "score": 87
+        },
+        {
+          "rank": 7,
+          "code": "327260",
+          "name": "RF머트리얼즈",
+          "score": 86
+        },
+        {
+          "rank": 8,
+          "code": "131970",
+          "name": "두산테스나",
+          "score": 86
+        },
+        {
+          "rank": 9,
+          "code": "042700",
+          "name": "한미반도체",
+          "score": 83
+        },
+        {
+          "rank": 10,
+          "code": "036930",
+          "name": "주성엔지니어링",
+          "score": 81
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "066570",
+          "name": "LG전자",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "218410",
+          "name": "RFHIC",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-29",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "445090",
+          "name": "에이직랜드",
+          "score": 91
+        },
+        {
+          "rank": 2,
+          "code": "489790",
+          "name": "한화비전",
+          "score": 90
+        },
+        {
+          "rank": 3,
+          "code": "103590",
+          "name": "일진전기",
+          "score": 89
+        },
+        {
+          "rank": 4,
+          "code": "098460",
+          "name": "고영",
+          "score": 89
+        },
+        {
+          "rank": 5,
+          "code": "112290",
+          "name": "와이씨켐",
+          "score": 88
+        },
+        {
+          "rank": 6,
+          "code": "062040",
+          "name": "산일전기",
+          "score": 87
+        },
+        {
+          "rank": 7,
+          "code": "443060",
+          "name": "HD현대마린솔루션",
+          "score": 85
+        },
+        {
+          "rank": 8,
+          "code": "000150",
+          "name": "두산",
+          "score": 84
+        },
+        {
+          "rank": 9,
+          "code": "090460",
+          "name": "비에이치",
+          "score": 84
+        },
+        {
+          "rank": 10,
+          "code": "042700",
+          "name": "한미반도체",
+          "score": 81
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "445090",
+          "name": "에이직랜드",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "489790",
+          "name": "한화비전",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-09-30",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "131290",
+          "name": "티에스이",
+          "score": 93
+        },
+        {
+          "rank": 2,
+          "code": "323350",
+          "name": "다원넥스뷰",
+          "score": 92
+        },
+        {
+          "rank": 3,
+          "code": "083450",
+          "name": "GST",
+          "score": 92
+        },
+        {
+          "rank": 4,
+          "code": "001440",
+          "name": "대한전선",
+          "score": 90
+        },
+        {
+          "rank": 5,
+          "code": "045100",
+          "name": "한양이엔지",
+          "score": 89
+        },
+        {
+          "rank": 6,
+          "code": "093370",
+          "name": "후성",
+          "score": 88
+        },
+        {
+          "rank": 7,
+          "code": "000150",
+          "name": "두산",
+          "score": 87
+        },
+        {
+          "rank": 8,
+          "code": "443060",
+          "name": "HD현대마린솔루션",
+          "score": 85
+        },
+        {
+          "rank": 9,
+          "code": "178920",
+          "name": "PI첨단소재",
+          "score": 84
+        },
+        {
+          "rank": 10,
+          "code": "090460",
+          "name": "비에이치",
+          "score": 83
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "131290",
+          "name": "티에스이",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "323350",
+          "name": "다원넥스뷰",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "083450",
+          "name": "GST",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-01",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "007340",
+          "name": "DN오토모티브",
+          "score": 93
+        },
+        {
+          "rank": 2,
+          "code": "348350",
+          "name": "위드텍",
+          "score": 92
+        },
+        {
+          "rank": 3,
+          "code": "241690",
+          "name": "유니테크노",
+          "score": 91
+        },
+        {
+          "rank": 4,
+          "code": "207940",
+          "name": "삼성바이오로직스",
+          "score": 91
+        },
+        {
+          "rank": 5,
+          "code": "355150",
+          "name": "코스텍시스",
+          "score": 90
+        },
+        {
+          "rank": 6,
+          "code": "441270",
+          "name": "파인엠텍",
+          "score": 89
+        },
+        {
+          "rank": 7,
+          "code": "241770",
+          "name": "메카로",
+          "score": 88
+        },
+        {
+          "rank": 8,
+          "code": "450080",
+          "name": "에코프로머티",
+          "score": 87
+        },
+        {
+          "rank": 9,
+          "code": "001430",
+          "name": "세아베스틸지주",
+          "score": 87
+        },
+        {
+          "rank": 10,
+          "code": "195940",
+          "name": "HK이노엔",
+          "score": 86
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "355150",
+          "name": "코스텍시스",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "241770",
+          "name": "메카로",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-02",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "001440",
+          "name": "대한전선",
+          "score": 93
+        },
+        {
+          "rank": 2,
+          "code": "007340",
+          "name": "DN오토모티브",
+          "score": 91
+        },
+        {
+          "rank": 3,
+          "code": "064760",
+          "name": "티씨케이",
+          "score": 89
+        },
+        {
+          "rank": 4,
+          "code": "241690",
+          "name": "유니테크노",
+          "score": 89
+        },
+        {
+          "rank": 5,
+          "code": "348350",
+          "name": "위드텍",
+          "score": 88
+        },
+        {
+          "rank": 6,
+          "code": "029460",
+          "name": "케이씨",
+          "score": 88
+        },
+        {
+          "rank": 7,
+          "code": "441270",
+          "name": "파인엠텍",
+          "score": 88
+        },
+        {
+          "rank": 8,
+          "code": "440110",
+          "name": "파두",
+          "score": 87
+        },
+        {
+          "rank": 9,
+          "code": "373220",
+          "name": "LG에너지솔루션",
+          "score": 85
+        },
+        {
+          "rank": 10,
+          "code": "001430",
+          "name": "세아베스틸지주",
+          "score": 84
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "373220",
+          "name": "LG에너지솔루션",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "440110",
+          "name": "파두",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-06",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "260970",
+          "name": "에스앤디",
+          "score": 26
+        },
+        {
+          "rank": 2,
+          "code": "101160",
+          "name": "월덱스",
+          "score": 24
+        },
+        {
+          "rank": 3,
+          "code": "192820",
+          "name": "코스맥스",
+          "score": 23
+        },
+        {
+          "rank": 4,
+          "code": null,
+          "name": "LG CNS",
+          "score": 28
+        },
+        {
+          "rank": 5,
+          "code": "003350",
+          "name": "한국화장품제조",
+          "score": 21
+        },
+        {
+          "rank": 6,
+          "code": "082920",
+          "name": "비츠로셀",
+          "score": 20
+        },
+        {
+          "rank": 7,
+          "code": "214430",
+          "name": "아이쓰리시스템",
+          "score": 17
+        },
+        {
+          "rank": 8,
+          "code": "119850",
+          "name": "지엔씨에너지",
+          "score": 21
+        },
+        {
+          "rank": 9,
+          "code": "033500",
+          "name": "동성화인텍",
+          "score": 8
+        },
+        {
+          "rank": 10,
+          "code": "071970",
+          "name": "HD현대마린엔진",
+          "score": 6
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "119850",
+          "name": "지엔씨에너지",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "101160",
+          "name": "월덱스",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-07",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": null,
+          "name": "에이피알",
+          "score": 86
+        },
+        {
+          "rank": 2,
+          "code": "189300",
+          "name": "인텔리안테크",
+          "score": 92
+        },
+        {
+          "rank": 3,
+          "code": null,
+          "name": "퓨릿",
+          "score": 87
+        },
+        {
+          "rank": 4,
+          "code": null,
+          "name": "경동나비엔",
+          "score": 83
+        },
+        {
+          "rank": 5,
+          "code": "082920",
+          "name": "비츠로셀",
+          "score": 81
+        },
+        {
+          "rank": 6,
+          "code": "060370",
+          "name": "LS마린솔루션",
+          "score": 88
+        },
+        {
+          "rank": 7,
+          "code": "001060",
+          "name": "JW중외제약",
+          "score": 85
+        },
+        {
+          "rank": 8,
+          "code": "340570",
+          "name": "티앤엘",
+          "score": 78
+        },
+        {
+          "rank": 9,
+          "code": null,
+          "name": "원익머트리얼즈",
+          "score": 87
+        },
+        {
+          "rank": 10,
+          "code": "214430",
+          "name": "아이쓰리시스템",
+          "score": 79
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": null,
+          "name": "에이피알",
+          "status": "user_confirmed"
+        },
+        {
+          "code": null,
+          "name": "퓨릿",
+          "status": "user_confirmed"
+        },
+        {
+          "code": null,
+          "name": "경동나비엔",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-08",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "unavailable",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "082920",
+          "name": "비츠로셀",
+          "score": null
+        },
+        {
+          "rank": 2,
+          "code": "062040",
+          "name": "산일전기",
+          "score": null
+        },
+        {
+          "rank": 3,
+          "code": "189300",
+          "name": "인텔리안테크",
+          "score": null
+        },
+        {
+          "rank": 4,
+          "code": "033500",
+          "name": "동성화인텍",
+          "score": null
+        },
+        {
+          "rank": 5,
+          "code": "042700",
+          "name": "한미반도체",
+          "score": null
+        },
+        {
+          "rank": 6,
+          "code": "071970",
+          "name": "HD현대마린엔진",
+          "score": null
+        },
+        {
+          "rank": 7,
+          "code": "006400",
+          "name": "삼성SDI",
+          "score": null
+        },
+        {
+          "rank": 8,
+          "code": "171090",
+          "name": "선익시스템",
+          "score": null
+        },
+        {
+          "rank": 9,
+          "code": "240810",
+          "name": "원익IPS",
+          "score": null
+        },
+        {
+          "rank": 10,
+          "code": "192820",
+          "name": "코스맥스",
+          "score": null
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "082920",
+          "name": "비츠로셀",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "033500",
+          "name": "동성화인텍",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-12",
+      "coverage": "complete",
+      "source": "conversation_recovered",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "166090",
+          "name": "하나머티리얼즈",
+          "score": 94
+        },
+        {
+          "rank": 2,
+          "code": "062040",
+          "name": "산일전기",
+          "score": 91
+        },
+        {
+          "rank": 3,
+          "code": "192820",
+          "name": "코스맥스",
+          "score": 89
+        },
+        {
+          "rank": 4,
+          "code": "054950",
+          "name": "제이브이엠",
+          "score": 87
+        },
+        {
+          "rank": 5,
+          "code": "006400",
+          "name": "삼성SDI",
+          "score": 86
+        },
+        {
+          "rank": 6,
+          "code": "030190",
+          "name": "NICE평가정보",
+          "score": 84
+        },
+        {
+          "rank": 7,
+          "code": "403870",
+          "name": "HPSP",
+          "score": 82
+        },
+        {
+          "rank": 8,
+          "code": "078600",
+          "name": "대주전자재료",
+          "score": 81
+        },
+        {
+          "rank": 9,
+          "code": "112610",
+          "name": "씨에스윈드",
+          "score": 79
+        },
+        {
+          "rank": 10,
+          "code": "178320",
+          "name": "서진시스템",
+          "score": 77
+        }
+      ],
+      "selectedPicks": [
+        {
+          "code": "166090",
+          "name": "하나머티리얼즈",
+          "status": "user_confirmed"
+        },
+        {
+          "code": "062040",
+          "name": "산일전기",
+          "status": "user_confirmed"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-13",
+      "coverage": "complete",
+      "source": "current_conversation",
+      "scoreType": "reported_original",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "058470",
+          "name": "리노공업",
+          "score": 90
+        },
+        {
+          "rank": 2,
+          "code": "192820",
+          "name": "코스맥스",
+          "score": 90
+        },
+        {
+          "rank": 3,
+          "code": "030190",
+          "name": "NICE평가정보",
+          "score": 86
+        },
+        {
+          "rank": 4,
+          "code": "054950",
+          "name": "제이브이엠",
+          "score": 85
+        },
+        {
+          "rank": 5,
+          "code": "006400",
+          "name": "삼성SDI",
+          "score": 85
+        },
+        {
+          "rank": 6,
+          "code": "078600",
+          "name": "대주전자재료",
+          "score": 83
+        },
+        {
+          "rank": 7,
+          "code": "403870",
+          "name": "HPSP",
+          "score": 81
+        },
+        {
+          "rank": 8,
+          "code": "383220",
+          "name": "F&F",
+          "score": 81
+        },
+        {
+          "rank": 9,
+          "code": "112610",
+          "name": "씨에스윈드",
+          "score": 78
+        },
+        {
+          "rank": 10,
+          "code": "483650",
+          "name": "달바글로벌",
+          "score": 71
+        }
+      ],
+      "selectedPicks": [],
+      "note": "오늘 TOP10 제시 완료. 최종 PICK은 아직 게시 전."
+    }
+  ]
+}
