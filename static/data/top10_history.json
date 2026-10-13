@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-13T17:20:00+09:00",
+  "updated": "2026-10-13T19:33:00+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -18,36 +18,45 @@
           "rank": 1,
           "code": "012450",
           "name": "한화에어로스페이스",
-          "score": 91
+          "score": 91,
+          "symbol": "012450.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "272210",
           "name": "한화시스템",
-          "score": 88
+          "score": 88,
+          "symbol": "272210.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "064290",
           "name": "인텍플러스",
-          "score": 86
+          "score": 86,
+          "symbol": "064290.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "012450",
           "name": "한화에어로스페이스",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "012450.KS"
         },
         {
           "code": "272210",
           "name": "한화시스템",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "272210.KS"
         },
         {
           "code": "064290",
           "name": "인텍플러스",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "064290.KQ"
         }
       ],
       "note": "당시 TOP10 전체는 생성되지 않았고 실제 제시·저장된 TOP3만 복원."
@@ -62,36 +71,45 @@
           "rank": 1,
           "code": "121600",
           "name": "나노신소재",
-          "score": 88
+          "score": 88,
+          "symbol": "121600.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "023160",
           "name": "태광",
-          "score": 87
+          "score": 87,
+          "symbol": "023160.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "033640",
           "name": "네패스",
-          "score": 84
+          "score": 84,
+          "symbol": "033640.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "121600",
           "name": "나노신소재",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "121600.KQ"
         },
         {
           "code": "023160",
           "name": "태광",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "023160.KQ"
         },
         {
           "code": "033640",
           "name": "네패스",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "033640.KQ"
         }
       ],
       "note": "당시 TOP10 전체 원문이 없어 저장된 TOP3만 보존."
@@ -106,78 +124,101 @@
           "rank": 1,
           "code": "222800",
           "name": "심텍",
-          "score": null
+          "score": null,
+          "symbol": "222800.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "095340",
           "name": "ISC",
-          "score": null
+          "score": null,
+          "symbol": "095340.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "003160",
           "name": "디아이",
-          "score": null
+          "score": null,
+          "symbol": "003160.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "000660",
           "name": "SK하이닉스",
-          "score": null
+          "score": null,
+          "symbol": "000660.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "253590",
           "name": "네오셈",
-          "score": null
+          "score": null,
+          "symbol": "253590.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "204620",
           "name": "글로벌텍스프리",
-          "score": null
+          "score": null,
+          "symbol": "204620.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "121600",
           "name": "나노신소재",
-          "score": null
+          "score": null,
+          "symbol": "121600.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "443060",
           "name": "HD현대마린솔루션",
-          "score": null
+          "score": null,
+          "symbol": "443060.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 9,
           "code": "036930",
           "name": "주성엔지니어링",
-          "score": null
+          "score": null,
+          "symbol": "036930.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "005930",
           "name": "삼성전자",
-          "score": null
+          "score": null,
+          "symbol": "005930.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "003160",
           "name": "디아이",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "003160.KS"
         },
         {
           "code": "204620",
           "name": "글로벌텍스프리",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "204620.KQ"
         },
         {
           "code": "000660",
           "name": "SK하이닉스",
-          "status": "legacy_saved"
+          "status": "legacy_saved",
+          "symbol": "000660.KS"
         }
       ],
       "note": "최종 선택 체계 전환기라 선택 표시는 당시 저장 원장 기준."
@@ -192,73 +233,95 @@
           "rank": 1,
           "code": "095340",
           "name": "ISC",
-          "score": null
+          "score": null,
+          "symbol": "095340.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "251970",
           "name": "펌텍코리아",
-          "score": null
+          "score": null,
+          "symbol": "251970.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "000660",
           "name": "SK하이닉스",
-          "score": null
+          "score": null,
+          "symbol": "000660.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "062040",
           "name": "산일전기",
-          "score": null
+          "score": null,
+          "symbol": "062040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "012450",
           "name": "한화에어로스페이스",
-          "score": null
+          "score": null,
+          "symbol": "012450.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "036930",
           "name": "주성엔지니어링",
-          "score": null
+          "score": null,
+          "symbol": "036930.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "039030",
           "name": "이오테크닉스",
-          "score": null
+          "score": null,
+          "symbol": "039030.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "064290",
           "name": "인텍플러스",
-          "score": null
+          "score": null,
+          "symbol": "064290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "204620",
           "name": "글로벌텍스프리",
-          "score": null
+          "score": null,
+          "symbol": "204620.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "105560",
           "name": "KB금융",
-          "score": null
+          "score": null,
+          "symbol": "105560.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "251970",
           "name": "펌텍코리아",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "251970.KQ"
         },
         {
           "code": "039030",
           "name": "이오테크닉스",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "039030.KQ"
         }
       ]
     },
@@ -272,68 +335,89 @@
           "rank": 1,
           "code": "010120",
           "name": "LS ELECTRIC",
-          "score": null
+          "score": null,
+          "symbol": "010120.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "000660",
           "name": "SK하이닉스",
-          "score": null
+          "score": null,
+          "symbol": "000660.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "003160",
           "name": "디아이",
-          "score": null
+          "score": null,
+          "symbol": "003160.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "251970",
           "name": "펌텍코리아",
-          "score": null
+          "score": null,
+          "symbol": "251970.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "039030",
           "name": "이오테크닉스",
-          "score": null
+          "score": null,
+          "symbol": "039030.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "204620",
           "name": "글로벌텍스프리",
-          "score": null
+          "score": null,
+          "symbol": "204620.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "272210",
           "name": "한화시스템",
-          "score": null
+          "score": null,
+          "symbol": "272210.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 8,
           "code": "121600",
           "name": "나노신소재",
-          "score": null
+          "score": null,
+          "symbol": "121600.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "064290",
           "name": "인텍플러스",
-          "score": null
+          "score": null,
+          "symbol": "064290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "012450",
           "name": "한화에어로스페이스",
-          "score": null
+          "score": null,
+          "symbol": "012450.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "010120",
           "name": "LS ELECTRIC",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "010120.KS"
         }
       ]
     },
@@ -347,78 +431,101 @@
           "rank": 1,
           "code": "005930",
           "name": "삼성전자",
-          "score": null
+          "score": null,
+          "symbol": "005930.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "298040",
           "name": "효성중공업",
-          "score": null
+          "score": null,
+          "symbol": "298040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "042700",
           "name": "한미반도체",
-          "score": null
+          "score": null,
+          "symbol": "042700.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "010120",
           "name": "LS ELECTRIC",
-          "score": null
+          "score": null,
+          "symbol": "010120.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "000660",
           "name": "SK하이닉스",
-          "score": null
+          "score": null,
+          "symbol": "000660.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "064290",
           "name": "인텍플러스",
-          "score": null
+          "score": null,
+          "symbol": "064290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "204620",
           "name": "글로벌텍스프리",
-          "score": null
+          "score": null,
+          "symbol": "204620.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "039030",
           "name": "이오테크닉스",
-          "score": null
+          "score": null,
+          "symbol": "039030.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "251970",
           "name": "펌텍코리아",
-          "score": null
+          "score": null,
+          "symbol": "251970.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "003160",
           "name": "디아이",
-          "score": null
+          "score": null,
+          "symbol": "003160.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "005930",
           "name": "삼성전자",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "005930.KS"
         },
         {
-          "code": null,
+          "code": "298040",
           "name": "효성중공업",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "298040.KS"
         },
         {
           "code": "064290",
           "name": "인텍플러스",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "064290.KQ"
         }
       ]
     },
@@ -432,78 +539,101 @@
           "rank": 1,
           "code": "089030",
           "name": "테크윙",
-          "score": null
+          "score": null,
+          "symbol": "089030.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "086390",
           "name": "유니테스트",
-          "score": null
+          "score": null,
+          "symbol": "086390.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "417840",
           "name": "저스템",
-          "score": null
+          "score": null,
+          "symbol": "417840.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "440110",
           "name": "파두",
-          "score": null
+          "score": null,
+          "symbol": "440110.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "006260",
           "name": "LS",
-          "score": null
+          "score": null,
+          "symbol": "006260.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "009150",
           "name": "삼성전기",
-          "score": null
+          "score": null,
+          "symbol": "009150.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "295310",
           "name": "에이치브이엠",
-          "score": null
+          "score": null,
+          "symbol": "295310.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "183300",
           "name": "코미코",
-          "score": null
+          "score": null,
+          "symbol": "183300.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "011790",
           "name": "SKC",
-          "score": null
+          "score": null,
+          "symbol": "011790.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "033100",
           "name": "제룡전기",
-          "score": null
+          "score": null,
+          "symbol": "033100.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "089030",
           "name": "테크윙",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "089030.KQ"
         },
         {
           "code": "086390",
           "name": "유니테스트",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "086390.KQ"
         },
         {
           "code": "417840",
           "name": "저스템",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "417840.KQ"
         }
       ]
     },
@@ -517,73 +647,95 @@
           "rank": 1,
           "code": "009150",
           "name": "삼성전기",
-          "score": null
+          "score": null,
+          "symbol": "009150.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "007660",
           "name": "이수페타시스",
-          "score": null
+          "score": null,
+          "symbol": "007660.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "062040",
           "name": "산일전기",
-          "score": null
+          "score": null,
+          "symbol": "062040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "060370",
           "name": "LS마린솔루션",
-          "score": null
+          "score": null,
+          "symbol": "060370.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "031980",
           "name": "피에스케이홀딩스",
-          "score": null
+          "score": null,
+          "symbol": "031980.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "042700",
           "name": "한미반도체",
-          "score": null
+          "score": null,
+          "symbol": "042700.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "140860",
           "name": "파크시스템스",
-          "score": null
+          "score": null,
+          "symbol": "140860.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "036930",
           "name": "주성엔지니어링",
-          "score": null
+          "score": null,
+          "symbol": "036930.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "443060",
           "name": "HD현대마린솔루션",
-          "score": null
+          "score": null,
+          "symbol": "443060.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "445090",
           "name": "에이직랜드",
-          "score": null
+          "score": null,
+          "symbol": "445090.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "007660",
           "name": "이수페타시스",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "007660.KS"
         },
         {
           "code": "009150",
           "name": "삼성전기",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "009150.KS"
         }
       ]
     },
@@ -597,73 +749,95 @@
           "rank": 1,
           "code": "066570",
           "name": "LG전자",
-          "score": 93
+          "score": 93,
+          "symbol": "066570.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "218410",
           "name": "RFHIC",
-          "score": 92
+          "score": 92,
+          "symbol": "218410.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "060370",
           "name": "LS마린솔루션",
-          "score": 90
+          "score": 90,
+          "symbol": "060370.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "112290",
           "name": "와이씨켐",
-          "score": 90
+          "score": 90,
+          "symbol": "112290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "240810",
           "name": "원익IPS",
-          "score": 88
+          "score": 88,
+          "symbol": "240810.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "095340",
           "name": "ISC",
-          "score": 87
+          "score": 87,
+          "symbol": "095340.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "327260",
           "name": "RF머트리얼즈",
-          "score": 86
+          "score": 86,
+          "symbol": "327260.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "131970",
           "name": "두산테스나",
-          "score": 86
+          "score": 86,
+          "symbol": "131970.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "042700",
           "name": "한미반도체",
-          "score": 83
+          "score": 83,
+          "symbol": "042700.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "036930",
           "name": "주성엔지니어링",
-          "score": 81
+          "score": 81,
+          "symbol": "036930.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "066570",
           "name": "LG전자",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "066570.KS"
         },
         {
           "code": "218410",
           "name": "RFHIC",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "218410.KQ"
         }
       ]
     },
@@ -677,73 +851,95 @@
           "rank": 1,
           "code": "445090",
           "name": "에이직랜드",
-          "score": 91
+          "score": 91,
+          "symbol": "445090.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "489790",
           "name": "한화비전",
-          "score": 90
+          "score": 90,
+          "symbol": "489790.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "103590",
           "name": "일진전기",
-          "score": 89
+          "score": 89,
+          "symbol": "103590.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "098460",
           "name": "고영",
-          "score": 89
+          "score": 89,
+          "symbol": "098460.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "112290",
           "name": "와이씨켐",
-          "score": 88
+          "score": 88,
+          "symbol": "112290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "062040",
           "name": "산일전기",
-          "score": 87
+          "score": 87,
+          "symbol": "062040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "443060",
           "name": "HD현대마린솔루션",
-          "score": 85
+          "score": 85,
+          "symbol": "443060.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 8,
           "code": "000150",
           "name": "두산",
-          "score": 84
+          "score": 84,
+          "symbol": "000150.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 9,
           "code": "090460",
           "name": "비에이치",
-          "score": 84
+          "score": 84,
+          "symbol": "090460.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "042700",
           "name": "한미반도체",
-          "score": 81
+          "score": 81,
+          "symbol": "042700.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "445090",
           "name": "에이직랜드",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "445090.KQ"
         },
         {
           "code": "489790",
           "name": "한화비전",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "489790.KS"
         }
       ]
     },
@@ -757,78 +953,101 @@
           "rank": 1,
           "code": "131290",
           "name": "티에스이",
-          "score": 93
+          "score": 93,
+          "symbol": "131290.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "323350",
           "name": "다원넥스뷰",
-          "score": 92
+          "score": 92,
+          "symbol": "323350.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "083450",
           "name": "GST",
-          "score": 92
+          "score": 92,
+          "symbol": "083450.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "001440",
           "name": "대한전선",
-          "score": 90
+          "score": 90,
+          "symbol": "001440.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "045100",
           "name": "한양이엔지",
-          "score": 89
+          "score": 89,
+          "symbol": "045100.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "093370",
           "name": "후성",
-          "score": 88
+          "score": 88,
+          "symbol": "093370.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "000150",
           "name": "두산",
-          "score": 87
+          "score": 87,
+          "symbol": "000150.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 8,
           "code": "443060",
           "name": "HD현대마린솔루션",
-          "score": 85
+          "score": 85,
+          "symbol": "443060.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 9,
           "code": "178920",
           "name": "PI첨단소재",
-          "score": 84
+          "score": 84,
+          "symbol": "178920.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "090460",
           "name": "비에이치",
-          "score": 83
+          "score": 83,
+          "symbol": "090460.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "131290",
           "name": "티에스이",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "131290.KQ"
         },
         {
           "code": "323350",
           "name": "다원넥스뷰",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "323350.KQ"
         },
         {
           "code": "083450",
           "name": "GST",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "083450.KQ"
         }
       ]
     },
@@ -842,73 +1061,95 @@
           "rank": 1,
           "code": "007340",
           "name": "DN오토모티브",
-          "score": 93
+          "score": 93,
+          "symbol": "007340.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "348350",
           "name": "위드텍",
-          "score": 92
+          "score": 92,
+          "symbol": "348350.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "241690",
           "name": "유니테크노",
-          "score": 91
+          "score": 91,
+          "symbol": "241690.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "207940",
           "name": "삼성바이오로직스",
-          "score": 91
+          "score": 91,
+          "symbol": "207940.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "355150",
           "name": "코스텍시스",
-          "score": 90
+          "score": 90,
+          "symbol": "355150.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "441270",
           "name": "파인엠텍",
-          "score": 89
+          "score": 89,
+          "symbol": "441270.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "241770",
           "name": "메카로",
-          "score": 88
+          "score": 88,
+          "symbol": "241770.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "450080",
           "name": "에코프로머티",
-          "score": 87
+          "score": 87,
+          "symbol": "450080.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 9,
           "code": "001430",
           "name": "세아베스틸지주",
-          "score": 87
+          "score": 87,
+          "symbol": "001430.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "195940",
           "name": "HK이노엔",
-          "score": 86
+          "score": 86,
+          "symbol": "195940.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "355150",
           "name": "코스텍시스",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "355150.KQ"
         },
         {
           "code": "241770",
           "name": "메카로",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "241770.KQ"
         }
       ]
     },
@@ -922,73 +1163,95 @@
           "rank": 1,
           "code": "001440",
           "name": "대한전선",
-          "score": 93
+          "score": 93,
+          "symbol": "001440.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "007340",
           "name": "DN오토모티브",
-          "score": 91
+          "score": 91,
+          "symbol": "007340.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "064760",
           "name": "티씨케이",
-          "score": 89
+          "score": 89,
+          "symbol": "064760.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "241690",
           "name": "유니테크노",
-          "score": 89
+          "score": 89,
+          "symbol": "241690.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "348350",
           "name": "위드텍",
-          "score": 88
+          "score": 88,
+          "symbol": "348350.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "029460",
           "name": "케이씨",
-          "score": 88
+          "score": 88,
+          "symbol": "029460.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "441270",
           "name": "파인엠텍",
-          "score": 88
+          "score": 88,
+          "symbol": "441270.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "440110",
           "name": "파두",
-          "score": 87
+          "score": 87,
+          "symbol": "440110.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "373220",
           "name": "LG에너지솔루션",
-          "score": 85
+          "score": 85,
+          "symbol": "373220.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "001430",
           "name": "세아베스틸지주",
-          "score": 84
+          "score": 84,
+          "symbol": "001430.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "373220",
           "name": "LG에너지솔루션",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "373220.KS"
         },
         {
           "code": "440110",
           "name": "파두",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "440110.KQ"
         }
       ]
     },
@@ -1002,73 +1265,95 @@
           "rank": 1,
           "code": "260970",
           "name": "에스앤디",
-          "score": 26
+          "score": 26,
+          "symbol": "260970.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "101160",
           "name": "월덱스",
-          "score": 24
+          "score": 24,
+          "symbol": "101160.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
           "code": "192820",
           "name": "코스맥스",
-          "score": 23
+          "score": 23,
+          "symbol": "192820.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
-          "code": null,
+          "code": "064400",
           "name": "LG CNS",
-          "score": 28
+          "score": 28,
+          "symbol": "064400.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "003350",
           "name": "한국화장품제조",
-          "score": 21
+          "score": 21,
+          "symbol": "003350.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "082920",
           "name": "비츠로셀",
-          "score": 20
+          "score": 20,
+          "symbol": "082920.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "214430",
           "name": "아이쓰리시스템",
-          "score": 17
+          "score": 17,
+          "symbol": "214430.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "119850",
           "name": "지엔씨에너지",
-          "score": 21
+          "score": 21,
+          "symbol": "119850.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "033500",
           "name": "동성화인텍",
-          "score": 8
+          "score": 8,
+          "symbol": "033500.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "071970",
           "name": "HD현대마린엔진",
-          "score": 6
+          "score": 6,
+          "symbol": "071970.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "119850",
           "name": "지엔씨에너지",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "119850.KQ"
         },
         {
           "code": "101160",
           "name": "월덱스",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "101160.KQ"
         }
       ]
     },
@@ -1080,80 +1365,103 @@
       "top10": [
         {
           "rank": 1,
-          "code": null,
+          "code": "278470",
           "name": "에이피알",
-          "score": 86
+          "score": 86,
+          "symbol": "278470.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 2,
           "code": "189300",
           "name": "인텔리안테크",
-          "score": 92
+          "score": 92,
+          "symbol": "189300.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 3,
-          "code": null,
+          "code": "445180",
           "name": "퓨릿",
-          "score": 87
+          "score": 87,
+          "symbol": "445180.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
-          "code": null,
+          "code": "009450",
           "name": "경동나비엔",
-          "score": 83
+          "score": 83,
+          "symbol": "009450.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 5,
           "code": "082920",
           "name": "비츠로셀",
-          "score": 81
+          "score": 81,
+          "symbol": "082920.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 6,
           "code": "060370",
           "name": "LS마린솔루션",
-          "score": 88
+          "score": 88,
+          "symbol": "060370.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "001060",
           "name": "JW중외제약",
-          "score": 85
+          "score": 85,
+          "symbol": "001060.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 8,
           "code": "340570",
           "name": "티앤엘",
-          "score": 78
+          "score": 78,
+          "symbol": "340570.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
-          "code": null,
+          "code": "104830",
           "name": "원익머트리얼즈",
-          "score": 87
+          "score": 87,
+          "symbol": "104830.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "214430",
           "name": "아이쓰리시스템",
-          "score": 79
+          "score": 79,
+          "symbol": "214430.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
-          "code": null,
+          "code": "278470",
           "name": "에이피알",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "278470.KS"
         },
         {
-          "code": null,
+          "code": "445180",
           "name": "퓨릿",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "445180.KQ"
         },
         {
-          "code": null,
+          "code": "009450",
           "name": "경동나비엔",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "009450.KS"
         }
       ]
     },
@@ -1167,73 +1475,95 @@
           "rank": 1,
           "code": "082920",
           "name": "비츠로셀",
-          "score": null
+          "score": null,
+          "symbol": "082920.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "062040",
           "name": "산일전기",
-          "score": null
+          "score": null,
+          "symbol": "062040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "189300",
           "name": "인텔리안테크",
-          "score": null
+          "score": null,
+          "symbol": "189300.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 4,
           "code": "033500",
           "name": "동성화인텍",
-          "score": null
+          "score": null,
+          "symbol": "033500.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "042700",
           "name": "한미반도체",
-          "score": null
+          "score": null,
+          "symbol": "042700.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "071970",
           "name": "HD현대마린엔진",
-          "score": null
+          "score": null,
+          "symbol": "071970.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "006400",
           "name": "삼성SDI",
-          "score": null
+          "score": null,
+          "symbol": "006400.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 8,
           "code": "171090",
           "name": "선익시스템",
-          "score": null
+          "score": null,
+          "symbol": "171090.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "240810",
           "name": "원익IPS",
-          "score": null
+          "score": null,
+          "symbol": "240810.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 10,
           "code": "192820",
           "name": "코스맥스",
-          "score": null
+          "score": null,
+          "symbol": "192820.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [
         {
           "code": "082920",
           "name": "비츠로셀",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "082920.KQ"
         },
         {
           "code": "033500",
           "name": "동성화인텍",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "033500.KQ"
         }
       ]
     },
@@ -1247,73 +1577,95 @@
           "rank": 1,
           "code": "166090",
           "name": "하나머티리얼즈",
-          "score": 94
+          "score": 94,
+          "symbol": "166090.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "062040",
           "name": "산일전기",
-          "score": 91
+          "score": 91,
+          "symbol": "062040.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "192820",
           "name": "코스맥스",
-          "score": 89
+          "score": 89,
+          "symbol": "192820.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "054950",
           "name": "제이브이엠",
-          "score": 87
+          "score": 87,
+          "symbol": "054950.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "006400",
           "name": "삼성SDI",
-          "score": 86
+          "score": 86,
+          "symbol": "006400.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "030190",
           "name": "NICE평가정보",
-          "score": 84
+          "score": 84,
+          "symbol": "030190.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 7,
           "code": "403870",
           "name": "HPSP",
-          "score": 82
+          "score": 82,
+          "symbol": "403870.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "078600",
           "name": "대주전자재료",
-          "score": 81
+          "score": 81,
+          "symbol": "078600.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 9,
           "code": "112610",
           "name": "씨에스윈드",
-          "score": 79
+          "score": 79,
+          "symbol": "112610.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "178320",
           "name": "서진시스템",
-          "score": 77
+          "score": 77,
+          "symbol": "178320.KQ",
+          "market": "KOSDAQ"
         }
       ],
       "selectedPicks": [
         {
           "code": "166090",
           "name": "하나머티리얼즈",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "166090.KQ"
         },
         {
           "code": "062040",
           "name": "산일전기",
-          "status": "user_confirmed"
+          "status": "user_confirmed",
+          "symbol": "062040.KS"
         }
       ]
     },
@@ -1327,65 +1679,97 @@
           "rank": 1,
           "code": "058470",
           "name": "리노공업",
-          "score": 90
+          "score": 90,
+          "symbol": "058470.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 2,
           "code": "192820",
           "name": "코스맥스",
-          "score": 90
+          "score": 90,
+          "symbol": "192820.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 3,
           "code": "030190",
           "name": "NICE평가정보",
-          "score": 86
+          "score": 86,
+          "symbol": "030190.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 4,
           "code": "054950",
           "name": "제이브이엠",
-          "score": 85
+          "score": 85,
+          "symbol": "054950.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 5,
           "code": "006400",
           "name": "삼성SDI",
-          "score": 85
+          "score": 85,
+          "symbol": "006400.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 6,
           "code": "078600",
           "name": "대주전자재료",
-          "score": 83
+          "score": 83,
+          "symbol": "078600.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 7,
           "code": "403870",
           "name": "HPSP",
-          "score": 81
+          "score": 81,
+          "symbol": "403870.KQ",
+          "market": "KOSDAQ"
         },
         {
           "rank": 8,
           "code": "383220",
           "name": "F&F",
-          "score": 81
+          "score": 81,
+          "symbol": "383220.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 9,
           "code": "112610",
           "name": "씨에스윈드",
-          "score": 78
+          "score": 78,
+          "symbol": "112610.KS",
+          "market": "KOSPI"
         },
         {
           "rank": 10,
           "code": "483650",
           "name": "달바글로벌",
-          "score": 71
+          "score": 71,
+          "symbol": "483650.KS",
+          "market": "KOSPI"
         }
       ],
       "selectedPicks": [],
       "note": "오늘 TOP10 제시 완료. 최종 PICK은 아직 게시 전."
     }
-  ]
+  ],
+  "performancePolicy": {
+    "basis": "recommendation_day_regular_close",
+    "current": "latest available regular-session close",
+    "horizonsTradingDays": [
+      5,
+      20,
+      60
+    ],
+    "returnFormula": "(horizonClose - recommendationClose) / recommendationClose * 100",
+    "unavailable": "show dash until the required trading-day observation exists",
+    "provider": "Chart View /api/compare (Yahoo Finance Chart adjusted close when available; otherwise close)"
+  }
 }
