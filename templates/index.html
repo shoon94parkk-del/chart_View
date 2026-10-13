@@ -40,7 +40,6 @@
         data-detail-ui-v40 data-comparison-ui-v40 data-comparison-compact-v401 data-news-status-v401
         data-my-hub-v41 data-news-readability-v412 data-news-summary-expand-v48 data-resilience-v413
         data-home-polish-v414 data-home-watchlist-compact-v46 data-home-news-cards-v47>
-    <link rel="stylesheet" href="/static/css/top10_history_v1.css?v=20261013v1">
 </head>
 
 <body class="app-booting">
@@ -303,7 +302,27 @@
         data-personalized-news-v40 data-news-status-v401 data-release-ui-v40 data-release-flow-v40
         data-comparison-compact-v401 data-my-hub-v41 data-news-readability-v412 data-resilience-v413
         data-home-polish-v414 data-home-watchlist-compact-v46 data-home-news-cards-v47></script>
-    <script defer src="/static/js/top10_history_v1.js?v=20261013v1"></script>
+
+    <script>
+    (() => {
+        const head = document.head;
+        if (!document.querySelector('link[data-top10-history-v1]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/static/css/top10_history_v1.css?v=20261013v2';
+            link.dataset.top10HistoryV1 = '1';
+            head.appendChild(link);
+        }
+        if (!document.querySelector('script[data-top10-history-v1]')) {
+            const script = document.createElement('script');
+            script.src = '/static/js/top10_history_v1.js?v=20261013v2';
+            script.defer = true;
+            script.dataset.top10HistoryV1 = '1';
+            document.body.appendChild(script);
+        }
+    })();
+    </script>
+
 </body>
 
 </html>
