@@ -1,0 +1,104 @@
+{
+  "base_sha": "71cb721375c4598b60897e12d0db04f5a2440fa7",
+  "kind": "controlled provider-free HTTP handler experiment",
+  "not_production_incident_attribution": true,
+  "not_latency_sla": true,
+  "method": "Select actual handler/cache functions by AST from base and current source, register an isolated FastAPI route without startup, run one ordinary cold ASGI HTTP request. One chosen fake provider sleeps exactly20s; the others sleep3ms. Real run_in_executor pool remains2 per independent simulated instance. No HTTP to external services or additional provider calls.",
+  "records": [
+    {
+      "stage": "before",
+      "scenario": "one_extra_held_20s",
+      "held_ticker": "^VIX",
+      "configured_hold_ms": 20000,
+      "executor_workers": 2,
+      "first_http_return_ms": 20092.345,
+      "first_valid_index_available_in_http_ms": 20092.345,
+      "first_response_primary_tickers": [
+        "^KS11",
+        "^KQ11",
+        "^GSPC",
+        "^IXIC"
+      ],
+      "first_response_rows": 8,
+      "first_response_refreshing": false,
+      "first_response_cache_age_sec": 0.0,
+      "first_response_cache_control": "public, max-age=5, s-maxage=5, stale-while-revalidate=20",
+      "first_response_server_timing": null,
+      "all8_terminal_ms": 20092.37,
+      "terminal_rows": 8,
+      "provider_calls": 8,
+      "source_sha256": "84ac75c9c1b5228c011f5be33fcce0c481122c95f86de4af662a000dd44b4ec7"
+    },
+    {
+      "stage": "before",
+      "scenario": "one_primary_held_20s",
+      "held_ticker": "^KS11",
+      "configured_hold_ms": 20000,
+      "executor_workers": 2,
+      "first_http_return_ms": 20069.494,
+      "first_valid_index_available_in_http_ms": 20069.494,
+      "first_response_primary_tickers": [
+        "^KS11",
+        "^KQ11",
+        "^GSPC",
+        "^IXIC"
+      ],
+      "first_response_rows": 8,
+      "first_response_refreshing": false,
+      "first_response_cache_age_sec": 0.0,
+      "first_response_cache_control": "public, max-age=5, s-maxage=5, stale-while-revalidate=20",
+      "first_response_server_timing": null,
+      "all8_terminal_ms": 20069.524,
+      "terminal_rows": 8,
+      "provider_calls": 8,
+      "source_sha256": "84ac75c9c1b5228c011f5be33fcce0c481122c95f86de4af662a000dd44b4ec7"
+    },
+    {
+      "stage": "after",
+      "scenario": "one_extra_held_20s",
+      "held_ticker": "^VIX",
+      "configured_hold_ms": 20000,
+      "executor_workers": 2,
+      "first_http_return_ms": 61.212,
+      "first_valid_index_available_in_http_ms": 61.212,
+      "first_response_primary_tickers": [
+        "^KS11",
+        "^KQ11",
+        "^GSPC",
+        "^IXIC"
+      ],
+      "first_response_rows": 4,
+      "first_response_refreshing": true,
+      "first_response_cache_age_sec": null,
+      "first_response_cache_control": "no-store",
+      "first_response_server_timing": "market-ready;dur=60.308, market-handler;dur=60.333",
+      "all8_terminal_ms": 20069.165,
+      "terminal_rows": 8,
+      "provider_calls": 8,
+      "source_sha256": "6047494751733259df5ae8783508c10dd736be4293addd3aa4aec6d08be5c0d3"
+    },
+    {
+      "stage": "after",
+      "scenario": "one_primary_held_20s",
+      "held_ticker": "^KS11",
+      "configured_hold_ms": 20000,
+      "executor_workers": 2,
+      "first_http_return_ms": 2003.323,
+      "first_valid_index_available_in_http_ms": 2003.323,
+      "first_response_primary_tickers": [
+        "^KQ11",
+        "^GSPC",
+        "^IXIC"
+      ],
+      "first_response_rows": 7,
+      "first_response_refreshing": true,
+      "first_response_cache_age_sec": null,
+      "first_response_cache_control": "no-store",
+      "first_response_server_timing": "market-ready;dur=2002.336, market-handler;dur=2002.373",
+      "all8_terminal_ms": 20009.883,
+      "terminal_rows": 8,
+      "provider_calls": 8,
+      "source_sha256": "6047494751733259df5ae8783508c10dd736be4293addd3aa4aec6d08be5c0d3"
+    }
+  ]
+}

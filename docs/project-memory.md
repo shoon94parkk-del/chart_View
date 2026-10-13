@@ -1,5 +1,10 @@
 # Chart View project memory
 
+### 2026-10-13 — Home readiness uses the existing cache and owner
+- Do not add another quote/provider cache, increase TTL/pool concurrency, or restamp source asOf to fix Home wait. Existing Home/market caches publish verified individual rows before gather completion.
+- Ordinary cold market readiness is primary terminal or2s; partial/empty pending no-store and null completed age. Fresh/full quote contracts still wait completion. Cancellation and late older values cannot damage the shared owner/newer data.
+- User20s episode is uncorrelated with request start logs. Controlled before/after20s harness is code-path evidence, not incident attribution/SLA. Python748/Node52 passed on fca5ee8+patch, preserving the user's TOP10 UI/data. See [record](HOME_DATA_WAIT_2026-10-13.md).
+
 ### 2026-10-05 — Guru collection and deployment follow-up
 - The collector now uses two workers, individual receipt-matched full-year periods and shared locked request/deadline/020 budgets. Do not restore bulk period prefetch based only on a theoretical request reduction; its actual bounded trial was slower. The unused fiscal-month profile call stays removed.
 - `guru_financials.json`, screening results and evidence are versioned together. Missing history is pending; present but unverified history is insufficient. Never relax financial criteria to increase candidate counts.
