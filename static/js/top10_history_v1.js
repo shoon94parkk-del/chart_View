@@ -8,6 +8,8 @@
     query: '',
     coverage: 'all',
     sort: 'latest',
+    performance: new Map(),
+    observers: [],
   };
 
   const esc = (value) => String(value ?? '')
@@ -22,13 +24,21 @@
     return Number.isFinite(t) ? t : 0;
   }
 
+  function todayKst() {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+    return `${map.year}-${map.month}-${map.day}`;
+  }
+
   function selectedSet(day) {
-    return new Set((day.selectedPicks || []).map((x) => String(x.code || x.name || '')));
+    return new Set((day.selectedPicks || []).flatMap((x) => [String(x.code || ''), String(x.name || ''), String(x.symbol || '')]));
   }
 
   function isSelected(day, row) {
     const set = selectedSet(day);
-    return set.has(String(row.code || '')) || set.has(String(row.name || ''));
+    return set.has(String(row.code || '')) || set.has(String(row.name || '')) || set.has(String(row.symbol || ''));
   }
 
   function shell() {
@@ -38,7 +48,7 @@
           <div>
             <span class="top10-history-eyebrow">DAILY TOP10 ARCHIVE</span>
             <h2>TOP10 히스토리</h2>
-            <p>매일 실제로 제시한 TOP10과 그날 사용자가 최종 선택한 PICK을 함께 보관합니다. 초기 기록이 불완전한 날은 임의 보정하지 않고 부분 기록으로 표시합니다.</p>
+            <p>매일 실제로 제시한 TOP10과 사용자 최종 PICK, 추천일 종가 대비 실제 성과를 함께 보관합니다.</p>
           </div>
           <span class="top10-history-date" data-top10-updated>불러오는 중</span>
         </div>
@@ -61,7 +71,8 @@
         <div class="top10-history-legend">
           <span><b class="legend-dot selected"></b> 사용자 최종 PICK</span>
           <span><b class="legend-dot partial"></b> 일부 기록만 존재</span>
-          <span>점수는 당시 대화에 표시된 원점수 그대로이며 날짜 간 절대 비교용으로 정규화하지 않습니다.</span>
+          <span><b class="legend-dot return"></b> 수익률 기준: 추천일 정규장 종가</span>
+          <span>5D·20D·60D는 추천 후 해당 거래일 종가이며 아직 지나지 않았으면 — 표시</span>
         </div>
         <div class="top10-history-summary" data-top10-summary></div>
         <div class="top10-history-content" data-top10-content>
@@ -144,7 +155,7 @@
     }
     state.loading = true;
     try {
-      const response = await fetch('/static/data/top10_history.json?v=20261013v1', { cache: 'no-store' });
+      const response = await fetch('/static/data/top10_history.json?v=20261013v3', { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       state.days = Array.isArray(data?.days) ? data.days : [];
@@ -170,8 +181,8 @@
       rows = rows.filter((d) => {
         const hay = [
           d.tradeDate,
-          ...(d.top10 || []).flatMap((x) => [x.name, x.code]),
-          ...(d.selectedPicks || []).flatMap((x) => [x.name, x.code]),
+          ...(d.top10 || []).flatMap((x) => [x.name, x.code, x.symbol]),
+          ...(d.selectedPicks || []).flatMap((x) => [x.name, x.code, x.symbol]),
         ].filter(Boolean).join(' ').toLowerCase();
         return hay.includes(state.query);
       });
@@ -209,22 +220,65 @@
     }).join('');
   }
 
+  function formatPrice(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    return Math.round(n).toLocaleString('ko-KR');
+  }
+
+  function formatReturn(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    const sign = n > 0 ? '+' : '';
+    return `${sign}${n.toFixed(1)}%`;
+  }
+
+  function returnClass(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n === 0) return 'flat';
+    return n > 0 ? 'up' : 'down';
+  }
+
+  function perfCell(field, label, value = null) {
+    return `<span class="top10-history-perf ${returnClass(value)}" data-perf-field="${field}"><small>${label}</small><b>${field === 'base' || field === 'latest' ? formatPrice(value) : formatReturn(value)}</b></span>`;
+  }
+
   function rowMarkup(day, row) {
     const selected = isSelected(day, row);
+    const symbol = row.symbol || '';
+    const perf = state.performance.get(day.tradeDate)?.rows?.get(symbol) || null;
     return `
-      <div class="top10-history-row ${selected ? 'is-selected' : ''}">
+      <div class="top10-history-row ${selected ? 'is-selected' : ''}" data-perf-key="${esc(day.tradeDate)}:${esc(symbol)}">
         <span class="top10-history-rank">${row.rank || '-'}</span>
         <span class="top10-history-stock"><strong>${esc(row.name || '-')}</strong><small>${esc(row.code || '코드 미확인')}</small></span>
         <span class="top10-history-score">${row.score == null ? '-' : `${esc(row.score)}점`}</span>
+        <div class="top10-history-performance">
+          ${perfCell('base','추천가',perf?.base)}
+          ${perfCell('latest','현재가',perf?.latest)}
+          ${perfCell('current','현재',perf?.current)}
+          ${perfCell('d5','5D',perf?.d5)}
+          ${perfCell('d20','20D',perf?.d20)}
+          ${perfCell('d60','60D',perf?.d60)}
+        </div>
         <span class="top10-history-selected">${selected ? 'PICK' : ''}</span>
       </div>`;
+  }
+
+  function dayAverage(day) {
+    const block = state.performance.get(day.tradeDate);
+    if (!block?.rows) return null;
+    const values = [...block.rows.values()].map((x) => Number(x.current)).filter(Number.isFinite);
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
   }
 
   function dayMarkup(day) {
     const partial = day.coverage !== 'complete';
     const rows = day.top10 || [];
+    const avg = dayAverage(day);
+    const perfStatus = state.performance.get(day.tradeDate)?.status;
     return `
-      <article class="top10-history-day ${partial ? 'is-partial' : ''}">
+      <article class="top10-history-day ${partial ? 'is-partial' : ''}" data-top10-date="${esc(day.tradeDate)}">
         <header class="top10-history-day-head">
           <div>
             <div class="top10-history-day-title">
@@ -233,14 +287,140 @@
             </div>
             <div class="top10-history-picks">${selectedPills(day)}</div>
           </div>
-          <span class="top10-history-count">${rows.length}개 기록</span>
+          <div class="top10-history-day-stats">
+            <span class="top10-history-count">${rows.length}개 기록</span>
+            <span class="top10-history-average ${returnClass(avg)}" data-day-average>
+              ${Number.isFinite(avg) ? `TOP10 평균 현재 ${formatReturn(avg)}` : (perfStatus === 'error' ? '수익률 조회 실패' : '수익률 계산 중')}
+            </span>
+          </div>
         </header>
         <div class="top10-history-table">
-          <div class="top10-history-table-head"><span>순위</span><span>종목</span><span>당시 점수</span><span>선택</span></div>
+          <div class="top10-history-table-head"><span>순위</span><span>종목</span><span>점수</span><span>추천일 대비 성과</span><span>선택</span></div>
           <div class="top10-history-table-body">${rows.map((row) => rowMarkup(day, row)).join('')}</div>
         </div>
         ${day.note ? `<p class="top10-history-note">${esc(day.note)}</p>` : ''}
       </article>`;
+  }
+
+  function chunk(items, size) {
+    const out = [];
+    for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+    return out;
+  }
+
+  function metricAt(data, index, base) {
+    if (!Array.isArray(data) || data.length <= index || !Number.isFinite(base) || base <= 0) return null;
+    const px = Number(data[index]?.price);
+    if (!Number.isFinite(px)) return null;
+    return ((px - base) / base) * 100;
+  }
+
+  async function loadDayPerformance(day) {
+    const existing = state.performance.get(day.tradeDate);
+    if (existing?.status === 'loading' || existing?.status === 'done') return;
+    const symbols = [...new Set((day.top10 || []).map((x) => x.symbol).filter(Boolean))];
+    if (!symbols.length) {
+      state.performance.set(day.tradeDate, { status: 'error', rows: new Map() });
+      applyPerformance(day.tradeDate);
+      return;
+    }
+
+    const block = { status: 'loading', rows: new Map() };
+    state.performance.set(day.tradeDate, block);
+    const end = todayKst();
+
+    try {
+      for (const group of chunk(symbols, 6)) {
+        const params = new URLSearchParams({
+          tickers: group.join(','),
+          start: day.tradeDate,
+          end,
+        });
+        const response = await fetch(`/api/compare?${params.toString()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`performance HTTP ${response.status}`);
+        const payload = await response.json();
+        for (const stock of (payload.stocks || [])) {
+          const points = Array.isArray(stock.data) ? stock.data : [];
+          const base = Number(points[0]?.price);
+          const latest = Number(points.at(-1)?.price);
+          if (!Number.isFinite(base) || !Number.isFinite(latest) || base <= 0) continue;
+          block.rows.set(stock.ticker, {
+            base,
+            latest,
+            current: ((latest - base) / base) * 100,
+            d5: metricAt(points, 5, base),
+            d20: metricAt(points, 20, base),
+            d60: metricAt(points, 60, base),
+            observations: points.length,
+            startDate: stock.startDate || day.tradeDate,
+            endDate: stock.endDate || end,
+          });
+        }
+      }
+      block.status = 'done';
+    } catch (error) {
+      block.status = 'error';
+      console.error('[TOP10 history performance]', day.tradeDate, error);
+    }
+    applyPerformance(day.tradeDate);
+  }
+
+  function applyPerformance(tradeDate) {
+    const article = document.querySelector(`[data-top10-date="${CSS.escape(tradeDate)}"]`);
+    const block = state.performance.get(tradeDate);
+    if (!article || !block) return;
+
+    article.querySelectorAll('[data-perf-key]').forEach((rowEl) => {
+      const symbol = rowEl.getAttribute('data-perf-key').split(':').slice(1).join(':');
+      const perf = block.rows?.get(symbol);
+      if (!perf) return;
+      const values = { base: perf.base, latest: perf.latest, current: perf.current, d5: perf.d5, d20: perf.d20, d60: perf.d60 };
+      Object.entries(values).forEach(([field, value]) => {
+        const cell = rowEl.querySelector(`[data-perf-field="${field}"]`);
+        if (!cell) return;
+        const b = cell.querySelector('b');
+        if (b) b.textContent = field === 'base' || field === 'latest' ? formatPrice(value) : formatReturn(value);
+        cell.classList.remove('up','down','flat');
+        cell.classList.add(returnClass(value));
+      });
+    });
+
+    const avg = dayAverage({ tradeDate });
+    const avgEl = article.querySelector('[data-day-average]');
+    if (avgEl) {
+      avgEl.classList.remove('up','down','flat');
+      if (Number.isFinite(avg)) {
+        avgEl.textContent = `TOP10 평균 현재 ${formatReturn(avg)}`;
+        avgEl.classList.add(returnClass(avg));
+      } else {
+        avgEl.textContent = block.status === 'error' ? '수익률 조회 실패' : '수익률 없음';
+        avgEl.classList.add('flat');
+      }
+    }
+  }
+
+  function observeDays() {
+    state.observers.forEach((o) => o.disconnect?.());
+    state.observers = [];
+    const cards = [...document.querySelectorAll('[data-top10-date]')];
+    if (!('IntersectionObserver' in window)) {
+      cards.forEach((card) => {
+        const day = state.days.find((d) => d.tradeDate === card.dataset.top10Date);
+        if (day) loadDayPerformance(day);
+      });
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const date = entry.target.dataset.top10Date;
+        const day = state.days.find((d) => d.tradeDate === date);
+        if (day) loadDayPerformance(day);
+        observer.unobserve(entry.target);
+      }
+    }, { rootMargin: '500px 0px' });
+    cards.forEach((card) => observer.observe(card));
+    state.observers.push(observer);
   }
 
   function render() {
@@ -249,12 +429,13 @@
     const summary = document.querySelector('[data-top10-summary]');
     if (!host || !summary) return;
     const rows = filteredDays();
-    summary.textContent = `${rows.length}개 날짜 표시 · 실제 대화 기록 기준`;
+    summary.textContent = `${rows.length}개 날짜 표시 · 추천일 종가 대비 현재/5D/20D/60D 자동 계산`;
     if (!rows.length) {
       host.innerHTML = '<div class="top10-history-empty">조건에 맞는 TOP10 기록이 없습니다.</div>';
       return;
     }
     host.innerHTML = rows.map(dayMarkup).join('');
+    requestAnimationFrame(observeDays);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => ensureUi(), { once: true });
