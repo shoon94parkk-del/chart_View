@@ -2,7 +2,7 @@
 #screener-tab .top10-history-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:14px}
 #screener-tab .top10-history-eyebrow{display:block;margin-bottom:4px;color:#3182f6;font-size:11px;font-weight:900;letter-spacing:.08em}
 #screener-tab .top10-history-head h2{margin:0;color:#191f28;font-size:22px;letter-spacing:-.45px}
-#screener-tab .top10-history-head p{max-width:720px;margin:6px 0 0;color:#6b7684;font-size:13px;line-height:1.55}
+#screener-tab .top10-history-head p{max-width:760px;margin:6px 0 0;color:#6b7684;font-size:13px;line-height:1.55}
 #screener-tab .top10-history-date{flex:0 0 auto;padding:6px 9px;border:1px solid #e5e8eb;border-radius:999px;background:#fff;color:#8b95a1;font-size:11px;font-weight:700;white-space:nowrap}
 #screener-tab .top10-history-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px}
 #screener-tab .top10-history-kpi{min-width:0;padding:12px 13px;border:1px solid #e8edf3;border-radius:14px;background:#fff}
@@ -19,6 +19,7 @@
 #screener-tab .legend-dot{display:inline-block;width:7px;height:7px;margin-right:3px;border-radius:50%;background:#d8dee6}
 #screener-tab .legend-dot.selected{background:#3182f6}
 #screener-tab .legend-dot.partial{background:#f4b740}
+#screener-tab .legend-dot.return{background:#0f9f6e}
 #screener-tab .top10-history-summary{min-height:22px;margin:3px 1px 8px;color:#8b95a1;font-size:11px;font-weight:700}
 #screener-tab .top10-history-content{display:grid;gap:10px}
 #screener-tab .top10-history-day{overflow:hidden;border:1px solid #e5e8eb;border-radius:15px;background:#fff}
@@ -29,14 +30,19 @@
 #screener-tab .top10-history-coverage{padding:4px 7px;border-radius:999px;font-size:9px;font-weight:850}
 #screener-tab .top10-history-coverage.complete{background:#edf6ff;color:#246bc2}
 #screener-tab .top10-history-coverage.partial{background:#fff4d4;color:#8a6412}
+#screener-tab .top10-history-day-stats{display:grid;justify-items:end;gap:5px}
 #screener-tab .top10-history-count{color:#9aa4b0;font-size:10px;font-weight:700}
+#screener-tab .top10-history-average{padding:4px 7px;border-radius:999px;background:#f2f4f6;color:#6b7684;font-size:9px;font-weight:850;white-space:nowrap}
+#screener-tab .top10-history-average.up{background:#fff0f0;color:#e42939}
+#screener-tab .top10-history-average.down{background:#eef5ff;color:#246bc2}
 #screener-tab .top10-history-picks{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 #screener-tab .top10-history-pick{padding:4px 7px;border-radius:999px;background:#eaf3ff;color:#246bc2;font-size:9px;font-weight:850}
 #screener-tab .top10-history-pick.legacy{background:#f2f4f6;color:#6b7684}
 #screener-tab .top10-history-pick-empty{color:#9aa4b0;font-size:9px;font-weight:700}
-#screener-tab .top10-history-table-head,#screener-tab .top10-history-row{display:grid;grid-template-columns:54px minmax(180px,1fr) 88px 54px;align-items:center;column-gap:8px}
+#screener-tab .top10-history-table{overflow-x:auto;overscroll-behavior-x:contain}
+#screener-tab .top10-history-table-head,#screener-tab .top10-history-row{display:grid;grid-template-columns:48px minmax(138px,1fr) 60px minmax(400px,1.9fr) 42px;align-items:center;column-gap:8px;min-width:760px}
 #screener-tab .top10-history-table-head{min-height:34px;padding:0 14px;background:#f8f9fb;color:#9aa4b0;font-size:9px;font-weight:800}
-#screener-tab .top10-history-row{min-height:45px;padding:6px 14px;border-top:1px solid #f0f2f4}
+#screener-tab .top10-history-row{min-height:56px;padding:7px 14px;border-top:1px solid #f0f2f4}
 #screener-tab .top10-history-row.is-selected{background:#f4f8ff}
 #screener-tab .top10-history-rank{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#f2f4f6;color:#4e5968;font-size:11px;font-weight:900}
 #screener-tab .top10-history-row.is-selected .top10-history-rank{background:#3182f6;color:#fff}
@@ -44,10 +50,18 @@
 #screener-tab .top10-history-stock strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#191f28;font-size:12px;font-weight:850}
 #screener-tab .top10-history-stock small{color:#9aa4b0;font-size:9px;font-weight:650}
 #screener-tab .top10-history-score{color:#4e5968;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+#screener-tab .top10-history-performance{display:grid;grid-template-columns:repeat(6,minmax(54px,1fr));gap:4px;min-width:0}
+#screener-tab .top10-history-perf{display:grid;gap:2px;min-width:0;padding:5px 5px;border-radius:8px;background:#f7f8fa;text-align:right}
+#screener-tab .top10-history-perf small{color:#9aa4b0;font-size:8px;font-weight:700;white-space:nowrap}
+#screener-tab .top10-history-perf b{overflow:hidden;text-overflow:ellipsis;color:#4e5968;font-size:10px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap}
+#screener-tab .top10-history-perf.up b{color:#e42939}
+#screener-tab .top10-history-perf.down b{color:#246bc2}
+#screener-tab .top10-history-perf.flat b{color:#6b7684}
 #screener-tab .top10-history-selected{color:#3182f6;font-size:9px;font-weight:900;letter-spacing:.03em}
 #screener-tab .top10-history-note{margin:0;padding:9px 14px 11px;border-top:1px dashed #edf0f3;color:#8b95a1;font-size:10px;line-height:1.5}
 #screener-tab .top10-history-empty{padding:34px 14px;border:1px dashed #d7dde5;border-radius:14px;background:#fff;color:#8b95a1;text-align:center;font-size:13px;line-height:1.5}
 #screener-tab .top10-history-empty button{min-height:32px;margin-left:8px;padding:0 10px;border:1px solid #d7e6fb;border-radius:9px;background:#eef6ff;color:#1b64da;font:inherit;font-size:11px;font-weight:800}
+
 @media(max-width:700px){
   #screener-tab .discovery-ledger-shell .discovery-subnav{grid-template-columns:repeat(4,minmax(0,1fr))}
   #screener-tab .discovery-ledger-shell .discovery-subtab{padding:0 3px;font-size:10px}
@@ -62,13 +76,24 @@
   #screener-tab .top10-history-search-wrap{grid-column:1/-1}
   #screener-tab .top10-history-search,#screener-tab .top10-history-select{min-height:40px;font-size:11px}
   #screener-tab .top10-history-day-head{padding:11px}
+  #screener-tab .top10-history-day-stats{gap:4px}
+  #screener-tab .top10-history-table{overflow:visible}
   #screener-tab .top10-history-table-head{display:none}
-  #screener-tab .top10-history-row{grid-template-columns:34px minmax(0,1fr) auto;grid-template-areas:'rank stock selected' 'rank score selected';column-gap:7px;min-height:53px;padding:8px 11px}
+  #screener-tab .top10-history-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;grid-template-areas:'rank stock selected' 'rank score selected' 'perf perf perf';column-gap:7px;row-gap:5px;min-width:0;min-height:92px;padding:9px 11px}
   #screener-tab .top10-history-rank{grid-area:rank}
   #screener-tab .top10-history-stock{grid-area:stock}
   #screener-tab .top10-history-stock strong{font-size:12px}
   #screener-tab .top10-history-score{grid-area:score;font-size:9px;color:#8b95a1}
   #screener-tab .top10-history-score::before{content:'당시 점수 ';font-weight:650}
   #screener-tab .top10-history-selected{grid-area:selected;align-self:center}
+  #screener-tab .top10-history-performance{grid-area:perf;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;margin-top:2px}
+  #screener-tab .top10-history-perf{padding:5px 2px;text-align:center}
+  #screener-tab .top10-history-perf small{font-size:7.5px}
+  #screener-tab .top10-history-perf b{font-size:9px}
   #screener-tab .top10-history-note{padding:8px 11px 10px}
+}
+
+@media(max-width:390px){
+  #screener-tab .top10-history-performance{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #screener-tab .top10-history-row{min-height:126px}
 }
