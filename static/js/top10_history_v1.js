@@ -221,12 +221,14 @@
   }
 
   function formatPrice(value) {
+    if (value === null || value === undefined || value === '') return '—';
     const n = Number(value);
     if (!Number.isFinite(n)) return '—';
     return Math.round(n).toLocaleString('ko-KR');
   }
 
   function formatReturn(value) {
+    if (value === null || value === undefined || value === '') return '—';
     const n = Number(value);
     if (!Number.isFinite(n)) return '—';
     const sign = n > 0 ? '+' : '';
@@ -253,7 +255,7 @@
         <span class="top10-history-stock"><strong>${esc(row.name || '-')}</strong><small>${esc(row.code || '코드 미확인')}</small></span>
         <span class="top10-history-score">${row.score == null ? '-' : `${esc(row.score)}점`}</span>
         <div class="top10-history-performance">
-          ${perfCell('base','추천가',perf?.base)}
+          ${perfCell('base','추천가',perf?.base ?? row.recommendedPrice ?? row.recommendationClose ?? null)}
           ${perfCell('latest','현재가',perf?.latest)}
           ${perfCell('current','현재',perf?.current)}
           ${perfCell('d5','5D',perf?.d5)}
@@ -267,7 +269,11 @@
   function dayAverage(day) {
     const block = state.performance.get(day.tradeDate);
     if (!block?.rows) return null;
-    const values = [...block.rows.values()].map((x) => Number(x.current)).filter(Number.isFinite);
+    // User-selected securities outside the original TOP10 must not change TOP10 averages.
+    const values = (day.top10 || [])
+      .map((row) => block.rows.get(row.symbol)?.current)
+      .filter((value) => value !== null && value !== undefined && Number.isFinite(Number(value)))
+      .map(Number);
     if (!values.length) return null;
     return values.reduce((a, b) => a + b, 0) / values.length;
   }
@@ -275,6 +281,12 @@
   function dayMarkup(day) {
     const partial = day.coverage !== 'complete';
     const rows = day.top10 || [];
+    const outsidePicks = (day.selectedPicks || [])
+      .filter((pick) => pick.selectedOutsideTop10 && !rows.some((row) => row.code === pick.code))
+      .map((pick) => ({
+        rank: '별도', name: pick.name, code: pick.code, symbol: pick.symbol,
+        score: null, recommendationClose: pick.recommendationClose
+      }));
     const avg = dayAverage(day);
     const perfStatus = state.performance.get(day.tradeDate)?.status;
     return `
@@ -298,6 +310,12 @@
           <div class="top10-history-table-head"><span>순위</span><span>종목</span><span>점수</span><span>추천일 대비 성과</span><span>선택</span></div>
           <div class="top10-history-table-body">${rows.map((row) => rowMarkup(day, row)).join('')}</div>
         </div>
+        ${outsidePicks.length ? `
+          <p class="top10-history-note"><strong>TOP10 외 사용자 선정 PICK</strong> · 추천일 종가 대비 별도 추적</p>
+          <div class="top10-history-table">
+            <div class="top10-history-table-body">${outsidePicks.map((row) => rowMarkup(day, row)).join('')}</div>
+          </div>
+        ` : ''}
         ${day.note ? `<p class="top10-history-note">${esc(day.note)}</p>` : ''}
       </article>`;
   }
@@ -318,7 +336,8 @@
   async function loadDayPerformance(day) {
     const existing = state.performance.get(day.tradeDate);
     if (existing?.status === 'loading' || existing?.status === 'done') return;
-    const symbols = [...new Set((day.top10 || []).map((x) => x.symbol).filter(Boolean))];
+    const outsidePicks = (day.selectedPicks || []).filter((pick) => pick.selectedOutsideTop10);
+    const symbols = [...new Set([...(day.top10 || []), ...outsidePicks].map((x) => x.symbol).filter(Boolean))];
     if (!symbols.length) {
       state.performance.set(day.tradeDate, { status: 'error', rows: new Map() });
       applyPerformance(day.tradeDate);
@@ -385,7 +404,7 @@
       });
     });
 
-    const avg = dayAverage({ tradeDate });
+    const avg = dayAverage(state.days.find((day) => day.tradeDate === tradeDate) || { tradeDate, top10: [] });
     const avgEl = article.querySelector('[data-day-average]');
     if (avgEl) {
       avgEl.classList.remove('up','down','flat');
