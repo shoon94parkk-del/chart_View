@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-14T16:03:16+09:00",
+  "updated": "2026-10-14T16:39:55+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -585,6 +585,20 @@
       "eventType": "PICK_REGISTERED",
       "pickId": "2026-10-12:062040",
       "at": "2026-10-12T16:38:00+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-13:095610",
+      "at": "2026-10-14T16:39:55+09:00",
+      "status": "PENDING_REVIEW",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-14:031980",
+      "at": "2026-10-14T16:39:55+09:00",
       "status": "PENDING_REVIEW",
       "source": "ai_daily_rankings.json"
     }
