@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-14T16:03:15+09:00",
+  "updated": "2026-10-14T16:38:07+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -701,6 +701,42 @@
       "grade": "사용자 확정",
       "reason": "변압기 매출 비중 약 98%의 수출형 전력기기 업체로 미국 전력망 교체·재생에너지·AI 데이터센터 전력수요가 특수변압기 수주잔고와 CAPA 증설을 통해 중장기 매출 성장으로 연결되는 구조.",
       "score": 91,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-13",
+      "rank": 1,
+      "symbol": "095610.KQ",
+      "code": "095610",
+      "name": "테스",
+      "recommendedPrice": 161500.0,
+      "currentPrice": 147400.0,
+      "returnPct": -8.73,
+      "bestReturnPct": -8.73,
+      "lastUpdatedTradeDate": "2026-10-14",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정(익일 소급 등록)",
+      "reason": "사용자가 10월 13일 투자 PICK으로 언급한 테스를 다음 날 최종 확인하여 소급 등록. 반도체 전공정 PECVD 증착·건식 세정 장비의 고객 CAPEX와 공정 투자에 따른 수주·실적 연결 여부를 추적. 당시 종합점수는 확인되지 않아 기록하지 않음.",
+      "score": null,
+      "analysisSource": "사용자 최종 선택"
+    },
+    {
+      "recommendedDate": "2026-10-14",
+      "rank": 1,
+      "symbol": "031980.KQ",
+      "code": "031980",
+      "name": "피에스케이홀딩스",
+      "recommendedPrice": 209000.0,
+      "currentPrice": 209000.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-14",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정",
+      "reason": "첨단 패키징 공정용 Descum·Reflow 장비의 AI/HBM 고도화 투자 수혜 가능성. 고객사 설비투자와 실제 신규수주가 실적으로 전환되는지 확인이 핵심이며 최근 20일 상승률이 높아 단기 과열에 주의.",
+      "score": 82,
       "analysisSource": "사용자 최종 선택"
     }
   ]
