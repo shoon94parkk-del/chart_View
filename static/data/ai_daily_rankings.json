@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-12T16:38:00+09:00",
+  "updated": "2026-10-14T16:37:48+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -1124,6 +1124,134 @@
               "변압기 수출 비중",
               "CAPA 증설 진행률",
               "매출 성장률과 영업이익률"
+            ]
+          },
+          "grade": "사용자 확정"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-13",
+      "status": "사용자 확정 PICK — 2026-10-13 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-6",
+        "candidateTradeDate": "2026-10-13",
+        "analyzedAt": "2026-10-14T16:37:48+09:00",
+        "candidateFile": "manual_user_selection_retroactive",
+        "selectionRecordedDate": "2026-10-14"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v3-guru-second-order",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "095610",
+          "symbol": "095610.KQ",
+          "name": "테스",
+          "close": 161500,
+          "previousClose": 161800,
+          "changePct": -0.19,
+          "totalScore": null,
+          "scores": {},
+          "reason": "사용자가 10월 13일 투자 PICK으로 언급한 테스를 다음 날 최종 확인하여 소급 등록. 반도체 전공정 PECVD 증착·건식 세정 장비의 고객 CAPEX와 공정 투자에 따른 수주·실적 연결 여부를 추적. 당시 종합점수는 확인되지 않아 기록하지 않음.",
+          "monitoring": {
+            "summary": "반도체 PECVD 증착·건식 세정 장비의 고객사 CAPEX 및 신공정 투자 확대가 실제 장비 수주와 실적으로 이어지는지 추적한다.",
+            "thesisPillars": [
+              "PECVD 등 박막 증착 장비 사업",
+              "건식 세정 및 반도체 공정 장비 포트폴리오",
+              "메모리 설비투자 및 공정 전환에 따른 장비 수요"
+            ],
+            "invalidationCriteria": [
+              "주요 고객 CAPEX 감소 또는 투자 연기",
+              "장비 납품·검수 일정 지연으로 실적 인식 부진",
+              "신규 공정 관련 성장 기대가 실수주로 연결되지 못함"
+            ],
+            "catalysts": [
+              "고객사 설비투자 회복",
+              "신규 장비 공급 및 기존 장비 수주 확대"
+            ],
+            "keyMetrics": [
+              "신규 수주·수주잔고",
+              "고객 CAPEX",
+              "장비 매출 성장률",
+              "영업이익률"
+            ]
+          },
+          "grade": "사용자 확정(익일 소급 등록)",
+          "scoreVerification": "원점수 확인 불가",
+          "priceSource": "2026-10-13 KRX 장마감 161500원; 한국경제·매일경제 교차확인"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-14",
+      "status": "사용자 확정 PICK — 2026-10-14 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-6",
+        "candidateTradeDate": "2026-10-14",
+        "analyzedAt": "2026-10-14T16:37:48+09:00",
+        "candidateFile": "static/data/screener_top100.json",
+        "selectionRecordedDate": "2026-10-14"
+      },
+      "scorePolicy": {
+        "version": "growth-first-v3-guru-second-order",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "031980",
+          "symbol": "031980.KQ",
+          "name": "피에스케이홀딩스",
+          "close": 209000,
+          "previousClose": 216000,
+          "changePct": -3.24,
+          "totalScore": 82,
+          "scores": {
+            "technical": 26
+          },
+          "scoreVerification": "잠정 총점 82점은 2026-10-14 TOP10 원장 기록 그대로, 세부점수 중 기술점수 26점만 스크리너에서 확인됨",
+          "reason": "첨단 패키징 공정용 Descum·Reflow 장비의 AI/HBM 고도화 투자 수혜 가능성. 고객사 설비투자와 실제 신규수주가 실적으로 전환되는지 확인이 핵심이며 최근 20일 상승률이 높아 단기 과열에 주의.",
+          "monitoring": {
+            "summary": "첨단 패키징 Descum·Reflow 장비 공급과 고객사 AI/HBM 고도화 투자 확대가 수주 및 실적 증가로 이어지는지 추적한다.",
+            "thesisPillars": [
+              "패키징 Descum 및 Reflow 장비 매출",
+              "차세대 고성능 메모리 패키징 공정 투자에 따른 신규 장비 수요",
+              "고객사 신규 패키징 라인 증설 시 장비 공급 확대"
+            ],
+            "invalidationCriteria": [
+              "주요 고객 첨단 패키징 설비투자의 구조적 축소",
+              "공정 적용·고객 인증·납품 일정의 반복 지연",
+              "수주 증가와 달리 영업이익률이 지속 악화"
+            ],
+            "catalysts": [
+              "첨단 패키징 신규수주",
+              "고객사 양산 라인 투자 확대",
+              "차세대 공정용 장비 공급 실적 확인"
+            ],
+            "keyMetrics": [
+              "패키징 장비 수주·수주잔고",
+              "장비 매출 성장률",
+              "영업이익률",
+              "신공정 투자 및 고객 CAPEX"
             ]
           },
           "grade": "사용자 확정"
