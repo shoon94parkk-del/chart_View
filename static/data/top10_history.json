@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-14T07:30:21.267Z",
+  "updated": "2026-10-14T16:38:29+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -1756,8 +1756,20 @@
           "market": "KOSPI"
         }
       ],
-      "selectedPicks": [],
-      "note": "오늘 TOP10 제시 완료. 최종 PICK은 아직 게시 전."
+      "selectedPicks": [
+        {
+          "code": "095610",
+          "symbol": "095610.KQ",
+          "name": "테스",
+          "status": "user_confirmed",
+          "selectionProvenance": "retroactively_confirmed_on_2026-10-14",
+          "selectionDate": "2026-10-13",
+          "selectedOutsideTop10": true,
+          "recommendationClose": 161500,
+          "priceBasis": "2026-10-13 regular-session close"
+        }
+      ],
+      "note": "당시 제시한 TOP10 순위는 변경하지 않았습니다. 테스는 10월 13일 별도 선택 의향을 10월 14일 사용자 확인으로 소급 확정한 TOP10 외 PICK입니다."
     },
     {
       "tradeDate": "2026-10-14",
@@ -1866,8 +1878,18 @@
           "priceBasis": "verified_2026-10-14_regular_close"
         }
       ],
-      "selectedPicks": [],
-      "note": "2026-10-14 수동 스크리너 실행으로 제시한 신규 TOP10. 점수는 잠정 정성 평가, 검증 종가 기준. 최종 PICK은 사용자 선택 대기."
+      "selectedPicks": [
+        {
+          "code": "031980",
+          "symbol": "031980.KQ",
+          "name": "피에스케이홀딩스",
+          "status": "user_confirmed",
+          "selectionDate": "2026-10-14",
+          "recommendationClose": 209000,
+          "priceBasis": "2026-10-14 verified regular-session close"
+        }
+      ],
+      "note": "2026-10-14 TOP10 중 7위 피에스케이홀딩스를 사용자 최종 PICK으로 확정. 총점은 당시 잠정 원점수."
     }
   ],
   "performancePolicy": {
