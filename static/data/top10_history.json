@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-15T17:31:02+09:00",
+  "updated": "2026-10-15T17:51:57+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -2098,8 +2098,22 @@
           "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
         }
       ],
-      "selectedPicks": [],
-      "note": "2026-10-15 장 마감 TOP10. 사용자 최종 PICK 미확정. 기술점수는 원자료, 나머지 네 항목은 공개 2026 2Q 실적·성장 경로와 위험 분석 기반 잠정 평가. 2차 시세 불일치 종목은 보조 제공처 종가와 이슈를 기록함."
+      "selectedPicks": [
+        {
+          "code": "069500",
+          "symbol": "069500.KS",
+          "name": "KODEX 200",
+          "assetType": "ETF",
+          "status": "user_confirmed",
+          "selectionDate": "2026-10-15",
+          "selectedOutsideTop10": true,
+          "recommendationClose": 87025,
+          "priceBasis": "2026-10-15 KRX regular close, Hankyung + Investing.com verified",
+          "benchmark": "KOSPI 200",
+          "performanceNote": "price return excluding ETF distributions; track distributions and total-return separately"
+        }
+      ],
+      "note": "2026-10-15 신규 TOP10 추천 순위는 유지. 사용자 최종 선정 KODEX 200 ETF(069500)는 TOP10 외 사용자 확정 PICK으로 별도 기록하며 TOP10 평균 수익률에 포함하지 않음."
     }
   ],
   "performancePolicy": {
