@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
+import shutil
 from pathlib import Path
 
 from guru_financials import classify_company
@@ -102,5 +104,30 @@ def publish_snapshot(snapshot: dict, evidence: dict, directory: Path) -> None:
             raise ValueError('Missing candidate evidence')
     # Validate serialization before replacing any known-good file.
     json.dumps([snapshot, evidence], allow_nan=False)
+    version = snapshot.get('snapshotVersion')
+    if not isinstance(version, str) or not re.fullmatch(r'[a-f0-9]{20}', version):
+        raise ValueError('Invalid publication version')
+    symbols = {row['symbol'] for strategy in snapshot['strategies'].values() for row in strategy['results']}
+    if any(not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(KS|KQ)', symbol) for symbol in symbols):
+        raise ValueError('Invalid publication symbol')
+    previous = None
+    try:
+        previous = json.loads((directory/'guru_screening.json').read_text())['snapshotVersion']
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    # Publish small immutable proofs with the same Git commit as the list.
+    # The deployed API keeps its strict 409 contract; no request-time provider
+    # fetch or backend deployment hook is introduced.
+    for symbol in sorted(symbols):
+        row = evidence['companies'][symbol]
+        payload = {**row, **{key: evidence.get(key) for key in ('snapshotVersion', 'criteriaVersion', 'tradeDate')}}
+        if row.get('symbol') != symbol:
+            raise ValueError('Evidence symbol mismatch')
+        atomic_json(directory/'guru_evidence'/version/(symbol+'.json'), payload)
     atomic_json(directory/'guru_evidence.json', evidence)
     atomic_json(directory/'guru_screening.json', snapshot)
+    # Keep the preceding published version for lists already open in a client.
+    # Older versions fail closed rather than returning a different day's proof.
+    for old in (directory/'guru_evidence').iterdir() if (directory/'guru_evidence').exists() else []:
+        if old.is_dir() and re.fullmatch(r'[a-f0-9]{20}', old.name) and old.name not in {version, previous}:
+            shutil.rmtree(old)
