@@ -1,192 +1,16 @@
 {
   "results": [
     {
-      "ticker": "NVDA",
-      "name": "NVIDIA Corporation",
-      "market": "US",
-      "marketCap": 5518072479744.0,
-      "sector": "Technology",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 221.3,
-      "change": -3.16,
-      "asOf": "2026-10-14T20:00:00+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "home-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "GOOGL",
-      "name": "Alphabet Inc.",
-      "market": "US",
-      "marketCap": 4326706380800.0,
-      "sector": "Communication",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 347.64,
-      "change": -1.74,
-      "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "home-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "AMZN",
-      "name": "Amazon.com, Inc.",
-      "market": "US",
-      "marketCap": 2789124603904.0,
-      "sector": "Consumer Cyclical",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 254.08,
-      "change": -1.74,
-      "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "home-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "BRK-B",
-      "name": "Berkshire Hathaway Inc. New",
-      "market": "US",
-      "marketCap": 1078559571968.0,
-      "sector": "Financial",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 526.35,
-      "change": 1.11,
-      "asOf": "2026-10-14T20:03:18+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "LLY",
-      "name": "Eli Lilly and Company",
-      "market": "US",
-      "marketCap": 1040225271808.0,
-      "sector": "Healthcare",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 1208.74,
-      "change": 3.62,
-      "asOf": "2026-10-14T20:04:06+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "WMT",
-      "name": "Walmart Inc.",
-      "market": "US",
-      "marketCap": 897743060992.0,
-      "sector": "Consumer Defensive",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 116.16,
-      "change": 3.46,
-      "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "XOM",
-      "name": "ExxonMobil Holdings Corporation",
-      "market": "US",
-      "marketCap": 715801624576.0,
-      "sector": "Energy",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 177.01,
-      "change": 1.68,
-      "asOf": "2026-10-14T20:04:00+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "GE",
-      "name": "GE Aerospace",
-      "market": "US",
-      "marketCap": 333752107008.0,
-      "sector": "Industrials",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 307.02,
-      "change": -0.2,
-      "asOf": "2026-10-14T20:00:02+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "LIN",
-      "name": "Linde plc",
-      "market": "US",
-      "marketCap": 198587875328.0,
-      "sector": "Materials",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 492.7,
-      "change": 0.12,
-      "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "NEE",
-      "name": "NextEra Energy, Inc.",
-      "market": "US",
-      "marketCap": 166692077568.0,
-      "sector": "Utilities",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 78.37,
-      "change": 0.19,
-      "asOf": "2026-10-14T20:00:03+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
-      "ticker": "PLD",
-      "name": "Prologis, Inc.",
-      "market": "US",
-      "marketCap": 118514139136.0,
-      "sector": "Real Estate",
-      "sectorSource": "미국 히트맵 산업 분류",
-      "price": 130.46,
-      "change": -2.31,
-      "asOf": "2026-10-14T20:03:39+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "provider-canonical",
-      "stale": false
-    },
-    {
       "industry": "통신 및 방송 장비 제조업",
       "mainProducts": "통신 및 방송 장비 제조(무선) 제품, 반도체 제조(메모리) 제품, 전자부품 제조(디스플레이) 제품, 영상 및 음향기기 제조(영상기기) 제품 등",
       "sectorSource": "KRX 업종·주요제품",
       "ticker": "005930.KS",
       "name": "삼성전자",
       "market": "KR",
-      "price": 210000.0,
-      "change": -9.48,
-      "marketCap": 1544953691897856,
-      "asOf": "2026-10-15T15:24:21+09:00",
+      "price": 207500.0,
+      "change": -10.56,
+      "marketCap": 1408203275370496,
+      "asOf": "2026-10-15T20:20:22+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -200,10 +24,10 @@
       "ticker": "000660.KS",
       "name": "SK하이닉스",
       "market": "KR",
-      "price": 1265000.0,
-      "change": -10.85,
-      "marketCap": 1045281021886464,
-      "asOf": "2026-10-15T15:24:21+09:00",
+      "price": 1238000.0,
+      "change": -12.76,
+      "marketCap": 923687075184640,
+      "asOf": "2026-10-15T20:20:25+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -217,10 +41,10 @@
       "ticker": "207940.KS",
       "name": "삼성바이오로직스",
       "market": "KR",
-      "price": 1246000.0,
-      "change": 5.41,
-      "marketCap": 55398602113024,
-      "asOf": "2026-10-15T15:24:22+09:00",
+      "price": 1241000.0,
+      "change": 4.99,
+      "marketCap": 54607195668480,
+      "asOf": "2026-10-15T20:20:23+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -234,10 +58,10 @@
       "ticker": "005380.KS",
       "name": "현대차",
       "market": "KR",
-      "price": 295000.0,
-      "change": -5.9,
-      "marketCap": 83525067866112,
-      "asOf": "2026-10-15T15:19:56+09:00",
+      "price": 289500.0,
+      "change": -7.66,
+      "marketCap": 78942975295488,
+      "asOf": "2026-10-15T20:20:26+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -251,10 +75,10 @@
       "ticker": "000270.KS",
       "name": "기아",
       "market": "KR",
-      "price": 105500.0,
-      "change": -2.85,
-      "marketCap": 42829896220672,
-      "asOf": "2026-10-15T15:25:20+09:00",
+      "price": 105200.0,
+      "change": -3.13,
+      "marketCap": 41663925846016,
+      "asOf": "2026-10-15T20:20:22+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -268,10 +92,10 @@
       "ticker": "373220.KS",
       "name": "LG에너지솔루션",
       "market": "KR",
-      "price": 402000.0,
-      "change": -4.74,
-      "marketCap": 99216001073152,
-      "asOf": "2026-10-15T15:24:19+09:00",
+      "price": 393000.0,
+      "change": -6.87,
+      "marketCap": 96057002295296,
+      "asOf": "2026-10-15T20:20:20+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -285,10 +109,10 @@
       "ticker": "035420.KS",
       "name": "NAVER",
       "market": "KR",
-      "price": 173300.0,
-      "change": -3.4,
-      "marketCap": 27294349393920,
-      "asOf": "2026-10-15T15:24:21+09:00",
+      "price": 171400.0,
+      "change": -4.46,
+      "marketCap": 26365562716160,
+      "asOf": "2026-10-15T20:20:20+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -302,10 +126,10 @@
       "ticker": "068270.KS",
       "name": "셀트리온",
       "market": "KR",
-      "price": 181800.0,
-      "change": 1.11,
-      "marketCap": 41911159095296,
-      "asOf": "2026-10-15T15:24:19+09:00",
+      "price": 181600.0,
+      "change": 1.0,
+      "marketCap": 40885043593216,
+      "asOf": "2026-10-15T20:20:23+09:00",
       "sessionDate": null,
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
@@ -327,7 +151,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "일차전지 및 이차전지 제조업",
@@ -344,7 +168,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "기타 금융업",
@@ -361,7 +185,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "기타 금융업",
@@ -378,7 +202,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "자료처리, 호스팅, 포털 및 기타 인터넷 정보매개 서비스업",
@@ -395,7 +219,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "기타 금융업",
@@ -412,7 +236,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "통신 및 방송 장비 제조업",
@@ -429,7 +253,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "기타 금융업",
@@ -446,7 +270,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "일차전지 및 이차전지 제조업",
@@ -463,7 +287,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "전자부품 제조업",
@@ -480,7 +304,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "컴퓨터 프로그래밍, 시스템 통합 및 관리업",
@@ -497,7 +321,7 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "industry": "기타 전문 도매업",
@@ -514,21 +338,53 @@
       "previousSessionDate": null,
       "source": "Naver Finance KRX/Koscom",
       "quoteBasis": "provider-canonical",
+      "stale": true
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation",
+      "market": "US",
+      "marketCap": 4472300896256.0,
+      "sector": "Technology",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 221.3,
+      "change": -3.16,
+      "asOf": "2026-10-14T20:00:00+00:00",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
+      "quoteBasis": "home-canonical",
       "stale": false
     },
     {
       "ticker": "AAPL",
       "name": "Apple Inc.",
       "market": "US",
-      "marketCap": 4980555644928.0,
+      "marketCap": 4021300494336.0,
       "sector": "Technology",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 342.96,
       "change": 0.5,
       "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
+      "quoteBasis": "home-canonical",
+      "stale": false
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet Inc.",
+      "market": "US",
+      "marketCap": 3752093024256.0,
+      "sector": "Communication",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 347.64,
+      "change": -1.74,
+      "asOf": "2026-10-14T20:00:01+00:00",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
       "quoteBasis": "home-canonical",
       "stale": false
     },
@@ -536,15 +392,31 @@
       "ticker": "MSFT",
       "name": "Microsoft Corporation",
       "market": "US",
-      "marketCap": 4035413016576.0,
+      "marketCap": 3604491010048.0,
       "sector": "Technology",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 533.69,
       "change": -1.8,
       "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
+      "quoteBasis": "home-canonical",
+      "stale": false
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon.com, Inc.",
+      "market": "US",
+      "marketCap": 2441965993984.0,
+      "sector": "Consumer Cyclical",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 254.08,
+      "change": -1.74,
+      "asOf": "2026-10-14T20:00:01+00:00",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
       "quoteBasis": "home-canonical",
       "stale": false
     },
@@ -552,15 +424,15 @@
       "ticker": "META",
       "name": "Meta Platforms, Inc.",
       "market": "US",
-      "marketCap": 1942473408512.0,
+      "marketCap": 1667329032192.0,
       "sector": "Communication",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 737.54,
       "change": -3.27,
       "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
       "quoteBasis": "home-canonical",
       "stale": false
     },
@@ -568,15 +440,15 @@
       "ticker": "TSLA",
       "name": "Tesla, Inc.",
       "market": "US",
-      "marketCap": 1481988767744.0,
+      "marketCap": 1625427673088.0,
       "sector": "Consumer Cyclical",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 367.16,
       "change": -2.15,
       "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
       "quoteBasis": "home-canonical",
       "stale": false
     },
@@ -584,17 +456,65 @@
       "ticker": "AVGO",
       "name": "Broadcom Inc.",
       "market": "US",
-      "marketCap": 1705665757184.0,
+      "marketCap": 1618907889664.0,
       "sector": "Technology",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 346.25,
       "change": -3.1,
       "asOf": "2026-10-14T20:00:01+00:00",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
+      "quoteBasis": "home-canonical",
+      "stale": false
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway Inc. New",
+      "market": "US",
+      "marketCap": 1078559571968.0,
+      "sector": "Financial",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 526.35,
+      "change": 1.11,
+      "asOf": "2026-10-14T20:03:18+00:00",
       "sessionDate": "2026-10-14",
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
-      "quoteBasis": "home-canonical",
-      "stale": false
+      "quoteBasis": "provider-canonical",
+      "stale": true
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly and Company",
+      "market": "US",
+      "marketCap": 1040225271808.0,
+      "sector": "Healthcare",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 1208.74,
+      "change": 3.62,
+      "asOf": "2026-10-14T20:04:06+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart Inc.",
+      "market": "US",
+      "marketCap": 897743060992.0,
+      "sector": "Consumer Defensive",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 116.16,
+      "change": 3.46,
+      "asOf": "2026-10-14T20:00:01+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
     },
     {
       "ticker": "JPM",
@@ -610,7 +530,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "V",
@@ -626,7 +546,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "ORCL",
@@ -642,7 +562,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "MA",
@@ -658,7 +578,23 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
+    },
+    {
+      "ticker": "XOM",
+      "name": "ExxonMobil Holdings Corporation",
+      "market": "US",
+      "marketCap": 715801624576.0,
+      "sector": "Energy",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 177.01,
+      "change": 1.68,
+      "asOf": "2026-10-14T20:04:00+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
     },
     {
       "ticker": "JNJ",
@@ -674,7 +610,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "BAC",
@@ -690,7 +626,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "ABBV",
@@ -706,7 +642,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "NFLX",
@@ -722,7 +658,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "COST",
@@ -738,21 +674,21 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "AMD",
       "name": "Advanced Micro Devices, Inc.",
       "market": "US",
-      "marketCap": 988512649216.0,
+      "marketCap": 349947527168.0,
       "sector": "Technology",
       "sectorSource": "미국 히트맵 산업 분류",
       "price": 570.82,
       "change": -5.73,
       "asOf": "2026-10-14T20:00:01+00:00",
-      "sessionDate": "2026-10-14",
-      "previousSessionDate": "2026-10-13",
-      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "sessionDate": null,
+      "previousSessionDate": null,
+      "source": "Yahoo daily close",
       "quoteBasis": "home-canonical",
       "stale": false
     },
@@ -770,7 +706,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "PG",
@@ -786,7 +722,23 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
+    },
+    {
+      "ticker": "GE",
+      "name": "GE Aerospace",
+      "market": "US",
+      "marketCap": 333752107008.0,
+      "sector": "Industrials",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 307.02,
+      "change": -0.2,
+      "asOf": "2026-10-14T20:00:02+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
     },
     {
       "ticker": "CSCO",
@@ -802,7 +754,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "KO",
@@ -818,7 +770,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "WFC",
@@ -834,7 +786,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "CVX",
@@ -850,7 +802,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "UNH",
@@ -866,7 +818,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "MS",
@@ -882,7 +834,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "CAT",
@@ -898,7 +850,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "GS",
@@ -914,7 +866,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "AXP",
@@ -930,7 +882,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "MRK",
@@ -946,7 +898,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "CRM",
@@ -962,7 +914,7 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
     },
     {
       "ticker": "RTX",
@@ -978,17 +930,66 @@
       "previousSessionDate": "2026-10-13",
       "source": "Yahoo Chart regularMarketPrice + official previousClose",
       "quoteBasis": "provider-canonical",
-      "stale": false
+      "stale": true
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde plc",
+      "market": "US",
+      "marketCap": 198587875328.0,
+      "sector": "Materials",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 492.7,
+      "change": 0.12,
+      "asOf": "2026-10-14T20:00:01+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
+    },
+    {
+      "ticker": "NEE",
+      "name": "NextEra Energy, Inc.",
+      "market": "US",
+      "marketCap": 166692077568.0,
+      "sector": "Utilities",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 78.37,
+      "change": 0.19,
+      "asOf": "2026-10-14T20:00:03+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
+    },
+    {
+      "ticker": "PLD",
+      "name": "Prologis, Inc.",
+      "market": "US",
+      "marketCap": 118514139136.0,
+      "sector": "Real Estate",
+      "sectorSource": "미국 히트맵 산업 분류",
+      "price": 130.46,
+      "change": -2.31,
+      "asOf": "2026-10-14T20:03:39+00:00",
+      "sessionDate": "2026-10-14",
+      "previousSessionDate": "2026-10-13",
+      "source": "Yahoo Chart regularMarketPrice + official previousClose",
+      "quoteBasis": "provider-canonical",
+      "stale": true
     }
   ],
   "generatedAt": "2026-10-15T14:47:31.778900+09:00",
-  "source": "canonical-provider-full-heatmap",
+  "source": "canonical-snapshot-warm-seed",
   "counts": {
     "KR": 20,
     "US": 40
   },
   "complete": true,
-  "cacheAgeSec": 4973.3,
+  "snapshotCapturedAt": "2026-10-15T12:40:36.484770+00:00",
+  "cacheAgeSec": 1792068036.2,
   "refreshing": true,
   "cacheMode": "canonical-stale-while-revalidate",
   "dataContract": {
@@ -996,6 +997,5 @@
     "legacyHeatmapJson": "universe/market-cap layout only; price/change ignored",
     "homeParity": "overlapping Home/full tickers are overlaid from the same Home canonical quote cache"
   },
-  "snapshotVersion": 1,
-  "snapshotCapturedAt": "2026-10-15T07:10:25.311921+00:00"
+  "snapshotVersion": 1
 }
