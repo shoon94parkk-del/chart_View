@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-14T16:37:48+09:00",
+  "updated": "2026-10-15T17:51:41+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -1255,6 +1255,79 @@
             ]
           },
           "grade": "사용자 확정"
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-15",
+      "status": "사용자 확정 PICK — 2026-10-15 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-6",
+        "candidateTradeDate": "2026-10-15",
+        "analyzedAt": "2026-10-15T17:51:41+09:00",
+        "candidateFile": "static/data/top10_history.json",
+        "selectionRecordedDate": "2026-10-15",
+        "selectedOutsideTop10": true
+      },
+      "scorePolicy": {
+        "version": "etf-user-selection-no-stock-score",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "069500",
+          "symbol": "069500.KS",
+          "name": "KODEX 200",
+          "assetType": "ETF",
+          "benchmark": "KOSPI 200",
+          "issuer": "삼성자산운용",
+          "close": 87025,
+          "previousClose": 94805,
+          "changePct": -8.21,
+          "totalScore": null,
+          "scores": {},
+          "scoreVerification": "ETF 별도 선정으로 개별주식 35/15/10/10/30 점수체계 적용하지 않음",
+          "reason": "사용자가 2026-10-15 최종 PICK으로 직접 확정한 KODEX 200(069500) ETF. KOSPI 200 시장 전체에 분산투자하며 개별 종목 수주·실적이 아닌 한국 대형주 지수 회복에 대한 투자 판단이다. 서킷브레이커가 발생한 급락장 후에도 추가 하락 가능성·특정 대형 종목 집중·ETF 추적오차/괴리율/분배금 영향을 모니터링한다.",
+          "monitoring": {
+            "summary": "KOSPI 200 지수 추종에 따른 대형주·한국 주식시장 분산 노출. 급락 후 시장 변동성과 지수/ETF 추적 수준을 주기적으로 검증한다.",
+            "thesisPillars": [
+              "KOSPI 200 지수를 추종하는 상장지수펀드",
+              "개별 소형주 대신 한국 대표 대형주 바스켓에 분산 투자",
+              "한국 대형주 시장의 중장기 회복에 대한 노출"
+            ],
+            "invalidationCriteria": [
+              "장기 투자 가정과 다른 수준의 한국 대형주 시장 위험·유동성 훼손",
+              "시장가격과 순자산가치(iNAV/NAV)의 지속적이고 큰 괴리",
+              "지수 추적오차 또는 펀드 운용조건의 유의미한 악화"
+            ],
+            "catalysts": [
+              "국내 주식시장 변동성 진정",
+              "대형주 실적 성장·밸류에이션 정상화",
+              "KOSPI 200 지수의 중장기 회복"
+            ],
+            "keyMetrics": [
+              "KOSPI 200 지수 및 ETF 종가",
+              "ETF NAV/iNAV 대비 괴리율",
+              "추적오차",
+              "분배금 및 총수익률",
+              "상위 편입종목 집중도"
+            ]
+          },
+          "grade": "사용자 확정(TOP10 외 ETF)",
+          "priceSource": "2026-10-15 정규시장 종가 87,025원; 한국경제 장마감 및 Investing.com 일별 시세 교차확인",
+          "priceSourceUrls": [
+            "https://markets.hankyung.com/stock/069500/public-announcement",
+            "https://kr.investing.com/etfs/samsung-kodex-kospi-200-securities-historical-data"
+          ]
         }
       ]
     }
