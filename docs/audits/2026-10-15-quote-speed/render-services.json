@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-15T10:10:32.188Z",
+  "workspaceSource": "docs/CODEX_HANDOFF.md existing user-selected Chart View workspace",
+  "backend": {
+    "id": "srv-dao4a50473hc73bclej0",
+    "url": "https://chart-view-pkv8.onrender.com",
+    "plan": "free",
+    "region": "virginia",
+    "branch": "main"
+  },
+  "frontend": {
+    "id": "srv-dao4n4mk1f9s73algnf0",
+    "url": "https://chart-view-toss.onrender.com",
+    "type": "static_site",
+    "branch": "feat/apps-in-toss-mvp"
+  },
+  "backendDeployment": {
+    "commit": {
+      "createdAt": "2026-10-15T08:52:59Z",
+      "id": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+      "message": "data: register Oct15 KODEX 200 ETF selection event"
+    },
+    "createdAt": "2026-10-15T08:53:39.663837Z",
+    "finishedAt": "2026-10-15T08:54:51.102732Z",
+    "id": "dep-db8994s9v7es7382tsh0",
+    "startedAt": "2026-10-15T08:53:39.629782Z",
+    "status": "live",
+    "trigger": "api",
+    "updatedAt": "2026-10-15T08:55:20.755735Z"
+  }
+}

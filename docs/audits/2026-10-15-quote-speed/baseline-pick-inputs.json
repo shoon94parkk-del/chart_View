@@ -1,0 +1,31 @@
+{
+  "base": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "meaning": "Exact original Git blobs; pure-data test does not import modified runtime",
+  "files": [
+    {
+      "path": "tests/test_pick_screener_contract.py",
+      "sha256": "d652fc91066afcbd4da9e0efeec11e42f2531f1bd9813f57f857a9f46e350788",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "static/data/ai_daily_rankings.json",
+      "sha256": "1ef543833de50f81c694aa9b778b3481af7b7f3bf39344226151263eee8846da",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "static/data/ai_recommendations.json",
+      "sha256": "7821fa24ab83e73bd212e50674b27f285d706fead71be984e30855b4e08cf963",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "static/data/screener_meta.json",
+      "sha256": "242e3b07e2b0bb2f76a33959d471ca4416a7dc8e19db13f7d2c2adc8161ec3c8",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "static/data/screener.json",
+      "sha256": "f9a80d18f6858249b532ab94398dd66dc84e5a7667623082b8157c0b746bf6aa",
+      "unchangedFromBase": true
+    }
+  ]
+}

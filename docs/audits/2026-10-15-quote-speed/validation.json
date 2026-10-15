@@ -1,0 +1,53 @@
+{
+  "base": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "classification": "new bug in existing per-row Home quote publication",
+  "focusedBaseline": {
+    "passed": 45,
+    "failed": 0
+  },
+  "newRegressionBefore": {
+    "passed": 6,
+    "failed": 4
+  },
+  "newRegressionAfter": {
+    "passed": 10,
+    "failed": 0
+  },
+  "focusedAfter": {
+    "passed": 55,
+    "failed": 0,
+    "warnings": 75
+  },
+  "fullPython": {
+    "passed": 770,
+    "failed": 1,
+    "warnings": 79,
+    "failure": "tests/test_pick_screener_contract.py::test_pick_ledger_contains_latest_daily_pick",
+    "classification": "existing latest-main data integration gap; original exact-base Git blobs reproduce same failure",
+    "unchangedBaselineSubset": {
+      "passed": 2,
+      "failed": 1
+    }
+  },
+  "requiredNode": {
+    "passed": 52,
+    "failed": 0,
+    "files": 6
+  },
+  "webBundleFreshness": "passed",
+  "independentReview": "read-only; no important findings; reviewer did not rerun QA",
+  "operatingMeasurements": "existing production before patch only; 3 samples per browser route and serial quote query; no controlled server cold-start or patch before/after claim",
+  "protectedPickDataAndTestChanged": false,
+  "mainMerged": false,
+  "renderDeployed": false,
+  "infrastructureOrCostChanged": false,
+  "apiBaseChanged": false,
+  "frontendChanged": false,
+  "newAitGenerated": false,
+  "releaseReady": false,
+  "draftPrReason": "full Python gate remains blocked by existing protected PICK ledger mismatch",
+  "otherUnchangedObservations": [
+    "7-worker controlled synchronous-waiter saturation; production queue cause unproven",
+    "provider after-market context not represented in existing regular_live label; actual source timestamp retained"
+  ]
+}

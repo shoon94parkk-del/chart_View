@@ -362,3 +362,183 @@ def test_fresh_quotes_still_wait_for_complete_canonical_batch(monkeypatch, quote
                 await asyncio.wait_for(asyncio.gather(request, return_exceptions=True), 1)
 
     asyncio.run(scenario())
+
+
+async def _home_after_quote_publication(client, ticker, price):
+    async def published():
+        while main.HOME_LIVE_CACHE["quotes"][ticker]["price"] != price:
+            await asyncio.sleep(0)
+
+    try:
+        # A failure guard, not a provider/UI latency assertion. Read the real
+        # Home endpoint afterward so a missing publication fails on its value.
+        await asyncio.wait_for(published(), 1)
+    except asyncio.TimeoutError:
+        pass
+    return await _payload(client, "/api/home-live")
+
+
+@pytest.mark.parametrize("fresh", [False, True])
+def test_quotes_publish_completed_home_row_before_sibling_but_return_full_batch(monkeypatch, quote_state, fresh):
+    async def scenario():
+        release, held_started = threading.Event(), threading.Event()
+        calls = []
+        non_home = "IBM"
+        fast_row = _quote(HOME_FAST, 105, quote_state["new"])
+
+        def provider(ticker):
+            calls.append(ticker)
+            if ticker == HOME_HELD:
+                held_started.set()
+                assert release.wait(3), "test failed to release its fake provider"
+                return _quote(ticker, 205, quote_state["new"])
+            return deepcopy(fast_row) if ticker == HOME_FAST else _quote(ticker, 305, quote_state["new"])
+
+        monkeypatch.setattr(main, "fetch_quote_snapshot", provider)
+        async with _client() as client:
+            request = asyncio.create_task(client.get("/api/quotes", params={
+                "tickers": f"{HOME_HELD},{HOME_FAST.lower()},{non_home},{HOME_HELD}",
+                "fresh": str(fresh).lower(),
+            }))
+            try:
+                assert await asyncio.to_thread(held_started.wait, 1)
+                home = await _home_after_quote_publication(client, HOME_FAST, 105)
+                assert not request.done()
+                assert _rows(home)[HOME_FAST] == fast_row
+                assert _rows(home)[HOME_HELD]["price"] == 200
+                assert _rows(home)[HOME_HELD]["asOf"] == quote_state["old"]
+                cache = main.HOME_LIVE_CACHE
+                fast_epoch = cache["quoteUpdatedEpoch"][HOME_FAST]
+                assert fast_epoch > quote_state["old_epoch"]
+                assert cache["quoteUpdatedEpoch"][HOME_HELD] == quote_state["old_epoch"]
+                assert cache["marketUpdatedEpoch"]["KR"] == quote_state["old_epoch"]
+                assert non_home not in cache["quotes"]
+
+                ordinary = await _payload(client, "/api/quotes", tickers=HOME_FAST)
+                assert ordinary["results"] == [fast_row]
+                assert ordinary["sharedCacheHits"] == 1
+                assert ordinary["providerFetches"] == 0
+                release.set()
+                response = await asyncio.wait_for(request, 1)
+                assert response.status_code == 200
+                payload = response.json()
+                assert [row["ticker"] for row in payload["results"]] == [HOME_HELD, HOME_FAST, non_home]
+                assert [row["price"] for row in payload["results"]] == [205, 105, 305]
+                assert payload["results"][1] == fast_row
+                assert payload["errors"] == []
+                assert payload["sharedCacheHits"] == 0
+                assert payload["providerFetches"] == 3
+                assert payload["freshRequested"] is fresh
+                assert sorted(calls) == sorted([HOME_HELD, HOME_FAST, non_home])
+                assert cache["quoteUpdatedEpoch"][HOME_FAST] == fast_epoch
+                assert non_home not in cache["quotes"]
+            finally:
+                release.set()
+                await asyncio.wait_for(asyncio.gather(request, return_exceptions=True), 1)
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("late_asof", ["new", "newest"])
+def test_late_quote_batch_cannot_replace_newer_home_observation(monkeypatch, quote_state, late_asof):
+    async def scenario():
+        release, held_started = threading.Event(), threading.Event()
+        held_calls = []
+
+        def provider(ticker):
+            if ticker == HOME_FAST:
+                return _quote(ticker, 105, quote_state["new"])
+            held_calls.append(ticker)
+            if len(held_calls) == 1:
+                held_started.set()
+                assert release.wait(3), "test failed to release its fake provider"
+                return _quote(ticker, 201, quote_state[late_asof])
+            return _quote(ticker, 205, quote_state["newest"])
+
+        monkeypatch.setattr(main, "fetch_quote_snapshot", provider)
+        async with _client() as client:
+            request = asyncio.create_task(client.get("/api/quotes", params={
+                "tickers": f"{HOME_FAST},{HOME_HELD}", "fresh": "true",
+            }))
+            try:
+                assert await asyncio.to_thread(held_started.wait, 1)
+                home = await _home_after_quote_publication(client, HOME_FAST, 105)
+                assert _rows(home)[HOME_FAST]["price"] == 105
+                assert not request.done()
+                foreground = await _payload(client, "/api/quotes", tickers=HOME_HELD, fresh="true")
+                assert _rows(foreground)[HOME_HELD]["price"] == 205
+                updated_epoch = main.HOME_LIVE_CACHE["quoteUpdatedEpoch"][HOME_HELD]
+                release.set()
+                batch = (await asyncio.wait_for(request, 1)).json()
+                # The original batch still returns its own canonical result.
+                assert _rows(batch)[HOME_HELD]["price"] == 201
+                home = await _payload(client, "/api/home-live")
+                assert _rows(home)[HOME_HELD]["price"] == 205
+                assert _rows(home)[HOME_HELD]["asOf"] == quote_state["newest"]
+                assert main.HOME_LIVE_CACHE["quoteUpdatedEpoch"][HOME_HELD] == updated_epoch
+                assert held_calls == [HOME_HELD, HOME_HELD]
+            finally:
+                release.set()
+                await asyncio.wait_for(asyncio.gather(request, return_exceptions=True), 1)
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("bad_result", [
+    "older", "unknown_asof", "malformed_price", "malformed_change", "failure", "empty",
+])
+def test_quote_batch_does_not_publish_unusable_home_result(monkeypatch, quote_state, bad_result):
+    candidate = _quote(HOME_FAST, 90, quote_state["new"])
+    if bad_result == "older":
+        candidate["asOf"] = quote_state["older"]
+    elif bad_result == "unknown_asof":
+        candidate["asOf"] = None
+    elif bad_result == "malformed_price":
+        candidate["price"] = "not-a-price"
+    elif bad_result == "malformed_change":
+        candidate["change"] = "not-a-change"
+
+    async def scenario():
+        release, held_started = threading.Event(), threading.Event()
+        calls = []
+
+        def provider(ticker):
+            calls.append(ticker)
+            if ticker == HOME_HELD:
+                held_started.set()
+                assert release.wait(3), "test failed to release its fake provider"
+                return _quote(ticker, 205, quote_state["new"])
+            if bad_result == "failure":
+                raise RuntimeError("fake provider unavailable")
+            return None if bad_result == "empty" else deepcopy(candidate)
+
+        monkeypatch.setattr(main, "fetch_quote_snapshot", provider)
+        async with _client() as client:
+            request = asyncio.create_task(client.get("/api/quotes", params={
+                "tickers": f"{HOME_FAST},{HOME_HELD}", "fresh": "true",
+            }))
+            try:
+                assert await asyncio.to_thread(held_started.wait, 1)
+                old_row = deepcopy(main.HOME_LIVE_CACHE["quotes"][HOME_FAST])
+                release.set()
+                payload = (await asyncio.wait_for(request, 1)).json()
+                home = await _payload(client, "/api/home-live")
+                assert _rows(home)[HOME_FAST] == old_row
+                assert main.HOME_LIVE_CACHE["quoteUpdatedEpoch"][HOME_FAST] == quote_state["old_epoch"]
+                assert payload["providerFetches"] == 2
+                assert payload["sharedCacheHits"] == 0
+                assert sorted(calls) == sorted([HOME_FAST, HOME_HELD])
+                if bad_result in {"failure", "empty"}:
+                    assert [row["ticker"] for row in payload["results"]] == [HOME_HELD]
+                    expected = "fake provider unavailable" if bad_result == "failure" else "현재 시세를 가져오지 못했습니다."
+                    assert payload["errors"] == [{"ticker": HOME_FAST, "message": expected}]
+                else:
+                    # Preserve the existing HTTP result/error contract even
+                    # when the shared Home publisher rejects the candidate.
+                    assert payload["results"][0] == candidate
+                    assert payload["errors"] == []
+            finally:
+                release.set()
+                await asyncio.wait_for(asyncio.gather(request, return_exceptions=True), 1)
+
+    asyncio.run(scenario())

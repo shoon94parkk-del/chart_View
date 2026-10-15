@@ -57,4 +57,5 @@ def test_quotes_reuse_fresh_shared_home_cache_before_provider():
     assert 'marketUpdatedEpoch' not in body
     assert '"sharedCacheHits": len(shared)' in body
     assert '"providerFetches": len(missing)' in body
-    assert 'asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in missing' in body
+    assert 'item = await asyncio.to_thread(fetch_quote_snapshot, ticker)' in body
+    assert '*[one(ticker) for ticker in missing]' in body
