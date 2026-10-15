@@ -1,0 +1,22 @@
+{
+  "beforeSha": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "runtimeAfterSha": "3588790fff1fa8f4644c9172247400b1e64d6f71",
+  "controlledTrials": 48,
+  "cadenceTrials": 6,
+  "python": {
+    "passed": 770,
+    "failed": 1,
+    "failure": "tests/test_pick_screener_contract.py::test_pick_ledger_contains_latest_daily_pick",
+    "preExistingInMain": true
+  },
+  "relevantPythonPassed": 52,
+  "nodePassed": 52,
+  "bundleCheck": "passed",
+  "liveBackendContract": "passed",
+  "existingProductionVerification": "passed",
+  "renderDeployedAfter": false,
+  "mainMerged": false,
+  "aitCreated": false,
+  "pickFilesChanged": false,
+  "awaiting": "Specific exception to append one already-confirmed PICK ledger row; no answer is treated as pending"
+}

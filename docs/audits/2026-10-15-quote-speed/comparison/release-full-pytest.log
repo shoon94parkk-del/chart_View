@@ -1,0 +1,70 @@
+........................................................................ [  9%]
+........................................................................ [ 18%]
+........................................................................ [ 28%]
+........................................................................ [ 37%]
+........................................................................ [ 46%]
+........................................................................ [ 56%]
+........................................................................ [ 65%]
+........................................................................ [ 74%]
+.........................................................F.............. [ 84%]
+........................................................................ [ 93%]
+...................................................                      [100%]
+=================================== FAILURES ===================================
+_________________ test_pick_ledger_contains_latest_daily_pick __________________
+
+    def test_pick_ledger_contains_latest_daily_pick():
+        daily = load('ai_daily_rankings.json')
+        recs = load('ai_recommendations.json')
+        latest = max(d['tradeDate'] for d in daily['days'])
+        latest_codes = {x['code'] for d in daily['days'] if d['tradeDate'] == latest for x in d['top3']}
+        ledger_codes = {x['code'] for x in recs['recommendations'] if x['recommendedDate'] == latest}
+>       assert latest_codes == ledger_codes
+E       AssertionError: assert {'069500'} == set()
+E         
+E         Extra items in the left set:
+E         '069500'
+E         Use -v to get more diff
+
+tests/test_pick_screener_contract.py:18: AssertionError
+=============================== warnings summary ===============================
+../scratch/chartview-backend-venv/lib/python3.12/site-packages/starlette/testclient.py:45
+  /workspace/scratch/chartview-backend-venv/lib/python3.12/site-packages/starlette/testclient.py:45: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+main.py:567
+  /workspace/chartview-quote-speed-backend-20261015/main.py:567: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+../scratch/chartview-backend-venv/lib/python3.12/site-packages/fastapi/applications.py:4745
+  /workspace/scratch/chartview-backend-venv/lib/python3.12/site-packages/fastapi/applications.py:4745: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests/test_app_regressions.py::test_failed_refresh_keeps_quote_date_and_marks_stale
+  /workspace/chartview-quote-speed-backend-20261015/main.py:2260: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+
+tests/test_app_regressions.py::test_local_assets_exist
+tests/test_app_regressions.py::test_versioned_assets_are_immutable_and_fonts_stay_local
+  /workspace/scratch/chartview-backend-venv/lib/python3.12/site-packages/starlette/templating.py:162: DeprecationWarning: The `name` is not the first parameter anymore. The first parameter should be the `Request` instance.
+  Replace `TemplateResponse(name, {"request": request})` by `TemplateResponse(request, name)`.
+    warnings.warn(
+
+tests/test_home_quote_progress.py: 9 warnings
+tests/test_market_now_primary_ready.py: 64 warnings
+  /workspace/chartview-quote-speed-backend-20261015/main.py:1303: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_pick_screener_contract.py::test_pick_ledger_contains_latest_daily_pick
+1 failed, 770 passed, 79 warnings in 13.06s
