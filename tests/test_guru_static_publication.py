@@ -43,3 +43,14 @@ def test_republishing_unchanged_current_version_keeps_previous_proof(tmp_path):
     publish_snapshot(second,proof,tmp_path)
     publish_snapshot(second,proof,tmp_path)
     assert old.exists()
+
+
+def test_empty_snapshot_can_be_staged_by_the_publication_workflow(tmp_path):
+    import subprocess
+    universe,prices,financials=inputs()
+    snapshot,evidence=build_snapshot([],prices,financials,generated_at='2026-10-05T17:00:00+09:00')
+    publish_snapshot(snapshot,evidence,tmp_path/'static/data')
+    subprocess.run(['git','init','-q',str(tmp_path)],check=True)
+    staged=subprocess.run(['git','add','-A','static/data/guru_evidence/'],cwd=tmp_path,capture_output=True,text=True)
+    assert staged.returncode==0,staged.stderr
+    assert all(not row['results'] for row in snapshot['strategies'].values())

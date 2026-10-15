@@ -118,6 +118,7 @@ def publish_snapshot(snapshot: dict, evidence: dict, directory: Path) -> None:
     # Publish small immutable proofs with the same Git commit as the list.
     # The deployed API keeps its strict 409 contract; no request-time provider
     # fetch or backend deployment hook is introduced.
+    (directory/'guru_evidence').mkdir(parents=True, exist_ok=True)
     for symbol in sorted(symbols):
         row = evidence['companies'][symbol]
         payload = {**row, **{key: evidence.get(key) for key in ('snapshotVersion', 'criteriaVersion', 'tradeDate')}}
