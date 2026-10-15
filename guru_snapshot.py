@@ -129,5 +129,5 @@ def publish_snapshot(snapshot: dict, evidence: dict, directory: Path) -> None:
     # Keep the preceding published version for lists already open in a client.
     # Older versions fail closed rather than returning a different day's proof.
     for old in (directory/'guru_evidence').iterdir() if (directory/'guru_evidence').exists() else []:
-        if old.is_dir() and re.fullmatch(r'[a-f0-9]{20}', old.name) and old.name not in {version, previous}:
+        if previous != version and old.is_dir() and re.fullmatch(r'[a-f0-9]{20}', old.name) and old.name not in {version, previous}:
             shutil.rmtree(old)

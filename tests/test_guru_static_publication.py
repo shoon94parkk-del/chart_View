@@ -32,3 +32,14 @@ def test_unsafe_version_cannot_escape_static_publication_root(tmp_path):
     snapshot['snapshotVersion']=evidence['snapshotVersion']='../escaped'
     with pytest.raises(ValueError):publish_snapshot(snapshot,evidence,tmp_path)
     assert not (tmp_path/'guru_screening.json').exists()
+
+
+def test_republishing_unchanged_current_version_keeps_previous_proof(tmp_path):
+    args=inputs();first,evidence=build_snapshot(*args,generated_at='2026-10-05T17:00:00+09:00')
+    publish_snapshot(first,evidence,tmp_path)
+    old=tmp_path/'guru_evidence'/first['snapshotVersion']/'005930.KS.json'
+    args[2]['companies']['005930.KS']['annual'][-1]['netIncome']*=1.1
+    second,proof=build_snapshot(*args,generated_at='2026-10-06T17:00:00+09:00')
+    publish_snapshot(second,proof,tmp_path)
+    publish_snapshot(second,proof,tmp_path)
+    assert old.exists()
