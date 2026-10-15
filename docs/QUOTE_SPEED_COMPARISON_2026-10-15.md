@@ -2,6 +2,8 @@
 
 기존 [시세 패치와 조사 기록](QUOTE_SPEED_CHECK_2026-10-15.md)에 이어, 같은 조건의 개선 전후 비교를 추가했다. 비교 대상은 main `40daf4fd773e253839e23b9745ae6f34638b8c6b`와 시세 패치 `3588790fff1fa8f4644c9172247400b1e64d6f71`다. 이후 문서·측정 스크립트 커밋은 런타임 변경에 포함되지 않는다.
 
+**후속 승인과 검증:** 사용자는 제시한 누락 원장1건 추가와 배포를 승인했다. 기존41건·metadata를 보존하는 정확한 수정안 적용 뒤 전체 Python771통과·Node52통과·번들 freshness 통과를 확인했다. 아래 기존 실패/미적용/배포 대기 및 비교 JSON의 상태 값은 승인 전 기록이다. 선정·점수·계산식·기존 기록 변경 없이 승인된1건만 복구했으며 ETF updater의 별도 한계는 유지한다. 최종 CI·배포 SHA·배포 후 실제 API/화면 비교는 [PR151](https://github.com/shoon94parkk-del/chart_View/pull/151)에 기록한다.
+
 ## 동일 조건의 코드 비교
 
 실제 Git revision을 각각 archive해 별도 프로세스에서 FastAPI ASGI 경로를 실행했다. 외부 네트워크와 앱 lifespan은 실행하지 않고 동일한 날짜·시세·지연을 가진 가상 공급자를 사용했다. 기본 executor 예약 시간은 측정에 포함하고, import와 최초 Home 읽기는 제외했다. 버전 순서를 교대로 바꾸며 3가지 조건을 각 버전8회, 총48회 실행했다. Home 읽기 간격은2ms이며 이는 캐시 게시 시점 확인을 위한 측정 해상도다.
@@ -74,4 +76,4 @@ PYTHONDONTWRITEBYTECODE=1 python scripts/benchmark_quote_publication.py \
 
 누락1건만 덧붙이는 [미적용 수정안](https://github.com/shoon94parkk-del/chart_View/pull/151#issuecomment-6190297364)을 제시했다. 원장 기존41건과 기존 metadata는 유지하고 이미 커밋된 선정일 종가87,025원을 사용한다. 선정일과 screener 기준일이 같아 기존 공식으로 당일 수익률은0%다. 이 안은 사용자의 PICK 기록 변경 금지에 대한 한정된 예외가 있어야 적용할 수 있다. 기존 updater의 ETF 갱신 거부는 별도 한계로 남으며 이1건 추가로 향후 자동 갱신까지 해결됐다고 주장하지 않는다.
 
-배포는 이 예외 확인을 기다리는 상태다. main 병합·Render 재배포·프런트 배포·요금제/리전 변경은 수행하지 않았다. 백엔드 변경이므로 새 AIT도 생성하지 않았다. 실제 운영의 개선 후 결과는 정확한 검증 main 배포 및 `/health` revision 확인 뒤 같은 조건으로 측정해야 한다.
+최초 비교 시점에는 이 예외 확인을 기다리며 main 병합·Render 재배포를 수행하지 않았다. 후속 승인 뒤 누락1건을 복구하고 전체 Python771통과를 확인했으며 기존 서비스의 exact-main 배포 절차를 진행한다. 프런트·요금제/리전 변경과 새 AIT 생성은 포함하지 않는다. 실제 운영의 개선 후 결과는 정확한 검증 main 배포 및 `/health` revision 확인 뒤 같은 조건으로 측정하고 PR151에 남긴다.
