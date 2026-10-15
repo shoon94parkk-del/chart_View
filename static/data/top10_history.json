@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-14T16:38:29+09:00",
+  "updated": "2026-10-15T17:31:02+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -1890,6 +1890,216 @@
         }
       ],
       "note": "2026-10-14 TOP10 중 7위 피에스케이홀딩스를 사용자 최종 PICK으로 확정. 총점은 당시 잠정 원점수."
+    },
+    {
+      "tradeDate": "2026-10-15",
+      "coverage": "complete",
+      "source": "daily_screener_manual_2026-10-15_1723kst",
+      "scoreType": "analyst_provisional_35_15_10_10_30",
+      "top10": [
+        {
+          "rank": 1,
+          "code": "021240",
+          "name": "코웨이",
+          "score": 86,
+          "symbol": "021240.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 105000,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 1.84,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 13,
+            "valuation": 7,
+            "catalystRisk": 6,
+            "technical": 30
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 2,
+          "code": "059100",
+          "name": "아이컴포넌트",
+          "score": 86,
+          "symbol": "059100.KQ",
+          "market": "KOSDAQ",
+          "recommendedPrice": 7020,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": -4.1,
+          "scores": {
+            "companyGrowth": 33,
+            "industry": 12,
+            "valuation": 7,
+            "catalystRisk": 4,
+            "technical": 30
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 3,
+          "code": "004370",
+          "name": "농심",
+          "score": 85,
+          "symbol": "004370.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 402500,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 2.29,
+          "scores": {
+            "companyGrowth": 29,
+            "industry": 12,
+            "valuation": 7,
+            "catalystRisk": 8,
+            "technical": 29
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 4,
+          "code": "002840",
+          "name": "미원상사",
+          "score": 84,
+          "symbol": "002840.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 139500,
+          "priceBasis": "Naver Finance KRX/Koscom secondary close; first feed disagreed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -0.07,
+          "scores": {
+            "companyGrowth": 31,
+            "industry": 12,
+            "valuation": 7,
+            "catalystRisk": 6,
+            "technical": 28
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 5,
+          "code": "282330",
+          "name": "BGF리테일",
+          "score": 84,
+          "symbol": "282330.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 134900,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 5.64,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 12,
+            "valuation": 7,
+            "catalystRisk": 8,
+            "technical": 27
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 6,
+          "code": "001120",
+          "name": "LX인터내셔널",
+          "score": 82,
+          "symbol": "001120.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 43950,
+          "priceBasis": "Naver Finance KRX/Koscom secondary close; first feed disagreed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -1.24,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 11,
+            "valuation": 8,
+            "catalystRisk": 4,
+            "technical": 29
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 7,
+          "code": "044450",
+          "name": "KSS해운",
+          "score": 80,
+          "symbol": "044450.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 12040,
+          "priceBasis": "Naver Finance KRX/Koscom secondary close; first feed disagreed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -2.59,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 12,
+            "valuation": 7,
+            "catalystRisk": 5,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 8,
+          "code": "000100",
+          "name": "유한양행",
+          "score": 80,
+          "symbol": "000100.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 76400,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 5.09,
+          "scores": {
+            "companyGrowth": 29,
+            "industry": 14,
+            "valuation": 5,
+            "catalystRisk": 5,
+            "technical": 27
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 9,
+          "code": "383220",
+          "name": "F&F",
+          "score": 78,
+          "symbol": "383220.KS",
+          "market": "KOSPI",
+          "recommendedPrice": 71000,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": -3.79,
+          "scores": {
+            "companyGrowth": 27,
+            "industry": 11,
+            "valuation": 8,
+            "catalystRisk": 6,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        },
+        {
+          "rank": 10,
+          "code": "200470",
+          "name": "에이팩트",
+          "score": 77,
+          "symbol": "200470.KQ",
+          "market": "KOSDAQ",
+          "recommendedPrice": 9280,
+          "priceBasis": "provider matched on 2026-10-15 regular close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": -7.39,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 14,
+            "valuation": 4,
+            "catalystRisk": 3,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_weights; technical verified from screener"
+        }
+      ],
+      "selectedPicks": [],
+      "note": "2026-10-15 장 마감 TOP10. 사용자 최종 PICK 미확정. 기술점수는 원자료, 나머지 네 항목은 공개 2026 2Q 실적·성장 경로와 위험 분석 기반 잠정 평가. 2차 시세 불일치 종목은 보조 제공처 종가와 이슈를 기록함."
     }
   ],
   "performancePolicy": {
