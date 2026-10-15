@@ -1,0 +1,72 @@
+{
+  "base": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "checks": [
+    {
+      "path": "guru_rules.py",
+      "sha256": "d1c1a33742eaf9e1d17d87460d7d92127555bcd973f6ce4f5b9442cbae10c5ea",
+      "unchanged": true
+    },
+    {
+      "path": "guru_extensions.py",
+      "sha256": "817354da3eb0c5a1cf50474e9bc1084a5a31bcdc9509a6e363f7d77c9ab109fa",
+      "unchanged": true
+    },
+    {
+      "path": "guru_snapshot.py",
+      "sha256": "c0ff274b530e46aa550b638385c44c0aae248d85a15714862a2d29c8a758a6dc",
+      "unchanged": true
+    },
+    {
+      "path": "realtime_korea.py",
+      "sha256": "fae98b5c79321d8a82cd38f1c7997a3ac51c5de03fd1a6256ddd69a165b2277e",
+      "unchanged": true
+    },
+    {
+      "path": "market_service.py",
+      "sha256": "db58c1390c9a65280fffb62ee0ece46e941b1eba3071230ae396291355f95d0f",
+      "unchanged": true
+    },
+    {
+      "path": "request_coalescing.py",
+      "sha256": "ea5e5b7b8ff5ffed0c331e40c382ebe22ae90aefab196b8e28bb34fdfc51dae3",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/update_ai_recommendations.py",
+      "sha256": "814af07e2219ccef3597a4a7f47a93332a6cf1b41b351e4c0332e2a962ddb34f",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/validate_ai_rankings.py",
+      "sha256": "488edd0588bb73a7d56dab17a65ca9d12c955f8fce55734dcc2be9099455feca",
+      "unchanged": true
+    },
+    {
+      "path": "static/data/ai_daily_rankings.json",
+      "sha256": "1ef543833de50f81c694aa9b778b3481af7b7f3bf39344226151263eee8846da",
+      "unchanged": true
+    },
+    {
+      "path": "static/data/ai_recommendations.json",
+      "sha256": "7821fa24ab83e73bd212e50674b27f285d706fead71be984e30855b4e08cf963",
+      "unchanged": true
+    },
+    {
+      "path": "static/data/pick_monitor.json",
+      "sha256": "dceb70c0819bfe9311d984058b5f1f828c2ea486256b895e9abe94d2bda6d499",
+      "unchanged": true
+    },
+    {
+      "path": "static/data/pick_monitor_history.json",
+      "sha256": "6068525febe9422854a76026ecf6f554e153162747bc08eb020d3d1e2083efae",
+      "unchanged": true
+    },
+    {
+      "path": "static/data/top10_history.json",
+      "sha256": "563fa0422277f0cbc9345fac37753793229138de40454404a49cc66a98fc3a55",
+      "unchanged": true
+    }
+  ],
+  "mainTopLevelStatementsExceptQuoteSnapshotsUnchanged": true,
+  "frontendModified": false
+}

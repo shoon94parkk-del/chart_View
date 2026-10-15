@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "base": "https://chart-view-toss.onrender.com",
+  "sourceRevision": "9bd17dbe410065eb09a743c72506be36c2bc4d30",
+  "measuredAt": "2026-10-15T10:04:21.329Z",
+  "browser": "Chromium",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "runs": 3,
+  "phases": [
+    "cold",
+    "warm"
+  ],
+  "readiness": "Primary route content; optional loaders, failures and partial coverage reported separately",
+  "coldMeaning": "New browser context; not a controlled Render server cold start",
+  "warmMeaning": "Same session route → more → route (more uses home); no fixed settling sleep",
+  "decodedBodyBytesMeaning": "Decoded response-body bytes, not compressed wire bytes",
+  "proxyRelay": true,
+  "browserHttpCacheDisabled": true,
+  "scenario": {
+    "mode": "normal"
+  },
+  "summary": [
+    {
+      "route": "home",
+      "phase": "cold",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 501,
+      "minReadyMs": 491,
+      "maxReadyMs": 1196
+    },
+    {
+      "route": "home",
+      "phase": "warm",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 60,
+      "minReadyMs": 58,
+      "maxReadyMs": 62
+    },
+    {
+      "route": "watch",
+      "phase": "cold",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 363,
+      "minReadyMs": 338,
+      "maxReadyMs": 2407
+    },
+    {
+      "route": "watch",
+      "phase": "warm",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 20,
+      "minReadyMs": 19,
+      "maxReadyMs": 25
+    },
+    {
+      "route": "detail/005930.KS",
+      "phase": "cold",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 877,
+      "minReadyMs": 696,
+      "maxReadyMs": 987
+    },
+    {
+      "route": "detail/005930.KS",
+      "phase": "warm",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 77,
+      "minReadyMs": 58,
+      "maxReadyMs": 128
+    },
+    {
+      "route": "chart",
+      "phase": "cold",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 417,
+      "minReadyMs": 402,
+      "maxReadyMs": 1018
+    },
+    {
+      "route": "chart",
+      "phase": "warm",
+      "samples": 3,
+      "readySamples": 3,
+      "outcomes": {
+        "ready": 3
+      },
+      "medianReadyMs": 41,
+      "minReadyMs": 41,
+      "maxReadyMs": 42
+    }
+  ],
+  "sourceRevisionVerifiedBy": "Render latestlive deployment dep-db7jc32vcj2c73dsck10 andserved /assets/index-CF9uo1sD.js",
+  "meaning": "Existing operating frontend/backend before this patch; not a patch before/after speed comparison. Three new browser contexts per route, not Render server cold starts."
+}

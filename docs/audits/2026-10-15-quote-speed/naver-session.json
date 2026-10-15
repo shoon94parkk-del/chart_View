@@ -1,0 +1,126 @@
+{
+  "observedAtUtc": "2026-10-15T10:12:02.896882+00:00",
+  "scope": "Read-only source inspection plus exactly one public Naver GET and offline transform of captured JSON; no Render quote reload, Yahoo calls, product edits, PICK changes or price substitutions.",
+  "backendSha": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "sourceSha256": "fae98b5c79321d8a82cd38f1c7997a3ac51c5de03fd1a6256ddd69a165b2277e",
+  "providerRequest": {
+    "url": "https://m.stock.naver.com/api/stock/005930/basic",
+    "startedAt": "2026-10-15T10:10:44.138804+00:00",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "bodyCompleteMs": 1705.864,
+    "rawBody": "naver_005930_basic.body"
+  },
+  "originalApiQuote": {
+    "ticker": "005930.KS",
+    "name": "삼성전자",
+    "price": 209000.0,
+    "change": -9.91,
+    "asOf": "2026-10-15T19:04:23+09:00",
+    "marketCap": null,
+    "currency": "KRW",
+    "source": "Naver Finance KRX/Koscom",
+    "delayTime": 0,
+    "marketStatus": "OPEN",
+    "sessionType": "regular",
+    "priceBasis": "regular_live"
+  },
+  "capturedProviderFields": {
+    "closePrice": "209,000",
+    "fluctuationsRatio": "-9.91",
+    "marketStatus": "OPEN",
+    "marketStatusDetailType": "open",
+    "localTradedAt": "2026-10-15T19:09:57+09:00",
+    "stockExchangeType": {
+      "code": "KS",
+      "zoneId": "Asia/Seoul",
+      "nationType": "KOR",
+      "delayTime": 0,
+      "startTime": "0900",
+      "endTime": "1530",
+      "closePriceSendTime": "1630",
+      "nameKor": "코스피",
+      "nameEng": "KOSPI",
+      "stockType": "domestic",
+      "nationCode": "KOR",
+      "nationName": "대한민국",
+      "name": "KOSPI"
+    },
+    "overMarketPriceInfo": {
+      "tradingSessionType": "AFTER_MARKET",
+      "overMarketStatus": "OPEN",
+      "overPrice": "208,500",
+      "compareToPreviousPrice": {
+        "code": "5",
+        "text": "하락",
+        "name": "FALLING"
+      },
+      "compareToPreviousClosePrice": "-23,500",
+      "fluctuationsRatio": "-10.13",
+      "localTradedAt": "2026-10-15T19:10:45.713+09:00",
+      "tradeStopType": {
+        "code": "1",
+        "text": "운영.Trading",
+        "name": "TRADING"
+      },
+      "tradableStatus": "tradable",
+      "tradableStatusCode": "ok",
+      "tradableStatusUpdatedAt": "2026-10-15T13:09:02.971+09:00"
+    },
+    "marketSessionType": "afterMarket"
+  },
+  "offlineTransform": {
+    "ticker": "005930.KS",
+    "name": "삼성전자",
+    "price": 209000.0,
+    "change": -9.91,
+    "asOf": "2026-10-15T19:09:57+09:00",
+    "marketCap": null,
+    "currency": "KRW",
+    "source": "Naver Finance KRX/Koscom",
+    "delayTime": 0,
+    "marketStatus": "OPEN",
+    "sessionType": "regular",
+    "priceBasis": "regular_live"
+  },
+  "offlineTransformUsesNetwork": false,
+  "sourceReferences": [
+    {
+      "path": "realtime_korea.py",
+      "line": 73,
+      "finding": "Every OPEN maps to regular / regular_live without session type or time validation."
+    },
+    {
+      "path": "realtime_korea.py",
+      "line": 181,
+      "finding": "Selects top-level closePrice and fluctuationsRatio."
+    },
+    {
+      "path": "realtime_korea.py",
+      "line": 193,
+      "finding": "Copies top-level localTradedAt as asOf; no query-time substitution."
+    },
+    {
+      "path": "realtime_korea.py",
+      "line": 198,
+      "finding": "Classifier receives only marketStatus and localTradedAt, not marketSessionType or overMarketPriceInfo."
+    },
+    {
+      "path": "tests/test_korean_price_consistency_v50.py",
+      "line": 103,
+      "finding": "Closed-market test deliberately preserves top-level regular-close price instead of overMarketPriceInfo."
+    },
+    {
+      "path": "docs/regression-guardrails.md",
+      "line": 174,
+      "finding": "Active freshness explicitly covers Korean NXT window until 20:00 KST."
+    }
+  ],
+  "reportParagraph": "A single public Naver basic-quote response declares marketSessionType=afterMarket and an OPEN AFTER_MARKET leg at KRW 208,500 (19:10:45 KST), while its top-level fields remain closePrice=KRW 209,000, marketStatus=OPEN and localTradedAt=19:09:57 KST. At production main 40daf, realtime_korea.py selects the top-level price and timestamp, ignores marketSessionType/overMarketPriceInfo, and maps OPEN unconditionally to regular/regular_live. Offline transformation of this captured payload reproduces KRW 209,000 and the unsupported regular-live label. Therefore the late timestamp came from the provider field, not an application-generated lookup timestamp; the payload explicitly has after-market context, but the chosen top-level price's exact trade/session basis remains ambiguous. The payload does not explicitly identify NXT as the venue. The original 19:04 capture cannot establish an official regular-session observation; its selected 209k must not be silently replaced with the separate 208.5k after-market price. Existing tests intentionally preserve the top-level regular-close price over overMarketPriceInfo in a closed-market fixture. This is a data-contract observation only; no prices, PICK outputs or product code were changed.",
+  "limits": [
+    "The historical original 19:04 provider raw payload was not captured; later raw response demonstrates the same field-mapping path and same selected 209k price.",
+    "Provider localTradedAt is copied faithfully, but its economic meaning for the chosen top-level price cannot be established from this response alone.",
+    "AFTER_MARKET is explicit; NXT venue is not explicitly named in the raw response.",
+    "No product fix is proposed or implemented."
+  ]
+}

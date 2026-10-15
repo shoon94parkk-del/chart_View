@@ -1,0 +1,1124 @@
+{
+  "generated_at_utc": "2026-10-15T10:52:52.161236+00:00",
+  "kind": "controlled_local_asgi_not_mobile_or_live_sla",
+  "sources": {
+    "before": {
+      "revision": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+      "main_py_sha256": "6047494751733259df5ae8783508c10dd736be4293addd3aa4aec6d08be5c0d3"
+    },
+    "after": {
+      "revision": "3588790fff1fa8f4644c9172247400b1e64d6f71",
+      "main_py_sha256": "ca338b833694bf045ac9a40f15388a76abba77f6ecd5f52ed55763fd649b49c9"
+    }
+  },
+  "config": {
+    "repetitions": 3,
+    "fast_ms": 40.0,
+    "slow_ms": 6000.0,
+    "poll_ms": 5000.0,
+    "cadence_check": true
+  },
+  "summary": {
+    "mixed_fresh": {
+      "before": {
+        "first_fast_home_visible_ms": {
+          "n": 3,
+          "min": 10016.013208,
+          "median": 10018.26954,
+          "p95_nearest_rank": 10019.758756,
+          "max": 10019.758756
+        },
+        "full_batch_client_ms": {
+          "n": 3,
+          "min": 6005.321752,
+          "median": 6006.92566,
+          "p95_nearest_rank": 6016.183914,
+          "max": 6016.183914
+        },
+        "full_batch_asgi_ms": {
+          "n": 3,
+          "min": 6004.12742,
+          "median": 6005.300854,
+          "p95_nearest_rank": 6013.943728,
+          "max": 6013.943728
+        },
+        "fast_provider_start_ms": {
+          "n": 3,
+          "min": 2.84906,
+          "median": 3.207129,
+          "p95_nearest_rank": 3.45039,
+          "max": 3.45039
+        },
+        "fast_provider_duration_ms": {
+          "n": 3,
+          "min": 40.109205,
+          "median": 40.109498,
+          "p95_nearest_rank": 40.111258,
+          "max": 40.111258
+        },
+        "fast_provider_done_ms": {
+          "n": 3,
+          "min": 42.958265,
+          "median": 43.318387,
+          "p95_nearest_rank": 43.559888,
+          "max": 43.559888
+        },
+        "fast_publish_ms": {
+          "n": 3,
+          "min": 6004.08128,
+          "median": 6004.792313,
+          "p95_nearest_rank": 6010.627576,
+          "max": 6010.627576
+        },
+        "fast_provider_done_to_publish_ms": {
+          "n": 3,
+          "min": 5960.521392,
+          "median": 5961.473926,
+          "p95_nearest_rank": 5967.669311,
+          "max": 5967.669311
+        },
+        "fast_publish_to_home_visible_ms": {
+          "n": 3,
+          "min": 4009.13118,
+          "median": 4011.220895,
+          "p95_nearest_rank": 4014.18826,
+          "max": 4014.18826
+        },
+        "route_start_to_first_provider_start_ms": {
+          "n": 3,
+          "min": 1.883647,
+          "median": 2.195785,
+          "p95_nearest_rank": 2.33254,
+          "max": 2.33254
+        },
+        "last_provider_done_to_response_body_ms": {
+          "n": 3,
+          "min": 1.585218,
+          "median": 2.369766,
+          "p95_nearest_rank": 8.897725,
+          "max": 8.897725
+        },
+        "home_read_median_ms": {
+          "n": 3,
+          "min": 7.174543,
+          "median": 9.427981,
+          "p95_nearest_rank": 10.200334,
+          "max": 10.200334
+        },
+        "home_read_max_ms": {
+          "n": 3,
+          "min": 8.624348,
+          "median": 10.439393,
+          "p95_nearest_rank": 10.795666,
+          "max": 10.795666
+        }
+      },
+      "after": {
+        "first_fast_home_visible_ms": {
+          "n": 3,
+          "min": 5011.001129,
+          "median": 5017.600201,
+          "p95_nearest_rank": 5020.720149,
+          "max": 5020.720149
+        },
+        "full_batch_client_ms": {
+          "n": 3,
+          "min": 6005.538587,
+          "median": 6005.685389,
+          "p95_nearest_rank": 6007.177567,
+          "max": 6007.177567
+        },
+        "full_batch_asgi_ms": {
+          "n": 3,
+          "min": 6003.817799,
+          "median": 6004.508318,
+          "p95_nearest_rank": 6005.930448,
+          "max": 6005.930448
+        },
+        "fast_provider_start_ms": {
+          "n": 3,
+          "min": 2.967516,
+          "median": 3.315455,
+          "p95_nearest_rank": 3.662055,
+          "max": 3.662055
+        },
+        "fast_provider_duration_ms": {
+          "n": 3,
+          "min": 40.109397,
+          "median": 40.116572,
+          "p95_nearest_rank": 40.124039,
+          "max": 40.124039
+        },
+        "fast_provider_done_ms": {
+          "n": 3,
+          "min": 43.091555,
+          "median": 43.424852,
+          "p95_nearest_rank": 43.778627,
+          "max": 43.778627
+        },
+        "fast_publish_ms": {
+          "n": 3,
+          "min": 43.372585,
+          "median": 43.7001,
+          "p95_nearest_rank": 43.967319,
+          "max": 43.967319
+        },
+        "fast_provider_done_to_publish_ms": {
+          "n": 3,
+          "min": 0.188692,
+          "median": 0.275248,
+          "p95_nearest_rank": 0.28103,
+          "max": 0.28103
+        },
+        "fast_publish_to_home_visible_ms": {
+          "n": 3,
+          "min": 4967.03381,
+          "median": 4973.900101,
+          "p95_nearest_rank": 4977.347564,
+          "max": 4977.347564
+        },
+        "route_start_to_first_provider_start_ms": {
+          "n": 3,
+          "min": 1.96465,
+          "median": 2.29729,
+          "p95_nearest_rank": 2.489167,
+          "max": 2.489167
+        },
+        "last_provider_done_to_response_body_ms": {
+          "n": 3,
+          "min": 1.343547,
+          "median": 2.31343,
+          "p95_nearest_rank": 2.749415,
+          "max": 2.749415
+        },
+        "home_read_median_ms": {
+          "n": 3,
+          "min": 4.500322,
+          "median": 6.958878,
+          "p95_nearest_rank": 7.081245,
+          "max": 7.081245
+        },
+        "home_read_max_ms": {
+          "n": 3,
+          "min": 4.546589,
+          "median": 10.003007,
+          "p95_nearest_rank": 10.657014,
+          "max": 10.657014
+        }
+      }
+    }
+  },
+  "paired_comparison": {
+    "mixed_fresh": {
+      "first_visibility_delta_ms": {
+        "n": 3,
+        "min": 4998.413007,
+        "median": 4999.0386069999995,
+        "p95_nearest_rank": 5007.268410999999,
+        "max": 5007.268410999999
+      },
+      "first_visibility_median_reduction_percent": 49.91550006748969
+    }
+  },
+  "response_semantics_parity": true,
+  "all_provider_counts": [
+    3
+  ],
+  "reproduce_command": "env PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/chartview-backend-venv/bin/python /workspace/research/chartview-quote-speed-20261015/benchmark/quote_visibility_benchmark.py --repo /workspace/chartview-quote-speed-backend-20261015 --before 40daf4fd773e253839e23b9745ae6f34638b8c6b --after 3588790fff1fa8f4644c9172247400b1e64d6f71 --repetitions 3 --fast-ms 40.0 --slow-ms 6000.0 --poll-ms 5000.0 --output-dir /workspace/research/chartview-quote-speed-20261015/benchmark --cadence-check",
+  "trials": [
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 10016.013208,
+        "full_batch_client_ms": 6006.92566,
+        "full_batch_asgi_ms": 6005.300854,
+        "fast_provider_start_ms": 3.207129,
+        "fast_provider_duration_ms": 40.111258,
+        "fast_provider_done_ms": 43.318387,
+        "fast_publish_ms": 6004.792313,
+        "fast_provider_done_to_publish_ms": 5961.473926,
+        "fast_publish_to_home_visible_ms": 4011.220895,
+        "route_start_to_first_provider_start_ms": 2.195785,
+        "last_provider_done_to_response_body_ms": 2.369766,
+        "home_read_median_ms": 7.174543,
+        "home_read_max_ms": 8.624348
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 3,
+      "batch_done_when_fast_visible": true,
+      "slow_price_when_fast_visible": 205,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 2.927416,
+          "done_ms": 6003.662719,
+          "actual_provider_ms": 6000.735303,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 3.207129,
+          "done_ms": 43.318387,
+          "actual_provider_ms": 40.111258,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 3.422173,
+          "done_ms": 43.558316,
+          "actual_provider_ms": 40.136143,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6004.775195,
+          "accepted": true
+        },
+        {
+          "ticker": "005930.KS",
+          "at_ms": 6004.792313,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "before",
+      "repetition": 1,
+      "sequence": 1
+    },
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 5017.600201,
+        "full_batch_client_ms": 6005.538587,
+        "full_batch_asgi_ms": 6003.817799,
+        "fast_provider_start_ms": 3.315455,
+        "fast_provider_duration_ms": 40.109397,
+        "fast_provider_done_ms": 43.424852,
+        "fast_publish_ms": 43.7001,
+        "fast_provider_done_to_publish_ms": 0.275248,
+        "fast_publish_to_home_visible_ms": 4973.900101,
+        "route_start_to_first_provider_start_ms": 2.29729,
+        "last_provider_done_to_response_body_ms": 1.343547,
+        "home_read_median_ms": 6.958878,
+        "home_read_max_ms": 10.003007
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 2,
+      "batch_done_when_fast_visible": false,
+      "slow_price_when_fast_visible": 200,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 3.030626,
+          "done_ms": 6003.207588,
+          "actual_provider_ms": 6000.176962,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 3.315455,
+          "done_ms": 43.424852,
+          "actual_provider_ms": 40.109397,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 3.578325,
+          "done_ms": 43.749984,
+          "actual_provider_ms": 40.171659,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "005930.KS",
+          "at_ms": 43.7001,
+          "accepted": true
+        },
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6003.593721,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "after",
+      "repetition": 1,
+      "sequence": 2
+    },
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 5011.001129,
+        "full_batch_client_ms": 6007.177567,
+        "full_batch_asgi_ms": 6005.930448,
+        "fast_provider_start_ms": 3.662055,
+        "fast_provider_duration_ms": 40.116572,
+        "fast_provider_done_ms": 43.778627,
+        "fast_publish_ms": 43.967319,
+        "fast_provider_done_to_publish_ms": 0.188692,
+        "fast_publish_to_home_visible_ms": 4967.03381,
+        "route_start_to_first_provider_start_ms": 2.489167,
+        "last_provider_done_to_response_body_ms": 2.749415,
+        "home_read_median_ms": 4.500322,
+        "home_read_max_ms": 4.546589
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 2,
+      "batch_done_when_fast_visible": false,
+      "slow_price_when_fast_visible": 200,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 3.297088,
+          "done_ms": 6003.988954,
+          "actual_provider_ms": 6000.691866,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 3.662055,
+          "done_ms": 43.778627,
+          "actual_provider_ms": 40.116572,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 4.130692,
+          "done_ms": 44.233716,
+          "actual_provider_ms": 40.103024,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "005930.KS",
+          "at_ms": 43.967319,
+          "accepted": true
+        },
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6004.97779,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "after",
+      "repetition": 2,
+      "sequence": 3
+    },
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 10018.26954,
+        "full_batch_client_ms": 6005.321752,
+        "full_batch_asgi_ms": 6004.12742,
+        "fast_provider_start_ms": 3.45039,
+        "fast_provider_duration_ms": 40.109498,
+        "fast_provider_done_ms": 43.559888,
+        "fast_publish_ms": 6004.08128,
+        "fast_provider_done_to_publish_ms": 5960.521392,
+        "fast_publish_to_home_visible_ms": 4014.18826,
+        "route_start_to_first_provider_start_ms": 2.33254,
+        "last_provider_done_to_response_body_ms": 1.585218,
+        "home_read_median_ms": 10.200334,
+        "home_read_max_ms": 10.795666
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 3,
+      "batch_done_when_fast_visible": true,
+      "slow_price_when_fast_visible": 205,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 3.117313,
+          "done_ms": 6003.326975,
+          "actual_provider_ms": 6000.209662,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 3.45039,
+          "done_ms": 43.559888,
+          "actual_provider_ms": 40.109498,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 3.715574,
+          "done_ms": 43.816844,
+          "actual_provider_ms": 40.10127,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6004.048971,
+          "accepted": true
+        },
+        {
+          "ticker": "005930.KS",
+          "at_ms": 6004.08128,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "before",
+      "repetition": 2,
+      "sequence": 4
+    },
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 10019.758756,
+        "full_batch_client_ms": 6016.183914,
+        "full_batch_asgi_ms": 6013.943728,
+        "fast_provider_start_ms": 2.84906,
+        "fast_provider_duration_ms": 40.109205,
+        "fast_provider_done_ms": 42.958265,
+        "fast_publish_ms": 6010.627576,
+        "fast_provider_done_to_publish_ms": 5967.669311,
+        "fast_publish_to_home_visible_ms": 4009.13118,
+        "route_start_to_first_provider_start_ms": 1.883647,
+        "last_provider_done_to_response_body_ms": 8.897725,
+        "home_read_median_ms": 9.427981,
+        "home_read_max_ms": 10.439393
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 3,
+      "batch_done_when_fast_visible": true,
+      "slow_price_when_fast_visible": 205,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 2.527811,
+          "done_ms": 6005.690167,
+          "actual_provider_ms": 6003.162356,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 2.84906,
+          "done_ms": 42.958265,
+          "actual_provider_ms": 40.109205,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 3.052786,
+          "done_ms": 43.247884,
+          "actual_provider_ms": 40.195098,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6010.612923,
+          "accepted": true
+        },
+        {
+          "ticker": "005930.KS",
+          "at_ms": 6010.627576,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "before",
+      "repetition": 3,
+      "sequence": 5
+    },
+    {
+      "scenario": "mixed_fresh",
+      "metrics": {
+        "first_fast_home_visible_ms": 5020.720149,
+        "full_batch_client_ms": 6005.685389,
+        "full_batch_asgi_ms": 6004.508318,
+        "fast_provider_start_ms": 2.967516,
+        "fast_provider_duration_ms": 40.124039,
+        "fast_provider_done_ms": 43.091555,
+        "fast_publish_ms": 43.372585,
+        "fast_provider_done_to_publish_ms": 0.28103,
+        "fast_publish_to_home_visible_ms": 4977.347564,
+        "route_start_to_first_provider_start_ms": 1.96465,
+        "last_provider_done_to_response_body_ms": 2.31343,
+        "home_read_median_ms": 7.081245,
+        "home_read_max_ms": 10.657014
+      },
+      "provider_count": 3,
+      "home_polls_until_visible": 2,
+      "batch_done_when_fast_visible": false,
+      "slow_price_when_fast_visible": 200,
+      "response_semantics_sha256": "3f41ca008c96a5e460416d53decd9ca6a967e1f9971a011f1783cd85f1b81a85",
+      "response_semantics": {
+        "results": [
+          {
+            "ticker": "000660.KS",
+            "name": "000660.KS",
+            "price": 205,
+            "previousClose": 204,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "005930.KS",
+            "name": "005930.KS",
+            "price": 105,
+            "previousClose": 104,
+            "change": 1.0,
+            "currency": "KRW",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          },
+          {
+            "ticker": "IBM",
+            "name": "IBM",
+            "price": 305,
+            "previousClose": 304,
+            "change": 1.0,
+            "currency": "USD",
+            "asOf": "2026-10-15T00:00:30+00:00",
+            "sessionDate": "2026-10-15",
+            "previousSessionDate": "2026-10-14",
+            "source": "controlled fake canonical provider",
+            "stale": false
+          }
+        ],
+        "errors": [],
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 0,
+        "providerFetches": 3,
+        "freshRequested": true,
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "final_home_rows": {
+        "005930.KS": {
+          "ticker": "005930.KS",
+          "name": "005930.KS",
+          "price": 105,
+          "previousClose": 104,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        },
+        "000660.KS": {
+          "ticker": "000660.KS",
+          "name": "000660.KS",
+          "price": 205,
+          "previousClose": 204,
+          "change": 1.0,
+          "currency": "KRW",
+          "asOf": "2026-10-15T00:00:30+00:00",
+          "sessionDate": "2026-10-15",
+          "previousSessionDate": "2026-10-14",
+          "source": "controlled fake canonical provider",
+          "stale": false
+        }
+      },
+      "provider_events": [
+        {
+          "ticker": "000660.KS",
+          "start_ms": 2.68066,
+          "done_ms": 6002.910898,
+          "actual_provider_ms": 6000.230238,
+          "configured_delay_ms": 6000.0
+        },
+        {
+          "ticker": "005930.KS",
+          "start_ms": 2.967516,
+          "done_ms": 43.091555,
+          "actual_provider_ms": 40.124039,
+          "configured_delay_ms": 40.0
+        },
+        {
+          "ticker": "IBM",
+          "start_ms": 3.230894,
+          "done_ms": 43.418454,
+          "actual_provider_ms": 40.18756,
+          "configured_delay_ms": 40.0
+        }
+      ],
+      "publications": [
+        {
+          "ticker": "005930.KS",
+          "at_ms": 43.372585,
+          "accepted": true
+        },
+        {
+          "ticker": "000660.KS",
+          "at_ms": 6004.403663,
+          "accepted": true
+        }
+      ],
+      "versions": {
+        "python": "3.12.14",
+        "httpx": "0.28.1"
+      },
+      "version": "after",
+      "repetition": 3,
+      "sequence": 6
+    }
+  ]
+}

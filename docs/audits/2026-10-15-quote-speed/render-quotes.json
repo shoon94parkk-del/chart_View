@@ -1,0 +1,249 @@
+{
+  "observedAtUtc": "2026-10-15T10:06:10.657867+00:00",
+  "url": "https://chart-view-pkv8.onrender.com/api/quotes?tickers=005930.KS%2CNVDA%2CAAPL",
+  "method": "GET",
+  "serialSamples": 3,
+  "freshRequested": false,
+  "scope": "Ordinary serial quote requests only, no fresh flag, no private watchlist. Warm observations from this executor via configured network proxy; not a controlled cold-start benchmark or user-device timing.",
+  "cloudRunComparison": "No paired comparison possible because Cloud Run returned a cookie/authentication gate instead of quote JSON.",
+  "samples": [
+    {
+      "sample": 1,
+      "requestStartedAt": "2026-10-15T10:05:13.216648+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "curlExitCode": 0,
+      "bodyCompleteMs": 2633.585,
+      "ttfbMs": 2632.746,
+      "bodyTransferAfterTtfbMs": 0.839,
+      "bytesDownloaded": 1484,
+      "cacheHeaders": {
+        "date": "Thu, 15 Oct 2026 10:05:15 GMT",
+        "cf-cache-status": "DYNAMIC",
+        "vary": "Accept-Encoding"
+      },
+      "topLevelProvenance": {
+        "fetchedAt": "2026-10-15T10:05:15.812013+00:00",
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 2,
+        "providerFetches": 1,
+        "freshRequested": false,
+        "errors": [],
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "results": [
+        {
+          "ticker": "005930.KS",
+          "name": "삼성전자",
+          "price": 209000.0,
+          "change": -9.91,
+          "asOf": "2026-10-15T19:04:23+09:00",
+          "marketCap": null,
+          "currency": "KRW",
+          "source": "Naver Finance KRX/Koscom",
+          "delayTime": 0,
+          "marketStatus": "OPEN",
+          "sessionType": "regular",
+          "priceBasis": "regular_live"
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA Corporation",
+          "price": 221.3,
+          "previousClose": 228.52,
+          "change": -3.16,
+          "asOf": "2026-10-14T20:00:00+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5343730991104.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        },
+        {
+          "ticker": "AAPL",
+          "name": "Apple Inc.",
+          "price": 342.96,
+          "previousClose": 341.27,
+          "change": 0.5,
+          "asOf": "2026-10-14T20:00:01+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5005219725312.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "requestStartedAt": "2026-10-15T10:05:15.870267+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "curlExitCode": 0,
+      "bodyCompleteMs": 173.604,
+      "ttfbMs": 173.455,
+      "bodyTransferAfterTtfbMs": 0.149,
+      "bytesDownloaded": 1484,
+      "cacheHeaders": {
+        "date": "Thu, 15 Oct 2026 10:05:16 GMT",
+        "cf-cache-status": "DYNAMIC",
+        "vary": "Accept-Encoding"
+      },
+      "topLevelProvenance": {
+        "fetchedAt": "2026-10-15T10:05:16.004926+00:00",
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 3,
+        "providerFetches": 0,
+        "freshRequested": false,
+        "errors": [],
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "results": [
+        {
+          "ticker": "005930.KS",
+          "name": "삼성전자",
+          "price": 209000.0,
+          "change": -9.91,
+          "asOf": "2026-10-15T19:04:23+09:00",
+          "marketCap": null,
+          "currency": "KRW",
+          "source": "Naver Finance KRX/Koscom",
+          "delayTime": 0,
+          "marketStatus": "OPEN",
+          "sessionType": "regular",
+          "priceBasis": "regular_live"
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA Corporation",
+          "price": 221.3,
+          "previousClose": 228.52,
+          "change": -3.16,
+          "asOf": "2026-10-14T20:00:00+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5343730991104.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        },
+        {
+          "ticker": "AAPL",
+          "name": "Apple Inc.",
+          "price": 342.96,
+          "previousClose": 341.27,
+          "change": 0.5,
+          "asOf": "2026-10-14T20:00:01+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5005219725312.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "requestStartedAt": "2026-10-15T10:05:16.058246+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "curlExitCode": 0,
+      "bodyCompleteMs": 156.771,
+      "ttfbMs": 156.63,
+      "bodyTransferAfterTtfbMs": 0.141,
+      "bytesDownloaded": 1484,
+      "cacheHeaders": {
+        "date": "Thu, 15 Oct 2026 10:05:16 GMT",
+        "vary": "Accept-Encoding",
+        "cf-cache-status": "DYNAMIC"
+      },
+      "topLevelProvenance": {
+        "fetchedAt": "2026-10-15T10:05:16.172357+00:00",
+        "source": "Render shared Home cache + canonical provider fallback",
+        "sharedCacheHits": 3,
+        "providerFetches": 0,
+        "freshRequested": false,
+        "errors": [],
+        "dataContract": {
+          "price": "latest available provider quote or latest close fallback",
+          "change": "percent change versus previous trading close",
+          "asOf": "provider market timestamp when available",
+          "currency": "provider currency",
+          "cache": "per-ticker fresh shared Home quote reused unless fresh=true; canonical provider fallback otherwise",
+          "missingValue": "null/omitted; zero is not used as a missing-value substitute"
+        }
+      },
+      "results": [
+        {
+          "ticker": "005930.KS",
+          "name": "삼성전자",
+          "price": 209000.0,
+          "change": -9.91,
+          "asOf": "2026-10-15T19:04:23+09:00",
+          "marketCap": null,
+          "currency": "KRW",
+          "source": "Naver Finance KRX/Koscom",
+          "delayTime": 0,
+          "marketStatus": "OPEN",
+          "sessionType": "regular",
+          "priceBasis": "regular_live"
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA Corporation",
+          "price": 221.3,
+          "previousClose": 228.52,
+          "change": -3.16,
+          "asOf": "2026-10-14T20:00:00+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5343730991104.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        },
+        {
+          "ticker": "AAPL",
+          "name": "Apple Inc.",
+          "price": 342.96,
+          "previousClose": 341.27,
+          "change": 0.5,
+          "asOf": "2026-10-14T20:00:01+00:00",
+          "sessionDate": "2026-10-14",
+          "previousSessionDate": "2026-10-13",
+          "marketCap": 5005219725312.0,
+          "currency": "USD",
+          "source": "Yahoo Chart regularMarketPrice + official previousClose"
+        }
+      ]
+    }
+  ],
+  "bodyCompleteTimingMs": {
+    "allMedian": 173.604,
+    "first": 2633.585,
+    "nextTwo": [
+      173.604,
+      156.771
+    ],
+    "nextTwoMedian": 165.1875
+  },
+  "observations": [
+    "First sample reported sharedCacheHits=2/providerFetches=1; the next two reported 3/0.",
+    "All responses declared CF-Cache-Status DYNAMIC; no Cache-Control/Age/X-Cache response headers appeared. This does not disable application shared cache, which is explicit in the JSON.",
+    "Quote asOf values remained identical while fetchedAt advanced across requests. NVDA/AAPL carried official previousClose and session dates; 005930.KS did not include previousClose.",
+    "005930.KS was labeled marketStatus=OPEN, sessionType=regular and priceBasis=regular_live at asOf 2026-10-15T19:04:23+09:00. These session-basis labels require validation before treating them as regular-session evidence. The audit did not establish whether this timestamp was a genuine market observation or an upstream lookup time.",
+    "These observations cannot establish a 30-50 ms quote API guarantee."
+  ]
+}

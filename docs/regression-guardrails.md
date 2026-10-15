@@ -368,3 +368,9 @@ When optional metadata completes, the existing desktop basis disclosure body mus
 ## 2026-10-13 — Restore Korean canonical singleflight and reuse provider transport
 
 The first Home deadline/progress production fix passed actualdata5/5 but burst sameharness still showed8.6s indices/13.9s watch withCPUat.15-corelimit. Do not call that a completed numeric-readiness improvement. Classification: existingcanonical request-coalescing regression, plus HTTPtransport reuse. Restore existing singleflight at normalized Korean index/stock provider owner; preserve5s cacheclock, independent caller dicts, same-source price/asOf/fallback, and crossquote/compare/valuation consistency. Reuse one standardRequestsSession perthread forYahooChart/Naver with unchanged per-call kwargs/environmentProxyCA/default0 retries. No newdata cache/provider/pool/TTL/key/paidinfra. Keep auth/crumb and background priority changes separate. Held-provider red/green regressions show duplicate6/3 calls→1, notproductionlatency proof. See [implementation/validation](HOME_PROVIDER_CONTENTION_2026-10-13.md).
+
+
+### 2026-10-15 — Foreground quote partial publication
+- A successful Home-major quote must publish through the existing timestamp/start-time guard as soon as that individual awaited provider result completes. Do not defer it to unrelated missing symbols.
+- The original quotes HTTP response still waits for the complete batch and preserves ordering, errors, counters and fresh semantics. Early Home publication does not certify full batch completion.
+- Do not paper over the current latest-main PICK ledger mismatch by filtering ETFs or weakening the unchanged ranking/ledger contract test.

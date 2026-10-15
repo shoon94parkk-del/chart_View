@@ -1,0 +1,34 @@
+....................................................                     [100%]
+=============================== warnings summary ===============================
+main.py:567
+  /workspace/chartview-quote-speed-backend-20261015/main.py:567: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    @app.on_event("startup")
+
+../scratch/chartview-backend-venv/lib/python3.12/site-packages/fastapi/applications.py:4745
+  /workspace/scratch/chartview-backend-venv/lib/python3.12/site-packages/fastapi/applications.py:4745: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests/test_home_quote_progress.py::test_market_now_exposes_completed_index_while_another_provider_is_held
+tests/test_home_quote_progress.py::test_market_now_exposes_completed_index_while_another_provider_is_held
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[older-market]
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[unknown_asof-market]
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[malformed_asof-market]
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[malformed_price-market]
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[failure-market]
+tests/test_home_quote_progress.py::test_unusable_provider_result_preserves_valid_dated_quote[empty-market]
+tests/test_home_quote_progress.py::test_cancelled_refresh_releases_lock_and_never_publishes_late_provider_result[market]
+  /workspace/chartview-quote-speed-backend-20261015/main.py:1303: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+52 passed, 11 warnings in 1.39s

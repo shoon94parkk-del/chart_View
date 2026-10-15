@@ -946,8 +946,15 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
                 continue
         missing.append(ticker)
 
+    async def one(ticker):
+        item = await asyncio.to_thread(fetch_quote_snapshot, ticker)
+        if item and ticker in HOME_MAJOR_TICKERS:
+            # Publish on the event loop without waiting for unrelated symbols.
+            _publish_home_quote(ticker, item, now)
+        return item
+
     fetched = await asyncio.gather(
-        *[asyncio.to_thread(fetch_quote_snapshot, ticker) for ticker in missing],
+        *[one(ticker) for ticker in missing],
         return_exceptions=True,
     )
     by_ticker = dict(shared)
@@ -957,8 +964,6 @@ async def quote_snapshots(tickers: str, fresh: bool = False):
             errors.append({"ticker": ticker, "message": str(item)})
         elif item:
             by_ticker[ticker] = item
-            if ticker in HOME_MAJOR_TICKERS:
-                _publish_home_quote(ticker, item, now)
         else:
             errors.append({"ticker": ticker, "message": "현재 시세를 가져오지 못했습니다."})
 

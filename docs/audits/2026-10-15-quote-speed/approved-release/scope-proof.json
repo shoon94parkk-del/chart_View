@@ -1,0 +1,1594 @@
+{
+  "reviewedAtUtc": "2026-10-15T11:15:26.389131+00:00",
+  "repository": "/workspace/chartview-quote-speed-backend-20261015",
+  "base": "40daf4fd773e253839e23b9745ae6f34638b8c6b",
+  "headAtReview": "ec67bad93f83d7216a22bd935dff8a9780f7c4f4",
+  "statusAtReview": [
+    " M static/data/ai_recommendations.json",
+    "?? static/data/news_summary_cache.json"
+  ],
+  "verdict": "PASS: approved append-only ledger scope; no scope blocker found",
+  "ledger": {
+    "path": "static/data/ai_recommendations.json",
+    "sourceSha256": "7821fa24ab83e73bd212e50674b27f285d706fead71be984e30855b4e08cf963",
+    "workingSha256": "1b3d8f23e6a96006eab61e8ccca6dcebbb06f5528cf890a135d795fece96cbd7",
+    "matchesApprovedProposalBytes": true,
+    "existingRows": 41,
+    "appendedRows": 1,
+    "totalRows": 42,
+    "originalRowsStructurallyIdentical": true,
+    "originalRowRawJsonIdentical": true,
+    "nonRecommendationTopLevelFieldsUnchanged": true,
+    "updated": "2026-10-15T16:04:10+09:00",
+    "diffAddedLines": 18,
+    "diffRemovedLines": 0,
+    "newRow": {
+      "recommendedDate": "2026-10-15",
+      "rank": 1,
+      "symbol": "069500.KS",
+      "code": "069500",
+      "name": "KODEX 200",
+      "recommendedPrice": 87025.0,
+      "currentPrice": 87025.0,
+      "returnPct": 0.0,
+      "bestReturnPct": 0,
+      "lastUpdatedTradeDate": "2026-10-15",
+      "status": "tracking",
+      "statusLabel": "성과 추적 중",
+      "grade": "사용자 확정(TOP10 외 ETF)",
+      "reason": "사용자가 2026-10-15 최종 PICK으로 직접 확정한 KODEX 200(069500) ETF. KOSPI 200 시장 전체에 분산투자하며 개별 종목 수주·실적이 아닌 한국 대형주 지수 회복에 대한 투자 판단이다. 서킷브레이커가 발생한 급락장 후에도 추가 하락 가능성·특정 대형 종목 집중·ETF 추적오차/괴리율/분배금 영향을 모니터링한다.",
+      "score": null,
+      "analysisSource": "사용자 최종 선택"
+    },
+    "rowMetadataMatchesCommittedDailySelection": true,
+    "sameDayPriceRule": true,
+    "sourceDailyDate": "2026-10-15",
+    "sourceScreenerDate": "2026-10-15",
+    "formulaUnchanged": "round((current / entry - 1.0) * 100.0, 2)",
+    "sameDayFormulaResult": 0.0
+  },
+  "runtime": {
+    "changedRuntimeFiles": [
+      "main.py",
+      "static/data/ai_recommendations.json"
+    ],
+    "mainMatchesPreviouslyReviewed3588790Bytes": true,
+    "mainSha256": "ca338b833694bf045ac9a40f15388a76abba77f6ecd5f52ed55763fd649b49c9",
+    "allMainTopLevelStatementsExceptQuoteSnapshotsAstIdentical": true,
+    "quotePublication": "Successful major result publishes on event loop before unrelated gather peers complete, retaining original batch now timestamp and unchanged _publish_home_quote guard.",
+    "quotesResponseContract": "Full gather, ordering, error handling, counters, fresh bypass and payload retained.",
+    "allOtherProtectedFilesUnchanged": true,
+    "protectedFileCount": 295,
+    "protectedFiles": [
+      {
+        "path": ".github/workflows/app-check.yml",
+        "sha256": "d9a6a224225b2f49be32676daaadcdf483dd32c8e5caa9839129c25870fc633c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/app-v31-ux-polish.yml",
+        "sha256": "946aa6400dcbf71840b7979e3f57c34df0077f55e790430a56ed206f4c5475bd",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/app-v32-navigation-ux.yml",
+        "sha256": "5230a1f3822607bab101d6d7ec5d7ee5fbfeaf1facfa0be786b47ad7e1afa453",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-analysis-ui-v20.yml",
+        "sha256": "9b8914f7903176f17e8e3544fc21e7b7839a0b91cc91246f45955f4050197fed",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-compact-market-cache-v21.yml",
+        "sha256": "0ca8f5ee5adecc1fe1873e2977c3a23b17d143ad205e89dce145a05bfcf67099",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-consensus-v2.yml",
+        "sha256": "f77d9075337c6d908990c1efe34215076a59bac1165ab61fa9f1a81e7ba811ba",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-discover-mobile-fix.yml",
+        "sha256": "08962be10297737273731bc0f109ed509f315787b55791ea29ec8c5a56f5024a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-hardening-v3.yml",
+        "sha256": "ff7c5bba0c45ffd25a69f2b69bc2441a73856900c323c10dfe179716e4d6ccd2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-cache-v17.yml",
+        "sha256": "7a5b36c2c81f6e2d8294b36943aedc312226c05e7e3f668347a9e71c643e2b6c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-cards-v14.yml",
+        "sha256": "edc5739f8bc8e694a25da6b5eef9c223b7d0cb742ecf057ee21ba40ae44a65a7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-logos-signal-v18.yml",
+        "sha256": "6d5fe2edf8d3c93871451a6e3ac51767393a3fd893d11512c3af0bb8b3083917",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-market-brief-v16.yml",
+        "sha256": "6574df6a76e58393db84c86c2de222a4757857e83a9eea47605e1bbeae38ac6c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-toggle-hotfix-v24.yml",
+        "sha256": "b61d49dd15c6c4ae1059a62b658382a53af4f945f68860fb54ccf0902322ee1c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-home-ux-v23.yml",
+        "sha256": "b86baee6f678a0dbea6d1a6104a5018dc7ab06eff45f60451db5a1c288d0a7f2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-interactive-kpis-v13.yml",
+        "sha256": "58000b39b4734e5787db07119c3577c68c2ae380e9e53acd13de534453d48360",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-investment-tools-v22.yml",
+        "sha256": "95335a83e863e07185ae5a86b0b90dfd532c1b5cc7e40e36291b66df7d7289d0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-locale-safety-v26.yml",
+        "sha256": "04dadc0aaf5791c180eb8ca79c38d7462e4870f5ee3e5559ea53ab86520b31ef",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-market-fixes-v2.yml",
+        "sha256": "155e63f39dc2d74f1483b415036aad29838e454e30aa528c4d418f2db4ab5606",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-market-fixes.yml",
+        "sha256": "73730a8539f458f0608286a478c39b4cc70b75cd1d45deaa075606c4b1fa500b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-market-now-endpoint.yml",
+        "sha256": "ecc201dafaa101a62705f4cd6811e828495b793a721556f4c7a1ae460f5ac06d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-mobile-stability-v25.yml",
+        "sha256": "de9eba28f55a1f114dd1f8d1c81ab122f02ed889d322c9a19a1447c00a6a8467",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-samsung-locale-v27.yml",
+        "sha256": "083803c730a695a0e404403680dace4f5e8faca6e3ad6e2d4ed9b51b788013b2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-ui-continuity-v53.yml",
+        "sha256": "fbe131ca0b147fdc526e37ef0988833b2a068896431dc1aaac0e5de778a80e6e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-ux-patterns-v12.yml",
+        "sha256": "15f059e725de0785c41b573b5bd2bbab60cf45ab0a3edd939edf188d829a39a8",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/apply-valuation-bands-v1.yml",
+        "sha256": "2e9da1b2fadf48430516fb3aacf10e257b91cd9ad6a6f2896801daa5d92a64e3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/build-frontend-release.yml",
+        "sha256": "0218ec11ba7d443563a0d5c98138af442fc45b378d4f091719ab807b8490ff9d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/bump-home-v17-assets.yml",
+        "sha256": "a47cbd7fab8a695d941c1a853617b864cdb41afaadca09b16545b81175020cb7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/cleanup-runtime-v5.yml",
+        "sha256": "2d99857f17b535906ca923b3e0f7eeb6acee7b1fa5431c626b7f5b0614efe81d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/consensus-v2-ci.yml",
+        "sha256": "84de8e481326d0e1d5c34601a66e2d1cd1f7a32c6783227cff8644a544ea2fc7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/dart-business-smoke.yml",
+        "sha256": "64ee1676e16bdd11c7cd6658b0e851060d97462f8d51347c9417a7a8914bd135",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/dart-revenue-shapes-2.yml",
+        "sha256": "5af24dcccf4815c1f91088df09a3e898f744f80bc07b603e821a9000117e3d37",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/dart-revenue-shapes.yml",
+        "sha256": "5feb8e315eafddb5661debfa51e00e93194041cd32fd11145a5f1935f4c80853",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/dart-revenue-stage-timing.yml",
+        "sha256": "3a50c0ec9d463d77ac1c1c21b4cbadc21ad0e4db48590c7775f28df705b8e10f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/debug-samsung-locale.yml",
+        "sha256": "8565e2baf82a04bcbda3b081c2d81476a02d1856a71fdad49a56faf9f3a1104c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/export-candidates-now.yml",
+        "sha256": "dbd265efdc4e33cf723c433c80b063ec915686b9b06c5ee5d736cb1ccd4a95c9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/fix-home-cache-v17-patcher.yml",
+        "sha256": "0e7efb4442957274e39b2c5edc880108ec064a78aea4d1b03ed83f488bd0de49",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/fix-home-cards-v14.yml",
+        "sha256": "d7b15e1dc09cfb0570b1d4e7b5ceabb618275afca30646a61347ec74dfc5773f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/fix-home-major-names-v16.yml",
+        "sha256": "3c1390badbbc1dd9bc3526ff32a8dd1b4ce2fc762baa2e44fc7ef3fe098750c3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/inject-ai-widget.yml",
+        "sha256": "de71fc89264e9df8b3b4c395724a4ab9b12665764dc375538b8662fb27ad5a21",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-idea-evidence-smoke.yml",
+        "sha256": "50b4005bca4630380dabfbd2cc26eb89a7dddece6f9af4c44547f8462e4f5081",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-interaction-v25.yml",
+        "sha256": "123f40dda1bdda974b4889e3ecab90cd29afe507e2be65e7b52e1f2a85a64f8c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-mobile-v25.yml",
+        "sha256": "37488d2ea14d1d8246193afa7758a5e092d2e0f683461327545c5420749aea57",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-mobile-v26.yml",
+        "sha256": "e93bbe8cb83a10c74531e2b49e55088304c1060bbce30e7647c32c309d89f130",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-mobile-v27.yml",
+        "sha256": "54b328feda44455c0a93e1fbdfb6641f3ea3f9c01d2ea0186750ce9964950653",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-news-expand.yml",
+        "sha256": "7d5b9f742f89f66009b9e138d0052d7acee7026beb6753e7594cd823e7b04a1a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/live-smoke.yml",
+        "sha256": "9dad65009ad9a8b1fa868e010f617d9344fbe3a29af2994b68714507c4480b1f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/phase3-live-smoke.yml",
+        "sha256": "4d14416e19adc7c47dee40c93427f8da9ec89500028f73a8ba7727f7a9f5d785",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/pick-monitor-review.yml",
+        "sha256": "c82bc01206f5ef7b67fcfefce1afe1c5f43d4fe4e6274606455184fb9c01ffd5",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/pick-monitor.yml",
+        "sha256": "97230f193a4c97f779c7e882360ad519b56b72662dea2b119465b9a4ad051c56",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/posco-dart-scope.yml",
+        "sha256": "5d233766e39097dbb7dfa75711a859570a0e9c8686c7433ea4fab65593da9652",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/probe-consensus-v2.yml",
+        "sha256": "03afe96d1c4243e90857b8b3805938c04b58d4f76a394cebd075ccc7d816297e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/probe-dbnomics.yml",
+        "sha256": "92e57deb05c4e6c147bda89184e055a7c2791c9c0630d599614320ee3a6652df",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/probe-valuation-history.yml",
+        "sha256": "5445665deb70c2627d7bfb33610c460466179f4e994ea2ddd581a6fe3d1536fb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/probe-yahoo.yml",
+        "sha256": "86e7af99d804dfef121247d9ede8be490faf98fbdeba42d93363536b091d2a12",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/production-audit.yml",
+        "sha256": "024b6152629c9d180e80d42bb710c1d8a4cd95f2b7c559da77553385813ac3be",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/reorder-stock-analysis-v19.yml",
+        "sha256": "36125faf64e316adeaf08a88b74f0707128151fbf93461395e9a2b45397d0542",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/rollback-home-cards-v14.yml",
+        "sha256": "fa9a00e9d5dcc5cbe4f450caa64fa41c65c720dedbe7758e69e6f5bf7a5455d0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/samsung-dart-diagnostic.yml",
+        "sha256": "fe4fc6c33707b4a3cdc4e627a8c4495e9383448b907631e9e3760bf78bf9fb07",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/samsung-dart-performance.yml",
+        "sha256": "d019282b88d1c1deb0b3b0488977ede38e26f79ae7f3fe63d27d9904edcfc986",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/samsung-dart-targeted.yml",
+        "sha256": "0224566e1a2e52e2b985d4f178a7e22db8efe15d83ae1f22dbdacd01b4dca5fb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/screener-production-freshness.yml",
+        "sha256": "8032847db2c40002f6599adf0a7aad8ba55e00da4b3b24e35b64f0ce1b24c262",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/ui-v10-check.yml",
+        "sha256": "9f11f13b92e4939ce245bdb10a1945188baa50a181042633e59ae977795dd153",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/ui-v12-check.yml",
+        "sha256": "01e6cea5fd095a8af7004323c3030a3b4fb693b8ffb0d5ca458206584f0b4696",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-company-context.yml",
+        "sha256": "738ce360c874f290e18318b959270c6b5e700341db486f8f45a06dcd62be4fb7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-consensus-cache.yml",
+        "sha256": "3cf4e81ce484c0212cd7f2b39e7f0ea5985c3da4e241d69a497fecda0f5c95e1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-dart-business-context.yml",
+        "sha256": "363bc9cfcc220744026594565630c4090af62423ddff4fe5ef784a6884cee472",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-dart-corp-codes.yml",
+        "sha256": "394be106482cf2bcd42b87a9770804c191386b3080ea16c3ff8589b1f3343ef8",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-guru-screening.yml",
+        "sha256": "f30cb75306072ec56440e078830701d66f1869363e359105e5214394694cd203",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-home-snapshot.yml",
+        "sha256": "5218f2211a7e84fe6cca20daef9ebb0d9fd24080e1ae2a2fd9f02d45780a01ce",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-macro-cache.yml",
+        "sha256": "364b0de25bb78bf004aa64a2da52ced3be7c6352114761b994b8e18ff782d2c3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-screener.yml",
+        "sha256": "07f0d57d01e68f5657a00cf661693249626a65327c53238cfa92070a009bc3c8",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/update-valuation-cache.yml",
+        "sha256": "ff648c6335160d8e7909bbe97adaac06ec2105155b4b1415ac2b968928aea2ac",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/v34-phase2-mobile-smoke.yml",
+        "sha256": "394a157099d37f2480ba9d8b3a4d96796c9b0501cda2a01973bf1be8668e192e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": ".github/workflows/validate-ai-top3.yml",
+        "sha256": "df2f25e54ee3bb6cf3038cd781dbc0be52c555247e3112e497a2f5455bb4ebd7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "consensus_service.py",
+        "sha256": "4e49613565ad45857cc80d6023a70e28d2580d336acf9eaa4e65c13334a4b2bb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "dart_business_service.py",
+        "sha256": "0d76f7160b269cd429d7962aa1f0a671cf36ac4d3cedc1080da03d36ea801955",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "dart_financial_service.py",
+        "sha256": "1a2fa52a965a442659c740dba279b31360f06c664e8166b4b945435d0d19e007",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "dart_quarter_service.py",
+        "sha256": "4ea1d2c197716ecff6cc482719f769df91f0190dedc5782f8f127536247320f1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "docs/audits/2026-10-13-home-data-wait/controlled_market_wait.py",
+        "sha256": "39ac7ea43efe02fddc1bcb8636db45172dcf4abe292f689692b93b8d5ca8db24",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "export_momentum_service.py",
+        "sha256": "250a6efaf0896f80a6322f0670b299bf863af3b060e8fb0810ee618b170b93c6",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_actions.py",
+        "sha256": "a22b0afa82c7ab48133122bb5752894691cef9e6bb31fbb6365a2d6d99ebf6c7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_extensions.py",
+        "sha256": "817354da3eb0c5a1cf50474e9bc1084a5a31bcdc9509a6e363f7d77c9ab109fa",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_financials.py",
+        "sha256": "964dd80103f28700f10ce84115e8a90e4769f80299a094f85f4ad7bbd1c482ce",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_rules.py",
+        "sha256": "d1c1a33742eaf9e1d17d87460d7d92127555bcd973f6ce4f5b9442cbae10c5ea",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_service.py",
+        "sha256": "8a63c85f435cde085b4590c30405d1a04ce904ad75f027a4c057feab8c1341c9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "guru_snapshot.py",
+        "sha256": "c0ff274b530e46aa550b638385c44c0aae248d85a15714862a2d29c8a758a6dc",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "heatmap_metadata.py",
+        "sha256": "f575533729396481730ddc6cddca64c5bbd117f6d3d6bebbf131314e4984f225",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "heatmap_refresh_policy.py",
+        "sha256": "83171d22bb4bec9315f72baea01c4baba59240212123425c91995f00b53d006f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "heatmap_snapshot.py",
+        "sha256": "cbc308b86fe5076d98675b64c6feb37f54ee679145b82b25e23401c74d7e22f7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "market_service.py",
+        "sha256": "db58c1390c9a65280fffb62ee0ece46e941b1eba3071230ae396291355f95d0f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "market_service/__init__.py",
+        "sha256": "2ad52baa2f6341ab498a1f12d71ee10f641d46b610217d78624ef4967319c3e9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "memory_spot_service.py",
+        "sha256": "787657b9e76bb6a2fdcc21d4f985647b65bcb0a53ff14815da5a3408a070e95b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "news_service_v37.py",
+        "sha256": "7e50a6de62a4b6c45f4c18ea74d1a36eafeee4c213e1c44423e3f852f3e4cabb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "news_summary_service.py",
+        "sha256": "cbc739a8c970493da7212fb24d0c5df2cbc9d4139ae03d8a588827a75ea0f967",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "profile_sync_service.py",
+        "sha256": "022ce44c4efee1ac3321dcf35d3e99a476759904f268e09fe36577e4b07d1df0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "provider_http.py",
+        "sha256": "215ad36c74ef57ef19cf268cd6104cea8c8b045203cda1839cfb4a0e3471ade0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "realtime_korea.py",
+        "sha256": "fae98b5c79321d8a82cd38f1c7997a3ac51c5de03fd1a6256ddd69a165b2277e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "relationship_evidence_service.py",
+        "sha256": "8d89f2103c40629d61f1706e36b19417789b6cbf8a03823b7e05b552330692f2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "request_coalescing.py",
+        "sha256": "ea5e5b7b8ff5ffed0c331e40c382ebe22ae90aefab196b8e28bb34fdfc51dae3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_analysis_ui_v20.py",
+        "sha256": "1408bc24778479102c9bf9e457399cca6f99259b0109bc3b9780d4df572018f1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_compact_market_cache_v21.py",
+        "sha256": "f015d616c9df588bad56a0aef85fb2daf1116aff946ba0c109f15e16ac698cce",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_consensus_v2.py",
+        "sha256": "b3fe6f492cf51fb604405baade4d98284be1c3a7f1670ae1122140cd9559c4da",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_data_path_v4.py",
+        "sha256": "6d3b3c448304f758a36b9a5bb58fee6367f5af2acc5ac556b4deb679cc122235",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_hardening_v3.py",
+        "sha256": "d382af9b489b83f959ae1c43ef92813e19e2f486b5bd4a8d23e8cb4c1cd46d98",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_cache_v17.py",
+        "sha256": "258a421d67f52bf44da370fb844f892d1007020d8931092ff3d6d40536862a1a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_cards_v14.py",
+        "sha256": "78aa916b647555b74b69863ebedb07b80ec4a7ec64f5d52c11f2fb0e3c8bbfea",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_logos_signal_v18.py",
+        "sha256": "4c072f9d6264fcd6ba26ee7d5bde86525d8bac00a89baba71107f368d7dba94a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_market_brief_v16.py",
+        "sha256": "d50ebe8993470cfb503fd0a7a962f31296f29c7085ec421f482a47d51649e3af",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_toggle_hotfix_v24.py",
+        "sha256": "590d9962a129a298a7144c12eea40bbaea8852d282dee90c3d53c72bef7a0e14",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_home_ux_v23.py",
+        "sha256": "0d8d5573d5cb1bc8365d1e768e2f3a0a9bebef7b89d7e0c0385f7a8a694771cb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_interactive_kpis_v13.py",
+        "sha256": "49951de0799ebf108a330dc2292707b9623eea3e632836f5151aa908231c777e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_investment_tools_v22.py",
+        "sha256": "87434cd4688d0926f5528c0c520f503e8918b0d6a60a3414cc63c5829fd80cae",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_locale_safety_v26.py",
+        "sha256": "ab64efc92041bf66ac3e80cae565fda4c67907e592d4527f221a073112f54912",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_mobile_stability_v25.py",
+        "sha256": "9cae4fac6ddb6569c04e5cdb85ad20de6b655179e5c31f43b03e72032d778578",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_pick_monitor_reviews.py",
+        "sha256": "6ee86a47ab7387aec701c2fd8ed62c48856384c87bbacb22df1521c1b7a608b1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_samsung_locale_v27.py",
+        "sha256": "460f4086dcb662fdd09e3af4a673589a15484ba5e203995556d902cb30876242",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_ux_patterns_v12.py",
+        "sha256": "38b30db6b4457f21862284e0ab17380f77036b0fecfcec520377d395653df504",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_v31_watchlist_ux.py",
+        "sha256": "ab728be21249ee0c2cdee951d9b2493c2482a2cd71c22ee7f2c1f6403bba9cfa",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_v32_navigation_ux.py",
+        "sha256": "7ff1d6d248115434b53d0432f8f5c2e63059e05472f5e571183cd767cdda1d15",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_v41_5b_cache_bump.py",
+        "sha256": "fce6fec1f1be5256287e076e7b7fb911338a382801a45c21e992192ab6bd95a4",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/apply_valuation_bands_v1.py",
+        "sha256": "10f5df8e10b9dc96a8203cf47b1a581090d5d1a01134b44ad96edf44e8bdbf86",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/build_boot_bundle.py",
+        "sha256": "4a4e60952664f272dbf783f4b5bff48b5ec8097a40a5de562220cc2438222a1a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/build_frontend_bundle.py",
+        "sha256": "5904334fda9fa3bc3ba7a01d8e22580b19c67d6931585e059e42439c7487272f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/build_pick_monitor.py",
+        "sha256": "6090a7d9707caddf63ae1fef59e692b63d76b58ac1b90827eb521346a7e0f294",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/collect_guru_quarters.py",
+        "sha256": "d7bcecb14a5293dc1c8daf54fab3546b03e0c2abbbea773c38be29f2bea4093c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/export_screener_candidates.py",
+        "sha256": "9c0e9868ece4951148d8374df7ac857304d98e39e562260cdbc79460f94c5e7c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/fix_home_cards_v14.py",
+        "sha256": "b056eae504d4195153f73c9eda44d7cf7c38bae62949bc126236db793d5464c6",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/fix_home_major_names_v16.py",
+        "sha256": "464c0a5c830f7d00409e945b073b0b007c56ce28ebe93ac93c97826f9f386caf",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_company_context.py",
+        "sha256": "91a211b07c198381ae2489ca059b1aa9dbb0185ad7e6ccc8df1ac4d7332fc6f7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_consensus_cache.py",
+        "sha256": "e57c1473bd6301827c23558e0b1934a2a76959d424daabc5e0fce87387833251",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_dart_business_context.py",
+        "sha256": "7edc992abcdd6fd2da3a8485b522fe571f96f7411aeb7b5d7cbc53176f246e80",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_dart_corp_codes.py",
+        "sha256": "0c96a82cd79cc5b0100d996872555e11e203083b415a83bbbc43e319be37dabd",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_dart_financial_history.py",
+        "sha256": "5113db1904f068f9a498d05b13e33a423e8d7e4cf735066cd038067386effe3a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_dart_financial_quarters.py",
+        "sha256": "7f815f68f152b67e571c1f0c9c7545723c88c4b226e4f7fdc105963383a0c9f1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_guru_market.py",
+        "sha256": "05f5d58b4be07aeb5ff700ac05c6beaa10fac8e02f3391663cd873e401986a3e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_guru_screening.py",
+        "sha256": "699bee2d23ccae70d52113476bc0438fbcb8d6f373c67bcb65e9d53d0939ceae",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_heatmap.py",
+        "sha256": "f33f26722fcc371d711aa7614af82789d1d270aa7ccca1e86178b39f60dada02",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_home_snapshot.py",
+        "sha256": "82ecfe27536096eac61f3511a94672376e15cb2a8c23aa699b37faf8e133dede",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_macro_cache.py",
+        "sha256": "25448c5b80901de1e1fd7cbfabba4a733a4469c04336e7cda929d64569765ca7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_screener.py",
+        "sha256": "cb8bc16eae72aaeba3e1303b9492dd1027c584709567c5fe280d703543d2e00f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_toss_social_card.py",
+        "sha256": "93d760fdbf1c2bd353a68b33b7ba58e01dac184eda89106601fa7bba51be448a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/generate_valuation_cache.py",
+        "sha256": "ad15224b4490b18a3fbaa21950e2086b17c4cea8a6a81071a9dc8683532b27b3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/merge_guru_cache.py",
+        "sha256": "91dd3c1713cb0f0c863d9fc85aa90f6062c436d06e03678d577c04a84109c55f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/merge_guru_extensions.py",
+        "sha256": "87abe44fe054ddf520a6872a5b120cb252fbacf1250eb1f50c625e12a1529853",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/reorder_stock_analysis_v19.py",
+        "sha256": "20b52ff6ebdf14f61057d68c34dbbe8fe170fadd221986a91b12ee03d1258cd1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/rollback_home_cards_v14.py",
+        "sha256": "208e4592eedaa5e81709cc628c4f8118c6da5565abc54bf13da575fb92986a18",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/save_full_heatmap_snapshot.py",
+        "sha256": "621e4e6e4634030c61d9c7588a67b161d55214b5ff8d563bc2847ebc79e54509",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/update_ai_recommendations.py",
+        "sha256": "814af07e2219ccef3597a4a7f47a93332a6cf1b41b351e4c0332e2a962ddb34f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/validate_ai_rankings.py",
+        "sha256": "488edd0588bb73a7d56dab17a65ca9d12c955f8fce55734dcc2be9099455feca",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/validate_market_snapshot.py",
+        "sha256": "ab23e6d3c7411bf457b37a78d6941eac8a1f099e775cf071fe20205d15a9ca55",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "scripts/verify_deployed_release.py",
+        "sha256": "60b72fbff21779617d22a556dcab17acdd78c59febd4e8b5f23869ad9730d8d3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "sitecustomize.py",
+        "sha256": "6af315e2fa2cf325fb55e0b694e68c9ae1ba52a28591f7b51133bd01b8d456dd",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "snapshot_warmer.py",
+        "sha256": "906ecf3bec6e6c690ab376f459a4991039d997e7a1b64b18ef24ac96f820bf53",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ai_pick_ledger_v52.css",
+        "sha256": "ec82c21d5c9affeacbcbc11477591429605e94d5feb2f0cacd8772bed9a42f0f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/analysis_ui_v20.css",
+        "sha256": "09ebd11ef20a14eceb5e83abc786e4090882b49e76aa46bae6e6a46299254558",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/app_header_v5.css",
+        "sha256": "c74e3a45fe81f024447692bd8921affbde39cfb1123e01cf4115790f5c18664f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/app_states_v32.css",
+        "sha256": "315e9855b0952ad317fffa0fda0fc17bcbe795e6c75cc85988b106128ffda13c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/bottom_nav_v6.css",
+        "sha256": "c2b482fe91efcc597ede7f0646f64a0ebfd96d2ff2b622f9b53de54d4bbf3174",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/chartview_boot_bundle.css",
+        "sha256": "b363c520433937bf57d25d25520c1c3681435a6815382243ae44916fc68b2fa7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/chartview_release_bundle.css",
+        "sha256": "69f5f6c9c4fb3f63a307aa443665a011599565c19347fed21a7af3740a716382",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/clarity_v39_3.css",
+        "sha256": "03a2888a3b8f76b2b6affafb9328b9d4d87ae43cbf111c0df0f8f8f51fc16bdb",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/comparison_compact_v40_1.css",
+        "sha256": "505ba7d9f4f649a98b506fa194359e2643f2fa697c4fa0cbbeeecb5ad246212a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/comparison_ui_v40.css",
+        "sha256": "365477b53fa9230b7cdc08593b75e19f4c3715d26c3be1546281423e3f021b3d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/decision_ux_v7.css",
+        "sha256": "14af004a2d0c753005145a430d83ceb7981128bdd5958871be64b7a30e50a287",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/detail_ui_v40.css",
+        "sha256": "de1907080be69987676d71c1859c952868cb93f0cbb7b39f24c7c4819a53c1ba",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_brief_v8.css",
+        "sha256": "7ca065ecda3c05655a839fa535d0a6170f90bbedb8264a4060c0c09c233b8cd3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_cards_v14.css",
+        "sha256": "30d8a8f6f2abbafacff1fb4325fcee2fe9d502cf3a75e988298a911e9a284b37",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_heatmap_v57.css",
+        "sha256": "cb010a6e06b0f4f7f69537f8a3df82f80cb0ec20087e0d310db709a8ad01de5a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_market_v9.css",
+        "sha256": "d604e14fc9cd859aef19c9118ca580a04717046803231102606295837524208f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_news_cards_v47.css",
+        "sha256": "c709dda60879fc4bb3ca4c6dc0dd861bf3a1ce4c8d62ace675c1e64fdd776ef6",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_polish_v41_4.css",
+        "sha256": "6ee138d17c543eb8126970ef4cfbe531ef7170bc7efdfe85ac92f4762bf1ad70",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_priority_v10.css",
+        "sha256": "6e4303f09e905f648fcd1904217e322366299d0b9949c7862f96e0f00f3a0bb3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_ux_v23.css",
+        "sha256": "5cb39bb482f29df08993961e59aedb6d555b8f46a6516bc9187d3f5e2cceb7c6",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_visual_v39.css",
+        "sha256": "1fa88168c3c1393bcc875fe4847952901c0fa7c5a8667b9e2cbff6d95d44fe61",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_visual_v39_1.css",
+        "sha256": "865c0736157b6f6ea179d8bf4adc027b607d17a0fce0bb43f60af4a17b1f4ead",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/home_watchlist_compact_v46.css",
+        "sha256": "588669e95ffa75c95515141a05a1bcec7785cf1eb6f3d31574db7ebca4ae7c33",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ideas.css",
+        "sha256": "ad6e9a7c2a7c68932235dd8d4ee58d63c08bea52e8d62ebdcfbe7682643bfa2a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/investment_tools_v22.css",
+        "sha256": "5d59b7d0a21adc802c1b98dfbd28d837d2d7b2df96f0c5add1884ae75c766e6b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/live_quotes_v56.css",
+        "sha256": "64d159e28903930abab32740facb2e452ba519c6a13e90c2e6d736fe626a2a91",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/my_hub_v41.css",
+        "sha256": "47212ed00ac53e6ef6661a7c58e3ff50cf0012b4b0226523b2a704334c225be9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/news_readability_v41_2.css",
+        "sha256": "5c938bb9da5f1fdb235b1f03a938c421c31d2d45e2bae93a86bbd89fb873e247",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/news_status_v40_1.css",
+        "sha256": "ba2f5e1e429da999fa1e9b1cf5aa5989731e055fe114303ecdaba9259b196922",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/news_summary_expand_v48.css",
+        "sha256": "a384bc905e8182a278c7fbc160b69f2f362789542fa20efd18dd00d2fbf2b452",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/p2_revisit_v1.css",
+        "sha256": "7eba89b6ee876d0dd3618b93fed20733b7f52660e9195055e1793e899a1392a5",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/personalization_v36.css",
+        "sha256": "722425be6282c3f0c83ee67de41307320ea46b51b0d7369bb978471a8082d356",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/personalized_news_v37.css",
+        "sha256": "38a2dd77475bb66f76547897f5e29977513d768e8ab0b881093321a66f040140",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/personalized_news_v38.css",
+        "sha256": "08218181dd64f1d49e0b1be424e22b80fd984f3308d296e5102cc145737150fe",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/promo_v1.css",
+        "sha256": "3cbfd56304d15a31b8a6aa11e6de65b5f24918f78810c08feaae87e54d166809",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/release_ui_v40.css",
+        "sha256": "fbe9d3fac5c1cb7fd3756920bec714b911109c546ab65f67cd3f1b47e7f4e8f5",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/resilience_v41_3.css",
+        "sha256": "056a3ede072bd64e859471df47b856af79753bb3c649f830d71c8806e678ce8b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/screener.css",
+        "sha256": "ac9b8035b20fe6108152e7b57673d2b241bb8ceb06c76342840d62364d59635f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/style.css",
+        "sha256": "0de84627ca63122a7047e06c7851da805d06ba21ec2b3b0edc557525fa326707",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/top10_history_v1.css",
+        "sha256": "3426c53735b2d8a5b3c8490c98bc33f7f9bc8a2eba878c2855dbdba7b569e535",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ui_continuity_v53.css",
+        "sha256": "4944a67256320aa21d48ff58008158b52360df0eff659978b495e8c20dd6a5f9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ui_polish_v39_2.css",
+        "sha256": "522a6964e8506e8c36850177627afff5db4ebd1ee26b792dbbf2256fed64f96a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ux_interactions_v13.css",
+        "sha256": "f50332a4b7f6377284419ae3cc605214312104039c8b20897226cbb3916a0594",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ux_patch.css",
+        "sha256": "13400c853b28428e14bd8460019e8524f0d4bf2c9f28fb3cf41ff09e86ac2db5",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ux_patterns_v12.css",
+        "sha256": "9628f544ab6c42e1e3e4ebb19857fa5ae6ffa15b767e575b13daa32cacc256c0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/ux_v3.css",
+        "sha256": "549734c380f33ad46bb7a13c05a6db505d9d5825bfb60da29656bb4556763a5c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/valuation_matrix_v10.css",
+        "sha256": "dd189a38bc72247cd0b3a0f28e3fb306cf07cd54e74c337f9034d7674d0e4158",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/valuation_mobile_v44.css",
+        "sha256": "9746f8cfc91669679e6e6d822f1a30cdac55e80d36643f3d8680aee4061be49a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/css/watchlist_v30.css",
+        "sha256": "b344ceeca869783b75e2e52e408c3e54dfd5f334600e8e31ecad094125138616",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/ai_daily_rankings.json",
+        "sha256": "1ef543833de50f81c694aa9b778b3481af7b7f3bf39344226151263eee8846da",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/ai_daily_rankings_meta.json",
+        "sha256": "e66eb12c5dd5133dc2c140dd6aa0e5fe2a8ca0d797a1558edf89dfdc7ccd7bd8",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/company_context.json",
+        "sha256": "6062af9e71df07a66aaa87d9104624b9c93933eaec28f62d61cc463ba77329f0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/consensus_cache.json",
+        "sha256": "602d9593bb2c3f18f4a93ac2619f2195853d3528767606c53df01b70f4e13ebe",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/consensus_history.json",
+        "sha256": "9668d9de449e71183a5f70ed6602f5c280cb4e1a392e140c656583b6f3dd04a3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/dart_business_context.json",
+        "sha256": "a910e9eb01dbc0f16321a87a4a25674093ef2e1cdba94f4265903ac7c4ced2be",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/dart_corp_codes.json",
+        "sha256": "ca04abdfc56331acf78e77e487d92946cbee965678d8174081823ab12df47647",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/dart_financial_history.json",
+        "sha256": "c21eef63d669ab3bc775cf51f8e44818575714b89dd7c7d16709ad914d82e98d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/dart_financial_quarters.json",
+        "sha256": "1673744f05b69f91b723a04822663e2a6b858f1459370af5152c0a2f21dd22d9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/full_heatmap_snapshot.json",
+        "sha256": "67f040383b182269094aa75a0d179863a54fa51d14c0a1fe5136126b58a2b38a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/guru_evidence.json",
+        "sha256": "e8fc323899df2412a779f30b1720da71f781f936d91df34082bf1c4102e0a29a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/guru_financials.json",
+        "sha256": "ab8e01eff7a50613ce683376fdd5c1eec721503685e60be9b82bf7ca71c6b957",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/guru_market.json",
+        "sha256": "778012a33191c4f21f25454b62f10f90b475a7637f3de4fc7fad0484767bec02",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/guru_quarters.json",
+        "sha256": "60d1690d53541f8c3f1153220060725a9b37d9ab79cda963b21e75d1790ae2b2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/guru_screening.json",
+        "sha256": "99f0981077731703f982ef48d65f75d09b22a28666ff2c2e6efb337b6fcfeac3",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/heatmap.json",
+        "sha256": "a27ced64c9e1de09768b20bf6bc670db6d20689f14b5b75894f9c88dab6615f9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/home_snapshot.json",
+        "sha256": "5673d048305efd94bfdcabe7e6f80788bc577bf52d7f0cf014be79c77426ca0d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/macro_cache.json",
+        "sha256": "ea67e21b7a39f6dc42d10d9b5863b3191eddd76fc7655a19544e9c529c2ef767",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/pick_monitor.json",
+        "sha256": "dceb70c0819bfe9311d984058b5f1f828c2ea486256b895e9abe94d2bda6d499",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/pick_monitor_history.json",
+        "sha256": "6068525febe9422854a76026ecf6f554e153162747bc08eb020d3d1e2083efae",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/pick_monitor_reviews.json",
+        "sha256": "941e376d23bf4ff16cbb951a00f9d61cb3ccec2ba694a4dcfad5e6a6540c76f0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/screener.json",
+        "sha256": "f9a80d18f6858249b532ab94398dd66dc84e5a7667623082b8157c0b746bf6aa",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/screener_meta.json",
+        "sha256": "242e3b07e2b0bb2f76a33959d471ca4416a7dc8e19db13f7d2c2adc8161ec3c8",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/screener_top100.json",
+        "sha256": "eb960d0572ba02015ec1b36ea76024dd26c6cb1716978160a95a9c100f6de26e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/screener_validation.json",
+        "sha256": "92197b560f5ce6afb2dfd1cf411f4e156f453e56588c1dda03dc6bdbf7072f18",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/top10_history.json",
+        "sha256": "563fa0422277f0cbc9345fac37753793229138de40454404a49cc66a98fc3a55",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/data/valuation_cache.json",
+        "sha256": "a0d00f850fa7b5859eb1c19e9454ded7957ffa85e6081e5159482f40c5676a12",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ai_daily_widget.js",
+        "sha256": "2a43ab218166409f546a967476f9951e7fe8aac452f549a1df8caa520c144096",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ai_pick_ledger_v52.js",
+        "sha256": "c8206fa1cf537a37ff79faeafa0795331f02d6463cea7d2ddc46ea07d2f65e30",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ai_recommendations.js",
+        "sha256": "288218e03a49b3e6764ccbce7e8af817a419592340181801aa1dfc313e7487a0",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/app_header_v5.js",
+        "sha256": "5287d5a2387cea2927539907e0df5d17bd09b520b0f1718db66904316eb5af98",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/app_state_v40.js",
+        "sha256": "ab1cb003c35dd55775d2afdf2fa79d28db6315adb6d45c585b07b5006be498df",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/chart.js",
+        "sha256": "5e7cf03c165b9b118f786dfb69c9e7e7d8f147315c7ef1f04e1d2c5a8d3b9271",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/chartview_boot_bundle.js",
+        "sha256": "5fb2671dabfd2ffef84e22dcefaafa0887e5ba9aa0f261c4ba7306cfae5a7f72",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/chartview_release_bundle.js",
+        "sha256": "d7b0745fcb101c24b28ffd06d35d139e0285bb449056ced46795be839c20c4d4",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/clarity_v39_3.js",
+        "sha256": "6cd2c49edafd3caa2fee86d18e5deb7d69eae68db7ad139613ef0a9158ea3532",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/comparison_compact_v40_1.js",
+        "sha256": "8fed8226bc7561b50f0f8d62ffc1d20f7e467dded6c5523ab882dc9b03cecacd",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/consensus_v2.js",
+        "sha256": "f4c7aa28126f5e73c1a5792b563a983ac03225c9c52ec03ddc07464f80075c93",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/decision_ux_v7.js",
+        "sha256": "e2945d51777b52c60f928293bdab3e6e4365298e95ad796dc7bee30c2984ec02",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/detail_visibility_v40_1.js",
+        "sha256": "0b8b5d0fe0c81306146c66601a02a5fbd9b0a619e5bb6be3f328e1decca5d703",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/fwdper.js",
+        "sha256": "e35dc442372f44b297a4c4b74138eb00162f63c9e32b92e0f564042a1767e25b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/gemini.js",
+        "sha256": "ea7c7709767c4b2374c54950c4c9ae234c4014b73a85b1f4d706c8848bd23808",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/heatmap.js",
+        "sha256": "abb5df00925293f6f7687cfff5421cfafae805eb5eb3f30d6f629b565f482e0d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_brief_v8.js",
+        "sha256": "25370139777b37da44772f7e6b659b1ba4e791e9213c9f46652158d7b6fc0eaf",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_cards_v14.js",
+        "sha256": "85757623aeaf7604f0b6b1dbe7ce05c9954b4cd0ad53ad12e7474cbc098b5a6f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_heatmap_v57.js",
+        "sha256": "ab162decf926d5a767ba5d3ece2555040b8cdc22dd4e91b074cbc9ab8ebd2bbe",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_market_v9.js",
+        "sha256": "ef9ec60561e4049584edf48985c9f46a1e8b3cb4bdbd74c584272b3e75513734",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_news_cards_v47.js",
+        "sha256": "b8f2a0f8667383ae0ec25157502402a015569012f83959b561291a6cb86e9057",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_polish_v41_4.js",
+        "sha256": "cc5a2afe40b16b3adadd84d03570498ab448be7570e9ae404f4e551b012f7d0b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_priority_v10.js",
+        "sha256": "cb21b83bde2434ad6adf300af675f6c6bc751636b18f6e031de3f64a0593242f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_summary_v54.js",
+        "sha256": "8666cccb8abce796fe23390112c47727108f19f62bf6c9907f5db4ee1cf4eff4",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_ux_v23.js",
+        "sha256": "ec9496488f7c0fda46addb173be71196208619cd483a6145311b01769d8b116c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_watchlist_boot_v32c.js",
+        "sha256": "e953884ebcfcf399e2ed4a120231562ad51e872805bda174e4529d6e8af31cff",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/home_watchlist_compact_v46.js",
+        "sha256": "2c49e0d78648063e986a99a79bb4f53df9f03c9f2a39696424870d0c31345d80",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ideas.js",
+        "sha256": "c10fb50b80610740fea3efa190821b0d4de7e80a24dcad6254379bc9791ffae6",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/investment_tools_v22.js",
+        "sha256": "95a53d6fd92005c19076fabbeaa1ae7af1aac3f4a531ada7b9272adac6071726",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/live_quotes_v56.js",
+        "sha256": "0adeca9e30c93a443f5f0d2e14fd4b1c569dc3e7455bd5213248cc97d5892967",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/macro.js",
+        "sha256": "439ac9a1baefd1733503674bc8539d51d92b2e97d2b48bf050488903d6159a51",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/my_hub_v41.js",
+        "sha256": "1331bd92d8c6afb9d1714081e26fe462b6fb9ef7e6b085648b86defd6c8638fc",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/news_readability_v41_2.js",
+        "sha256": "5e9ba926f5b30f7d5ab558db898540b4df01a3124cd7291b170825d2f5f50517",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/news_status_v40_1.js",
+        "sha256": "db78fed80a357d838108cd1cbe792169fac77a9bba384e633fa67c3b1cb4b00a",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/p2_revisit_v1.js",
+        "sha256": "e928d68c252df471238487058da7cfba5306344632ea2ec1aedfa45b015e575d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/personalization_v36.js",
+        "sha256": "095e26447f29014da74b251fc88ec5d51409b5b24d3cf998dcdb6dd68141c2e2",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/personalized_news_v37.js",
+        "sha256": "974c88d7002ea1bddfdbf05e60105461fb1cc5ffc0fea13966cffcb587acf80e",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/personalized_news_v38.js",
+        "sha256": "f1a10eb06283e1327637ec5ae2d4cc2613b967d0ddf48e579da20d22f2de1536",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/personalized_news_v40.js",
+        "sha256": "77aefc7f03ed1fbc8e3fef8d591809a73288cbefdbd48aaea9a3c2d40c9043c5",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/pick_monitor_visible_tab_v1.js",
+        "sha256": "344ffa2a7dada5cf92575590b1d04bf92c237e37b516917e583f3b65351da603",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/profile_sync_v1.js",
+        "sha256": "cafd233edd7d91e4605a61785b3b9847875714dbdc13368b63bf9720680af9e1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/promo_v1.js",
+        "sha256": "3e1be65617ad4dcd9389a573f62aab2788e8eaa87e5538191fa0bdb504ea0213",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/recommendation_watchlist_v55.js",
+        "sha256": "cfdfc90b2fffd2cbe579ba3f223282c37404c4776d465a1ec240ce9ace0e249d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/release_flow_v40.js",
+        "sha256": "73940802db9bad43eab9edf463d5f05087e2e8b43a82dabb581f3f922d0495e7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/release_ui_v40.js",
+        "sha256": "085a974bbf521de9a46b193339a77c6892ebbd109bd71b45a660de4e7c76b7e9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/resilience_v41_3.js",
+        "sha256": "80d39c9b64e6d99e1915ee3518d59abc19683b874253924cde6133c5f4d259fa",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/revision_radar.js",
+        "sha256": "8e4d6b2e481d1c3b84a84374ac787f0e97529d6c4c60bbf7793d14a03fb5547c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/screener.js",
+        "sha256": "adfe4517617e34e4bbfcb7645f08a6631d088e2360a1adb83915c30ea029324c",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/single_detail_v40.js",
+        "sha256": "4848829e34239c91694f33869b671ece67a1764d75ed63ce9d318ec49f8461c7",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/top10_history_v1.js",
+        "sha256": "153cf382e96b6ee76d35c5461736fcc4b9e5771de22a6cae234278520f1147a1",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ui_continuity_v53.js",
+        "sha256": "b771ff69b974b34ab89df4577d23ac850e11873cc6c7cafec7fc8ec85d6c9d07",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ux_interactions_v13.js",
+        "sha256": "cf863b216d770b8a9d043674f48baee006f597b9129baa78777d266168b1a304",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ux_patch.js",
+        "sha256": "d02413ae2c08a58fb7c21bf98276cfa23821e2ef7319e61dee1e703a9a599098",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ux_patterns_v12.js",
+        "sha256": "ea3171687be916fd44415f01cbf934ece6bb6d56e1eb9297cf7308f9da14b5ba",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/ux_v3.js",
+        "sha256": "345ace899f22957d90ad6a9aa45fe341ea419c2fbc25b68c1a9e23f1ea9c81c9",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/valuation_bands.js",
+        "sha256": "a952479461061e7fbf31255b8f5b5f52264bd515f12cc24693cc5f0ff542da3b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/valuation_meta.js",
+        "sha256": "5380b468b8a962c844772f2d75626dabcd788d1487c445e9508d15307bc50a1d",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/valuation_overview_v4.js",
+        "sha256": "c24d06dc6ed0ad4bc64981dc8aadfd0e58dea6a7897670571d52071d03e4d164",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/visitor_v66.js",
+        "sha256": "7fd902394598ca3e14e624f58f9bfdfba4f24372926d54356af7c1bad6a7fb00",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/watchlist_quick_add_v48.js",
+        "sha256": "ca2b2512045989e7d78cd07274c9c436fb1009ec980e92f3cf0f819d3e6e213b",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "static/js/watchlist_v30.js",
+        "sha256": "f85b636959bb2ac55fa9461a2ffc4dabfe1ac6289c13cb949c2148ba99dc770f",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "templates/admin_usage.html",
+        "sha256": "0e92b2143bad74eee3640c9217bcdcb8408fe903286d6e7f61925b99fd73edd4",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "templates/index.html",
+        "sha256": "30e57b6c724bf29a2ba67e7c80e49d97bebfe9e50f0c78163e24b5b54ed31491",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "toss_stock_app/debug_data.py",
+        "sha256": "c2bae27b534ba5ba47dcceff4c98dcd0a143c9e7580ffc42d3c5e75420f10270",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "toss_stock_app/main.py",
+        "sha256": "138e9c90e71bf7aeee87c85d38d6b04c1f83faf3f8432a79ada6661c4d56f321",
+        "unchangedFromBase": true
+      },
+      {
+        "path": "valuation_band_service.py",
+        "sha256": "da3f157a03699950d9487209c6ac026a62e1491469575447ce073dda139e1143",
+        "unchangedFromBase": true
+      }
+    ],
+    "changedFilesIncludingDocsTestsAndBenchmarkTools": [
+      "docs/QUOTE_SPEED_CHECK_2026-10-15.md",
+      "docs/QUOTE_SPEED_COMPARISON_2026-10-15.md",
+      "docs/audits/2026-10-15-quote-speed/baseline-pick-inputs.json",
+      "docs/audits/2026-10-15-quote-speed/cloudrun-reachability.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/browser-before.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/cadence-results.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/cadence-results.md",
+      "docs/audits/2026-10-15-quote-speed/comparison/live-before.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-before-verification.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-bundle-check.log",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-full-pytest.log",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-live-backend-contract.log",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-relevant-recheck.log",
+      "docs/audits/2026-10-15-quote-speed/comparison/release-required-node.log",
+      "docs/audits/2026-10-15-quote-speed/comparison/results.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/results.md",
+      "docs/audits/2026-10-15-quote-speed/comparison/root-worker-check.json",
+      "docs/audits/2026-10-15-quote-speed/comparison/validation.json",
+      "docs/audits/2026-10-15-quote-speed/naver-session.json",
+      "docs/audits/2026-10-15-quote-speed/production-browser-summary.json",
+      "docs/audits/2026-10-15-quote-speed/protected-scope.json",
+      "docs/audits/2026-10-15-quote-speed/render-quotes.json",
+      "docs/audits/2026-10-15-quote-speed/render-services.json",
+      "docs/audits/2026-10-15-quote-speed/validation.json",
+      "docs/decision-log.md",
+      "docs/regression-guardrails.md",
+      "main.py",
+      "scripts/benchmark_quote_publication.py",
+      "scripts/measure_live_quote_latency.py",
+      "static/data/ai_recommendations.json",
+      "tests/test_home_quote_progress.py",
+      "tests/test_performance_isolation_contract.py"
+    ]
+  },
+  "verification": {
+    "tests": "tests/test_pick_screener_contract.py",
+    "result": "3 passed in 0.10s",
+    "fullSuite": "Root is running the full suite; not duplicated by reviewer.",
+    "updaterMainInvokedByReviewer": false,
+    "refreshRecordsInvokedByReviewer": false,
+    "onlyUpdaterFunctionsInvokedInMemory": [
+      "pct",
+      "_market_indexes",
+      "_validate_pick_identity"
+    ],
+    "unchangedIdentityGuardResult": "TOP3 symbol not found in screener: 069500.KS"
+  },
+  "limitations": [
+    "This is a working-tree audit before commit; final exact main SHA, full checks, Render health revision, assets and production UI remain release gates for root.",
+    "The one-time approved append leaves existing updater ETF identity rejection and future ETF repricing unsupported; these are known out-of-scope operational limits.",
+    "Quote-speed protected-scope.json is historical evidence for base versus 3588790 before approval; this report supersedes its ledger-unchanged statement for the approved working tree.",
+    "Source selection external price evidence is inherited; this review proves equality to the already committed user-final selection, not independent market-price certification."
+  ],
+  "blockers": []
+}
