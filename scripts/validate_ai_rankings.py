@@ -91,6 +91,14 @@ def validate(day: dict, by_symbol: dict[str, dict] | None = None, by_name: dict[
             errors.append(f"{date}: code/symbol mismatch for {name}: code={code}, symbol={symbol}")
 
         if by_symbol is not None:
+            # User-confirmed ETFs live outside the equity-only screener universe.
+            # Permit only independently verified ETF identities; do not weaken stock identity checks.
+            if source_type == "user_final_selection" and pick.get("assetType") == "ETF":
+                allowed_etfs = {"069500.KS": ("069500", "kodex200")}
+                expected = allowed_etfs.get(symbol)
+                if expected is None or code != expected[0] or normalize_name(name) != expected[1]:
+                    errors.append(f"{date}: unverified ETF identity: {name} ({symbol})")
+                continue
             row = by_symbol.get(symbol)
             expected_symbols = (by_name or {}).get(normalize_name(name), [])
             if row is None:
