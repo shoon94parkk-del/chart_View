@@ -61,6 +61,8 @@ _PROVISIONAL_CACHE: dict[str, Any] = {
     "lastError": None,
 }
 _PROVISIONAL_CACHE_LOCK = asyncio.Lock()
+PROVISIONAL_RESPONSE_TIMEOUT_SEC = 20
+_PROVISIONAL_REFRESH_TASK: asyncio.Task | None = None
 
 SEMICONDUCTOR_COUNTRY_CACHE_TTL_SEC = 12 * 60 * 60
 _SEMICONDUCTOR_COUNTRY_CACHE: dict[str, Any] = {
@@ -1519,6 +1521,19 @@ async def _refresh_provisional_radar() -> dict[str, Any]:
             raise
 
 
+async def _await_provisional_refresh() -> dict[str, Any]:
+    global _PROVISIONAL_REFRESH_TASK
+    if _PROVISIONAL_REFRESH_TASK is None or _PROVISIONAL_REFRESH_TASK.done():
+        _PROVISIONAL_REFRESH_TASK = asyncio.create_task(_refresh_provisional_radar())
+        # A caller may time out before the shared refresh settles. Consume a
+        # later failure without canceling or duplicating its provider worker.
+        _PROVISIONAL_REFRESH_TASK.add_done_callback(lambda task: None if task.cancelled() else task.exception())
+    try:
+        return await asyncio.wait_for(asyncio.shield(_PROVISIONAL_REFRESH_TASK), PROVISIONAL_RESPONSE_TIMEOUT_SEC)
+    except asyncio.TimeoutError:
+        raise CustomsApiError('잠정 수출 응답이 지연되고 있어요. 잠시 후 다시 확인해주세요.') from None
+
+
 def _semiconductor_segment(key: str) -> dict[str, str] | None:
     return next((row for row in SEMICONDUCTOR_SEGMENTS if row["key"] == key), None)
 
@@ -2193,7 +2208,7 @@ async def export_momentum_provisional(response: Response):
         result.setdefault("meta", {})["cacheStatus"] = "fresh"
         return result
     try:
-        data = await _refresh_provisional_radar()
+        data = await _await_provisional_refresh()
         result = copy.deepcopy(data)
         result.setdefault("meta", {})["cacheStatus"] = "fresh"
         return result
