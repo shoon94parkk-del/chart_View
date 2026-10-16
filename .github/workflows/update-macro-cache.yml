@@ -11,6 +11,7 @@ on:
       - '.github/workflows/update-macro-cache.yml'
       - 'scripts/generate_macro_cache.py'
       - 'scripts/generate_inflation_release_cache.py'
+      - 'scripts/pce_release_data.py'
       - 'inflation_release_service.py'
 
 permissions:
@@ -100,9 +101,16 @@ jobs:
 
           data = json.loads(Path('static/data/inflation_release_cache.json').read_text(encoding='utf-8'))
           rows = data['inflation']['series']
-          assert {row['id'] for row in rows} == {'cpi', 'core_cpi', 'ppi', 'core_ppi'}
+          required = {'cpi', 'core_cpi', 'ppi', 'core_ppi'}
+          allowed = required | {'pce', 'core_pce'}
+          ids = {row['id'] for row in rows}
+          assert required <= ids <= allowed
+          assert len(rows) == len(ids), 'duplicate inflation series IDs'
           for row in rows:
-              assert row['basis'] == {'yoy': 'NSA', 'mom': 'SA'}
+              expected_yoy = 'SA' if row['id'] in {'pce', 'core_pce'} else 'NSA'
+              assert row['basis'] == {'yoy': expected_yoy, 'mom': 'SA'}
+              if row['id'] in {'pce', 'core_pce'}:
+                  assert set(row['sourceIndices']) == {'sa'}
               assert len(row['points']) >= 36
               assert row['asOf'] and row['checkedAt'] and row['collectedAt']
           assert isinstance(data['releaseCalendar']['events'], list)

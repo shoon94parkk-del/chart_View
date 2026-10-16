@@ -329,3 +329,5 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 
 
 2026-10-16 approved REA release work: separate inflation_release_cache (four FRED/BLS pairs, official calendar) and earnings_event_cache (verified future issuer calls) are read provider-free; macro optional history is stripped from Home. Existing sixteen indicators and PICK/LAB contracts remain. See RELEASE_INSIGHTS_2026-10-16.md and release PR comments for exact-head test/deployment evidence. Never claim historical expected/actual/reaction from Yahoo current estimates alone.
+
+2026-10-16 PCE extension: add direct BEA PCE/core PCE, both SA for YoY and MoM, in the same optional saved cache. Keep legacy sixteen/PCEPI/trimmed PCE and PICK unchanged. Observation month differs from publication month; date-only is not an exact time. Missing approved forecast receipts stay unavailable. Optional BEA failures retain data without claiming successful calendar freshness or blocking BLS publication. See MACRO_PCE_2026-10-16.md.
