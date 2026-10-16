@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 920cc6013f02baea2dfec15934d37615c9529f37
+          ref: c5a8ae8b7a60064a4401f7ecfb617bf9f46feca8
           persist-credentials: false
 
       - uses: actions/setup-python@v5
@@ -42,6 +42,7 @@ jobs:
           previous = json.loads(original)
           counts = {'blsPost': 0, 'icsGet': 0}
           real_post, real_get = collector.requests.post, collector.requests.get
+          real_open = collector.urlopen
           def observed_post(url, **kwargs):
               if url == collector.BLS_API_URL:
                   counts['blsPost'] += 1
@@ -57,7 +58,28 @@ jobs:
               if url == collector.ICS_URL:
                   (out / 'bls-calendar.ics').write_bytes(response.content)
               return response
+          class ObservedCalendar:
+              def __init__(self, response):
+                  self.response = response
+              def __enter__(self):
+                  self.response.__enter__()
+                  return self
+              def __exit__(self, *args):
+                  return self.response.__exit__(*args)
+              def read(self):
+                  raw = self.response.read()
+                  (out / 'bls-calendar.ics').write_bytes(raw)
+                  return raw
+          def observed_open(request, **kwargs):
+              if request.full_url == collector.ICS_URL:
+                  counts['icsGet'] += 1
+                  response = real_open(request, **kwargs)
+                  counts['icsHttpStatus'] = response.status
+                  counts['icsAccept'] = request.get_header('Accept')
+                  return ObservedCalendar(response)
+              return real_open(request, **kwargs)
           collector.requests.post, collector.requests.get = observed_post, observed_get
+          collector.urlopen = observed_open
           checked = datetime.now(timezone.utc)
           result = collector.refresh_cache(previous, now=checked)
           (out / 'collector-result.json').write_text(json.dumps(result, ensure_ascii=False, indent=2))
@@ -65,7 +87,7 @@ jobs:
           events = result['releaseCalendar']['events']
           current = collector.stamp(checked)
           summary = {
-              'testedCollectorSha': '920cc6013f02baea2dfec15934d37615c9529f37',
+              'testedCollectorSha': 'c5a8ae8b7a60064a4401f7ecfb617bf9f46feca8',
               'requestCounts': counts,
               'cacheUnchanged': collector.OUT.read_bytes() == original,
               'originalCacheSha256': hashlib.sha256(original).hexdigest(),
@@ -88,7 +110,8 @@ jobs:
           assert counts['blsPost'] <= 1 and counts['icsGet'] <= 1
           assert len(rows) == 4 and all(r['status'] in ('ok', 'partial') and len(r['points']) == 60 and r['checkedAt'] == current for r in rows)
           if summary['calendar']['retainedCheckCount']:
-              assert result['releaseCalendar']['status'] == 'partial'
+              expected = 'partial' if summary['calendar']['currentCheckCount'] else 'stale'
+              assert result['releaseCalendar']['status'] == expected
               assert result['releaseCalendar']['checkedAt'] == previous['releaseCalendar']['checkedAt']
           PY
 
