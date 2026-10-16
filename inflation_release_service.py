@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from scripts.macro_forecast_data import attach_forecasts, load_cache
+
 CACHE_PATH = Path(__file__).resolve().parent / 'static' / 'data' / 'inflation_release_cache.json'
 
 
-def load_inflation_release_cache(path: Path | None = None, *, now: datetime | None = None) -> dict[str, Any]:
+def load_inflation_release_cache(path: Path | None = None, *, now: datetime | None = None, forecast_path: Path | None = None) -> dict[str, Any]:
     """Read saved data only; a missing/broken optional cache must not affect macro."""
     unavailable = {
         'inflation': {'schemaVersion': 1, 'status': 'unavailable', 'series': []},
@@ -26,6 +28,7 @@ def load_inflation_release_cache(path: Path | None = None, *, now: datetime | No
     except (OSError, ValueError, KeyError, TypeError):
         return unavailable
     current = now or datetime.now(timezone.utc)
+    attach_forecasts(inflation, load_cache(forecast_path), now=current)
     upcoming = []
     for event in calendar['events']:
         if not isinstance(event, dict):

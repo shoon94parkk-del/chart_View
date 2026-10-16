@@ -381,3 +381,14 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 - Original macro16/cache/summary and Home payload stay independent of inflation graph/calendar availability; optional malformed schedule rows must not break macro. Readers perform no provider HTTP calls.
 - Keep NSA year-over-year / SA month-over-month, exact calendar offsets, null gaps, explicit source/month/release/collection/check/revision metadata. Do not interpolate or infer official release times.
 - A verified issuer conference call is not a verified earnings-publication timestamp. No historical surprise/reaction without pre-event immutable estimates and compatible accounting/trading data.
+
+### Optional macro forecast evidence — 2026-10-16
+
+- Request paths read the separate bounded optional cache only; never call the injected acquisition helper or add provider fan-out.
+- Missing credentials/rights/default cache stays `not_configured` with no forecast numerics. A provider key alone is not a display/retention license.
+- `provider_archive` must preserve actual retrieval time, safe HTTPS URL, vendor event ID and 64-hex raw-byte digest. It may display an archived forecast without inventing a pre-release capture. Legacy/default kinds still require publication <= capture < release.
+- Quarantine duplicate/mismatched period/rate/basis/unit receipts. Retain legacy comparisons and original rate points. Zero is a valid number; strings, booleans and nonfinite/overflow numbers are not.
+- Never map events by category guesses, infer observation month from release date, replace survey `Forecast` with `TEForecast`, use `LastUpdate` as forecast publication, or promote vendor `Actual`/current revised indices to first-release actual. Original-release comparison needs a compatible separately evidenced official actual receipt.
+
+- Optional JSON nesting/duplicate fields/nonstandard constants must fail only the optional layer. Public evidence URLs have no query strings. Historical first-release comparison needs known saved official publication timing; absence cannot bypass verification, and release month must follow observation month. Generic official homepages are insufficient.
+- Within a shared identity, individually valid forecast/comparison receipts must agree on expected value and forecast provenance; quarantine both on conflict. An invalid comparison alone must not discard a valid archive forecast.
