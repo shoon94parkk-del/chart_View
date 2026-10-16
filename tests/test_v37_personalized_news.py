@@ -122,3 +122,70 @@ def test_v40_frontend_assets_and_home_order_are_wired():
     assert "min-height: 44px" in css
     assert "app.include_router(news_router_v37)" in main
     assert '"image"' not in backend
+
+
+def _retry_article(symbol, title='Recovered earnings guidance'):
+    return {'symbol':symbol, 'title':title, 'url':f'https://example.com/{symbol}',
+            'score':70, 'publishedTs':100, 'investmentRelevant':True}
+
+
+def test_explicit_http_retry_recovers_cached_provider_failure_while_default_stays_cached(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(news, 'NEWS_CACHE', {})
+    calls = []
+    def provider(symbol, name):
+        calls.append(symbol)
+        if len(calls) == 1:
+            raise TimeoutError('synthetic provider timeout')
+        return {'items':[_retry_article(symbol)], 'error':None, 'provider':'fake'}
+    monkeypatch.setattr(news, '_fetch_finnhub_news', provider)
+    app = FastAPI()
+    app.include_router(news.router)
+    with TestClient(app) as client:
+        first = client.get('/api/personalized-news', params={'tickers':'NVDA','names':'NVIDIA'}).json()
+        cached = client.get('/api/personalized-news', params={'tickers':'NVDA','names':'NVIDIA'}).json()
+        assert first['groups'][0]['status'] == cached['groups'][0]['status'] == 'error'
+        assert cached['groups'][0]['cache'] == 'hit'
+        assert calls == ['NVDA']  # An ordinary warm request performs no provider work.
+        response = client.get('/api/personalized-news', params={'tickers':'NVDA','names':'NVIDIA','force':'true'})
+    assert response.status_code == 200
+    recovered = response.json()
+    assert recovered['errors'] == []
+    assert recovered['groups'][0]['status'] == 'success'
+    assert recovered['groups'][0]['items'] == [_retry_article('NVDA')]
+    assert calls == ['NVDA','NVDA']
+
+
+def test_explicit_partial_retry_preserves_cached_success_and_no_news_groups(monkeypatch):
+    from collections import Counter
+    monkeypatch.setattr(news, 'NEWS_CACHE', {})
+    calls = Counter()
+    def provider(symbol, name):
+        calls[symbol] += 1
+        if symbol == 'NVDA' and calls[symbol] == 1:
+            return {'items':[], 'error':'provider_error:Timeout', 'provider':'fake'}
+        return {'items':[] if symbol == 'MSFT' else [_retry_article(symbol)], 'error':None, 'provider':'fake'}
+    monkeypatch.setattr(news, '_fetch_finnhub_news', provider)
+    initial = asyncio.run(news.personalized_news(tickers='NVDA,AAPL,MSFT', names='NVIDIA|Apple|Microsoft'))
+    recovered = asyncio.run(news.personalized_news(tickers='NVDA,AAPL,MSFT', names='NVIDIA|Apple|Microsoft', force=True))
+    assert initial['groups'][0]['status'] == 'error'
+    assert recovered['errors'] == []
+    assert [(g['symbol'],g['status'],g['cache']) for g in recovered['groups']] == [
+        ('NVDA','success','miss'), ('AAPL','success','hit'), ('MSFT','no_news','hit')]
+    assert calls == {'NVDA':2, 'AAPL':1, 'MSFT':1}
+    assert recovered['groups'][1]['items'] == initial['groups'][1]['items']
+
+
+def test_internal_force_retains_full_cache_bypass_for_relationship_retry(monkeypatch):
+    monkeypatch.setattr(news, 'NEWS_CACHE', {})
+    calls = []
+    def provider(symbol, name):
+        calls.append(symbol)
+        return {'items':[] if len(calls) == 1 else [_retry_article(symbol)], 'error':None, 'provider':'fake'}
+    monkeypatch.setattr(news, '_fetch_finnhub_news', provider)
+    first = news._cached_fetch('NVDA','NVIDIA')
+    refreshed = news._cached_fetch('NVDA','NVIDIA', force=True)
+    assert first['items'] == []
+    assert refreshed['items'] == [_retry_article('NVDA')]
+    assert calls == ['NVDA','NVDA']
