@@ -1,0 +1,234 @@
+{
+  "baseline": "6b4d5227bb228ca2ea42321e93bc98f92b670525",
+  "pytest": {
+    "command": "python -m pytest -q",
+    "passed": 957,
+    "failed": 0,
+    "existingWarnings": 80,
+    "seconds": 15.09
+  },
+  "bundleCheck": {
+    "command": "python scripts/build_frontend_bundle.py --check",
+    "exitCode": 0
+  },
+  "optionalCache": "not configured; no provider calls or licensed forecast values enabled",
+  "protectedFiles": [
+    {
+      "path": "docs/audits/2026-10-11-performance/guru-cache-after.json",
+      "sha256": "93c6ebb38d87e16076c6599b209a8e33cdc4349ced0ad981d2ad69428996b141"
+    },
+    {
+      "path": "docs/audits/2026-10-11-performance/guru-cache-before.json",
+      "sha256": "dc90b86340bc079353984c97bd99af7f9e5285fa97edc7b7828c805c4e56afa2"
+    },
+    {
+      "path": "docs/audits/2026-10-15-quote-speed/baseline-pick-inputs.json",
+      "sha256": "f731c837dd65d4c27ba7eab16989db50880242109168a71b7652b103320e9ca0"
+    },
+    {
+      "path": "docs/evidence/guru-five-2026-10-05.json",
+      "sha256": "af9bc3092fa9cc8f496886b75a4b697f8ced0d2476e10207bb74cf2f3bc99ac3"
+    },
+    {
+      "path": "guru_actions.py",
+      "sha256": "a22b0afa82c7ab48133122bb5752894691cef9e6bb31fbb6365a2d6d99ebf6c7"
+    },
+    {
+      "path": "guru_extensions.py",
+      "sha256": "817354da3eb0c5a1cf50474e9bc1084a5a31bcdc9509a6e363f7d77c9ab109fa"
+    },
+    {
+      "path": "guru_financials.py",
+      "sha256": "964dd80103f28700f10ce84115e8a90e4769f80299a094f85f4ad7bbd1c482ce"
+    },
+    {
+      "path": "guru_rules.py",
+      "sha256": "d1c1a33742eaf9e1d17d87460d7d92127555bcd973f6ce4f5b9442cbae10c5ea"
+    },
+    {
+      "path": "guru_service.py",
+      "sha256": "8a63c85f435cde085b4590c30405d1a04ce904ad75f027a4c057feab8c1341c9"
+    },
+    {
+      "path": "guru_snapshot.py",
+      "sha256": "c0ff274b530e46aa550b638385c44c0aae248d85a15714862a2d29c8a758a6dc"
+    },
+    {
+      "path": "main.py",
+      "sha256": "70cc0fc662260a9d74145e5753e3efbed8237423bbf34f935d2cab3907338d84"
+    },
+    {
+      "path": "scripts/apply_pick_monitor_reviews.py",
+      "sha256": "6ee86a47ab7387aec701c2fd8ed62c48856384c87bbacb22df1521c1b7a608b1"
+    },
+    {
+      "path": "scripts/build_pick_monitor.py",
+      "sha256": "6090a7d9707caddf63ae1fef59e692b63d76b58ac1b90827eb521346a7e0f294"
+    },
+    {
+      "path": "scripts/collect_guru_quarters.py",
+      "sha256": "d7bcecb14a5293dc1c8daf54fab3546b03e0c2abbbea773c38be29f2bea4093c"
+    },
+    {
+      "path": "scripts/export_screener_candidates.py",
+      "sha256": "9c0e9868ece4951148d8374df7ac857304d98e39e562260cdbc79460f94c5e7c"
+    },
+    {
+      "path": "scripts/generate_guru_market.py",
+      "sha256": "05f5d58b4be07aeb5ff700ac05c6beaa10fac8e02f3391663cd873e401986a3e"
+    },
+    {
+      "path": "scripts/generate_guru_screening.py",
+      "sha256": "699bee2d23ccae70d52113476bc0438fbcb8d6f373c67bcb65e9d53d0939ceae"
+    },
+    {
+      "path": "scripts/generate_screener.py",
+      "sha256": "cb8bc16eae72aaeba3e1303b9492dd1027c584709567c5fe280d703543d2e00f"
+    },
+    {
+      "path": "scripts/merge_guru_cache.py",
+      "sha256": "91dd3c1713cb0f0c863d9fc85aa90f6062c436d06e03678d577c04a84109c55f"
+    },
+    {
+      "path": "scripts/merge_guru_extensions.py",
+      "sha256": "87abe44fe054ddf520a6872a5b120cb252fbacf1250eb1f50c625e12a1529853"
+    },
+    {
+      "path": "static/data/guru_evidence.json",
+      "sha256": "cefc8725bc7db514eed5a6c4a40af1e23d47ab5eb01d78c745bfbad4c06a70cf"
+    },
+    {
+      "path": "static/data/guru_financials.json",
+      "sha256": "174eaaa1069f7175ecd227cc6c5613991720498ebfd87620857f0cc1ec427eb4"
+    },
+    {
+      "path": "static/data/guru_market.json",
+      "sha256": "2bf3585070730df0d864c8789b28563637ddb31267cb80aef41223b362b9dff9"
+    },
+    {
+      "path": "static/data/guru_quarters.json",
+      "sha256": "61c85d381d7552ea805d7fcad380dddf796fe4f7ec5578f7f2cf99de48eb80aa"
+    },
+    {
+      "path": "static/data/guru_screening.json",
+      "sha256": "98277d9ed254f49d9235c84ea4dcc13add99ccf1fefbf01dfcec5b679b789a2b"
+    },
+    {
+      "path": "static/data/pick_monitor.json",
+      "sha256": "dceb70c0819bfe9311d984058b5f1f828c2ea486256b895e9abe94d2bda6d499"
+    },
+    {
+      "path": "static/data/pick_monitor_history.json",
+      "sha256": "6068525febe9422854a76026ecf6f554e153162747bc08eb020d3d1e2083efae"
+    },
+    {
+      "path": "static/data/pick_monitor_reviews.json",
+      "sha256": "941e376d23bf4ff16cbb951a00f9d61cb3ccec2ba694a4dcfad5e6a6540c76f0"
+    },
+    {
+      "path": "static/data/screener.json",
+      "sha256": "f9a80d18f6858249b532ab94398dd66dc84e5a7667623082b8157c0b746bf6aa"
+    },
+    {
+      "path": "static/data/screener_meta.json",
+      "sha256": "242e3b07e2b0bb2f76a33959d471ca4416a7dc8e19db13f7d2c2adc8161ec3c8"
+    },
+    {
+      "path": "static/data/screener_top100.json",
+      "sha256": "eb960d0572ba02015ec1b36ea76024dd26c6cb1716978160a95a9c100f6de26e"
+    },
+    {
+      "path": "static/data/screener_validation.json",
+      "sha256": "92197b560f5ce6afb2dfd1cf411f4e156f453e56588c1dda03dc6bdbf7072f18"
+    },
+    {
+      "path": "static/js/ai_pick_ledger_v52.js",
+      "sha256": "c8206fa1cf537a37ff79faeafa0795331f02d6463cea7d2ddc46ea07d2f65e30"
+    },
+    {
+      "path": "static/js/ideas.js",
+      "sha256": "c10fb50b80610740fea3efa190821b0d4de7e80a24dcad6254379bc9791ffae6"
+    },
+    {
+      "path": "static/js/pick_monitor_visible_tab_v1.js",
+      "sha256": "344ffa2a7dada5cf92575590b1d04bf92c237e37b516917e583f3b65351da603"
+    },
+    {
+      "path": "static/js/screener.js",
+      "sha256": "adfe4517617e34e4bbfcb7645f08a6631d088e2360a1adb83915c30ea029324c"
+    },
+    {
+      "path": "tests/test_ai_pick_ledger_ui.py",
+      "sha256": "22b0ca786ae2a84f26969f49528936cf2ef8b077b0bbeb2d3aaaceb5e86e0723"
+    },
+    {
+      "path": "tests/test_guru_action_merge.py",
+      "sha256": "9bed685a2ef5edab5e4f8d22c281e1f678c1dbfd490ad733af76d3b3b2e9f824"
+    },
+    {
+      "path": "tests/test_guru_actions.py",
+      "sha256": "dbf1c2686d20b748858ca3abbfa1ed8dc808cd46bc105a4d33077d0b4aedf62c"
+    },
+    {
+      "path": "tests/test_guru_collection.py",
+      "sha256": "2dd5f76a243f0eaed843e3f73bacf1c0992f00635c70e081f226652367b386c6"
+    },
+    {
+      "path": "tests/test_guru_extensions.py",
+      "sha256": "2bde29870c7a71d76ae08f3fe5f010067876f469992404c67bac0a6596acfaba"
+    },
+    {
+      "path": "tests/test_guru_financials.py",
+      "sha256": "338e44460b46ec335a4c3cbdd88dede5a19a16004eb76f3aacd938605f9b264e"
+    },
+    {
+      "path": "tests/test_guru_market_collection.py",
+      "sha256": "9dc7305a627eb44c03024b721e73be186038e0e04b52860e19e7a4e21a9ff54d"
+    },
+    {
+      "path": "tests/test_guru_publication.py",
+      "sha256": "6c6b18750f75d6f2eb16bd8e0b011e4ba916e70b35b0676e0a2a4acbd3402ead"
+    },
+    {
+      "path": "tests/test_guru_refresh_merge.py",
+      "sha256": "65a8201967030b02934329ea3f26818de563f5c0c8472f6a2baa97f4220aa9a0"
+    },
+    {
+      "path": "tests/test_guru_rules.py",
+      "sha256": "c6a8210c8bbe6da90a09686945bb4a04f6bca342b40d86fb83ec8e96ee720bb9"
+    },
+    {
+      "path": "tests/test_guru_saved_data.py",
+      "sha256": "b9a8b4ae0cb2e346fcb1d3bcb4edc10fb5ae62e840f7fa71ff51d5d61432c59a"
+    },
+    {
+      "path": "tests/test_guru_service.py",
+      "sha256": "6e88b9408cec4b66f0619fc91c78bb6b292d15de74782c3ffe230364f5ac9b6c"
+    },
+    {
+      "path": "tests/test_guru_snapshot.py",
+      "sha256": "03cb9f9f4e0727bb7054e3a10e2b2e5277d0ee301a48b1ffa602f95c31ab1125"
+    },
+    {
+      "path": "tests/test_pick_monitor.py",
+      "sha256": "163c5b3dd86ce45f55d50ae95e51a3e73851fc54931e2b27b4f62c5113013da2"
+    },
+    {
+      "path": "tests/test_pick_monitor_reviews.py",
+      "sha256": "4ab9697d15c866e00cc708b5bc8e9dd8348a3ef91843d1f2e3dcacb93bdbb89a"
+    },
+    {
+      "path": "tests/test_pick_monitor_ui.py",
+      "sha256": "f2d5c423585dcd6f4a6dd60fcf0f1bed619eb327c11662c7ff5cfa9d6f696709"
+    },
+    {
+      "path": "tests/test_pick_screener_contract.py",
+      "sha256": "d652fc91066afcbd4da9e0efeec11e42f2531f1bd9813f57f857a9f46e350788"
+    },
+    {
+      "path": "tests/test_screener_popular_signals.py",
+      "sha256": "d89052679857bcbd65b6418b1dd09767994dbf5a21846dbb90aad8288451b2a2"
+    }
+  ],
+  "deployment": "pending exact-head CI/merge and production health verification"
+}
