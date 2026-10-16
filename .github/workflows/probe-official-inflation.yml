@@ -1,0 +1,165 @@
+name: Probe Official Inflation
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_ics:
+        description: 'Also check the official BLS calendar once'
+        required: false
+        type: boolean
+        default: true
+  # Register a new branch-only workflow for manual dispatch. This push event
+  # skips the diagnostic job and makes no provider request.
+  push:
+    branches: ['chore/probe-official-inflation-20261016']
+    paths: ['.github/workflows/probe-official-inflation.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: One official BLS API request and optional calendar check
+        env:
+          INCLUDE_ICS: ${{ inputs.include_ics }}
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib
+          import json
+          import math
+          import os
+          import time
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          out = Path('source-proof')
+          out.mkdir()
+          endpoint = 'https://api.bls.gov/publicAPI/v2/timeseries/data/'
+          series_ids = [
+              'CUSR0000SA0', 'CUUR0000SA0',
+              'CUSR0000SA0L1E', 'CUUR0000SA0L1E',
+              'WPSFD4', 'WPUFD4', 'WPSFD49104', 'WPUFD49104',
+          ]
+          body = {'seriesid': series_ids, 'startyear': '2020', 'endyear': '2026'}
+          (out / 'request.json').write_text(json.dumps(body, indent=2))
+          headers = {
+              'User-Agent': 'ChartView public economic-data cache (BLS/FRED)',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+          }
+          report = {
+              'checkedAt': datetime.now(timezone.utc).isoformat(),
+              'documentationUrl': 'https://www.bls.gov/developers/api_signature_v2.htm',
+              'endpoint': endpoint, 'method': 'POST', 'apiRequests': 1,
+              'registeredKeyUsed': False, 'requestTimeoutSeconds': 90,
+              'cacheWritten': False, 'series': [],
+          }
+          started = time.monotonic()
+          raw = b''
+          try:
+              request = Request(endpoint, data=json.dumps(body).encode(), headers=headers, method='POST')
+              with urlopen(request, timeout=90) as response:
+                  report['httpStatus'] = response.status
+                  raw = response.read()
+          except HTTPError as exc:
+              report['httpStatus'] = exc.code
+              raw = exc.read()
+              report['error'] = str(exc)
+          except (URLError, OSError, TimeoutError) as exc:
+              report['httpStatus'] = None
+              report['error'] = str(exc)
+          report['elapsedSeconds'] = round(time.monotonic() - started, 3)
+          report['responseSha256'] = hashlib.sha256(raw).hexdigest()
+          (out / 'bls-api-response.json').write_bytes(raw)
+          try:
+              payload = json.loads(raw)
+          except (ValueError, TypeError):
+              payload = {}
+          report['apiStatus'] = payload.get('status')
+          report['messages'] = payload.get('message')
+          results = payload.get('Results', {})
+          rows = results.get('series', []) if isinstance(results, dict) else []
+          for row in rows:
+              values, unavailable = {}, []
+              for point in row.get('data', []):
+                  period = str(point.get('period', ''))
+                  if not period.startswith('M') or period == 'M13':
+                      continue
+                  month = str(point.get('year', '')) + '-' + period[1:]
+                  try:
+                      value = float(point['value'])
+                      if not math.isfinite(value) or value <= 0:
+                          raise ValueError()
+                  except (ValueError, TypeError, KeyError):
+                      unavailable.append({'month': month, 'value': point.get('value'), 'footnotes': point.get('footnotes')})
+                      continue
+                  values[month] = value
+              ordered = sorted(values)
+              report['series'].append({
+                  'seriesId': row.get('seriesID'),
+                  'returnedRows': len(row.get('data', [])),
+                  'finiteMonthlyCount': len(ordered),
+                  'startMonth': ordered[0] if ordered else None,
+                  'endMonth': ordered[-1] if ordered else None,
+                  'latestMetadata': row.get('data', [])[:1],
+                  'unavailableObservations': unavailable,
+                  'hasSixtyMonthBaseline': bool(ordered and ordered[0] <= '2020-10' and ordered[-1] >= '2026-09'),
+              })
+          report['sixtyMonthHistoryAvailable'] = (
+              report.get('httpStatus') == 200 and report.get('apiStatus') == 'REQUEST_SUCCEEDED'
+              and {r['seriesId'] for r in report['series']} == set(series_ids)
+              and all(r['hasSixtyMonthBaseline'] and r['finiteMonthlyCount'] >= 71 for r in report['series'])
+          )
+          if os.environ.get('INCLUDE_ICS', '').lower() == 'true':
+              calendar_url = 'https://www.bls.gov/schedule/news_release/bls.ics'
+              calendar = {'url': calendar_url, 'requests': 1, 'timeoutSeconds': 20}
+              calendar_started = time.monotonic()
+              calendar_raw = b''
+              try:
+                  request = Request(calendar_url, headers={'User-Agent': headers['User-Agent'], 'Accept': 'text/calendar'})
+                  with urlopen(request, timeout=20) as response:
+                      calendar['httpStatus'] = response.status
+                      calendar_raw = response.read()
+              except HTTPError as exc:
+                  calendar['httpStatus'] = exc.code
+                  calendar_raw = exc.read()
+                  calendar['error'] = str(exc)
+              except (URLError, OSError, TimeoutError) as exc:
+                  calendar['httpStatus'] = None
+                  calendar['error'] = str(exc)
+              calendar['elapsedSeconds'] = round(time.monotonic() - calendar_started, 3)
+              calendar['bytes'] = len(calendar_raw)
+              calendar['validCalendarHeader'] = calendar_raw.startswith(b'BEGIN:VCALENDAR')
+              calendar['sha256'] = hashlib.sha256(calendar_raw).hexdigest()
+              (out / 'bls-calendar.ics').write_bytes(calendar_raw)
+              report['calendar'] = calendar
+          (out / 'summary.json').write_text(json.dumps(report, indent=2))
+          print(json.dumps(report, indent=2))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Official BLS diagnostic only; no data cache writes.\n\n')
+              summary.write('API HTTP/status: ' + str(report.get('httpStatus')) + ' / ' + str(report.get('apiStatus')) + '\n\n')
+              summary.write('Sixty-month baseline available: ' + str(report['sixtyMonthHistoryAvailable']) + '\n\n')
+              if 'calendar' in report:
+                  summary.write('Official calendar HTTP: ' + str(report['calendar'].get('httpStatus')) + '\n')
+          if not report['sixtyMonthHistoryAvailable']:
+              raise SystemExit('Official API did not prove the required saved-history bounds; see artifact.')
+          PY
+
+      - name: Upload official source proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-inflation-source-proof-${{ github.run_id }}
+          path: source-proof/
+          retention-days: 7
+          if-no-files-found: error
