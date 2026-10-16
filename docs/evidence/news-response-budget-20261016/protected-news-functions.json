@@ -1,0 +1,34 @@
+{
+  "base": "a406a4c074a086017363e2c99d677488ce8da55d",
+  "functions": [
+    {
+      "name": "_investment_relevance",
+      "sha256": "203de85b4e93f557b675cb8cdd51c331eabcee55fe403dc7db87609d8dbbc0ed"
+    },
+    {
+      "name": "_relation_meta",
+      "sha256": "3cbab6ce2aa6b00715042ed97565f4253305bbe1b5a712256fe83ff5fa8b8f38"
+    },
+    {
+      "name": "_news_score",
+      "sha256": "66d60a9a88f371da5767c4a1da6d624d56297f49cc8037606fbdbffec0a89875"
+    },
+    {
+      "name": "_balanced_highlights",
+      "sha256": "45df061706e334daaadb87e27b20bc8d243101274906f69dd264c7e5ee50d8a1"
+    },
+    {
+      "name": "_dedupe",
+      "sha256": "0c4447fea853b05af1d7dd3850f2826cf840500165d3b679200022d68d2337c5"
+    },
+    {
+      "name": "_fetch_naver_news",
+      "sha256": "6e284e41ecef167db40e10c19fc1e46c9eb8f79f95490313848473e59ab6daa1"
+    },
+    {
+      "name": "_fetch_finnhub_news",
+      "sha256": "0d4dde5b21f97d653e7d2215af448e4ecc37989e60a8749f63a0d80c9db024e4"
+    }
+  ],
+  "mainAndFinancialCode": "unchanged"
+}

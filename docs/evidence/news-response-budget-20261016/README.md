@@ -1,0 +1,1 @@
+Raw pytest logs are gzip-compressed without changing their bytes; logs.json records raw and archive SHA256. Use gunzip -k FILE.txt.gz to read them. The initial RED and concurrent-force RED are preserved separately from final44/975 GREEN results. Benchmark inputs are synthetic local ASGI fixtures, not production data.

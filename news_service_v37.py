@@ -10,7 +10,10 @@ Public response policy:
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import Future
+from copy import deepcopy
 import html
+import math
 import os
 import re
 import threading
@@ -31,6 +34,12 @@ MAX_ITEMS_PER_SYMBOL = 6
 PROVIDER_CONCURRENCY = 4
 _PROVIDER_SEMAPHORE = threading.BoundedSemaphore(PROVIDER_CONCURRENCY)
 _CACHE_LOCK = threading.Lock()
+NEWS_RESPONSE_BUDGET = 7.0
+NEWS_OWNER_LIMIT = 64
+# Concurrent futures belong to real queued/running workers, not a request loop.
+_NEWS_OWNERS: dict[str, Future] = {}
+_OWNER_LOCK = threading.Lock()
+_FETCH_GENERATION = 0
 
 MIN_HIGHLIGHT_INVESTMENT_SCORE = 18.0
 
@@ -313,27 +322,120 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 
 
+def _news_key(symbol: str, name: str) -> str:
+    return f"{symbol}|{name}".upper()
+
+
+def _valid_news_data(data: object) -> bool:
+    return (isinstance(data, dict) and isinstance(data.get("items"), list)
+            and all(isinstance(row, dict) for row in data["items"])
+            and (data.get("error") is None or isinstance(data.get("error"), str)))
+
+
+def _news_error(symbol: str, code: str) -> dict:
+    return {"items": [], "error": code,
+            "provider": "naver-api-hub" if _is_kr(symbol) else "finnhub"}
+
+
+def _cache_hit_locked(key: str, *, retry_errors_only: bool = False) -> dict | None:
+    cached = NEWS_CACHE.get(key)
+    if not isinstance(cached, dict) or not _valid_news_data(cached.get("data")):
+        return None
+    checked = cached.get("cachedAt")
+    if not isinstance(checked, (int, float)) or isinstance(checked, bool):
+        return None
+    try:
+        age = time.time() - checked
+        if not math.isfinite(age) or not 0 <= age < NEWS_CACHE_TTL:
+            return None
+    except OverflowError:
+        return None
+    if retry_errors_only and cached["data"].get("error"):
+        return None
+    return {**deepcopy(cached["data"]), "cache": "hit"}
+
+
 def _cached_fetch(symbol: str, name: str, *, force: bool = False, retry_errors_only: bool = False) -> dict:
-    key = f"{symbol}|{name}".upper()
+    global _FETCH_GENERATION
+    key = _news_key(symbol, name)
     with _CACHE_LOCK:
-        cached = NEWS_CACHE.get(key)
-        retry_cached_error = retry_errors_only and cached and bool(cached["data"].get("error"))
-        if cached and not force and not retry_cached_error and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
-            return {**cached["data"], "cache": "hit"}
+        hit = None if force else _cache_hit_locked(key, retry_errors_only=retry_errors_only)
+        if hit is not None:
+            return hit
+        _FETCH_GENERATION += 1
+        generation = _FETCH_GENERATION
 
     try:
         with _PROVIDER_SEMAPHORE:
+            # Capacity may have been occupied while another consumer filled it.
+            if not force:
+                with _CACHE_LOCK:
+                    hit = _cache_hit_locked(key, retry_errors_only=retry_errors_only)
+                if hit is not None:
+                    return hit
             data = _fetch_naver_news(symbol, name) if _is_kr(symbol) else _fetch_finnhub_news(symbol, name)
+        if not _valid_news_data(data):
+            data = _news_error(symbol, "provider_error:InvalidResponse")
     except Exception as exc:
-        data = {
-            "items": [],
-            "error": f"provider_error:{type(exc).__name__}",
-            "provider": "naver-api-hub" if _is_kr(symbol) else "finnhub",
-        }
+        data = _news_error(symbol, f"provider_error:{type(exc).__name__}")
 
     with _CACHE_LOCK:
-        NEWS_CACHE[key] = {"cachedAt": time.time(), "data": data}
-    return {**data, "cache": "miss"}
+        cached = NEWS_CACHE.get(key)
+        current_generation = cached.get("generation", 0) if isinstance(cached, dict) else 0
+        if isinstance(current_generation, int) and current_generation > generation:
+            # A newer explicit internal refresh already completed. Never roll it
+            # back with an older acquisition, including after a public timeout.
+            if force:
+                return {**deepcopy(data), "cache": "miss"}
+            return _cache_hit_locked(key) or _news_error(symbol, "news_superseded")
+        NEWS_CACHE[key] = {"cachedAt": time.time(), "data": deepcopy(data), "generation": generation}
+    return {**deepcopy(data), "cache": "miss"}
+
+
+def _finish_news_owner(key: str, owner: Future, symbol: str, name: str, retry_errors_only: bool) -> None:
+    try:
+        options = {"retry_errors_only": True} if retry_errors_only else {}
+        data = _cached_fetch(symbol, name, **options)
+        if not _valid_news_data(data):
+            data = _news_error(symbol, "provider_error:InvalidResponse")
+    except Exception as exc:
+        data = _news_error(symbol, f"internal_error:{type(exc).__name__}")
+    # Future callbacks can run synchronously: publish outside the registry lock.
+    try:
+        owner.set_result(data)
+    finally:
+        with _OWNER_LOCK:
+            if _NEWS_OWNERS.get(key) is owner:
+                del _NEWS_OWNERS[key]
+
+
+def _public_news_result(symbol: str, name: str, *, retry_errors_only: bool) -> dict | Future:
+    key = _news_key(symbol, name)
+    with _CACHE_LOCK:
+        hit = _cache_hit_locked(key, retry_errors_only=retry_errors_only)
+    if hit is not None:
+        return hit
+    with _OWNER_LOCK:
+        # Recheck under the handoff lock: a prior owner can finish between the
+        # first cache check and owner lookup. Healthy hits also bypass capacity.
+        with _CACHE_LOCK:
+            hit = _cache_hit_locked(key, retry_errors_only=retry_errors_only)
+        if hit is not None:
+            return hit
+        owner = _NEWS_OWNERS.get(key)
+        if owner is not None:
+            return owner
+        if len(_NEWS_OWNERS) >= NEWS_OWNER_LIMIT:
+            return _news_error(symbol, "news_busy")
+        owner = Future()
+        _NEWS_OWNERS[key] = owner
+        try:
+            asyncio.get_running_loop().run_in_executor(None, _finish_news_owner,
+                key, owner, symbol, name, retry_errors_only)
+        except Exception as exc:
+            del _NEWS_OWNERS[key]
+            return _news_error(symbol, f"internal_error:{type(exc).__name__}")
+        return owner
 
 
 @router.get("/api/personalized-news")
@@ -342,6 +444,8 @@ async def personalized_news(
     names: str = Query(default="", max_length=1400),
     force: bool = False,
 ):
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + NEWS_RESPONSE_BUDGET
     raw_symbols = [part.strip().upper() for part in tickers.split(",") if part.strip()]
     symbols: list[str] = []
     for symbol in raw_symbols:
@@ -358,13 +462,26 @@ async def personalized_news(
             "displayPolicy": "headline-source-time-link-summary-seed",
         }
 
-    # Public explicit retry refreshes failed groups only. Internal force=True
-    # retains the full cache bypass required by relationship evidence retries.
-    retry_options = {"retry_errors_only": True} if force else {}
-    fetched = await asyncio.gather(
-        *[asyncio.to_thread(_cached_fetch, symbol, name_map[symbol], **retry_options) for symbol in symbols],
-        return_exceptions=True,
-    )
+    fetched: list[dict | None] = [None] * len(symbols)
+    waiters: dict[int, asyncio.Future] = {}
+    try:
+        for index, symbol in enumerate(symbols):
+            result = _public_news_result(symbol, name_map[symbol], retry_errors_only=force)
+            if isinstance(result, Future):
+                # Each caller owns its shield only; timeout/disconnect cannot
+                # cancel the real worker or another loop/caller's acquisition.
+                waiters[index] = asyncio.shield(asyncio.wrap_future(result))
+            else:
+                fetched[index] = result
+        if waiters:
+            await asyncio.wait(waiters.values(), timeout=max(0.0, deadline - loop.time()))
+        for index, waiter in waiters.items():
+            fetched[index] = (deepcopy(waiter.result()) if waiter.done() and not waiter.cancelled()
+                              else _news_error(symbols[index], "news_timeout"))
+    finally:
+        for waiter in waiters.values():
+            if not waiter.done():
+                waiter.cancel()
 
     groups: list[dict] = []
     errors: list[dict] = []
