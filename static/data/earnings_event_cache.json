@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "earnings-events-v1",
+  "generatedAt": "2026-10-16T01:59:29.657465Z",
+  "sources": {
+    "AAPL": {
+      "status": "ok",
+      "checkedAt": "2026-10-16T01:59:29.657465Z",
+      "attemptedAt": "2026-10-16T01:59:29.657465Z",
+      "sourceUrl": "https://investor.apple.com/investor-relations/default.aspx",
+      "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1"
+    },
+    "005930.KS": {
+      "status": "ok",
+      "checkedAt": "2026-10-16T01:59:29.657465Z",
+      "attemptedAt": "2026-10-16T01:59:29.657465Z",
+      "sourceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
+      "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/"
+    },
+    "NVDA": {
+      "status": "ok",
+      "checkedAt": "2026-10-16T01:59:29.657465Z",
+      "attemptedAt": "2026-10-16T01:59:29.657465Z",
+      "sourceUrl": "https://investor.nvidia.com/events-and-presentations/events-and-presentations/default.aspx",
+      "evidenceUrl": "https://investor.nvidia.com/rss/Event.aspx?LanguageId=1"
+    },
+    "000660.KS": {
+      "status": "not_collected",
+      "checkedAt": null,
+      "attemptedAt": null,
+      "reason": "official_schedule_not_collected"
+    }
+  },
+  "events": [
+    {
+      "id": "AAPL:earnings_call:2026-11-02T22:00:00Z",
+      "symbol": "AAPL",
+      "name": "Apple",
+      "title": "FY 26 Fourth Quarter Results conference call",
+      "eventType": "earnings_call",
+      "timingRole": "conference_call",
+      "scheduledAt": "2026-11-02T22:00:00Z",
+      "timezone": "America/New_York",
+      "publishedAt": null,
+      "source": {
+        "name": "Apple Investor Relations",
+        "url": "https://investor.apple.com/investor-relations/default.aspx",
+        "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1",
+        "publishedAt": "2026-10-06T21:09:11Z",
+        "checkedAt": "2026-10-16T01:59:29.657465Z",
+        "contentSha256": "3f4c922c263432dc7f901fb4c7340bf013acc26349931f7dfffe9707532a22a0"
+      }
+    },
+    {
+      "id": "005930.KS:earnings_call:2026-10-29T01:00:00Z",
+      "symbol": "005930.KS",
+      "name": "삼성전자",
+      "title": "3Q26 Earnings Conference Call",
+      "eventType": "earnings_call",
+      "timingRole": "conference_call",
+      "scheduledAt": "2026-10-29T01:00:00Z",
+      "timezone": "Asia/Seoul",
+      "publishedAt": null,
+      "source": {
+        "name": "Samsung Electronics Investor Relations",
+        "url": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
+        "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
+        "publishedAt": null,
+        "checkedAt": "2026-10-16T01:59:29.657465Z",
+        "contentSha256": "ef4cdea568d68c1651d2154ce0cb7279c2a266760a75f2d4a81a785993297a3f"
+      }
+    }
+  ]
+}

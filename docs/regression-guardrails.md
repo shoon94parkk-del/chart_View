@@ -375,3 +375,9 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 - A successful Home-major quote must publish through the existing timestamp/start-time guard as soon as that individual awaited provider result completes. Do not defer it to unrelated missing symbols.
 - The original quotes HTTP response still waits for the complete batch and preserves ordering, errors, counters and fresh semantics. Early Home publication does not certify full batch completion.
 - Do not paper over the current latest-main PICK ledger mismatch by filtering ETFs or weakening the unchanged ranking/ledger contract test.
+
+
+### 2026-10-16 — Optional release-reading datasets
+- Original macro16/cache/summary and Home payload stay independent of inflation graph/calendar availability; optional malformed schedule rows must not break macro. Readers perform no provider HTTP calls.
+- Keep NSA year-over-year / SA month-over-month, exact calendar offsets, null gaps, explicit source/month/release/collection/check/revision metadata. Do not interpolate or infer official release times.
+- A verified issuer conference call is not a verified earnings-publication timestamp. No historical surprise/reaction without pre-event immutable estimates and compatible accounting/trading data.
