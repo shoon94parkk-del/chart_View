@@ -17,6 +17,7 @@ import math
 from pathlib import Path
 import re
 from typing import Any, Callable
+from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 import requests
@@ -56,6 +57,13 @@ def month_shift(month: str, offset: int) -> str:
 
 
 def get_text(url: str) -> str:
+    if url == ICS_URL:
+        request = Request(url, headers={
+            'User-Agent': 'ChartView public economic-data cache (BLS/FRED)',
+            'Accept': 'text/calendar',
+        })
+        with urlopen(request, timeout=25) as response:
+            return response.read().decode('utf-8-sig')
     response = requests.get(url, timeout=25, headers={
         'User-Agent': 'ChartView public economic-data cache (BLS/FRED)',
         'Accept': 'text/csv,text/html;q=0.9,*/*;q=0.5',
@@ -305,7 +313,7 @@ def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] 
         elif key == 'DTSTART;VALUE=DATE':
             local = datetime.strptime(value, '%Y%m%d').replace(tzinfo=EASTERN)
             scheduled, local_time = None, None
-            if local.date() < now.astimezone(EASTERN).date():
+            if not cancelled and local.date() < now.astimezone(EASTERN).date():
                 continue
         else:
             if key == 'DTSTART' and value.endswith('Z'):
@@ -317,7 +325,7 @@ def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] 
                     raise ValueError('ambiguous or nonexistent official local time')
             else:
                 raise ValueError('official calendar timezone unavailable')
-            if local <= now:
+            if not cancelled and local <= now:
                 continue
             scheduled, local_time = stamp(local), local.strftime('%H:%M')
         old = saved_uids.get((group, uid)) or (saved.get((group, scheduled), {}) if scheduled else {})

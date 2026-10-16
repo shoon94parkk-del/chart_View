@@ -524,3 +524,34 @@ def test_definition_carries_only_verified_latest_preliminary_note():
         series['data'][0]['footnotes']=[]
     result2=mod.refresh_cache(now=datetime(2026,10,16,tzinfo=timezone.utc),fetch_text=unavailable_text,fetch_bls=lambda *args:payload)
     assert all(r['definition']==mod.SERIES[r['id']]['definition'] for r in result2['inflation']['series'])
+
+
+@pytest.mark.parametrize('old_dtstart',['DTSTART;TZID=US-Eastern:20261015T083000','DTSTART;VALUE=DATE:20261014'])
+def test_ics_past_cancellation_date_still_retires_future_cached_uid(old_dtstart):
+    mod=generator();old={'id':'cpi:2026-10','sourceUid':'official-cpi','indicator':'cpi','observationMonth':'2026-10',
+        'scheduledAt':'2026-11-10T13:30:00Z','localDate':'2026-11-10','localTime':'08:30',
+        'sourceUrl':mod.ICS_URL,'checkedAt':'2026-10-15T00:00:00Z'}
+    def source(url):
+        if url==mod.ICS_URL:return ics_calendar(['UID:official-cpi\nSUMMARY:Consumer Price Index\nSTATUS:CANCELLED\n'+old_dtstart])
+        raise RuntimeError('HTML unavailable')
+    result=mod.refresh_cache({'releaseCalendar':{'events':[old]}},now=datetime(2026,10,16,tzinfo=timezone.utc),fetch_text=source)
+    assert not any(e['id']=='cpi:2026-10' for e in result['releaseCalendar']['events'])
+    assert result['releaseCalendar']['sources']['cpi']['cancelledEventCount']==1
+
+
+def test_ics_uses_verified_stdlib_transport_only_for_official_calendar(monkeypatch):
+    mod=generator();calls=[]
+    class Response:
+        def __enter__(self):return self
+        def __exit__(self,*args):return None
+        def read(self):return b'BEGIN:VCALENDAR\nEND:VCALENDAR\n'
+    def open_url(request,timeout):
+        calls.append((request,timeout));return Response()
+    monkeypatch.setattr(mod,'urlopen',open_url,raising=False)
+    monkeypatch.setattr(mod.requests,'get',lambda *args,**kwargs:pytest.fail('ICS must use verified stdlib transport'))
+    assert mod.get_text(mod.ICS_URL)=='BEGIN:VCALENDAR\nEND:VCALENDAR\n'
+    assert len(calls)==1 and calls[0][1]==25
+    request=calls[0][0]
+    assert request.full_url=='https://www.bls.gov/schedule/news_release/bls.ics'
+    assert request.get_header('User-agent')=='ChartView public economic-data cache (BLS/FRED)'
+    assert request.get_header('Accept')=='text/calendar'
