@@ -461,3 +461,66 @@ def test_bls_transport_is_one_keyless_eight_series_post_with_25_second_timeout(m
     with pytest.raises(mod.requests.Timeout):
         mod.fetch_bls_batch(2020,2026)
     assert len(calls)==1
+
+
+@pytest.mark.parametrize('with_time,with_other_event',[(True,True),(True,False),(False,False)])
+def test_ics_cancellation_removes_old_uid_even_without_active_rows(with_time,with_other_event):
+    mod=generator();now=datetime(2026,10,16,tzinfo=timezone.utc)
+    old={'id':'cpi:2026-10','sourceUid':'official-cpi','indicator':'cpi','observationMonth':'2026-10',
+         'scheduledAt':'2026-11-10T13:30:00Z','localDate':'2026-11-10','localTime':'08:30',
+         'sourceUrl':mod.ICS_URL,'checkedAt':'2026-10-15T00:00:00Z'}
+    cancelled='UID:official-cpi\nSUMMARY:Consumer Price Index\nSTATUS:CANCELLED'
+    if with_time:cancelled+='\nDTSTART;TZID=US-Eastern:20261110T083000'
+    records=[cancelled]
+    if with_other_event:records.append('UID:ppi\nSUMMARY:Producer Price Index\nDTSTART;TZID=US-Eastern:20261113T083000')
+    def source(url):
+        if url==mod.ICS_URL:return ics_calendar(records)
+        raise RuntimeError('HTML unavailable')
+    result=mod.refresh_cache({'releaseCalendar':{'events':[old]}},now=now,fetch_text=source)
+    assert not any(e['id']=='cpi:2026-10' for e in result['releaseCalendar']['events'])
+    assert result['releaseCalendar']['sources']['cpi']['cancelledEventCount']==1
+    assert result['releaseCalendar']['sources']['cpi']['checkedAt']=='2026-10-16T00:00:00Z'
+
+
+def test_ics_replacement_quarantines_uidless_html_seed_in_covered_release_month():
+    mod=generator();now=datetime(2026,10,16,tzinfo=timezone.utc)
+    old=mod.parse_schedule(schedule_html([('October 2026','Nov. 10, 2026','08:30 AM'),('January 2027','Feb. 11, 2027','08:30 AM')]),'cpi',now=datetime(2026,10,15,tzinfo=timezone.utc))
+    def source(url):
+        if url==mod.ICS_URL:return ics_calendar(['UID:replacement\nSUMMARY:Consumer Price Index\nDTSTART;TZID=US-Eastern:20261111T083000'])
+        raise RuntimeError('HTML unavailable')
+    result=mod.refresh_cache({'releaseCalendar':{'checkedAt':'2026-10-15T00:00:00Z','events':old}},now=now,fetch_text=source)
+    events=result['releaseCalendar']['events']
+    assert not any(e['scheduledAt']=='2026-11-10T13:30:00Z' for e in events)
+    replacement=next(e for e in events if e.get('sourceUid')=='replacement')
+    assert replacement['observationMonth'] is None
+    far=next(e for e in events if e['scheduledAt']=='2027-02-11T13:30:00Z')
+    assert far['checkedAt']=='2026-10-15T00:00:00Z'
+    assert result['releaseCalendar']['status']=='partial'
+
+
+@pytest.mark.parametrize('second_status',['','STATUS:CANCELLED\n'])
+def test_ics_rejects_duplicate_uid_across_active_or_cancelled_events(second_status):
+    mod=generator();text=ics_calendar(['UID:duplicate\nSUMMARY:Consumer Price Index\nDTSTART;TZID=US-Eastern:20261110T083000',
+        'UID:duplicate\nSUMMARY:Consumer Price Index\n'+second_status+'DTSTART;TZID=US-Eastern:20261111T083000'])
+    with pytest.raises(ValueError,match='duplicate.*UID'):
+        mod.parse_ics_calendar(text,now=datetime(2026,10,16,tzinfo=timezone.utc))
+
+
+def test_bls_boolean_value_is_not_a_numeric_observation():
+    mod=generator();payload=bls_payload()
+    payload['Results']['series'][0]['data'][0]['value']=True
+    parsed=mod.parse_bls_batch(payload)
+    assert not any(p['month']=='2026-09' for p in parsed['CUSR0000SA0'])
+
+
+def test_definition_carries_only_verified_latest_preliminary_note():
+    mod=generator();result=mod.refresh_cache(now=datetime(2026,10,16,tzinfo=timezone.utc),fetch_text=unavailable_text,fetch_bls=lambda *args:bls_payload())
+    rows={r['id']:r for r in result['inflation']['series']}
+    note=' 최근 값은 잠정치로 추후 수정될 수 있어요.'
+    assert rows['core_ppi']['definition']==mod.SERIES['core_ppi']['definition']+note
+    assert rows['cpi']['definition']==mod.SERIES['cpi']['definition']
+    payload=bls_payload()
+    for series in payload['Results']['series']:
+        series['data'][0]['footnotes']=[]
+    result2=mod.refresh_cache(now=datetime(2026,10,16,tzinfo=timezone.utc),fetch_text=unavailable_text,fetch_bls=lambda *args:payload)
+    assert all(r['definition']==mod.SERIES[r['id']]['definition'] for r in result2['inflation']['series'])

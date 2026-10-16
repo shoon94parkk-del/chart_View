@@ -104,6 +104,8 @@ def parse_bls_batch(payload: dict) -> dict[str, list[dict]]:
             if not re.fullmatch(r'\d{4}', year):
                 continue
             month = year + '-' + point['period'][1:]
+            if isinstance(point.get('value'), bool):
+                continue
             try:
                 value = float(point.get('value'))
             except (ValueError, TypeError):
@@ -198,8 +200,10 @@ def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: dateti
         indexes = {'yoy': {r['month']: r for r in nsa}, 'mom': {r['month']: r for r in sa}}
         for point in points:
             point['sourceFootnotes'] = {metric: rows.get(point['month'], {}).get('footnotes', []) for metric, rows in indexes.items()}
+    preliminary = any(n.get('code') == 'P' for notes in points[-1].get('sourceFootnotes', {}).values() for n in notes)
     return {
-        'id': series_id, 'name': meta['name'], 'definition': meta['definition'],
+        'id': series_id, 'name': meta['name'],
+        'definition': meta['definition'] + (' 최근 값은 잠정치로 추후 수정될 수 있어요.' if preliminary else ''),
         'unit': '%', 'frequency': 'monthly', 'basis': {'yoy': 'NSA', 'mom': 'SA'},
         'status': 'ok' if complete else 'partial', 'asOf': points[-1]['month'],
         'publishedAt': points[-1]['publishedAt'], 'publicationSourceUrl': PUBLICATION_URLS[meta['group']] if points[-1]['publishedAt'] else None,
@@ -207,7 +211,7 @@ def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: dateti
         'revisionStatus': 'revised' if revised else 'unknown',
         'revisionCheckedAt': timestamp if previous.get('sourceIndices') else None,
         'revisionNote': 'Current source vintage. Revised means overlapping index values changed since the prior successful cache; original-release vintage is unavailable. BLS preliminary footnotes describe observation status, not a detected revision.',
-        'observationStatus': 'preliminary' if any(n.get('code') == 'P' for notes in points[-1].get('sourceFootnotes', {}).values() for n in notes) else 'unknown',
+        'observationStatus': 'preliminary' if preliminary else 'unknown',
         'source': source,
         'points': points, 'sourceIndices': source_indices,
         'coverage': {'startMonth': points[0]['month'], 'endMonth': points[-1]['month'], 'months': len(points),
@@ -265,7 +269,8 @@ def parse_schedule(html: str, group: str, *, now: datetime) -> list[dict[str, An
     return events
 
 
-def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] | None = None) -> list[dict]:
+def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] | None = None,
+                       include_cancelled: bool = False) -> list[dict]:
     """Use explicit ICS times; reference months only survive an exact saved match."""
     text = re.sub(r'\r?\n[ \t]', '', text.lstrip('\ufeff')).replace('\r\n', '\n')
     if not text.startswith('BEGIN:VCALENDAR\n') or text.count('BEGIN:VEVENT') != text.count('END:VEVENT'):
@@ -273,7 +278,7 @@ def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] 
     saved = {(e.get('indicator'), e.get('scheduledAt')): e for e in previous_events or [] if e.get('scheduledAt')}
     saved_uids = {(e.get('indicator'), e.get('sourceUid')): e for e in previous_events or [] if e.get('sourceUid')}
     groups = {'Consumer Price Index': 'cpi', 'Producer Price Index': 'ppi'}
-    events = []
+    events, seen_uids = [], set()
     for block in re.findall(r'BEGIN:VEVENT\n(.*?)\nEND:VEVENT', text, re.S):
         fields = {}
         for line in block.splitlines():
@@ -284,13 +289,20 @@ def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] 
                     raise ValueError('duplicate official calendar property')
                 fields[name] = (key, value)
         group = groups.get(fields.get('SUMMARY', ('', ''))[1])
-        if not group or fields.get('STATUS', ('', ''))[1] == 'CANCELLED':
+        if not group:
             continue
+        cancelled = fields.get('STATUS', ('', ''))[1] == 'CANCELLED'
         uid = fields.get('UID', ('', ''))[1]
         key, value = fields.get('DTSTART', ('', ''))
         if not uid:
             raise ValueError('official calendar UID unavailable')
-        if key == 'DTSTART;VALUE=DATE':
+        if uid in seen_uids:
+            raise ValueError('duplicate official calendar UID')
+        seen_uids.add(uid)
+        if cancelled and not key:
+            # A cancellation identity alone retires a previously known UID.
+            local, scheduled, local_time = None, None, None
+        elif key == 'DTSTART;VALUE=DATE':
             local = datetime.strptime(value, '%Y%m%d').replace(tzinfo=EASTERN)
             scheduled, local_time = None, None
             if local.date() < now.astimezone(EASTERN).date():
@@ -314,13 +326,14 @@ def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] 
             'name': '미국 CPI·근원 CPI' if group == 'cpi' else '미국 PPI·근원 PPI',
             'observationMonth': old.get('observationMonth'),
             'observationMonthSourceUrl': old.get('observationMonthSourceUrl') or old.get('sourceUrl'),
-            'scheduledAt': scheduled, 'localDate': local.strftime('%Y-%m-%d'), 'localTime': local_time,
-            'timeZone': 'America/New_York', 'status': 'confirmed', 'sourceUrl': ICS_URL,
+            'scheduledAt': scheduled, 'localDate': local.strftime('%Y-%m-%d') if local else None, 'localTime': local_time,
+            'timeZone': 'America/New_York', 'status': 'cancelled' if cancelled else 'confirmed', 'sourceUrl': ICS_URL,
             'sourceUid': uid, 'checkedAt': stamp(now),
         })
     if not events:
         raise ValueError('official calendar has no future CPI/PPI entries')
-    return sorted(events, key=lambda e: (e['localDate'], e['localTime'] or '', e['id']))
+    visible = events if include_cancelled else [e for e in events if e['status'] == 'confirmed']
+    return sorted(visible, key=lambda e: (e['localDate'] or '', e['localTime'] or '', e['id']))
 
 
 def parse_publication(html: str, group: str) -> dict[str, str]:
@@ -437,23 +450,30 @@ def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
     ics_events = []
     if failed_groups:
         try:
-            ics_events = parse_ics_calendar(fetch_text(ICS_URL), now=now, previous_events=old_calendar.get('events', []))
+            ics_events = parse_ics_calendar(fetch_text(ICS_URL), now=now, previous_events=old_calendar.get('events', []), include_cancelled=True)
         except Exception as exc:
             errors[ICS_URL] = str(exc)
             ics_events = []
         for group in failed_groups:
-            fresh = [e for e in ics_events if e['indicator'] == group]
-            if not fresh:
+            signals = [e for e in ics_events if e['indicator'] == group]
+            if not signals:
                 continue
-            confirmed = {(e['scheduledAt'], e['localDate']) for e in fresh}
-            confirmed_uids = {e['sourceUid'] for e in fresh}
+            fresh = [e for e in signals if e['status'] == 'confirmed']
+            confirmed = {(e['scheduledAt'], e['localDate']) for e in signals if e['localDate']}
+            confirmed_uids = {e['sourceUid'] for e in signals}
+            # Release-date calendar months bound the uncertain HTML seed rows
+            # to suppress; they never supply an observation/reference month.
+            covered_months = {e['localDate'][:7] for e in signals if e['localDate']}
             retained = [e for e in events_by_group[group]
-                        if (e.get('scheduledAt'), e.get('localDate')) not in confirmed and e.get('sourceUid') not in confirmed_uids]
+                        if (e.get('scheduledAt'), e.get('localDate')) not in confirmed
+                        and e.get('sourceUid') not in confirmed_uids
+                        and not (not e.get('sourceUid') and str(e.get('localDate', ''))[:7] in covered_months)]
             for event in retained:
                 event['checkStatus'] = 'stale'
             events_by_group[group] = fresh + retained
             sources[group] = {'sourceUrl': ICS_URL, 'status': 'partial' if retained else 'ok',
-                              'checkedAt': stamp(now), 'freshEventCount': len(fresh), 'retainedEventCount': len(retained)}
+                              'checkedAt': stamp(now), 'freshEventCount': len(fresh), 'retainedEventCount': len(retained),
+                              'cancelledEventCount': sum(e['status'] == 'cancelled' for e in signals)}
     events = [e for group in SCHEDULE_URLS for e in events_by_group[group]]
     events.sort(key=lambda e: (e.get('localDate', ''), e.get('localTime') or '', e['id']))
     complete_calendar = all(s['status'] == 'ok' for s in sources.values())

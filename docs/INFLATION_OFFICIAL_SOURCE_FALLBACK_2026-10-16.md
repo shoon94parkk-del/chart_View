@@ -18,14 +18,14 @@
 
 수집기는 FRED를 먼저 확인한다. SA/NSA 쌍 중 하나라도 실패하거나 범위 검증을 통과하지 못하면 공식 BLS batch를 **최대 한 번** 요청한다. 현재 연도에서 6년 전부터 현재 연도까지의 8개 ID를 보내며, 시간 제한은 25초이고 키·재시도는 없다. BLS 결과는 실패한 지표 쌍에만 적용한다. 성공한 FRED 쌍을 바꾸거나 서로 다른 공급 경로의 SA/NSA를 한 쌍으로 섞지 않는다.
 
-실제로 BLS를 사용한 행의 `source.name`, URL, SA/NSA ID도 BLS로 바뀐다. 원시 인덱스·누락·공식 footnote를 보존한다. CPI 2025년 10월의 `-`에는 공식 X 주석 “Data unavailable due to the 2025 lapse in appropriations”가 있다. 따라서 해당 월 변화율과 다음 달 MoM은 계속 null이다. 최신 PPI의 P 주석은 원발표 후 최대 4개월간 월별 수정 가능한 잠정 지수라고 명시한다. `observationStatus: preliminary`와 원문 주석으로 이를 표시하며, 잠정 여부를 수정 발생 여부로 바꾸어 해석하지 않는다.
+실제로 BLS를 사용한 행의 `source.name`, URL, SA/NSA ID도 BLS로 바뀐다. 원시 인덱스·누락·공식 footnote를 보존한다. CPI 2025년 10월의 `-`에는 공식 X 주석 “Data unavailable due to the 2025 lapse in appropriations”가 있다. 따라서 해당 월 변화율과 다음 달 MoM은 계속 null이다. 최신 PPI의 P 주석은 원발표 후 최대 4개월간 월별 수정 가능한 잠정 지수라고 명시한다. `observationStatus: preliminary`와 원문 주석을 API 메타데이터로 보존한다. 현재 프런트가 이 필드를 별도 배지로 표시하는 것은 아니다. 최신 관측에 공식 P 주석이 있는 경우에만 기존 정의 뒤에 “최근 값은 잠정치로 추후 수정될 수 있어요.”를 덧붙여 기존 정의 UI에서도 확인할 수 있게 한다. 근원 PPI의 원래 정의는 유지하며, 잠정 여부를 수정 발생 여부로 바꾸어 해석하지 않는다.
 
 `checkedAt`와 `collectedAt`는 검증에 성공한 쌍만 갱신한다. 일부 또는 전체 BLS 결과가 없거나 잘못됐으면 그 지표의 마지막 유효 값과 성공 시각을 유지한다. YoY는 정확히 12개월 전 NSA 지수, MoM은 정확히 한 달 전 SA 지수를 사용한다. BLS API 확인 시각을 공식 발표 시각으로 쓰지 않는다. 발표 HTML을 읽지 못한 경우에도 같은 관측월에 대해 이미 검증한 `publishedAt`만 유지하며, 새 관측월 발표 시각은 null이다.
 
-일정 HTML도 우선 경로다. 실패한 일정 종류가 있을 때만 공식 ICS를 한 번 확인한다. 파서는 명시된 UTC 또는 `US-Eastern`/`US/Eastern`/`America/New_York`를 사용하고 DST, 접힌 줄, 날짜만 있는 행을 구분한다. 시간대 없는 시간, 존재하지 않거나 중복되는 DST 현지 시각은 채택하지 않는다. 공식 UID가 같은 일정의 시간 변경은 이전 행을 교체한다.
+일정 HTML도 우선 경로다. 실패한 일정 종류가 있을 때만 공식 ICS를 한 번 확인한다. 파서는 명시된 UTC 또는 `US-Eastern`/`US/Eastern`/`America/New_York`를 사용하고 DST, 접힌 줄, 날짜만 있는 행을 구분한다. 시간대 없는 시간, 존재하지 않거나 중복되는 DST 현지 시각은 채택하지 않는다. 공식 UID가 같은 일정의 시간 변경은 이전 행을 교체한다. 취소 UID는 활성 행사와 별도로 reconciliation에 전달해 취소만 있는 피드에서도 이전 동일 UID 행을 제거한다. 같은 UID의 중복 또는 활성·취소 충돌은 피드 전체를 미확인으로 처리한다. UID가 없는 HTML 시드가 ICS의 명시적 발표일 달 안에서 충돌하면 과거 확정 일정으로 남기지 않고 목록에서 제외한다. 이 발표일 달은 충돌 범위를 좁히는 용도로만 쓰고 관측월을 추정하지 않는다. 그 범위 밖의 미래 행은 이전 확인 시각을 유지한다.
 
 현재 ICS는 앞으로의 CPI/PPI 4개 행사만 포함하고 관측월을 명시하지 않는다. 관측월은 이전에 확인한 동일 종류·동일 시각 또는 동일 공식 UID의 행에서만 유지한다. 새 ICS 전용 행의 관측월은 null이다. 이번 자료에서는 4개 행만 새 확인 시각을 받으며, HTML에서 확인했던 나머지 24개 미래 행은 이전 확인 시각과 함께 보존해 일정 전체를 `partial`로 표시한다. 전체 일정의 `checkedAt`를 모든 행이 새로 확인된 것처럼 올리지 않는다.
 
 보호 범위: 기존 16개 매크로 결과·요약·계산, Home 응답, 요청 시 공급자 호출 여부, PICK/LAB, 인프라와 키 설정을 바꾸지 않는다. 새 전송 경로는 기존 정적 수집기 안에서만 사용한다.
 
-검증: 새 동작 테스트 RED→GREEN을 확인했다. `tests/test_inflation_release_cache.py`와 기존 `tests/test_macro_pce.py`의 대상 검사 30개, release/boot bundle `--check`를 통과했다. 전체 백엔드 CI와 최종 운영 SHA 검증은 통합 PR과 root의 release 기록으로 확인한다.
+검증: 새 동작 테스트 RED→GREEN을 확인했다. `tests/test_inflation_release_cache.py`와 기존 `tests/test_macro_pce.py`의 대상 검사 38개, release/boot bundle `--check`를 통과했다. 전체 백엔드 CI와 최종 운영 SHA 검증은 통합 PR과 root의 release 기록으로 확인한다.
