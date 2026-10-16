@@ -1,6 +1,6 @@
 # September DRAM MoM discrepancy
 
-Status: code fix and local regression validation; **not deployed**.
+Status: 최초 조사는 미배포 상태였으며, 사용자 후속 승인으로 PR #153에 포함해 운영 배포했습니다. 최종 SHA와 운영 확인은 [PR #153 release 댓글](https://github.com/shoon94parkk-del/chart_View/pull/153)을 참조합니다. 아래 원인·초기 검증·당시 승인 범위 기록은 최초 조사 시점을 보존합니다.
 
 ## Reproduction and independent arithmetic
 
