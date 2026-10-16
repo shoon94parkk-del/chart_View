@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 7ef4c48a1d5743dcaed757da551cf7bd8d828592
+          ref: 920cc6013f02baea2dfec15934d37615c9529f37
           persist-credentials: false
 
       - uses: actions/setup-python@v5
@@ -65,7 +65,7 @@ jobs:
           events = result['releaseCalendar']['events']
           current = collector.stamp(checked)
           summary = {
-              'testedCollectorSha': '7ef4c48a1d5743dcaed757da551cf7bd8d828592',
+              'testedCollectorSha': '920cc6013f02baea2dfec15934d37615c9529f37',
               'requestCounts': counts,
               'cacheUnchanged': collector.OUT.read_bytes() == original,
               'originalCacheSha256': hashlib.sha256(original).hexdigest(),
