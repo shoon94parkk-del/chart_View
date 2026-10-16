@@ -57,6 +57,8 @@ from dart_quarter_service import router as dart_quarter_router
 from relationship_evidence_service import router as relationship_evidence_router
 from export_momentum_service import router as export_momentum_router, warm_export_momentum
 from memory_spot_service import router as memory_spot_router
+from inflation_release_service import load_inflation_release_cache
+from earnings_event_service import get_earnings_events
 
 # 전역 캐시 (메모리)
 MACRO_CACHE = {
@@ -2056,6 +2058,20 @@ def generate_macro_summary(ordered_results, net_liquidity):
     }
 
 
+@app.get("/api/earnings-events")
+async def earnings_events(ticker: str = ""):
+    symbol = ticker.strip().upper()
+    if symbol and not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,29}", symbol):
+        raise HTTPException(status_code=400, detail="종목코드를 확인해주세요.")
+    return get_earnings_events(symbol or None)
+
+
+def _macro_release_response(payload):
+    # Keep the established sixteen-indicator cache/summary untouched. These
+    # optional histories are read from a separate precomputed official cache.
+    return {**payload, **load_inflation_release_cache()}
+
+
 @app.get("/api/macro")
 async def macro_data():
     """Serve precomputed FRED/Yahoo macro data from the committed cache.
@@ -2070,7 +2086,7 @@ async def macro_data():
     # Short in-process cache avoids repeated JSON parsing while still
     # allowing a newly deployed cache file to be picked up quickly.
     if MACRO_CACHE["data"] and (current_time - MACRO_CACHE["timestamp"] < 300):
-        return MACRO_CACHE["data"]
+        return _macro_release_response(MACRO_CACHE["data"])
 
     cache_path = os.path.join(os.path.dirname(__file__), "static", "data", "macro_cache.json")
     try:
@@ -2080,7 +2096,7 @@ async def macro_data():
     except Exception as exc:
         print(f"[MACRO] cache unavailable: {exc}")
         if MACRO_CACHE["data"]:
-            return MACRO_CACHE["data"]
+            return _macro_release_response(MACRO_CACHE["data"])
         return JSONResponse(
             {"results": [], "error": "경제지표 캐시를 불러오지 못했습니다.", "cacheMode": "precomputed"},
             status_code=503,
@@ -2094,7 +2110,7 @@ async def macro_data():
     if len(ordered) < 8:
         print(f"[MACRO] cache incomplete: {len(ordered)} rows")
         if MACRO_CACHE["data"]:
-            return MACRO_CACHE["data"]
+            return _macro_release_response(MACRO_CACHE["data"])
 
     net_liquidity = compute_net_liquidity(ordered)
     summary = generate_macro_summary(ordered, net_liquidity)
@@ -2133,7 +2149,7 @@ async def macro_data():
         f"[MACRO] served {len(ordered)} cached indicators "
         f"(fresh={response_data['freshCount']}, stale={response_data['staleCount']})"
     )
-    return response_data
+    return _macro_release_response(response_data)
 
 
 def _seed_home_snapshot_from_disk():
@@ -2251,7 +2267,10 @@ async def _refresh_home_snapshot(force: bool = False):
             try:
                 macro_candidate = await macro_data()
                 if not isinstance(macro_candidate, JSONResponse):
-                    macro_payload = macro_candidate
+                    # Home needs the original summary, not five years of
+                    # optional graph points or the separate release agenda.
+                    macro_payload = {key: value for key, value in macro_candidate.items()
+                                     if key not in {"inflation", "releaseCalendar"}}
             except Exception as exc:
                 print(f"[HOME] macro snapshot refresh failed: {exc}")
             if macro_payload is None and cached:

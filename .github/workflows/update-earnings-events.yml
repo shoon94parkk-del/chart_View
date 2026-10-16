@@ -1,0 +1,60 @@
+name: Update Official Earnings Calls
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 22 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: official-earnings-call-cache
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public schedule dependencies
+        run: pip install requests beautifulsoup4
+      - name: Check official issuer call schedules
+        # Exactly three public page requests, no retries, no redirect following,
+        # 12-second request timeout; no analyst/price provider or API keys.
+        run: python scripts/generate_earnings_event_cache.py
+      - name: Validate independent call cache
+        run: |
+          python - <<'PY'
+          import json
+          from earnings_event_service import CACHE_PATH, SCHEMA_VERSION, get_earnings_events, validate_event
+          data = json.loads(CACHE_PATH.read_text(encoding='utf-8'))
+          assert data['schemaVersion'] == SCHEMA_VERSION
+          assert any(row['status'] == 'ok' for row in data['sources'].values())
+          for row in data['events']:
+              validate_event(row)
+          result = get_earnings_events()
+          assert result['cacheMode'] == 'static'
+          assert result['comparison']['status'] == 'unavailable'
+          print('verified upcoming conference calls:', len(result['events']))
+          PY
+      - name: Commit refreshed call cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/earnings_event_cache.json
+          if git diff --cached --quiet; then
+            echo "No official call-cache changes"
+          else
+            git commit -m "data: refresh official issuer conference calls"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Publication status
+        run: |
+          echo "Official schedule data is committed; backend publication follows the existing exact-revision deployment process." >> "$GITHUB_STEP_SUMMARY"
+          echo "Conference-call times are separate from results-publication times. No EPS surprise or price reaction is computed." >> "$GITHUB_STEP_SUMMARY"

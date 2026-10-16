@@ -913,7 +913,31 @@ def _fetch_semiconductor_previous_month_rows(period: str) -> list[dict[str, str]
                 # MoM is an enrichment; do not take down the full export
                 # snapshot when one targeted segment query is unavailable.
                 print(f"[EXPORT_MOMENTUM] semiconductor MoM {segment['key']} failed: {_safe_provider_error(exc)}")
-    return rows
+
+    # The memory-prefix query can include the same HSK leaves returned by the
+    # DRAM/Flash/MCP queries. Merge observations before the exact-HSK selector
+    # sums them, otherwise the previous-month denominator is counted twice.
+    observations: dict[tuple[str, str], dict[str, str]] = {}
+    for row in rows:
+        month, code = _normalize_month(row.get("year")), _row_hs_code(row)
+        if month != period or not code.isdigit():
+            continue
+        identity = (month, code)
+        if identity not in observations:
+            observations[identity] = dict(row)
+            continue
+        previous = observations[identity]
+        for field in ("expDlr", "expWgt"):
+            old, new = _number(previous.get(field)), _number(row.get(field))
+            if old is not None and new is not None and old != new:
+                # A partial rollup could still produce a plausible but wrong
+                # memory total. Omit this optional batch rather than select an
+                # arbitrary winner based on thread completion order.
+                print("[EXPORT_MOMENTUM] semiconductor MoM conflicting observations; comparison unavailable")
+                return []
+            if old is None and new is not None:
+                previous[field] = row[field]
+    return list(observations.values())
 
 
 def _build_semiconductor_breakdown_from_rows(

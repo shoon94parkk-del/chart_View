@@ -270,6 +270,7 @@ Do not refresh an incomplete or empty provider batch on every browser poll. Shar
 - 반도체 MoM 때문에 직전월 전체 Itemtrade 테이블을 다시 받지 않는다.
 - 직전월 MoM provider 조회는 핵심 5개 HSK 코드만 병렬로 수행한다.
 - MoM 보조 조회 실패가 전체 /api/export-momentum을 503으로 만들지 않는다.
+- 직전월 854232 prefix와 DRAM/Flash/MCP 개별 조회에 같은 월·HSK 행이 겹치면 수출액·중량 분모에 한 번만 반영한다. 날짜·HS 필드명·숫자 표기를 정규화하고, 동일 관측의 누락 필드는 호환되는 값으로 보완한다. 서로 다른 실제 값이 충돌하면 임의 선택이나 부분 메모리 합계 대신 해당 선택적 MoM 배치를 미제공한다. 공통 HS 집계·signed balance 규칙은 변경하지 않는다.
 
 - 품목 상세월 탐색을 위해 데이터가 없는 후보월의 전체 HSK 테이블을 받지 않는다.
 - 최신월/전년동월 full-table 조회는 상세월 확정 후 병렬로 수행한다.
@@ -374,3 +375,9 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 - A successful Home-major quote must publish through the existing timestamp/start-time guard as soon as that individual awaited provider result completes. Do not defer it to unrelated missing symbols.
 - The original quotes HTTP response still waits for the complete batch and preserves ordering, errors, counters and fresh semantics. Early Home publication does not certify full batch completion.
 - Do not paper over the current latest-main PICK ledger mismatch by filtering ETFs or weakening the unchanged ranking/ledger contract test.
+
+
+### 2026-10-16 — Optional release-reading datasets
+- Original macro16/cache/summary and Home payload stay independent of inflation graph/calendar availability; optional malformed schedule rows must not break macro. Readers perform no provider HTTP calls.
+- Keep NSA year-over-year / SA month-over-month, exact calendar offsets, null gaps, explicit source/month/release/collection/check/revision metadata. Do not interpolate or infer official release times.
+- A verified issuer conference call is not a verified earnings-publication timestamp. No historical surprise/reaction without pre-event immutable estimates and compatible accounting/trading data.

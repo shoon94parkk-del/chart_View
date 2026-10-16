@@ -10,6 +10,8 @@ on:
     paths:
       - '.github/workflows/update-macro-cache.yml'
       - 'scripts/generate_macro_cache.py'
+      - 'scripts/generate_inflation_release_cache.py'
+      - 'inflation_release_service.py'
 
 permissions:
   contents: write
@@ -68,4 +70,60 @@ jobs:
             git commit -m "data: refresh precomputed macro indicators"
             git pull --rebase origin main
             git push origin HEAD:main
+          fi
+
+  # Independent job: an unavailable legacy macro feed must not prevent checking
+  # the official inflation/calendar feeds, and either cache retains its data.
+  refresh-inflation:
+    needs: refresh
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install inflation cache dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Generate inflation and release cache
+        run: python scripts/generate_inflation_release_cache.py
+
+      - name: Validate inflation and release cache
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('static/data/inflation_release_cache.json').read_text(encoding='utf-8'))
+          rows = data['inflation']['series']
+          assert {row['id'] for row in rows} == {'cpi', 'core_cpi', 'ppi', 'core_ppi'}
+          for row in rows:
+              assert row['basis'] == {'yoy': 'NSA', 'mom': 'SA'}
+              assert len(row['points']) >= 36
+              assert row['asOf'] and row['checkedAt'] and row['collectedAt']
+          assert isinstance(data['releaseCalendar']['events'], list)
+          print('inflation cache:', data['inflation']['status'], 'calendar:', data['releaseCalendar']['status'])
+          PY
+
+      - name: Commit refreshed inflation cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/inflation_release_cache.json
+          if git diff --cached --quiet; then
+            echo "No inflation cache changes"
+          else
+            git commit -m "data: refresh official inflation and release cache"
+            # Other scheduled data jobs may publish main after this checkout.
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+            done
+            exit 1
           fi
