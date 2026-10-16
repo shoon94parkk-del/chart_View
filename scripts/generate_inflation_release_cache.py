@@ -33,6 +33,14 @@ SERIES = {
 }
 SCHEDULE_URLS = {key: f'https://www.bls.gov/schedule/news_release/{key}.htm' for key in ('cpi', 'ppi')}
 PUBLICATION_URLS = {key: f'https://www.bls.gov/news.release/{key}.nr0.htm' for key in ('cpi', 'ppi')}
+BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/'
+ICS_URL = 'https://www.bls.gov/schedule/news_release/bls.ics'
+BLS_SERIES = {
+    'cpi': {'sa': 'CUSR0000SA0', 'nsa': 'CUUR0000SA0'},
+    'core_cpi': {'sa': 'CUSR0000SA0L1E', 'nsa': 'CUUR0000SA0L1E'},
+    'ppi': {'sa': 'WPSFD4', 'nsa': 'WPUFD4'},
+    'core_ppi': {'sa': 'WPSFD49104', 'nsa': 'WPUFD49104'},
+}
 MONTHS = {name.lower(): i for i, name in enumerate(('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'), 1)}
 MONTHS.update({name[:3]: number for name, number in list(MONTHS.items())})
 
@@ -58,6 +66,57 @@ def get_text(url: str) -> str:
 
 def fred_url(series_id: str) -> str:
     return f'https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}'
+
+
+def fetch_bls_batch(start_year: int, end_year: int) -> dict:
+    """One keyless official request; no retries or provider work on API paths."""
+    response = requests.post(BLS_API_URL, timeout=25, json={
+        'seriesid': [meta[basis] for meta in BLS_SERIES.values() for basis in ('sa', 'nsa')],
+        'startyear': str(start_year), 'endyear': str(end_year),
+    }, headers={'User-Agent': 'ChartView public economic-data cache (BLS/FRED)', 'Accept': 'application/json'})
+    response.raise_for_status()
+    return response.json()
+
+
+def parse_bls_batch(payload: dict) -> dict[str, list[dict]]:
+    if not isinstance(payload, dict) or payload.get('status') != 'REQUEST_SUCCEEDED':
+        raise ValueError('BLS API did not return REQUEST_SUCCEEDED')
+    result = payload.get('Results')
+    if not isinstance(result, dict) or not isinstance(result.get('series'), list):
+        raise ValueError('BLS API series payload missing')
+    allowed = {sid for meta in BLS_SERIES.values() for sid in meta.values()}
+    parsed = {}
+    for series in result['series']:
+        sid = series.get('seriesID') if isinstance(series, dict) else None
+        if sid not in allowed:
+            continue
+        if sid in parsed:
+            raise ValueError(f'duplicate BLS series: {sid}')
+        values = {}
+        data = series.get('data')
+        if not isinstance(data, list):
+            parsed[sid] = []
+            continue
+        for point in data:
+            if not isinstance(point, dict) or not re.fullmatch(r'M(0[1-9]|1[0-2])', str(point.get('period', ''))):
+                continue
+            year = str(point.get('year', ''))
+            if not re.fullmatch(r'\d{4}', year):
+                continue
+            month = year + '-' + point['period'][1:]
+            try:
+                value = float(point.get('value'))
+            except (ValueError, TypeError):
+                continue
+            if not math.isfinite(value) or value <= 0:
+                continue
+            if month in values and values[month]['value'] != value:
+                raise ValueError(f'conflicting duplicate BLS observation: {month}')
+            notes = [{'code': n['code'], 'text': n.get('text')} for n in (point.get('footnotes') or [])
+                     if isinstance(n, dict) and n.get('code')]
+            values[month] = {'month': month, 'value': value, 'footnotes': notes}
+        parsed[sid] = [value for _, value in sorted(values.items())]
+    return parsed
 
 
 def parse_fred_csv(text: str, series_id: str) -> list[dict[str, Any]]:
@@ -103,7 +162,8 @@ def build_points(sa: list[dict], nsa: list[dict], *, months: int = 60) -> list[d
 
 
 def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: datetime,
-                 publication: dict | None = None, previous: dict | None = None) -> dict[str, Any]:
+                 publication: dict | None = None, previous: dict | None = None,
+                 provider: str = 'fred') -> dict[str, Any]:
     meta, previous = SERIES[series_id], previous or {}
     points = build_points(sa, nsa)
     if not any(p['yoy'] is not None or p['mom'] is not None for p in points):
@@ -125,6 +185,19 @@ def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: dateti
         revised = revised or any(r['month'] in old and old[r['month']] != r['value'] for r in rows)
     timestamp = stamp(now)
     complete = all(p['mom'] is not None and p['yoy'] is not None for p in points)
+    source = {'name': 'U.S. Bureau of Labor Statistics via FRED',
+              'url': f'https://fred.stlouisfed.org/series/{meta["nsa"]}',
+              'saSeriesId': meta['sa'], 'nsaSeriesId': meta['nsa'],
+              'saUrl': f'https://fred.stlouisfed.org/series/{meta["sa"]}',
+              'nsaUrl': f'https://fred.stlouisfed.org/series/{meta["nsa"]}'}
+    if provider == 'bls':
+        bls = BLS_SERIES[series_id]
+        source = {'name': 'U.S. Bureau of Labor Statistics Public Data API', 'url': BLS_API_URL,
+                  'saSeriesId': bls['sa'], 'nsaSeriesId': bls['nsa'],
+                  'saUrl': BLS_API_URL + bls['sa'], 'nsaUrl': BLS_API_URL + bls['nsa']}
+        indexes = {'yoy': {r['month']: r for r in nsa}, 'mom': {r['month']: r for r in sa}}
+        for point in points:
+            point['sourceFootnotes'] = {metric: rows.get(point['month'], {}).get('footnotes', []) for metric, rows in indexes.items()}
     return {
         'id': series_id, 'name': meta['name'], 'definition': meta['definition'],
         'unit': '%', 'frequency': 'monthly', 'basis': {'yoy': 'NSA', 'mom': 'SA'},
@@ -133,12 +206,9 @@ def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: dateti
         'collectedAt': timestamp, 'checkedAt': timestamp,
         'revisionStatus': 'revised' if revised else 'unknown',
         'revisionCheckedAt': timestamp if previous.get('sourceIndices') else None,
-        'revisionNote': 'FRED current vintage. Revised means overlapping index values changed since the prior successful cache; original-release vintage and official revision flags are unavailable.',
-        'source': {'name': 'U.S. Bureau of Labor Statistics via FRED',
-                   'url': f'https://fred.stlouisfed.org/series/{meta["nsa"]}',
-                   'saSeriesId': meta['sa'], 'nsaSeriesId': meta['nsa'],
-                   'saUrl': f'https://fred.stlouisfed.org/series/{meta["sa"]}',
-                   'nsaUrl': f'https://fred.stlouisfed.org/series/{meta["nsa"]}'},
+        'revisionNote': 'Current source vintage. Revised means overlapping index values changed since the prior successful cache; original-release vintage is unavailable. BLS preliminary footnotes describe observation status, not a detected revision.',
+        'observationStatus': 'preliminary' if any(n.get('code') == 'P' for notes in points[-1].get('sourceFootnotes', {}).values() for n in notes) else 'unknown',
+        'source': source,
         'points': points, 'sourceIndices': source_indices,
         'coverage': {'startMonth': points[0]['month'], 'endMonth': points[-1]['month'], 'months': len(points),
                      'yoyCount': sum(p['yoy'] is not None for p in points), 'momCount': sum(p['mom'] is not None for p in points)},
@@ -195,6 +265,64 @@ def parse_schedule(html: str, group: str, *, now: datetime) -> list[dict[str, An
     return events
 
 
+def parse_ics_calendar(text: str, *, now: datetime, previous_events: list[dict] | None = None) -> list[dict]:
+    """Use explicit ICS times; reference months only survive an exact saved match."""
+    text = re.sub(r'\r?\n[ \t]', '', text.lstrip('\ufeff')).replace('\r\n', '\n')
+    if not text.startswith('BEGIN:VCALENDAR\n') or text.count('BEGIN:VEVENT') != text.count('END:VEVENT'):
+        raise ValueError('invalid official calendar')
+    saved = {(e.get('indicator'), e.get('scheduledAt')): e for e in previous_events or [] if e.get('scheduledAt')}
+    saved_uids = {(e.get('indicator'), e.get('sourceUid')): e for e in previous_events or [] if e.get('sourceUid')}
+    groups = {'Consumer Price Index': 'cpi', 'Producer Price Index': 'ppi'}
+    events = []
+    for block in re.findall(r'BEGIN:VEVENT\n(.*?)\nEND:VEVENT', text, re.S):
+        fields = {}
+        for line in block.splitlines():
+            key, separator, value = line.partition(':')
+            name = key.split(';', 1)[0]
+            if separator and name in ('SUMMARY', 'UID', 'DTSTART', 'STATUS'):
+                if name in fields:
+                    raise ValueError('duplicate official calendar property')
+                fields[name] = (key, value)
+        group = groups.get(fields.get('SUMMARY', ('', ''))[1])
+        if not group or fields.get('STATUS', ('', ''))[1] == 'CANCELLED':
+            continue
+        uid = fields.get('UID', ('', ''))[1]
+        key, value = fields.get('DTSTART', ('', ''))
+        if not uid:
+            raise ValueError('official calendar UID unavailable')
+        if key == 'DTSTART;VALUE=DATE':
+            local = datetime.strptime(value, '%Y%m%d').replace(tzinfo=EASTERN)
+            scheduled, local_time = None, None
+            if local.date() < now.astimezone(EASTERN).date():
+                continue
+        else:
+            if key == 'DTSTART' and value.endswith('Z'):
+                local = datetime.strptime(value, '%Y%m%dT%H%M%SZ').replace(tzinfo=timezone.utc).astimezone(EASTERN)
+            elif key in ('DTSTART;TZID=US-Eastern', 'DTSTART;TZID=US/Eastern', 'DTSTART;TZID=America/New_York'):
+                local = datetime.strptime(value, '%Y%m%dT%H%M%S').replace(tzinfo=EASTERN)
+                if (local.utcoffset() != local.replace(fold=1).utcoffset()
+                        or local.astimezone(timezone.utc).astimezone(EASTERN).replace(tzinfo=None) != local.replace(tzinfo=None)):
+                    raise ValueError('ambiguous or nonexistent official local time')
+            else:
+                raise ValueError('official calendar timezone unavailable')
+            if local <= now:
+                continue
+            scheduled, local_time = stamp(local), local.strftime('%H:%M')
+        old = saved_uids.get((group, uid)) or (saved.get((group, scheduled), {}) if scheduled else {})
+        events.append({
+            'id': old.get('id') or f'{group}:{uid}', 'indicator': group,
+            'name': '미국 CPI·근원 CPI' if group == 'cpi' else '미국 PPI·근원 PPI',
+            'observationMonth': old.get('observationMonth'),
+            'observationMonthSourceUrl': old.get('observationMonthSourceUrl') or old.get('sourceUrl'),
+            'scheduledAt': scheduled, 'localDate': local.strftime('%Y-%m-%d'), 'localTime': local_time,
+            'timeZone': 'America/New_York', 'status': 'confirmed', 'sourceUrl': ICS_URL,
+            'sourceUid': uid, 'checkedAt': stamp(now),
+        })
+    if not events:
+        raise ValueError('official calendar has no future CPI/PPI entries')
+    return sorted(events, key=lambda e: (e['localDate'], e['localTime'] or '', e['id']))
+
+
 def parse_publication(html: str, group: str) -> dict[str, str]:
     text = BeautifulSoup(html, 'html.parser').get_text(' ', strip=True)
     title = 'CONSUMER PRICE INDEX' if group == 'cpi' else 'PRODUCER PRICE INDEXES?'
@@ -208,7 +336,8 @@ def parse_publication(html: str, group: str) -> dict[str, str]:
 
 
 def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
-                  fetch_text: Callable[[str], str] = get_text) -> dict[str, Any]:
+                  fetch_text: Callable[[str], str] = get_text,
+                  fetch_bls: Callable[[int, int], dict] | None = None) -> dict[str, Any]:
     now, previous = now or datetime.now(timezone.utc), previous or {}
     urls = {fred_url(meta[basis]) for meta in SERIES.values() for basis in ('sa', 'nsa')}
     urls.update(SCHEDULE_URLS.values())
@@ -232,45 +361,111 @@ def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
             publications.pop(group, None)
             errors.setdefault(url, str(exc))
     old_rows = {r['id']: r for r in previous.get('inflation', {}).get('series', [])}
-    rows = []
+    rows, failed = {}, []
+
+    def validated(series_id: str, sa: list, nsa: list, provider: str) -> dict:
+        if not sa or not nsa:
+            raise ValueError('official index pair incomplete')
+        if max(sa[-1]['month'], nsa[-1]['month']) >= now.strftime('%Y-%m'):
+            raise ValueError('monthly observation is not a completed month')
+        row = build_series(series_id, sa, nsa, now=now, publication=publications.get(SERIES[series_id]['group']),
+                           previous=old_rows.get(series_id), provider=provider)
+        if provider == 'bls' and (len(row['points']) != 60 or row['coverage']['yoyCount'] < 36):
+            raise ValueError('BLS fallback did not retain required history')
+        return row
+
     for series_id, meta in SERIES.items():
-        old = old_rows.get(series_id)
         try:
             sa, nsa = (parse_fred_csv(fetched[fred_url(meta[basis])], meta[basis]) for basis in ('sa', 'nsa'))
-            if max(sa[-1]['month'], nsa[-1]['month']) >= now.strftime('%Y-%m'):
-                raise ValueError('monthly observation is not a completed month')
-            row = build_series(series_id, sa, nsa, now=now, publication=publications.get(meta['group']), previous=old)
+            rows[series_id] = validated(series_id, sa, nsa, 'fred')
         except (KeyError, ValueError) as exc:
+            failed.append(series_id)
             errors[series_id] = str(exc)
-            if old and old.get('points'):
-                row = deepcopy(old)
-                row.update(status='stale', staleReason='Official source refresh failed; last verified data retained.')
-            else:
-                row = {'id': series_id, 'name': meta['name'], 'definition': meta['definition'],
-                       'status': 'unavailable', 'asOf': None, 'publishedAt': None,
-                       'checkedAt': None, 'collectedAt': None, 'points': []}
-        rows.append(row)
+    if failed:
+        try:
+            bls_payload = (fetch_bls or fetch_bls_batch)(now.year - 6, now.year)
+            indexes = parse_bls_batch(bls_payload)
+        except Exception as exc:
+            errors[BLS_API_URL] = str(exc)
+            indexes = {}
+        for series_id in failed:
+            try:
+                meta = BLS_SERIES[series_id]
+                row = validated(series_id, indexes[meta['sa']], indexes[meta['nsa']], 'bls')
+                # Preserve official missing-value footnotes as well as finite-index notes.
+                gaps = {}
+                for basis in ('sa', 'nsa'):
+                    raw = next(s for s in bls_payload['Results']['series'] if isinstance(s, dict) and s.get('seriesID') == meta[basis])
+                    known = {r['month'] for r in indexes[meta[basis]]}
+                    gaps[basis] = [{'month': str(p.get('year')) + '-' + str(p.get('period'))[1:],
+                                    'value': p.get('value'), 'footnotes': p.get('footnotes', [])}
+                                   for p in raw.get('data', []) if isinstance(p, dict)
+                                   and re.fullmatch(r'\d{4}', str(p.get('year', '')))
+                                   and re.fullmatch(r'M(0[1-9]|1[0-2])', str(p.get('period', '')))
+                                   and str(p.get('year')) + '-' + p['period'][1:] not in known]
+                row['sourceGaps'] = gaps
+                rows[series_id] = row
+                errors.pop(series_id, None)
+            except (KeyError, ValueError, StopIteration) as exc:
+                errors[series_id] = str(exc)
+    for series_id, meta in SERIES.items():
+        if series_id in rows:
+            continue
+        old = old_rows.get(series_id)
+        if old and old.get('points'):
+            row = deepcopy(old)
+            row.update(status='stale', staleReason='Official source refresh failed; last verified data retained.')
+        else:
+            row = {'id': series_id, 'name': meta['name'], 'definition': meta['definition'],
+                   'status': 'unavailable', 'asOf': None, 'publishedAt': None,
+                   'checkedAt': None, 'collectedAt': None, 'points': []}
+        rows[series_id] = row
+
     old_calendar = previous.get('releaseCalendar', {})
     old_sources = old_calendar.get('sources', {})
-    events, sources, successes = [], {}, 0
+    events_by_group, sources, failed_groups = {}, {}, []
     for group, url in SCHEDULE_URLS.items():
         try:
-            group_events = parse_schedule(fetched[url], group, now=now)
+            events_by_group[group] = parse_schedule(fetched[url], group, now=now)
             sources[group] = {'sourceUrl': url, 'status': 'ok', 'checkedAt': stamp(now)}
-            successes += 1
         except (KeyError, ValueError) as exc:
             errors.setdefault(url, str(exc))
-            group_events = deepcopy([e for e in old_calendar.get('events', []) if e.get('indicator') == group])
-            sources[group] = {'sourceUrl': url, 'status': 'stale' if group_events else 'unavailable',
+            failed_groups.append(group)
+            events_by_group[group] = deepcopy([e for e in old_calendar.get('events', []) if e.get('indicator') == group])
+            sources[group] = {'sourceUrl': url, 'status': 'stale' if events_by_group[group] else 'unavailable',
                               'checkedAt': old_sources.get(group, {}).get('checkedAt')}
-        events.extend(group_events)
+    ics_events = []
+    if failed_groups:
+        try:
+            ics_events = parse_ics_calendar(fetch_text(ICS_URL), now=now, previous_events=old_calendar.get('events', []))
+        except Exception as exc:
+            errors[ICS_URL] = str(exc)
+            ics_events = []
+        for group in failed_groups:
+            fresh = [e for e in ics_events if e['indicator'] == group]
+            if not fresh:
+                continue
+            confirmed = {(e['scheduledAt'], e['localDate']) for e in fresh}
+            confirmed_uids = {e['sourceUid'] for e in fresh}
+            retained = [e for e in events_by_group[group]
+                        if (e.get('scheduledAt'), e.get('localDate')) not in confirmed and e.get('sourceUid') not in confirmed_uids]
+            for event in retained:
+                event['checkStatus'] = 'stale'
+            events_by_group[group] = fresh + retained
+            sources[group] = {'sourceUrl': ICS_URL, 'status': 'partial' if retained else 'ok',
+                              'checkedAt': stamp(now), 'freshEventCount': len(fresh), 'retainedEventCount': len(retained)}
+    events = [e for group in SCHEDULE_URLS for e in events_by_group[group]]
     events.sort(key=lambda e: (e.get('localDate', ''), e.get('localTime') or '', e['id']))
-    calendar_status = 'ok' if successes == 2 else ('partial' if successes else ('stale' if events else 'unavailable'))
-    series_status = 'ok' if all(r['status'] == 'ok' for r in rows) else ('unavailable' if all(r['status'] == 'unavailable' for r in rows) else 'partial')
+    complete_calendar = all(s['status'] == 'ok' for s in sources.values())
+    successes = sum(s['status'] in ('ok', 'partial') for s in sources.values())
+    calendar_status = 'ok' if complete_calendar else ('partial' if successes else ('stale' if events else 'unavailable'))
+    ordered = [rows[series_id] for series_id in SERIES]
+    series_status = 'ok' if all(r['status'] == 'ok' for r in ordered) else ('unavailable' if all(r['status'] == 'unavailable' for r in ordered) else 'partial')
     return {
-        'inflation': {'schemaVersion': 1, 'status': series_status, 'generatedAt': stamp(now), 'series': rows},
-        'releaseCalendar': {'status': calendar_status, 'checkedAt': stamp(now) if successes == 2 else old_calendar.get('checkedAt'),
-                            'sourceUrl': 'https://www.bls.gov/schedule/news_release/', 'sources': sources, 'events': events},
+        'inflation': {'schemaVersion': 1, 'status': series_status, 'generatedAt': stamp(now), 'series': ordered},
+        'releaseCalendar': {'status': calendar_status, 'checkedAt': stamp(now) if complete_calendar else old_calendar.get('checkedAt'),
+                            'sourceUrl': ICS_URL if ics_events else 'https://www.bls.gov/schedule/news_release/',
+                            'sources': sources, 'events': events},
         'generatedAt': stamp(now), 'errors': errors,
     }
 
