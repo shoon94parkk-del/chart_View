@@ -190,6 +190,8 @@ def test_partial_refresh_keeps_failed_pair_and_calendar_check_times_only():
     old_now = datetime(2026,10,15,tzinfo=timezone.utc)
     now = datetime(2026,10,16,tzinfo=timezone.utc)
     def source(url):
+        if url == mod.pce.RELEASE_DATES_URL:
+            return json.dumps({'Personal Income and Outlays': {'release_dates': ['2026-10-29T12:30:00+00:00']}})
         if 'fredgraph.csv' in url:
             sid = url.split('id=')[1]
             return 'observation_date,'+sid+'\n'+'\n'.join(p['month']+'-01,'+str(p['value']) for p in indices(end=2025))

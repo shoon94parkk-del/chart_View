@@ -2,8 +2,9 @@
 
 Independent of the existing sixteen macro rows and their summary. Only this
 scheduled collector uses providers; the app reads a saved JSON file. YoY uses
-NSA indexes and MoM uses SA indexes, matching exact calendar months. FRED is a
-current-vintage source, not an original-release or consensus archive.
+NSA indexes for CPI/PPI and SA indexes for PCE; MoM uses SA indexes, matching
+exact calendar months. Providers supply current vintages, not original-release
+or consensus archives.
 """
 from __future__ import annotations
 
@@ -23,6 +24,11 @@ from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 
+try:
+    from . import pce_release_data as pce
+except ImportError:  # Direct scheduled-script execution.
+    import pce_release_data as pce
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'static' / 'data' / 'inflation_release_cache.json'
 EASTERN = ZoneInfo('America/New_York')
@@ -31,6 +37,10 @@ SERIES = {
     'core_cpi': {'name': '미국 근원 CPI', 'definition': '미국 도시 소비자 식품·에너지 제외 소비자물가지수(CPI-U)', 'sa': 'CPILFESL', 'nsa': 'CPILFENS', 'group': 'cpi'},
     'ppi': {'name': '미국 PPI', 'definition': '미국 생산자물가지수 최종수요(Final Demand)', 'sa': 'PPIFIS', 'nsa': 'PPIFID', 'group': 'ppi'},
     'core_ppi': {'name': '미국 근원 PPI', 'definition': '미국 생산자물가지수 최종수요 중 식품·에너지 제외(Final Demand Less Foods and Energy)', 'sa': 'PPIFES', 'nsa': 'PPICOR', 'group': 'ppi'},
+}
+PCE_META = {
+    'pce': {'name': '미국 PCE', 'definition': '미국 개인소비지출 연쇄형 물가지수(PCE)', 'account': 'DPCERG'},
+    'core_pce': {'name': '미국 근원 PCE', 'definition': '미국 개인소비지출 중 식품·에너지 제외 연쇄형 물가지수(PCE)', 'account': 'DPCCRG'},
 }
 SCHEDULE_URLS = {key: f'https://www.bls.gov/schedule/news_release/{key}.htm' for key in ('cpi', 'ppi')}
 PUBLICATION_URLS = {key: f'https://www.bls.gov/news.release/{key}.nr0.htm' for key in ('cpi', 'ppi')}
@@ -56,7 +66,9 @@ def month_shift(month: str, offset: int) -> str:
     return f'{value // 12:04d}-{value % 12 + 1:02d}'
 
 
-def get_text(url: str) -> str:
+def get_text(url: str) -> str | bytes:
+    if url == pce.WORKBOOK_URL:
+        return pce.download_pce_workbook()
     if url == ICS_URL:
         request = Request(url, headers={
             'User-Agent': 'ChartView public economic-data cache (BLS/FRED)',
@@ -227,6 +239,56 @@ def build_series(series_id: str, sa: list[dict], nsa: list[dict], *, now: dateti
     }
 
 
+def build_pce_series(series_id: str, sa: list[dict], *, now: datetime, metadata: dict,
+                     publication: dict | None = None, previous: dict | None = None) -> dict:
+    """Build PCE changes from actual SA indices, preserving publication precision."""
+    meta, previous = PCE_META[series_id], previous or {}
+    if not sa or len(sa) < 72:
+        raise ValueError('BEA PCE history incomplete')
+    latest = sa[-1]['month']
+    if latest >= now.astimezone(EASTERN).strftime('%Y-%m'):
+        raise ValueError('PCE observation is not a completed month')
+    if metadata['publishedDate'] > now.astimezone(EASTERN).date().isoformat():
+        raise ValueError('BEA workbook publication date is in the future')
+    if publication:
+        if publication['publishedAt'] > stamp(now):
+            raise ValueError('BEA publication timestamp is in the future')
+        if publication['observationMonth'] > latest:
+            raise ValueError('BEA index is older than the latest verified publication')
+    if previous.get('asOf') and latest < previous['asOf']:
+        raise ValueError('BEA PCE observation range regressed')
+    points = build_points(sa, sa)
+    if len(points) != 60 or any(p['yoy'] is None or p['mom'] is None for p in points):
+        raise ValueError('BEA PCE chart coverage incomplete')
+    publications = {p['month']: p['publishedAt'] for p in previous.get('points', []) if p.get('publishedAt')}
+    if publication:
+        publications[publication['observationMonth']] = publication['publishedAt']
+    for point in points:
+        point['publishedAt'] = publications.get(point['month'])
+    start = month_shift(points[0]['month'], -12)
+    source_indices = {'sa': [point for point in sa if point['month'] >= start]}
+    old_indices = {p['month']: p['value'] for p in previous.get('sourceIndices', {}).get('sa', [])}
+    revised = any(p['month'] in old_indices and old_indices[p['month']] != p['value'] for p in source_indices['sa'])
+    exact = points[-1]['publishedAt']
+    publication_url = publication['sourceUrl'] if publication and publication['observationMonth'] == latest else (previous.get('publicationSourceUrl') if exact else pce.WORKBOOK_URL)
+    published_date = exact[:10] if exact else metadata['publishedDate']
+    timestamp = stamp(now)
+    return {'id': series_id, 'name': meta['name'], 'definition': meta['definition'],
+            'unit': '%', 'frequency': 'monthly', 'basis': {'yoy': 'SA', 'mom': 'SA'},
+            'status': 'ok', 'asOf': latest, 'publishedAt': exact or published_date,
+            'publishedDate': published_date, 'publicationPrecision': 'second' if exact else 'day',
+            'publicationSourceUrl': publication_url, 'checkedAt': timestamp, 'collectedAt': timestamp,
+            'revisionStatus': 'revised' if revised else 'unknown',
+            'revisionCheckedAt': timestamp if old_indices else None,
+            'revisionNote': 'Current BEA vintage. Revised means overlapping indices changed since the prior successful cache; original-release vintage is unavailable.',
+            'observationStatus': 'unknown',
+            'source': {'name': 'U.S. Bureau of Economic Analysis', 'url': pce.WORKBOOK_URL,
+                       'saUrl': pce.WORKBOOK_URL, 'saSeriesId': meta['account'],
+                       'beaAccountCode': meta['account'], 'table': metadata['table'], 'indexBase': metadata['indexBase']},
+            'points': points, 'sourceIndices': source_indices,
+            'coverage': {'startMonth': points[0]['month'], 'endMonth': latest, 'months': len(points), 'yoyCount': len(points), 'momCount': len(points)}}
+
+
 def parse_named_date(raw: str) -> datetime:
     match = re.fullmatch(r'([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})', raw.strip())
     if not match or match[1].lower() not in MONTHS:
@@ -357,12 +419,13 @@ def parse_publication(html: str, group: str) -> dict[str, str]:
 
 
 def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
-                  fetch_text: Callable[[str], str] = get_text,
+                  fetch_text: Callable[[str], str | bytes] = get_text,
                   fetch_bls: Callable[[int, int], dict] | None = None) -> dict[str, Any]:
     now, previous = now or datetime.now(timezone.utc), previous or {}
     urls = {fred_url(meta[basis]) for meta in SERIES.values() for basis in ('sa', 'nsa')}
     urls.update(SCHEDULE_URLS.values())
     urls.update(PUBLICATION_URLS.values())
+    urls.update((pce.WORKBOOK_URL, pce.PRODUCT_URL, pce.RELEASE_DATES_URL))
     fetched, errors = {}, {}
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(fetch_text, url): url for url in sorted(urls)}
@@ -389,7 +452,10 @@ def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
             raise ValueError('official index pair incomplete')
         if max(sa[-1]['month'], nsa[-1]['month']) >= now.strftime('%Y-%m'):
             raise ValueError('monthly observation is not a completed month')
-        row = build_series(series_id, sa, nsa, now=now, publication=publications.get(SERIES[series_id]['group']),
+        publication = publications.get(SERIES[series_id]['group'])
+        if publication and min(sa[-1]['month'], nsa[-1]['month']) < publication['observationMonth']:
+            raise ValueError('official index pair is older than the latest verified publication')
+        row = build_series(series_id, sa, nsa, now=now, publication=publication,
                            previous=old_rows.get(series_id), provider=provider)
         if provider == 'bls' and (len(row['points']) != 60 or row['coverage']['yoyCount'] < 36):
             raise ValueError('BLS fallback did not retain required history')
@@ -442,6 +508,29 @@ def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
                    'checkedAt': None, 'collectedAt': None, 'points': []}
         rows[series_id] = row
 
+    pce_publication = None
+    publication_url = pce.PRODUCT_URL
+    try:
+        publication_url = pce.current_pce_release_url(fetched[pce.PRODUCT_URL])
+        pce_publication = pce.parse_pce_publication(fetch_text(publication_url), source_url=publication_url)
+    except Exception as exc:
+        errors.setdefault(publication_url, str(exc))
+    try:
+        pce_data = pce.parse_pce_workbook(fetched[pce.WORKBOOK_URL])
+        for series_id in PCE_META:
+            rows[series_id] = build_pce_series(series_id, pce_data['series'][series_id], now=now,
+                                              metadata=pce_data, publication=pce_publication,
+                                              previous=old_rows.get(series_id))
+    except (KeyError, ValueError, TypeError) as exc:
+        errors['pce'] = str(exc)
+        for series_id in PCE_META:
+            old = old_rows.get(series_id)
+            if old is not None:
+                row = deepcopy(old)
+                row.update(status='stale' if old.get('points') else 'unavailable',
+                           staleReason='Official BEA refresh failed; last verified data retained.')
+                rows[series_id] = row
+
     old_calendar = previous.get('releaseCalendar', {})
     old_sources = old_calendar.get('sources', {})
     events_by_group, sources, failed_groups = {}, {}, []
@@ -482,12 +571,32 @@ def refresh_cache(previous: dict | None = None, *, now: datetime | None = None,
             sources[group] = {'sourceUrl': ICS_URL, 'status': 'partial' if retained else 'ok',
                               'checkedAt': stamp(now), 'freshEventCount': len(fresh), 'retainedEventCount': len(retained),
                               'cancelledEventCount': sum(e['status'] == 'cancelled' for e in signals)}
-    events = [e for group in SCHEDULE_URLS for e in events_by_group[group]]
+    try:
+        scheduled = pce.parse_bea_release_dates(fetched[pce.RELEASE_DATES_URL], now=now)
+        events_by_group['pce'] = []
+        for instant in scheduled:
+            local = datetime.fromisoformat(instant.replace('Z', '+00:00')).astimezone(EASTERN)
+            events_by_group['pce'].append({'id': 'pce:' + instant, 'indicator': 'pce',
+                'name': '미국 PCE·근원 PCE', 'observationMonth': None,
+                'scheduledAt': instant, 'localDate': local.strftime('%Y-%m-%d'),
+                'localTime': local.strftime('%H:%M'), 'timeZone': 'America/New_York',
+                'status': 'confirmed', 'sourceUrl': pce.RELEASE_DATES_URL,
+                'checkedAt': stamp(now), 'checkStatus': 'ok'})
+        sources['pce'] = {'sourceUrl': pce.RELEASE_DATES_URL, 'status': 'ok', 'checkedAt': stamp(now)}
+    except (KeyError, ValueError, TypeError) as exc:
+        errors.setdefault(pce.RELEASE_DATES_URL, str(exc))
+        retained = deepcopy([e for e in old_calendar.get('events', []) if e.get('indicator') == 'pce'])
+        for event in retained:
+            event['checkStatus'] = 'stale'
+        events_by_group['pce'] = retained
+        sources['pce'] = {'sourceUrl': pce.RELEASE_DATES_URL, 'status': 'stale' if retained else 'unavailable',
+                          'checkedAt': old_sources.get('pce', {}).get('checkedAt')}
+    events = [e for group in (*SCHEDULE_URLS, 'pce') for e in events_by_group[group]]
     events.sort(key=lambda e: (e.get('localDate', ''), e.get('localTime') or '', e['id']))
     complete_calendar = all(s['status'] == 'ok' for s in sources.values())
     successes = sum(s['status'] in ('ok', 'partial') for s in sources.values())
     calendar_status = 'ok' if complete_calendar else ('partial' if successes else ('stale' if events else 'unavailable'))
-    ordered = [rows[series_id] for series_id in SERIES]
+    ordered = [rows[series_id] for series_id in (*SERIES, *PCE_META) if series_id in rows]
     series_status = 'ok' if all(r['status'] == 'ok' for r in ordered) else ('unavailable' if all(r['status'] == 'unavailable' for r in ordered) else 'partial')
     return {
         'inflation': {'schemaVersion': 1, 'status': series_status, 'generatedAt': stamp(now), 'series': ordered},
