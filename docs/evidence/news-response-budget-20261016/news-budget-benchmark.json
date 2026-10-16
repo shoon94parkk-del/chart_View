@@ -1,0 +1,92 @@
+{
+  "method": "In-process httpx ASGI HTTP requests with identical synthetic providers. Not production timing or provider speed.",
+  "baseline": "a406a4c074a086017363e2c99d677488ce8da55d",
+  "afterWorkingTree": "/workspace/chartview-news-response-budget-20261016",
+  "sourceSha256": {
+    "before": "d5b60ab23453c0d8666580018b2b21fe7c90f846796b8d5746a46ece0ae81eb6",
+    "after": "d0e6212ee40f04ed1de1bd98523d8a82f764e9e78826f3dbb569823e7f9caeef"
+  },
+  "conditions": {
+    "slowProviderSeconds": 12,
+    "occupiedDefaultExecutorWorkers": 2,
+    "executorReleaseSeconds": 0.25
+  },
+  "samples": {
+    "before": {
+      "occupied-executor-cache": {
+        "elapsedMs": 262.34,
+        "providerCalls": 0,
+        "groups": [
+          {
+            "symbol": "FAST",
+            "status": "success",
+            "cache": "hit"
+          }
+        ]
+      },
+      "slow-provider-partial": {
+        "elapsedMs": 12017.705,
+        "groups": [
+          {
+            "symbol": "FAST",
+            "status": "success",
+            "cache": "miss"
+          },
+          {
+            "symbol": "SLOW",
+            "status": "success",
+            "cache": "miss"
+          }
+        ],
+        "errors": [],
+        "timeoutPlaceholderCached": false,
+        "lateRealResultSuccess": true,
+        "providerCalls": {
+          "FAST": 1,
+          "SLOW": 1
+        }
+      }
+    },
+    "after": {
+      "occupied-executor-cache": {
+        "elapsedMs": 30.798,
+        "providerCalls": 0,
+        "groups": [
+          {
+            "symbol": "FAST",
+            "status": "success",
+            "cache": "hit"
+          }
+        ]
+      },
+      "slow-provider-partial": {
+        "elapsedMs": 7014.089,
+        "groups": [
+          {
+            "symbol": "FAST",
+            "status": "success",
+            "cache": "miss"
+          },
+          {
+            "symbol": "SLOW",
+            "status": "error",
+            "cache": null
+          }
+        ],
+        "errors": [
+          {
+            "symbol": "SLOW",
+            "provider": "finnhub",
+            "code": "news_timeout"
+          }
+        ],
+        "timeoutPlaceholderCached": false,
+        "lateRealResultSuccess": true,
+        "providerCalls": {
+          "FAST": 1,
+          "SLOW": 1
+        }
+      }
+    }
+  }
+}

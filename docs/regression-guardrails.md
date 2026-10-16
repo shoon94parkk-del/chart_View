@@ -397,3 +397,7 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 
 - Public `force=true` retries cached provider errors; frontend cache bypass alone cannot recover a server-cached failure. Fresh successful and legitimate `no_news` groups remain cached during partial retries, with existing TTL/concurrency preserved.
 - Default warm requests stay provider-free. Keep internal `_cached_fetch(force=True)` full cache bypass used by relationship evidence; public error-only retry uses its separate helper option.
+
+### Public news collection ownership (2026-10-16)
+
+Fresh cached groups must bypass the shared executor. One public7s collection budget returns every completed group and explicit timeout/busy errors; never cache placeholders or label failed work no_news. At most64 real queued/running public owners, per normalizedsymbol/name, survive waiter cancellation/deadline until worker completion. Publicforce retries only cached errors; internalforce retains own fetched receipt even when canonical writes are generation ordered. Held-worker/cross-loop/partial/cancellation/internalforce identity tests in test_news_response_budget.py enforce this contract.

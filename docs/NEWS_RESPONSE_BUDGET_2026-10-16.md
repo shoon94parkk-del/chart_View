@@ -1,0 +1,31 @@
+# Personalized news: bounded public collection — 2026-10-16
+
+Classification: an existing reliability gap exposed by actual production smoke. The client has a hard10s budget, but the prior public endpoint awaited every symbol through the shared default executor. Recorded11–21s API-relay responses arrived after browser abort. These end-to-end measurements do not isolate provider, server scheduling or relay transport delay; this change is a bounded server-response correction, not a claim that providers became faster.
+
+## Approved behavior
+
+Public `/api/personalized-news` starts one monotonic **7.0s** collection budget. Fresh entries in the existing300s `NEWS_CACHE` return before any executor submission. Successful and genuine empty (`no_news`) entries remain cache hits during public `force=true`; only cached provider errors are bypassed by that explicit retry. Ordinary requests may reuse a fresh cached provider error. No TTL, provider, credentials, scoring, relation receipts, max20-symbol coverage, PICK/LAB, Home construction or frontend code changes.
+
+At the deadline the response retains every completed real group and original symbol order. Unfinished groups have `status:error` and an error code `news_timeout`; they never become `no_news` or invented articles. A timeout result is response metadata only and is not written into the canonical news cache. Real completed empty upstream data still produces `no_news`.
+
+A bounded registry holds at most **64** queued/running public acquisitions keyed by the existing uppercased `symbol|name`. Overlapping public Home/detail/retry requests join one acquisition. When all slots are occupied, new uncached keys return explicit `news_busy`; healthy cache hits remain available. Slots are removed by real worker completion, not caller timeout or cancellation. No registry expiry or eviction abandons a live acquisition.
+
+Owners use loop-independent `concurrent.futures.Future` objects. Each caller wraps the owner on its own event loop and waits through an individual shield; cancellation or deadline cancels only that caller's wrapper. Genuine workers remain scheduled on the existing default executor and publish real provider completion to the existing cache. Completion callbacks publish outside the registry lock. A cache recheck during ownership handoff closes the completion/lookup race. No provider work runs on the event-loop thread, and no new executor or provider fan-out was introduced. The existing global provider semaphore remains four.
+
+The synchronous `_cached_fetch(force=True)` used for relationship evidence keeps its full-refresh behavior, including returning **its own actual acquisition** with `cache:miss` when concurrent forced calls complete out of order. Normal internal calls retain a cache recheck after waiting for provider capacity. Internal normal calls are not added to the new public singleflight registry. A monotonically ordered cache-write generation prevents an older acquisition from replacing a newer completed one; ordinary old public work can use the newer fresh canonical result. A superseded ordinary acquisition with no usable fresh canonical record returns an honest `news_superseded` error instead of reviving expired data.
+
+Cache/worker type validation rejects malformed records and emits `provider_error:InvalidResponse` for invalid provider result shapes. Response groups and cache data are copied so callers do not mutate shared acquisition receipts. Timeout, busy and superseded metadata never stamp false cache freshness.
+
+## Limits and verification boundary
+
+The7s budget bounds endpoint collection wait, not event-loop starvation, HTTP transit, QA relay time or underlying blocking-thread lifetime. The existing Requests timeout7/connect-read behavior is unchanged. A slow upstream acquisition can finish after its callers leave and occupy one of64 owner slots meanwhile; later retries join that work. Once capacity is exhausted, requests fail explicitly rather than queueing additional public owners. There is no claim that transport will always deliver within the client's remaining3s margin.
+
+An `asyncio.run` test process shuts down its default executor and may wait for real threads after the endpoint coroutine returns. Production uses a long-lived ASGI loop. Tests release synthetic held workers within the active loop and measure the endpoint result separately; owners also share safely across distinct caller loops. Whole-process shutdown is not modeled as request cancellation.
+
+Focused regressions cover saturated-executor fresh-cache delivery, one absolute mixed-group deadline, genuine late cache population, no timeout placeholders/false empty results, public normalized-key singleflight, independent cancellation, queued-owner capacity and cleanup, cross-loop ownership, malformed cache/result shapes, public error-only force and internal full-force compatibility including concurrent result identity. Synthetic providers only. The full backend suite and frontend bundle check are required locally; root owns final CI, deployment, exact revision verification, and same-harness production comparison.
+
+## Recorded local verification
+
+Final focused44 and full975 Python tests passed,80 existing full-suite warnings; Web frontend bundle check and syntax check passed. The initial12 expected regression failures and the later concurrent-force identity RED were retained under [evidence](evidence/news-response-budget-20261016/). Independent final SPEC/QUALITY PASS is recorded there. News ranking/relation/deduplication/provider functions are byte-identical to a406a4c; main/financial/PICK/LAB and Web UI assets are unchanged.
+
+A single identical synthetic ASGI comparison per case is reproducible with `news-budget-benchmark.py`: occupied-two-worker cache response262.34→30.798ms with zero provider calls; fixed12s upstream case12017.705→7014.089ms. The latter is a **partial** response retaining FAST and explicitly marking SLOW timeout; late genuine SLOW completion is cached and returned without a duplicate acquisition. This is controlled local evidence, not a production p50/p95 or provider-speed claim. Actual rollout/health/news responses and four-device smoke remain coordinator release gates.

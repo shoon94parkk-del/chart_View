@@ -1,0 +1,26 @@
+[
+  {
+    "file": "news-budget-force-red.txt.gz",
+    "sha256": "c4537cdf0f925f2f1ae0d852eb611142a4846edddecbd5f5349cae0bae66eb80",
+    "uncompressedBytes": 1846,
+    "uncompressedSha256": "458eb3595390dc5927ead93802e4e7e25d23511fbffa6f9554032a3b97cd5549"
+  },
+  {
+    "file": "news-budget-green.txt.gz",
+    "sha256": "726b1853dc6681950d2da062796fec2fb9d7246a7897ae1436deb1db6c322f5a",
+    "uncompressedBytes": 691,
+    "uncompressedSha256": "1bbea8c49e6a6b66e1b827a4eccced72a87640ff03567f87e9262af478eeab64"
+  },
+  {
+    "file": "news-budget-red.txt.gz",
+    "sha256": "4266c66515df3c7fe29f5e45e1c4b57c3b8866a298303d96d4fb24a8de7a1132",
+    "uncompressedBytes": 42061,
+    "uncompressedSha256": "5dc4cbe261c6eba17441e62b6d5c1a96b14a2f09e09da5c41d46e31584e5a4ca"
+  },
+  {
+    "file": "news-budget-full.txt.gz",
+    "sha256": "5803389e034cac8175e4bd8e047a755a4ffd10e023fde29279f16d9cf673f1a1",
+    "uncompressedBytes": 3949,
+    "uncompressedSha256": "7bb039f449150c48f893935b737f1cd66a3b44e08d687336335ebb691f854e04"
+  }
+]
