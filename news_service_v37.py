@@ -313,11 +313,12 @@ def _fetch_finnhub_news(symbol: str, name: str) -> dict:
     return {"items": _dedupe(items)[:MAX_ITEMS_PER_SYMBOL], "error": None, "provider": "finnhub"}
 
 
-def _cached_fetch(symbol: str, name: str, *, force: bool = False) -> dict:
+def _cached_fetch(symbol: str, name: str, *, force: bool = False, retry_errors_only: bool = False) -> dict:
     key = f"{symbol}|{name}".upper()
     with _CACHE_LOCK:
         cached = NEWS_CACHE.get(key)
-        if cached and not force and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
+        retry_cached_error = retry_errors_only and cached and bool(cached["data"].get("error"))
+        if cached and not force and not retry_cached_error and time.time() - float(cached.get("cachedAt") or 0) < NEWS_CACHE_TTL:
             return {**cached["data"], "cache": "hit"}
 
     try:
@@ -339,6 +340,7 @@ def _cached_fetch(symbol: str, name: str, *, force: bool = False) -> dict:
 async def personalized_news(
     tickers: str = Query(max_length=520),
     names: str = Query(default="", max_length=1400),
+    force: bool = False,
 ):
     raw_symbols = [part.strip().upper() for part in tickers.split(",") if part.strip()]
     symbols: list[str] = []
@@ -356,8 +358,11 @@ async def personalized_news(
             "displayPolicy": "headline-source-time-link-summary-seed",
         }
 
+    # Public explicit retry refreshes failed groups only. Internal force=True
+    # retains the full cache bypass required by relationship evidence retries.
+    retry_options = {"retry_errors_only": True} if force else {}
     fetched = await asyncio.gather(
-        *[asyncio.to_thread(_cached_fetch, symbol, name_map[symbol]) for symbol in symbols],
+        *[asyncio.to_thread(_cached_fetch, symbol, name_map[symbol], **retry_options) for symbol in symbols],
         return_exceptions=True,
     )
 

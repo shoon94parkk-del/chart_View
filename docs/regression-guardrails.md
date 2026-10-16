@@ -392,3 +392,8 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 
 - Optional JSON nesting/duplicate fields/nonstandard constants must fail only the optional layer. Public evidence URLs have no query strings. Historical first-release comparison needs known saved official publication timing; absence cannot bypass verification, and release month must follow observation month. Generic official homepages are insufficient.
 - Within a shared identity, individually valid forecast/comparison receipts must agree on expected value and forecast provenance; quarantine both on conflict. An invalid comparison alone must not discard a valid archive forecast.
+
+### Personalized-news explicit retry — 2026-10-16
+
+- Public `force=true` retries cached provider errors; frontend cache bypass alone cannot recover a server-cached failure. Fresh successful and legitimate `no_news` groups remain cached during partial retries, with existing TTL/concurrency preserved.
+- Default warm requests stay provider-free. Keep internal `_cached_fetch(force=True)` full cache bypass used by relationship evidence; public error-only retry uses its separate helper option.
