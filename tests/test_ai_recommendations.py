@@ -163,3 +163,61 @@ def test_name_that_resolves_to_different_symbol_still_blocks():
 
     with pytest.raises(ValueError, match="belongs to 204620.KQ"):
         module.refresh_records([day], bad_screener, [])
+
+
+def test_user_confirmed_etf_does_not_block_equity_screener(monkeypatch):
+    """ETF is absent from company-only screener but must remain a valid PICK."""
+    day = three_pick_day("2026-10-15")
+    day["analysis"] = {
+        "sourceType": "user_final_selection", "status": "complete",
+        "model": "GPT-6", "candidateTradeDate": "2026-10-15",
+    }
+    day["top3"] = [{
+        "rank": 1, "symbol": "069500.KS", "code": "069500",
+        "name": "KODEX 200", "assetType": "ETF", "close": 87025,
+        "reason": "KOSPI200 분산투자",
+    }]
+    monkeypatch.setattr(module, "_etf_close_on_date", lambda symbol, date: 91500)
+    rows = module.refresh_records([day], screener("2026-10-16"), [])
+    assert len(rows) == 1
+    assert rows[0]["symbol"] == "069500.KS"
+    assert rows[0]["currentPrice"] == 91500
+    assert rows[0]["returnPct"] == module.pct(91500, 87025)
+    assert rows[0]["lastUpdatedTradeDate"] == "2026-10-16"
+    assert rows[0]["quoteStatus"] == "current"
+
+
+def test_missing_etf_quote_keeps_original_quote_date(monkeypatch):
+    day = three_pick_day("2026-10-15")
+    day["analysis"] = {
+        "sourceType": "user_final_selection", "status": "complete",
+        "model": "GPT-6", "candidateTradeDate": "2026-10-15",
+    }
+    day["top3"] = [{
+        "rank": 1, "symbol": "069500.KS", "code": "069500",
+        "name": "KODEX 200", "assetType": "ETF", "close": 87025,
+        "reason": "KOSPI200 분산투자",
+    }]
+    monkeypatch.setattr(module, "_etf_close_on_date", lambda symbol, date: None)
+    rows = module.refresh_records([day], screener("2026-10-16"), [{
+        "recommendedDate": "2026-10-15", "rank": 1, "symbol": "069500.KS",
+        "currentPrice": 87025, "lastUpdatedTradeDate": "2026-10-15",
+        "bestReturnPct": 0,
+    }])
+    assert rows[0]["currentPrice"] == 87025
+    assert rows[0]["returnPct"] == 0
+    assert rows[0]["lastUpdatedTradeDate"] == "2026-10-15"
+    assert rows[0]["quoteStatus"] == "stale"
+
+
+def test_etf_registry_rejects_symbol_spoofing_and_stock_alias():
+    market, names = module._market_indexes(screener())
+    invalid = [
+        {"symbol": "000001.KS", "code": "000001", "name": "KODEX 200", "assetType": "ETF"},
+        {"symbol": "069500.KS", "code": "069500", "name": "다른 ETF", "assetType": "ETF"},
+        {"symbol": "069500.KS", "code": "069501", "name": "KODEX 200", "assetType": "ETF"},
+        {"symbol": "069500.KS", "code": "069500", "name": "KODEX 200"},
+    ]
+    for pick in invalid:
+        with pytest.raises(ValueError):
+            module._validate_pick_identity(pick, market, names)
