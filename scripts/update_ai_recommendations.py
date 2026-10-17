@@ -124,6 +124,16 @@ def _validate_pick_identity(pick: dict, by_symbol: dict[str, dict], by_name: dic
     row = by_symbol.get(symbol)
     expected_symbols = by_name.get(normalize_name(name), [])
 
+    # An explicitly user-confirmed ETF is not a KOSPI/KOSDAQ company row.
+    # Validate it against a narrow allowlist rather than disabling the equity
+    # identity checks that protect the track record from symbol collisions.
+    if pick.get("assetType") == "ETF":
+        verified_etfs = {"069500.KS": ("069500", "kodex200")}
+        valid = verified_etfs.get(symbol)
+        if valid is None or code != valid[0] or normalize_name(name) != valid[1]:
+            raise ValueError(f"Unverified user-selected ETF identity: {name} ({symbol})")
+        return None
+
     if row is None:
         hint = f"; expected symbol for {name!r}: {', '.join(expected_symbols)}" if expected_symbols else ""
         raise ValueError(f"TOP3 symbol not found in screener: {symbol}{hint}")
@@ -147,6 +157,29 @@ def _validate_pick_identity(pick: dict, by_symbol: dict[str, dict], by_name: dic
             f"{name!r} -> {row_name!r}"
         )
     return row
+
+
+def _etf_close_on_date(symbol: str, trade_date: str) -> float | None:
+    """Use only the confirmed daily unadjusted closing price for a verified ETF.
+
+    Provider errors must never stop a full-market screener. When unavailable,
+    the caller retains the last verified price AND its original as-of date.
+    """
+    try:
+        import yfinance as yf
+
+        candles = yf.Ticker(symbol).history(period="1mo", interval="1d", auto_adjust=False)
+        if candles is None or candles.empty or "Close" not in candles:
+            return None
+        for index, row in candles.iterrows():
+            if index.date().isoformat() != trade_date:
+                continue
+            value = number(row.get("Close"), 0)
+            if 0 < value < float("inf"):
+                return round(value, 4)
+    except Exception as exc:
+        print(f"[ETF quote] unavailable for {symbol} on {trade_date}: {exc}")
+    return None
 
 
 def _source_label(day: dict) -> str:
@@ -184,9 +217,29 @@ def refresh_records(days: list[dict], screener: dict, existing: list[dict]) -> l
             # A recommendation starts at 0% on its own recommendation date.
             # For older picks, use the current screener trade-date price so the
             # ledger cannot silently remain on yesterday's value.
-            current = entry if date == current_trade_date else number(
-                market_row.get("price") or market_row.get("close"), entry
-            )
+            quote_status = "current"
+            quote_source = "equity_screener"
+            quote_as_of = current_trade_date
+            if market_row is None:  # Strictly verified, user-confirmed ETF only.
+                quote_source = "yahoo_daily_unadjusted_close"
+                if date == current_trade_date:
+                    current = entry
+                    quote_as_of = date
+                else:
+                    etf_close = _etf_close_on_date(symbol, current_trade_date)
+                    if etf_close is not None:
+                        current = etf_close
+                    else:
+                        # Do not manufacture a new-day return from an old close.
+                        current = number(old.get("currentPrice"), entry) or entry
+                        quote_as_of = str(old.get("lastUpdatedTradeDate") or date)
+                        quote_status = "stale"
+                        quote_source = str(old.get("quoteSource") or quote_source)
+                        print(f"[ETF quote] {symbol}: preserving {quote_as_of} close; {current_trade_date} unavailable")
+            else:
+                current = entry if date == current_trade_date else number(
+                    market_row.get("price") or market_row.get("close"), entry
+                )
             current_return = pct(current, entry)
             best = max(number(old.get("bestReturnPct"), current_return or 0), current_return or 0)
             score = old.get("score") if old.get("score") is not None else pick.get("totalScore")
@@ -200,7 +253,10 @@ def refresh_records(days: list[dict], screener: dict, existing: list[dict]) -> l
                 "currentPrice": current,
                 "returnPct": current_return,
                 "bestReturnPct": round(best, 2),
-                "lastUpdatedTradeDate": current_trade_date,
+                "lastUpdatedTradeDate": quote_as_of,
+                "assetType": pick.get("assetType") or old.get("assetType") or "STOCK",
+                "quoteStatus": quote_status,
+                "quoteSource": quote_source,
                 "status": old.get("status") or "tracking",
                 "statusLabel": old.get("statusLabel") or "성과 추적 중",
                 "grade": old.get("grade") or pick.get("grade") or "관찰",
