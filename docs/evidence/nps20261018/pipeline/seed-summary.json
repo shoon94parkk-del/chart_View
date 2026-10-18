@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "snapshotVersion": "b7275c018c527bcd",
+  "generatedAt": "2026-10-18T22:17:16.710446+00:00",
+  "marketDate": "2026-10-16",
+  "baseline": {
+    "date": "2026-07-31",
+    "publishedAt": "2026-09-29",
+    "total": 1684.1732,
+    "domestic": 418.5577,
+    "kospi": 6595.45,
+    "overseas": 623.6862
+  },
+  "inputs": {
+    "baseTotal": 1684.1732,
+    "baseDomestic": 418.5577,
+    "baseKospi": 6595.45,
+    "kospi": 5668.05,
+    "target": 20.8,
+    "saa": 6,
+    "taa": 2,
+    "beta": 1,
+    "otherReturn": 0,
+    "fxReturn": -7.482987962685095,
+    "fxExposure": 75,
+    "netFlow": 0,
+    "domesticFlow": 0,
+    "equityReturn": 1.4147782715666772,
+    "bondReturn": -0.7207233916394662,
+    "domesticBondReturn": 1.031389726027396,
+    "alternativeReturn": 1.6194479925492034,
+    "cashReturn": 0.6328767123287671,
+    "hedgeRatio": 15,
+    "assetModel": 1
+  },
+  "assetBaseline": [
+    {
+      "id": "equity",
+      "name": "해외주식",
+      "base": 623.6862,
+      "returnKey": "equityReturn",
+      "foreignShare": 1,
+      "method": "13F 종목별 재평가 + 잔여액 ACWI + 환율"
+    },
+    {
+      "id": "domesticBond",
+      "name": "국내채권",
+      "base": 282.9436,
+      "returnKey": "domesticBondReturn",
+      "foreignShare": 0,
+      "method": "3년·10년 금리 변화 + 이자수익 추정"
+    },
+    {
+      "id": "bond",
+      "name": "해외채권",
+      "base": 102.3775,
+      "returnKey": "bondReturn",
+      "foreignShare": 1,
+      "method": "BNDW 분배금 포함 수익률 + 환율"
+    },
+    {
+      "id": "alternative",
+      "name": "대체투자",
+      "base": 248.7498,
+      "returnKey": "alternativeReturn",
+      "foreignShare": 0.8976891639711871,
+      "method": "연 6% 수익 누적 + 주식 민감도 0.25 가정"
+    },
+    {
+      "id": "cash",
+      "name": "단기·기타 잔여자산",
+      "base": 7.858399999999904,
+      "returnKey": "cashReturn",
+      "foreignShare": 0,
+      "method": "잔여액에 연 3% 수익 누적 가정"
+    }
+  ],
+  "result": {
+    "domestic": 359.7034275879584,
+    "other": 1219.5688017871914,
+    "total": 1579.27222937515,
+    "weight": 22.776530917046365,
+    "gap": 1.9765309170463645,
+    "adjustment": -31.21480387792718,
+    "targetKospi": 5047.00291813382,
+    "saaKospi": 7035.891205544688,
+    "taaKospi": 7773.344166045348,
+    "assets": [
+      {
+        "id": "equity",
+        "name": "해외주식",
+        "base": 623.6862,
+        "returnPercent": 1.4147782715666772,
+        "foreignShare": 1,
+        "marketGain": 8.823776840359889,
+        "fxGain": -40.23104861528445,
+        "overlayGain": 0,
+        "projected": 592.2789282250754,
+        "method": "13F 종목별 재평가 + 잔여액 ACWI + 환율"
+      },
+      {
+        "id": "domesticBond",
+        "name": "국내채권",
+        "base": 282.9436,
+        "returnPercent": 1.031389726027396,
+        "foreignShare": 0,
+        "marketGain": 2.9182512208520515,
+        "fxGain": 0,
+        "overlayGain": 0,
+        "projected": 285.86185122085203,
+        "method": "3년·10년 금리 변화 + 이자수익 추정"
+      },
+      {
+        "id": "bond",
+        "name": "해외채권",
+        "base": 102.3775,
+        "returnPercent": -0.7207233916394662,
+        "foreignShare": 1,
+        "marketGain": -0.7378585902756944,
+        "fxGain": -6.46482981220507,
+        "overlayGain": 0,
+        "projected": 95.17481159751924,
+        "method": "BNDW 분배금 포함 수익률 + 환율"
+      },
+      {
+        "id": "alternative",
+        "name": "대체투자",
+        "base": 248.7498,
+        "returnPercent": 1.6194479925492034,
+        "foreignShare": 0.8976891639711871,
+        "marketGain": 4.028373642570158,
+        "fxGain": -14.433096882387037,
+        "overlayGain": 0,
+        "projected": 238.3450767601831,
+        "method": "연 6% 수익 누적 + 주식 민감도 0.25 가정"
+      },
+      {
+        "id": "cash",
+        "name": "단기·기타 잔여자산",
+        "base": 7.858399999999904,
+        "returnPercent": 0.6328767123287671,
+        "foreignShare": 0,
+        "marketGain": 0.04973398356164322,
+        "fxGain": 0,
+        "overlayGain": 0,
+        "projected": 7.908133983561547,
+        "method": "잔여액에 연 3% 수익 누적 가정"
+      }
+    ],
+    "otherBeforeFlows": 1219.5688017871914,
+    "marketGain": 15.082277097068046,
+    "fxGain": -61.12897530987655,
+    "overlayGain": 0,
+    "fixedOtherWeight": 22.131251995063728
+  },
+  "sensitivity": {
+    "lowWeight": 22.355630471133516,
+    "highWeight": 23.207544803119998,
+    "lowAdjustment": -37.31554221269516,
+    "highAdjustment": -25.03018705956555
+  },
+  "filing": {
+    "reportDate": "2026-06-30",
+    "filedDate": "2026-08-13",
+    "totalCount": 552,
+    "directCount": 546,
+    "reportCoveragePct": 99.53533618567606,
+    "overseasCoveragePct": 35.57342274970194,
+    "totalValueUSD": 155079663358,
+    "directReturnPct": 2.460396891344896,
+    "residualReturnPct": 0.8374352745637026,
+    "blendedReturnPct": 1.4147782715666772,
+    "base13fKRW": 221.86652855755153,
+    "residualBaseKRW": 401.81967144244845,
+    "detailsFile": "holdings-b7275c018c527bcd.json",
+    "sourceFilingUrl": "https://www.sec.gov/Archives/edgar/data/1608046/000119312526347818/0001193125-26-347818-index.htm",
+    "sourceInformationTableUrl": "https://www.sec.gov/Archives/edgar/data/1608046/000119312526347818/56942.xml",
+    "checkedAt": "2026-10-18"
+  },
+  "market": {
+    "date": "2026-10-16",
+    "observations": {
+      "globalEquityStart": 156.43,
+      "globalEquityEnd": 157.74,
+      "globalBondStart": 67.46,
+      "globalBondEnd": 66.37,
+      "globalBondDistributions": 0.6037999999999999,
+      "fxStart": 1442.5227,
+      "fxEnd": 1334.5789,
+      "korea3yStart": 3.758,
+      "korea3yEnd": 3.854,
+      "korea10yStart": 4.261,
+      "korea10yEnd": 4.182,
+      "korea3yDuration": 2.8,
+      "korea10yDuration": 8.1,
+      "korea3yWeight": 0.5,
+      "alternativeAnnualCarry": 6,
+      "alternativeEquityBeta": 0.25,
+      "cashAnnualCarry": 3
+    },
+    "windowDays": 77,
+    "domesticBondMethod": "국채 3년·10년 금리 변화 + 이자 추정 (초기 검증 자료)",
+    "latestFilingCheck": {
+      "checkedAt": "2026-10-18",
+      "reportDate": "2026-06-30",
+      "status": "verified"
+    }
+  },
+  "sources": [
+    {
+      "type": "공식 공시",
+      "className": "official",
+      "title": "국민연금 기금운용 현황",
+      "detail": "2026.07.31 기준 · 09.29 발표 · 잠정치",
+      "url": "https://fund.nps.or.kr/impa/edwmpblnt/getOHEF0006M0.do?tmpltdataSn=5954",
+      "note": "총 1,684.1732조 / 국내주식 418.5577조",
+      "download": "https://fund.nps.or.kr/fileDown.do?atchFileId=FL26003560&atchFileSn=1"
+    },
+    {
+      "type": "공식 목표",
+      "className": "official",
+      "title": "보건복지부 제5차 기금운용위원회",
+      "detail": "2026.05.28 의결 · 6월 말부터 목표 20.8%",
+      "url": "https://www.mohw.go.kr/gallery.es?act=view&bid=0003&list_no=380100&mid=a10607030000&tag=",
+      "note": "SAA 한시 확대의 구체적 범위는 비공개"
+    },
+    {
+      "type": "시장 지수",
+      "className": "market",
+      "title": "코스피 기준일·최근 종가",
+      "detail": "07.31: 6,595.45 → 10.16: 5,668.05",
+      "url": "https://www.mt.co.kr/amp/stock/2026/07/31/2026073116111478041",
+      "note": "최근 종가: Investing.com · 실시간 연동 없음",
+      "secondUrl": "https://kr.investing.com/indices/kospi"
+    },
+    {
+      "type": "보도·가정",
+      "className": "assumed",
+      "title": "SAA 6%p · TAA 2%p",
+      "detail": "한국경제 2026.06.01 취재보도",
+      "url": "https://www.hankyung.com/article/202606019839r",
+      "note": "상단 26.8%·28.8%는 단순 합산 시나리오"
+    },
+    {
+      "type": "공식 보고",
+      "className": "official",
+      "title": "국민연금 SEC 13F · 최근 공개 2분기",
+      "detail": "2026.06.30 보유분 · 08.13 제출 · 552개 항목 · $155.0797bn",
+      "url": "https://www.sec.gov/Archives/edgar/data/1608046/000119312526347818/0001193125-26-347818-index.htm",
+      "note": "6월 말 수량을 유지한 추정. 미국 상장 보고대상 증권이며 해외주식 전체가 아님",
+      "secondUrl": "https://www.sec.gov/Archives/edgar/data/1608046/000119312526347818/56942.xml",
+      "secondLabel": "SEC 전체 보유 명세"
+    },
+    {
+      "type": "시장 관측",
+      "className": "market",
+      "title": "13F 종목별 가격·배당·주식분할",
+      "detail": "7/31 → 10/16 가격 확인 546/552 · 보고금액 99.54%",
+      "url": "https://finance.yahoo.com/quote/NVDA/history/",
+      "note": "Yahoo 종목별 조정종가 수익률. 미확인 가격·복잡한 기업행동·워런트는 잔여액 지수 추정에 포함. 종목별 원시 API 출처는 13F CSV 참조",
+      "secondUrl": "https://13f.info/data/13f/000119312526347818",
+      "secondLabel": "CUSIP·티커 대응 검증"
+    },
+    {
+      "type": "시장 관측",
+      "className": "market",
+      "title": "13F 미평가·미포함 해외주식 · ACWI",
+      "detail": "07.31 $156.43 → 10.16 $157.74 · 기간 분배금 없음",
+      "url": "https://www.quiverquant.com/stock/ACWI/historical-prices/",
+      "note": "잔여액에만 달러 기준 +0.84% 적용. 미국 포함 글로벌 ETF이며 한국 일부 노출은 근사 오차",
+      "secondUrl": "https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf",
+      "secondLabel": "운용사 현재가·분배금"
+    },
+    {
+      "type": "시장 관측",
+      "className": "market",
+      "title": "해외채권 · BNDW",
+      "detail": "$67.46 → $66.37 + 분배금 $0.6038 = −0.72%",
+      "url": "https://www.quiverquant.com/stock/BNDW/historical-prices/",
+      "note": "미국 달러 헤지 글로벌채권 ETF. 분배금 현금 보유, 재투자 미반영",
+      "secondUrl": "https://stockanalysis.com/etf/bndw/dividend/",
+      "secondLabel": "분배금 내역",
+      "extraLinks": [
+        {
+          "url": "https://stockanalysis.com/etf/bndw/history/",
+          "label": "10월 16일 가격"
+        },
+        {
+          "url": "https://advisors.vanguard.com/investments/products/bndw/vanguard-total-world-bond-etf",
+          "label": "운용사 벤치마크"
+        }
+      ]
+    },
+    {
+      "type": "시장 관측",
+      "className": "market",
+      "title": "달러/원 환율 · 일별 종가",
+      "detail": "07.31 1,442.5227 → 10.16 1,334.5789 · −7.48%",
+      "url": "https://www.exchangerates.org.uk/USD-KRW-spot-exchange-rates-history-2026.html",
+      "note": "같은 제공자의 글로벌 일별 종가. 서울 15:30 종가와 다르며 모든 외화를 달러로 근사"
+    },
+    {
+      "type": "관측+추론",
+      "className": "assumed",
+      "title": "국내채권 · 금리 변화로 추정",
+      "detail": "3년 3.758→3.854% / 10년 4.261→4.182%",
+      "url": "https://www.yna.co.kr/view/AKR20260731137600008",
+      "note": "3년·10년 50:50, 듀레이션 2.8·8.1년 및 77일 이자수익을 가정",
+      "secondUrl": "https://www.yna.co.kr/view/AKR20261016141800008",
+      "secondLabel": "10월 16일 금리"
+    },
+    {
+      "type": "공식+가정",
+      "className": "assumed",
+      "title": "환헤지 비율 · 기본 15%",
+      "detail": "2026.04.14 기금위 기본 비율 15%, 탄력적 집행",
+      "url": "https://www.mohw.go.kr/gallery.es?act=view&bid=0003&list_no=379986&mid=a10505000000",
+      "note": "공식 기본 비율을 외화자산에 일괄 적용한 근사. 실제 집행·헤지 비용 미확인"
+    },
+    {
+      "type": "모형 가정",
+      "className": "assumed",
+      "title": "대체투자·단기자산의 평가 시차",
+      "detail": "대체: 연 6% × 77/365 + 해외주식 수익률 × 0.25",
+      "url": "https://www.data.go.kr/data/15106896/fileData.do",
+      "note": "6%·0.25·단기 연 3%는 분석 가정이며 출처의 수치가 아님. 실제 사모자산 공정가치 평가와 다름",
+      "extraLinks": [
+        {
+          "url": "https://fund.nps.or.kr/eng/main.do",
+          "label": "해외 대체투자 공시"
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "공시 이후 실제 매매·납입·급여지급은 확인되지 않아 순유입과 순매매를 0으로 가정합니다.",
+    "13F는 미국 상장 보고대상 증권이며 해외주식 전체가 아닙니다. 미평가·미포함 잔액은 ACWI로 추정합니다.",
+    "대체투자·환헤지·지수 민감도·SAA와 TAA 한도는 모형 가정이며 실제 집행과 다를 수 있습니다.",
+    "공식 기금 기준일은 2026-07-31이며 새로운 월별 공시의 수동 검증이 필요합니다."
+  ],
+  "update": {
+    "frequency": "미국 종가 확인 후 평일 하루 1회 (한국시간 10:30)",
+    "scheduleUTC": "30 1 * * 2-6",
+    "method": "scheduled-close",
+    "baselineRefresh": "새 공식 월별 공시 검증 후 반영",
+    "filingRefresh": "SEC 신규 제출 자동 확인; 보유 명세 매핑 검증 후 반영"
+  }
+}
