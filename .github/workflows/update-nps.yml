@@ -1,0 +1,65 @@
+name: Update NPS Allocation Estimate
+
+on:
+  schedule:
+    # Tue-Sat 01:30 UTC / 10:30 KST: preceding US and FX daily sessions are closed.
+    - cron: '30 1 * * 2-6'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Recheck an existing same-date snapshot
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nps-allocation-publication
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate offline publication contracts
+        run: |
+          pip install pytest
+          python -m pytest -q tests/test_nps_pipeline.py
+      - name: Revalue a common completed market close
+        env:
+          FORCE_RECHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+        run: |
+          if [ "$FORCE_RECHECK" = "true" ]; then
+            python scripts/nps_pipeline.py --max-seconds 600 --workers 4 --force
+          else
+            python scripts/nps_pipeline.py --max-seconds 600 --workers 4
+          fi
+          python scripts/nps_pipeline.py --check
+      - name: Commit verified summary and immutable detail together
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/nps
+          if git diff --cached --quiet; then
+            echo "No newer common completed market snapshot"
+          else
+            git commit -m "data: refresh NPS allocation estimate"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Record publication semantics
+        if: always()
+        run: |
+          echo 'NPS is a scheduled close estimate, not an intraday quote or actual current holding statement.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Collection or validation failures preserve the last valid publication. Monthly baseline and new 13F mappings require source review.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Toss uses public versioned static data; backend runtime provider/cache paths are unchanged.' >> "$GITHUB_STEP_SUMMARY"
