@@ -643,3 +643,21 @@ Actual Toss live smoke exposed11–21s news API-relay duration beyond the existi
 Classification: new behavior. Add isolated scripts/nps_pipeline.py and reviewed scripts/nps/config.json, daily 13F share-basket repricing, complete common-session core market inputs, static/data/nps summary plus immutable holdings publication, and update-nps workflow. Existing API/cache/provider/Web UI remain untouched. Prices and dividend-adjusted returns use one date window; Yahoo daily USD/KRW is consistent at both endpoints, Korean bond ETFs proxy the 3y/10y sleeve, nonpublic flows remain explicit zero assumptions. 13F value is USD, never USD thousands; direct slice is inside official overseas equity and FX applies once. New SEC filing detection does not auto-certify CUSIP mapping; missing/new complex actions preserve prior publication and expose dated reviewed quantities. Schedule Tue–Sat01:30UTC (10:30KST), normal market publication and manually force-checked same-date publication share strict quality gates.
 
 Actual network check:552 symbols queried,546 direct, report-value coverage99.5353%, completed session2026-10-16, snapshot7621d9f7beb3eda2, weight22.553851592%, adjustment−27.9715597494trKRW. Difference from the independent site's prior22.78% seed reflects consistent Yahoo FX and bond proxy, not an unreported NPS trade. Offline17 tests and build_frontend_bundle.py --check passed; workflow execution/main integration and static-CDN readback are verified separately after push. See NPS_ALLOCATION_PIPELINE_2026-10-18.md.
+
+
+## 2026-10-19 — Audited intelligence feed v2 endpoint (separate PR)
+
+Added `GET /api/intelligence/feed/v2` in new module `intelligence_feed_v2_service.py`
+plus router registration in `main.py` (branch `muse/intelligence-feed-v2-20261019`).
+Serves intel-os feed v2 documents (`schema_version: 2`, `AUDITED_PICKS`) only:
+server re-validates the full contract (PASS-only picks, fact_pack_hash/audit_hash
+required, https evidence, forbidden private key-name scan refuses publication,
+unknown fields stripped, `source` stamped `three_agent_audited`), ETag/304 support,
+and `X-Feed-Stale: true` when the snapshot is older than 6h so stale data is never
+disguised as current analysis. Disabled by default (503) via
+`MARKET_INTELLIGENCE_FEED_V2_PATH`; ledger verification stays in the intel-os
+publisher (PR #11), this host never touches ledgers/DB. v1 endpoint untouched —
+separate module/env/route with mutual schema rejection (verified against PR #160
+branch in a temp worktree, read-only). Tests:
+`python -m unittest tests.test_intelligence_feed_v2 -v` (23 tests OK).
+No deploy, no live enablement.
