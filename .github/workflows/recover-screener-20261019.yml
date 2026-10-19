@@ -1,9 +1,9 @@
-name: Recover Korean Stock Screener 2026-10-19
+name: Daily Korean Stock Screener and PICK Prices
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: [.github/workflows/recover-screener-20261019.yml]
+  schedule:
+    # 16:35 KST, Monday-Friday. Holidays are rejected by REQUIRE_KST_TRADE_DATE.
+    - cron: '35 7 * * 1-5'
 permissions:
   contents: write
 concurrency:
@@ -72,16 +72,7 @@ jobs:
             echo "No data changes"
             exit 0
           fi
-          git commit -m "data: recover Korean stock screener 2026-10-19"
+          git commit -m "data: publish daily Korean screener and PICK closing prices"
           git fetch origin main
           git rebase -X theirs origin/main
           git push origin HEAD:main
-      - name: Trigger Render after successful publication if hook is available
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
-            curl --fail --show-error --silent --retry 3 --retry-delay 5 -X POST "$RENDER_DEPLOY_HOOK_URL"
-          else
-            echo "Render deploy hook absent; deployment must be verified separately"
-          fi
