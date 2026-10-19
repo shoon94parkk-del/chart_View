@@ -29,6 +29,14 @@ class TestDebateArchive(unittest.TestCase):
     def test_no_sensitive_fields_even_nested(self):
         v = fixture(); v["debates"][0]["phases"][0]["api_key"] = "bad"
         with self.assertRaises(ValueError): public_archive(v)
+    def test_refuses_private_prose_even_with_approval(self):
+        for sample in ("연락처 010-1234-5678", "email: person@example.com",
+                       "현재 보유 1.12억원", "계정 ghp_abcdefghijklmnopqrstuvwxyz0123"):
+            doc = fixture()
+            doc["debates"][0]["phases"][0]["text"] = sample
+            with self.subTest(sample=sample):
+                with self.assertRaises(ValueError):
+                    public_archive(doc)
     def test_no_traversal(self):
         v = fixture(); v["debates"][0]["phases"][0]["source_path"] = "records/debates/../../.env.md"
         with self.assertRaises(ValueError): public_archive(v)

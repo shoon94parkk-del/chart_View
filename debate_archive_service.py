@@ -24,6 +24,23 @@ ALLOWED_STATUSES = {"COMPLETED", "PARTIAL", "BLOCKED"}
 ALLOWED_VERDICTS = {"BUY", "WAIT", "SELL", "UNKNOWN"}
 FORBIDDEN = ("api_key", "apikey", "password", "secret", "private_key", "token", "account_id", "db_path", "dsn")
 TICKER = re.compile(r"^[A-Z0-9.\-^]{1,18}$")
+
+# Explicit owner approval does not replace a second conservative PII guard.
+# Reject risky freeform text on the PUBLIC API. Review/redact locally first.
+PRIVATE_TEXT = tuple(re.compile(p, re.I) for p in (
+    r"\b010[-\s]?\d{4}[-\s]?\d{4}\b",        # Korean mobile numbers
+    r"[\w.+-]+@[\w-]+\.[\w.-]+",             # email addresses
+    r"\b\d{6}[- ]?[1-4]\d{6}\b",            # RRN-like identifier
+    r"gh[pousr]_[a-z0-9]{20,}",              # GitHub token
+    r"sk-[a-z0-9_-]{20,}",                  # API secret
+    r"AKIA[A-Z0-9]{16}",                    # AWS access key
+    r"(?:내|본인|현재)\s*(?:보유|투자|계좌)\s*(?:금액|잔액|평가액)?",
+))
+def _safe_public_text(value: str) -> str:
+    if any(pattern.search(value) for pattern in PRIVATE_TEXT):
+        raise ValueError("possible private data in public debate text")
+    return value
+
 ID = re.compile(r"^[A-Za-z0-9_-]{3,80}$")
 
 def _time(value: str) -> str:
@@ -101,7 +118,7 @@ def public_archive(doc: dict) -> dict:
             cleaned_phases.append({
                 "role": phase["role"], "stage": phase["stage"],
                 "title": _str(phase, "title", 160),
-                "text": _str(phase, "text", 16000),
+                "text": _safe_public_text(_str(phase, "text", 16000)),
                 "source_path": src,
             })
         sanitized.append({
