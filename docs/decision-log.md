@@ -661,3 +661,24 @@ separate module/env/route with mutual schema rejection (verified against PR #160
 branch in a temp worktree, read-only). Tests:
 `python -m unittest tests.test_intelligence_feed_v2 -v` (23 tests OK).
 No deploy, no live enablement.
+
+
+## 2026-10-19 — v2 extension fields allowlist (P5) + PR #160/#161 정리 방안 (P6)
+
+Classification: new behavior (contract extension), coordinated with intel-os PR #11.
+
+`intelligence_feed_v2_service.py`의 공개 projection allowlist에 선택 확장
+필드를 추가: `research_score`/`judgment_score`(유한 숫자, 0~100),
+`agent_claims`(mer/nonggu/meng, 1~500자), `performance`(유한
+return_pct/mdd_pct/excess_benchmark_pct, benchmark≤32자, tz-aware as_of).
+intel-os `integration/feed_v2.py::_build_extension`과 동일한 타입·범위
+검증 — 검증 실패 시 문서 전체 거부(503). 프런트는 점수·수익률을 임의
+생성하지 않으며, 서버도 검증되지 않은 값을 전달하지 않는다.
+`docs/INTELLIGENCE_FEED_V2_API.md`에 계약 명시. 테스트:
+`tests.test_intelligence_feed_v2::ExtensionFieldsTest` 6개 신규 (전체 29개 통과).
+
+PR #160(v1: `intelligence_feed_service.py`, `/api/intelligence/feed`) vs
+#161(v2): 의미적 중복 없음 — 파일 겹침은 `main.py`의 router 등록 1줄씩과
+`docs/decision-log.md`뿐. 순차 머지 시 main.py의 인접 hunk 2개를 수동
+해소 (각각의 include_router 줄 유지). 순서 무관, 직접 머지하지 않음.
+운영 플래그 미활성: `MARKET_INTELLIGENCE_FEED_V2_PATH` 미설정 시 기본 503.
