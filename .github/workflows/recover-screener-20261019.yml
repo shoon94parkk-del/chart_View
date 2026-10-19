@@ -1,0 +1,87 @@
+name: Recover Korean Stock Screener 2026-10-19
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/recover-screener-20261019.yml]
+permissions:
+  contents: write
+concurrency:
+  group: korean-screener
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Synchronize main branch
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install screener dependencies
+        run: pip install 'yfinance>=0.2.50' pandas requests lxml html5lib
+      - name: Save previous snapshot for technical deltas
+        run: |
+          if [ -f static/data/screener.json ]; then
+            cp static/data/screener.json "$RUNNER_TEMP/screener_previous.json"
+          fi
+      - name: Generate exact-date screener
+        env:
+          REQUIRE_KST_TRADE_DATE: '1'
+        run: python scripts/generate_screener.py
+      - name: Export and validate candidates
+        run: |
+          python scripts/export_screener_candidates.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('static/data/screener_top100.json').read_text(encoding='utf-8'))
+          meta = json.loads(Path('static/data/screener_meta.json').read_text(encoding='utf-8'))
+          check = data.get('verification') or {}
+          stocks = data.get('stocks') or []
+          date = data.get('tradeDate')
+          assert date == meta.get('tradeDate') and len(stocks) >= 100
+          assert check.get('aiInputReady') is True
+          assert all(r.get('date') == date for r in stocks)
+          assert int(check.get('exactDateUniverseCount') or 0) >= max(100, int(meta.get('universeCount', 0)*0.90))
+          print('VERIFIED:', date, len(stocks))
+          PY
+      - name: Test PICK price updater before publishing
+        run: |
+          python -m pip install -q pytest
+          python -m pytest -q tests/test_ai_recommendations.py
+      - name: Refresh existing PICK records without selecting new picks
+        run: |
+          python scripts/update_ai_recommendations.py
+          if [ -f "$RUNNER_TEMP/screener_previous.json" ]; then
+            python scripts/build_pick_monitor.py --previous-screener "$RUNNER_TEMP/screener_previous.json"
+          else
+            python scripts/build_pick_monitor.py
+          fi
+      - name: Publish verified screener and PICK prices
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/screener.json static/data/screener_meta.json static/data/screener_top100.json static/data/screener_validation.json static/data/ai_recommendations.json static/data/ai_daily_rankings_meta.json static/data/pick_monitor.json static/data/pick_monitor_history.json
+          if git diff --cached --quiet; then
+            echo "No data changes"
+            exit 0
+          fi
+          git commit -m "data: recover Korean stock screener 2026-10-19"
+          git fetch origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
+      - name: Trigger Render after successful publication if hook is available
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
+            curl --fail --show-error --silent --retry 3 --retry-delay 5 -X POST "$RENDER_DEPLOY_HOOK_URL"
+          else
+            echo "Render deploy hook absent; deployment must be verified separately"
+          fi
