@@ -1,0 +1,46 @@
+name: Verify Live PICK Publication
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/verify-live-pick-publication.yml]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify live data is GitHub-published and not a stale Render snapshot
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          from urllib.request import Request, urlopen
+          base="https://chart-view-pkv8.onrender.com"
+          def load(path):
+              last_error = None
+              for attempt in range(7):
+                  try:
+                      with urlopen(Request(base+path,headers={"Accept":"application/json"}),timeout=20) as response:
+                          return json.load(response),dict(response.headers)
+                  except Exception as exc:
+                      last_error = exc
+                      time.sleep(5)
+              raise RuntimeError(f"{path}: {last_error}")
+          picks, headers = load("/api/published-data/ai_recommendations.json")
+          assert "no-store" in headers.get("Cache-Control",""),headers
+          assert headers.get("X-Chartview-Data-Source","") == "github-main",headers
+          assert len(picks.get("recommendations",[])) >= 40
+          etf = next(x for x in picks["recommendations"] if x.get("symbol")=="069500.KS")
+          assert etf["lastUpdatedTradeDate"] >= "2026-10-19",etf
+          bootstrap, bheaders = load("/api/home-bootstrap")
+          assert "no-store" in bheaders.get("Cache-Control",""),bheaders
+          assert bootstrap.get("priceSource") == "github-main",bootstrap.get("priceSource")
+          assert any(x.get("symbol")=="069500.KS" for x in bootstrap.get("recommendations",[]))
+          monitor, _ = load("/api/published-data/pick_monitor.json")
+          assert len(monitor.get("picks",[])) >= 40
+          screener, _ = load("/api/published-data/screener.json")
+          assert screener.get("tradeDate") >= "2026-10-19",screener.get("tradeDate")
+          print("LIVE PUBLICATION OK; PICK="+str(len(picks["recommendations"]))+"; screener="+screener.get("tradeDate")+"; KODEX200="+str(etf.get("currentPrice")))
+          PY
