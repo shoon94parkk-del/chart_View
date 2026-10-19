@@ -23,19 +23,19 @@ jobs:
               for attempt in range(7):
                   try:
                       with urlopen(Request(base+path,headers={"Accept":"application/json"}),timeout=20) as response:
-                          return json.load(response),dict(response.headers)
+                          return json.load(response),{k.lower():v for k,v in response.headers.items()}
                   except Exception as exc:
                       last_error = exc
                       time.sleep(5)
               raise RuntimeError(f"{path}: {last_error}")
           picks, headers = load("/api/published-data/ai_recommendations.json")
-          assert "no-store" in headers.get("Cache-Control",""),headers
-          assert headers.get("X-Chartview-Data-Source","") == "github-main",headers
+          assert "no-store" in headers.get("cache-control",""),headers
+          assert headers.get("x-chartview-data-source","") == "github-main",headers
           assert len(picks.get("recommendations",[])) >= 40
           etf = next(x for x in picks["recommendations"] if x.get("symbol")=="069500.KS")
           assert etf["lastUpdatedTradeDate"] >= "2026-10-19",etf
           bootstrap, bheaders = load("/api/home-bootstrap")
-          assert "no-store" in bheaders.get("Cache-Control",""),bheaders
+          assert "no-store" in bheaders.get("cache-control",""),bheaders
           assert bootstrap.get("priceSource") == "github-main",bootstrap.get("priceSource")
           assert any(x.get("symbol")=="069500.KS" for x in bootstrap.get("recommendations",[]))
           monitor, _ = load("/api/published-data/pick_monitor.json")
