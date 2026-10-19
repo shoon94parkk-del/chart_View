@@ -39,6 +39,8 @@ class IntelligenceFeedTests(TestCase):
         self.assertNotIn("secret", json.dumps(out))
         self.assertEqual(out["picks"], [])
         self.assertEqual(out["market_events"][0]["action"], "REVIEW_ONLY")
+        self.assertNotIn("MARKET:vix:test:2026-10-19", json.dumps(out))
+        self.assertTrue(out["market_events"][0]["id"].startswith("MARKET:"))
 
     def test_unverified_buy_fails_closed(self):
         doc = fixture()

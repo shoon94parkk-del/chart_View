@@ -82,7 +82,9 @@ def public_projection(document: dict) -> dict:
                 or row.get("severity") not in ("CRITICAL", "WARNING")):
             raise ValueError("unsafe event")
         safe_events.append({
-            "id": row["id"], "severity": row["severity"],
+            # External clients do not need private/original upstream IDs.
+            "id": "MARKET:" + hashlib.sha256(row["id"].encode("utf-8")).hexdigest()[:24],
+            "severity": row["severity"],
             "action": "REVIEW_ONLY", "requires_review": True,
         })
     return {
