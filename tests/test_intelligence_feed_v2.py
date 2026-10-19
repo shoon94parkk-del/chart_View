@@ -291,3 +291,76 @@ class FeedV2RouteTests(TestCase):
                         clear=True):
             resp = client.get("/api/intelligence/feed/v2")
         self.assertEqual(resp.status_code, 503)
+
+
+class ExtensionFieldsTest(TestCase):
+    """P5 — 선택 확장 필드 allowlist (서버 계산값만, 타입·범위 검증)."""
+
+    def _get(self, doc):
+        client = _client_with_feed(doc)
+        self.addCleanup(client._tmpdir.cleanup)
+        with patch.dict(os.environ,
+                        {"MARKET_INTELLIGENCE_FEED_V2_PATH": client._feed_path},
+                        clear=True):
+            return client.get("/api/intelligence/feed/v2")
+
+    def test_extension_fields_projected(self):
+        doc = _doc(picks=[_pick(
+            research_score=78.5,
+            judgment_score=64,
+            agent_claims={"mer": "수요 회복 가설 유지",
+                         "nonggu": "공급 규율 변수",
+                         "meng": "반증 조건 2건"},
+            performance={"return_pct": 12.34, "mdd_pct": -5.2,
+                         "excess_benchmark_pct": 3.1,
+                         "benchmark": "KOSPI",
+                         "as_of": NOW.isoformat()},
+        )])
+        resp = self._get(doc)
+        self.assertEqual(resp.status_code, 200)
+        pick = resp.json()["picks"][0]
+        self.assertEqual(pick["research_score"], 78.5)
+        self.assertEqual(pick["judgment_score"], 64.0)
+        self.assertEqual(pick["agent_claims"]["mer"], "수요 회복 가설 유지")
+        self.assertEqual(pick["performance"]["return_pct"], 12.34)
+        self.assertEqual(pick["performance"]["benchmark"], "KOSPI")
+
+    def test_extension_fields_optional(self):
+        resp = self._get(_doc())
+        pick = resp.json()["picks"][0]
+        self.assertNotIn("research_score", pick)
+        self.assertNotIn("agent_claims", pick)
+        self.assertNotIn("performance", pick)
+
+    def test_score_out_of_range_refused(self):
+        for key in ("research_score", "judgment_score"):
+            for bad in (-0.5, 100.1, "80", float("nan"), True):
+                doc = _doc(picks=[_pick(**{key: bad})])
+                resp = self._get(doc)
+                self.assertEqual(resp.status_code, 503, f"{key}={bad!r}")
+
+    def test_bad_agent_claims_refused(self):
+        for bad_claims in ({"mer": ""}, {"stranger": "x"},
+                           {"mer": "x" * 501}, "not-a-dict"):
+            doc = _doc(picks=[_pick(agent_claims=bad_claims)])
+            resp = self._get(doc)
+            self.assertEqual(resp.status_code, 503,
+                             f"agent_claims={str(bad_claims)[:20]!r}")
+
+    def test_bad_performance_refused(self):
+        for bad_perf in ({"return_pct": float("inf")},
+                         {"return_pct": "12"}, {},
+                         {"return_pct": 1.0, "as_of": "naive"}):
+            doc = _doc(picks=[_pick(performance=bad_perf)])
+            resp = self._get(doc)
+            self.assertEqual(resp.status_code, 503,
+                             f"performance={str(bad_perf)[:30]!r}")
+
+    def test_unknown_extra_fields_still_dropped(self):
+        # allowlist 원칙 유지: 확장 필드 외의 미지정 필드는 제거된다.
+        doc = _doc(picks=[_pick(research_score=70, fabricated_score=999)])
+        resp = self._get(doc)
+        self.assertEqual(resp.status_code, 200)
+        pick = resp.json()["picks"][0]
+        self.assertEqual(pick["research_score"], 70)
+        self.assertNotIn("fabricated_score", pick)

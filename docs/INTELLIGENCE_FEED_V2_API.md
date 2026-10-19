@@ -19,6 +19,24 @@
 - `as_of`/`generated_at`은 timezone-aware, 미래 시각 거부(1분 skew 허용).
 - `source`는 서버가 항상 `"three_agent_audited"`로 스탬프.
 
+### 선택 확장 필드 (P5 — 서버 계산값만)
+
+Toss v2 UI가 표시하는 추가 필드. 전부 선택(optional)이며, allowlist에
+포함되려면 타입·범위 검증을 통과해야 한다. 검증 실패 시 문서 전체가
+거부된다 (fail-closed) — 프런트는 점수·수익률을 임의 생성하지 않으며,
+서버도 검증되지 않은 값을 전달하지 않는다.
+
+| 필드 | 규칙 |
+|---|---|
+| `research_score` | 유한 숫자, 0~100. 발굴 단계 조사 우선도 |
+| `judgment_score` | 유한 숫자, 0~100. 3인 토론·감사 통과 후 최종 판단 점수 |
+| `agent_claims` | 객체. 키는 `mer`/`nonggu`/`meng`만, 각 값은 1~500자 문자열. 서버가 토론 기록에서 사전 생성한 핵심 주장 |
+| `performance` | 객체. `return_pct`/`mdd_pct`/`excess_benchmark_pct` (유한 숫자), `benchmark` (≤32자), `as_of` (tz-aware ISO). 서버에서 종가 기준으로 사전 계산된 값만. 최소 1개 필드 필수 |
+
+원천: intel-os `integration/feed_v2.py` (`docs/FEED_V2_CONTRACT.md`).
+피드 파일에 실리는 확장 필드는 전부 원장(결정 원장 payload ·
+`pick_performance` 스냅샷)에 기록된 서버 계산값이다.
+
 ## 서버 동작
 
 - 입력은 `MARKET_INTELLIGENCE_FEED_V2_PATH` 환경변수(절대경로)의 로컬 파일뿐.

@@ -21,6 +21,11 @@ Trust model:
 - Stale snapshots are never disguised as fresh analysis: ``as_of`` and
   ``generated_at`` are always exposed, and when ``generated_at`` is older
   than the staleness threshold the response carries ``X-Feed-Stale: true``.
+- P5 extension fields (optional, server-computed only): ``research_score`` /
+  ``judgment_score`` (0–100), ``agent_claims`` (mer/nonggu/meng summaries),
+  ``performance`` (precomputed returns). They pass the same allowlist with
+  type/range validation; unvalidated values are refused, never forwarded —
+  the frontend must never fabricate scores or returns.
 
 Disabled by default: the route returns 503 until the operator configures
 ``MARKET_INTELLIGENCE_FEED_V2_PATH`` (absolute path to a validated feed file).
@@ -59,6 +64,13 @@ COVERAGE_STATUSES = ("COMPLETE", "PARTIAL_COVERAGE")
 QUALITY_STATUSES = ("COMPLETE", "PARTIAL_DATA")
 PICK_STATUSES = ("유지", "주의", "재점검", "종료")
 THESIS_MAX_CHARS = 200
+
+# P5 — optional extension fields (server-computed only).
+# Mirrors intel-os integration/feed_v2.py::_build_extension.
+AGENT_CLAIM_AGENTS = ("mer", "nonggu", "meng")
+AGENT_CLAIM_MAX_CHARS = 500
+BENCHMARK_MAX_CHARS = 32
+PERFORMANCE_PCT_KEYS = ("return_pct", "mdd_pct", "excess_benchmark_pct")
 
 # Forbidden key-name fragments — checked against key *names*, not values.
 # Mirrors intel-os integration/feed_v2.py::FORBIDDEN_KEY_FRAGMENTS.
@@ -110,6 +122,80 @@ def _scan_forbidden_keys(document: dict) -> None:
         lowered = str(key).lower()
         if any(fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
             raise ValueError(f"forbidden key in public document: {key!r}")
+
+
+def _finite_number(value: object, field: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{field} must be a number")
+    if value != value or value in (float("inf"), float("-inf")):
+        raise ValueError(f"{field} must be finite")
+    return float(value)
+
+
+def _project_extension(pick: dict) -> dict:
+    """Validate optional server-computed extension fields (P5).
+
+    Mirrors intel-os ``integration/feed_v2.py::_build_extension``:
+    scores must be finite numbers in [0, 100]; agent claims are pinned to
+    mer/nonggu/meng (1–500 chars each); performance carries only finite
+    precomputed percentages plus an optional benchmark label and a
+    timezone-aware as_of. Anything else fails closed — the frontend must
+    never fabricate scores or returns, and the server never forwards
+    unvalidated ones.
+    """
+    out: dict = {}
+    for key in ("research_score", "judgment_score"):
+        value = pick.get(key)
+        if value is None:
+            continue
+        number = _finite_number(value, key)
+        if not 0 <= number <= 100:
+            raise ValueError(f"{key} out of range [0, 100]")
+        out[key] = number
+
+    claims = pick.get("agent_claims")
+    if claims is not None:
+        if not isinstance(claims, dict):
+            raise ValueError("agent_claims must be an object")
+        unknown = set(claims) - set(AGENT_CLAIM_AGENTS)
+        if unknown:
+            raise ValueError(f"agent_claims has unknown agents: {sorted(unknown)}")
+        clean = {}
+        for agent in AGENT_CLAIM_AGENTS:
+            text = claims.get(agent)
+            if text is None:
+                continue
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError(f"agent_claims.{agent} must be a non-empty string")
+            text = text.strip()
+            if len(text) > AGENT_CLAIM_MAX_CHARS:
+                raise ValueError(f"agent_claims.{agent} exceeds {AGENT_CLAIM_MAX_CHARS} chars")
+            clean[agent] = text
+        if clean:
+            out["agent_claims"] = clean
+
+    perf = pick.get("performance")
+    if perf is not None:
+        if not isinstance(perf, dict):
+            raise ValueError("performance must be an object")
+        clean_perf: dict = {}
+        for key in PERFORMANCE_PCT_KEYS:
+            value = perf.get(key)
+            if value is None:
+                continue
+            clean_perf[key] = _finite_number(value, f"performance.{key}")
+        benchmark = perf.get("benchmark")
+        if benchmark is not None:
+            if not isinstance(benchmark, str) or not benchmark.strip():
+                raise ValueError("performance.benchmark must be a non-empty string")
+            clean_perf["benchmark"] = benchmark.strip()[:BENCHMARK_MAX_CHARS]
+        as_of = perf.get("as_of")
+        if as_of is not None:
+            clean_perf["as_of"] = _timestamp(as_of, field="performance.as_of")
+        if not clean_perf:
+            raise ValueError("performance must carry at least one field")
+        out["performance"] = clean_perf
+    return out
 
 
 def _project_pick(pick: dict) -> dict:
@@ -170,7 +256,7 @@ def _project_pick(pick: dict) -> dict:
     if status not in PICK_STATUSES:
         raise ValueError("bad status")
 
-    return {
+    projected = {
         "pick_id": pick_id, "market": market, "ticker": ticker,
         "verdict": verdict, "decided_at": decided_at,
         "decision_date": decision_date, "thesis": thesis,
@@ -180,6 +266,9 @@ def _project_pick(pick: dict) -> dict:
         "audit_status": AUDIT_STATUS_PASS, "status": status,
         "source": SOURCE,
     }
+    # P5: optional server-computed extension fields (validated above).
+    projected.update(_project_extension(pick))
+    return projected
 
 
 def v2_projection(document: dict) -> dict:
