@@ -7,11 +7,12 @@ def _block(source: str, start_marker: str, end_marker: str) -> str:
     return source[start:end]
 
 
-def test_home_bootstrap_is_shared_cacheable():
+def test_home_bootstrap_reads_fresh_published_data_without_shared_stale_cache():
     source = Path("main.py").read_text(encoding="utf-8")
     block = _block(source, '@app.get("/api/home-bootstrap")', '@app.get("/api/popular")')
-    assert 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600' in block
-    assert 'no-cache, max-age=0, must-revalidate' not in block
+    assert 'get_published_data, "ai_daily_rankings.json"' in block
+    assert 'get_published_data, "ai_recommendations.json"' in block
+    assert 'no-store, max-age=0, must-revalidate' in block
 
 
 def test_market_now_normal_reads_are_cacheable_but_fresh_reads_are_not():
