@@ -1132,35 +1132,59 @@ async def home_insights(tickers: str = ""):
         raise HTTPException(status_code=500, detail=f"home insights unavailable: {exc}")
 
 
+@app.get("/api/published-data/{filename}")
+async def published_data(filename: str):
+    """Latest checked-in stock and PICK records, independent of Render deploys."""
+    import asyncio
+
+    from published_data import get_published_data
+
+    try:
+        payload, source = await asyncio.to_thread(get_published_data, filename)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="published file not available")
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"published data unavailable: {exc}")
+    return JSONResponse(
+        content=payload,
+        headers={
+            "Cache-Control": "no-store, max-age=0, must-revalidate",
+            "X-ChartView-Data-Source": source,
+            "X-ChartView-Data-AsOf": str(payload.get("updated") or payload.get("generatedAt") or "")[:48],
+        },
+    )
+
+
 @app.get("/api/home-bootstrap")
 async def home_bootstrap():
-    """Return the small set of precomputed files needed by the home PICK widget in one request."""
-    import json
-    from pathlib import Path
+    """Latest TOP3 and PICK prices; publication no longer requires a deployment."""
+    import asyncio
 
-    data_dir = Path(__file__).resolve().parent / "static" / "data"
+    from published_data import get_published_data
+
     try:
-        rankings = json.loads((data_dir / "ai_daily_rankings.json").read_text(encoding="utf-8"))
-        recommendations = json.loads((data_dir / "ai_recommendations.json").read_text(encoding="utf-8"))
+        (rankings, ranking_source), (recommendations, price_source) = await asyncio.gather(
+            asyncio.to_thread(get_published_data, "ai_daily_rankings.json"),
+            asyncio.to_thread(get_published_data, "ai_recommendations.json"),
+        )
         days = rankings.get("days") or []
         day = max(days, key=lambda item: str(item.get("tradeDate") or ""), default=None)
         versions = [str(rankings.get("updated") or ""), str(recommendations.get("updated") or "")]
-        payload = {
-            "day": day,
-            "recommendations": recommendations.get("recommendations") or [],
-            "version": max(versions),
-        }
         return JSONResponse(
-            content=payload,
+            content={
+                "day": day,
+                "recommendations": recommendations.get("recommendations") or [],
+                "version": max(versions),
+                "priceUpdated": recommendations.get("updated"),
+                "priceSource": price_source,
+            },
             headers={
-                # Rankings/recommendations only change when the data files are
-                # regenerated and deployed. Let browsers/shared caches absorb
-                # repeat traffic instead of re-hitting the free web service.
-                "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
+                "Cache-Control": "no-store, max-age=0, must-revalidate",
+                "X-ChartView-Data-Source": f"ranking={ranking_source};prices={price_source}",
             },
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"home bootstrap unavailable: {exc}")
+        raise HTTPException(status_code=503, detail=f"home bootstrap unavailable: {exc}")
 
 
 @app.get("/api/popular")
