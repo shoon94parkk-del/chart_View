@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "kind": "debate_archive",
+  "publication_status": "EXPLICITLY_APPROVED",
+  "generated_at": "2026-10-20T14:44:00+09:00",
+  "read_mode": "CURATED_PUBLIC_SUMMARIES",
+  "notice": "공개용 사실 요약이며 비공개 원본 전체 대화가 아닙니다. V4.7 기록은 자체 감사 결과로, 매수 권고가 아닙니다.",
+  "debates": [
+    {
+      "id": "hanwha-272210-20261020-smoke",
+      "date": "2026-10-20",
+      "company": "한화시스템",
+      "ticker": "272210",
+      "topic": "무인 스모크 · 30종목 중 2위(네오티스 중복 제외) · 75,300원 기준 · 연구 요약",
+      "status": "COMPLETED",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "수요·거시 관점 — 신규 진입 대기",
+          "text": "초기 분석은 실적 성장과 가격에 반영된 기대, 목표가 변화·컨센서스 기준을 검토했고 신규 진입은 WAIT 의견이었다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "산업·공급 관점 — 정상화 실적 확인",
+          "text": "방산·조선 관련 사업 구조 변화 이후 정상화 이익 기준이 중요하며, UAE 계약 관련 기대만으로는 신규 진입을 정당화할 수 없다는 관점이었다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "데이터 검증 관점 — 관찰",
+          "text": "TTM PER 약 73배와 사업 개편 전 추정치를 구분하고, 기초 수치가 불확실한 상태에서 저평가를 주장할 수 없음을 지적했다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-meng-phase1.md"
+        },
+        {
+          "role": "other",
+          "stage": "attack",
+          "title": "상호 반박·정정 요약",
+          "text": "3명은 2027년 전망 EPS의 신선도와 조선 사업 제외 전후 비교를 공격했다. 토론을 거치며 낡은 추정치를 매수 근거로 사용하지 않기로 했다. 원문 공격 3건과 반론 3건은 내부 연구 문서에 보관되어 있다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-mer-attack.md"
+        },
+        {
+          "role": "other",
+          "stage": "rebuttal",
+          "title": "핵심 판단 조건",
+          "text": "2027년 가이던스, 정상화 EPS, UAE 계약 규모 확인을 주요 재평가 조건으로 정리했다. 초기 의견을 수정하면서 최종 WAIT로 수렴했다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "최종 WAIT — 신규 진입 보류",
+          "text": "mer·nonggu·meng은 신규 진입 WAIT/관찰로 일치했다. 사업 재편과 가이던스 확인이 먼저 필요하다는 판단이다. 보유자에 대한 매매 권고는 제공하지 않는다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-final.md"
+        },
+        {
+          "role": "other",
+          "stage": "audit",
+          "title": "V4.7 4개 게이트 통과로 기록",
+          "text": "RUN-20261020-shadow-smoke: 감사 JSON에 APPROVED, WAIT, PICK 미등록으로 기록. 이는 스모크 테스트 결과이며, 14일 예약 운영이 지속된 증거는 아니다.",
+          "source_path": "records/shadow/2026-10-20-smoke/272210-final.md"
+        }
+      ]
+    },
+    {
+      "id": "neotis-085910-20261020-auto",
+      "date": "2026-10-20",
+      "company": "네오티스",
+      "ticker": "085910",
+      "topic": "무인 스크리너 30종목 중 1위 · 실적 회복 확인 · 투자 매력 판단 보류",
+      "status": "COMPLETED",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "수요와 고객 CAPEX 의존성",
+          "text": "고객 설비투자 계획에 연동된 수요 구조, 재고 증가, 데이터 결손을 근거로 WAIT 판단을 제시했다.",
+          "source_path": "records/debates/20261020-auto/085910-mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "산업 구분과 고마진 지속성",
+          "text": "초기에는 공구 사업의 경기 민감성과 이미 반영된 기대를 지적했다. 이후 '사이클주' 단정은 철회했다.",
+          "source_path": "records/debates/20261020-auto/085910-nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "검증 공백 공격",
+          "text": "52주 가격 위치 해석, 사업부문 매출 비중과 컨센서스 공백을 점검하고 근거 없는 저평가·고점 단정을 경계했다.",
+          "source_path": "records/debates/20261020-auto/085910-meng-phase1.md"
+        },
+        {
+          "role": "other",
+          "stage": "attack",
+          "title": "사업부 매출 비중 불일치",
+          "text": "메르와 농구의 마이크로비트 매출 비중 주장이 충돌했다. DART 사업부문 원문과 독립 대조 전까지 수익성 지속성을 확정할 수 없다고 정리했다.",
+          "source_path": "records/debates/20261020-auto/085910-meng-attack.md"
+        },
+        {
+          "role": "other",
+          "stage": "rebuttal",
+          "title": "원래 주장 수정",
+          "text": "재고 급증은 관측된 수치이지만 경기 후반 또는 현금전환 악화를 곧바로 확정하지 않는다고 수정했다. 고객 CAPEX 일정과 실적 지속성 검증을 재평가 조건으로 삼았다.",
+          "source_path": "records/debates/20261020-auto/085910-nonggu-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "3인 만장일치 WAIT",
+          "text": "2026년 상반기 턴어라운드는 공시로 확인되지만, 사업부 믹스·재고 구성·영업현금흐름과 3분기 실적의 지속성을 추가 확인해야 한다. 신규 진입은 보류.",
+          "source_path": "records/debates/20261020-auto/085910-final.md"
+        },
+        {
+          "role": "other",
+          "stage": "audit",
+          "title": "기록상 V4.7 APPROVED, PICK 미등록",
+          "text": "RUN-20261020-auto-p3 감사 JSON에 네 게이트 통과와 최종 WAIT가 기록돼 있다. 원장 검증과 예약 반복 실행은 별도 운영 확인 대상이다.",
+          "source_path": "records/debates/20261020-auto/085910-final.md"
+        }
+      ]
+    },
+    {
+      "id": "samsung-005930-20261020-p4",
+      "date": "2026-10-20",
+      "company": "삼성전자",
+      "ticker": "005930",
+      "topic": "3인 토론 수치 정정 · 정규장 218,000원과 애프터마켓 223,500원 구분",
+      "status": "COMPLETED",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "이벤트 반영과 가격 흐름",
+          "text": "실적 발표 이후 주가가 안착했다는 초기 주장을 상호 공격 후 철회하고, 발표 이후 하락 추세를 인정했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "실적 사이클과 재고 평가",
+          "text": "TTM PER 12.72 확인 등급을 재검토했고, 223,500원/22,442원은 9.96배라는 산술 오류를 인정했다. 재고 해석의 확신도를 낮췄다.",
+          "source_path": "records/debates/20261020-fullrun/005930-nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "EPS·PER 자기모순 발견",
+          "text": "Forward PER 2.96의 EPS 분모가 Fact Pack 내 근거와 맞지 않고, TTM PER도 역산 결과와 불일치함을 지적했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-meng-phase1.md"
+        },
+        {
+          "role": "other",
+          "stage": "attack",
+          "title": "상호 공격에서 숫자 오류 적발",
+          "text": "시장 반응 서술, PER의 분모, 부문별 영업이익률 비교 기준과 시나리오 확률의 자기모순을 지적했다. 초기 결론의 근거가 수정됐다.",
+          "source_path": "records/debates/20261020-fullrun/005930-meng-attack.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "최종 신규 진입 WAIT",
+          "text": "상호 반박과 재평가 후 세 에이전트 모두 신규 진입 WAIT 의견. 정규장 가격을 기준으로 EPS 22,442원 대비 9.71배로 다시 산술 확인했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-final.md"
+        },
+        {
+          "role": "other",
+          "stage": "audit",
+          "title": "초기 BLOCKED → 별도 P4 감사 APPROVED 기록",
+          "text": "초기 장전 신선도 검증에 걸려 BLOCKED였으나, 시장 세션을 구분한 새 P4 Fact Pack으로 별도 감사에서 4개 게이트 통과 기록. 최초 차단 기록은 보존되어 있다.",
+          "source_path": "records/debates/20261020-fullrun/005930-final.md"
+        }
+      ]
+    }
+  ]
+}

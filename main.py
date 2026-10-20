@@ -1154,7 +1154,7 @@ async def published_data(filename: str):
         headers={
             "Cache-Control": "no-store, max-age=0, must-revalidate",
             "X-ChartView-Data-Source": source,
-            "X-ChartView-Data-AsOf": str(payload.get("updated") or payload.get("generatedAt") or "")[:48],
+            "X-ChartView-Data-AsOf": str(payload.get("updated") or payload.get("generatedAt") or payload.get("generated_at") or "")[:48],
         },
     )
 
