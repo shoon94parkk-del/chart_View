@@ -37,6 +37,13 @@ class TestDebateArchive(unittest.TestCase):
             with self.subTest(sample=sample):
                 with self.assertRaises(ValueError):
                     public_archive(doc)
+    def test_shadow_record_source_allowed_and_traversal_still_rejected(self):
+        v = fixture()
+        v["debates"][0]["phases"][0]["source_path"] = "records/shadow/2026-10-20-smoke/272210-mer-phase1.md"
+        self.assertEqual(public_archive(v)["debates"][0]["phases"][0]["source_path"], v["debates"][0]["phases"][0]["source_path"])
+        v["debates"][0]["phases"][0]["source_path"] = "records/shadow/../../private.md"
+        with self.assertRaises(ValueError): public_archive(v)
+
     def test_no_traversal(self):
         v = fixture(); v["debates"][0]["phases"][0]["source_path"] = "records/debates/../../.env.md"
         with self.assertRaises(ValueError): public_archive(v)

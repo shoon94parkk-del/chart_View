@@ -113,7 +113,7 @@ def public_archive(doc: dict) -> dict:
                 raise ValueError("invalid debate phase")
             src = _str(phase, "source_path", 260)
             parts = PurePosixPath(src).parts
-            if not src.endswith(".md") or len(parts) < 3 or parts[:2] != ("records", "debates") or ".." in parts or "\\" in src:
+            if not src.endswith(".md") or len(parts) < 3 or parts[:2] not in (("records", "debates"), ("records", "shadow")) or ".." in parts or "\\" in src:
                 raise ValueError("unexpected source path")
             cleaned_phases.append({
                 "role": phase["role"], "stage": phase["stage"],
