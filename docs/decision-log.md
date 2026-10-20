@@ -682,3 +682,8 @@ PR #160(v1: `intelligence_feed_service.py`, `/api/intelligence/feed`) vs
 `docs/decision-log.md`뿐. 순차 머지 시 main.py의 인접 hunk 2개를 수동
 해소 (각각의 include_router 줄 유지). 순서 무관, 직접 머지하지 않음.
 운영 플래그 미활성: `MARKET_INTELLIGENCE_FEED_V2_PATH` 미설정 시 기본 503.
+
+
+## 2026-10-20 — NPS disclosure-aligned asset model2 and same-date source refresh
+
+Classification: approved existing estimate extension and source-refresh reliability fix. Replace arbitrary private annual carry with explicit unobserved local NAV and independent economic proxy scenarios. Use aggregate AA− bond totalreturn, actual short-term/nonfinancial/reconciliation classifications, dated official net-contribution pace, cashincome/hedgecarry/flowincome separately. Keep schema1, legacy effective cashReturn and immutable552-row evidence. New monthly notices require review; future/malformed notices remain unavailable. Latest-main3daily attempts are retained; source push forces same-date valuation and detects all scripts/nps/**. AGGG's actual Oct19missingclose cannot downgrade the main market date: BNDW main remains, same-date AGGG comparison is explicitly unavailable without older/zero substitution. Required12series still fail closed. Full verification and publication evidence: NPS_REALISM_MODEL_2026-10-18.md.

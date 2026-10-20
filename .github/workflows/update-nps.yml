@@ -13,8 +13,7 @@ on:
     paths:
       - '.github/workflows/update-nps.yml'
       - 'scripts/nps_pipeline.py'
-      - 'scripts/nps/quotes.py'
-      - 'scripts/nps/config.json'
+      - 'scripts/nps/**'
   workflow_dispatch:
     inputs:
       force:
@@ -45,10 +44,10 @@ jobs:
       - name: Validate offline publication contracts
         run: |
           pip install pytest
-          python -m pytest -q tests/test_nps_pipeline.py
+          python -m pytest -q tests/test_nps_pipeline.py tests/test_nps_realism.py
       - name: Revalue a common completed market close
         env:
-          FORCE_RECHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+          FORCE_RECHECK: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.force) }}
         run: |
           if [ "$FORCE_RECHECK" = "true" ]; then
             python scripts/nps_pipeline.py --max-seconds 600 --workers 4 --force

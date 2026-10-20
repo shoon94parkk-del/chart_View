@@ -1,0 +1,317 @@
+{
+  "snapshotVersion": "e93a82d9da4a54a8",
+  "marketDate": "2026-10-16",
+  "generatedAt": "2026-10-19T00:02:11.278594+00:00",
+  "result": {
+    "weight": 22.573519278787384,
+    "gap": 1.7735192787873828,
+    "adjustment": -28.26058859551148,
+    "total": 1593.4751278731078,
+    "domestic": 359.7034151931179,
+    "other": 1233.7717126799898,
+    "cashBreakdown": {
+      "effectiveReturnPercent": -1.4137499950687158,
+      "externalFlowIncome": 0.008511142407037976,
+      "hedgeCarry": -0.15380701599047328,
+      "hedgePrincipal": 142.30613593326953,
+      "nonFinancialBase": 0.985699999999988,
+      "projected": 7.7473018703874255,
+      "reconciliationBase": 1.734599999999979,
+      "shortTermBase": 5.138099999999937,
+      "shortTermIncome": 0.03419774397095671
+    }
+  },
+  "latestFilingCheck": {
+    "accession": "0001193125-26-347818",
+    "checkedAt": "2026-10-19T00:01:48.916573+00:00",
+    "filedDate": "2026-08-13",
+    "form": "13F-HR",
+    "reportDate": "2026-06-30",
+    "status": "verified"
+  },
+  "latestMonthlyCheck": {
+    "baselineDate": "2026-07-31",
+    "checkedAt": "2026-10-19T00:01:49.158853+00:00",
+    "reportDate": "2026-07-31",
+    "sourceUrl": "https://fund.nps.or.kr/main.do",
+    "status": "verified"
+  },
+  "observations": {
+    "114260.KS": {
+      "baseline": {
+        "adjustedClose": 61775.0,
+        "close": 61775.0,
+        "date": "2026-07-31",
+        "timestamp": 1785456000
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 62185.0,
+        "close": 62185.0,
+        "date": "2026-10-16",
+        "timestamp": 1792108800
+      },
+      "name": "Samsung Kodex Treasury Bond Securities ETF - Bonds",
+      "rawSha256": "6f8ed97b26e4fc9619b4d08b1147ca178040946121186d2007fc4745712b752f",
+      "retrievedAt": "2026-10-19T00:01:47.901935+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/114260.KS?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "148070.KS": {
+      "baseline": {
+        "adjustedClose": 104715.0,
+        "close": 104715.0,
+        "date": "2026-07-31",
+        "timestamp": 1785456000
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 106420.0,
+        "close": 106420.0,
+        "date": "2026-10-16",
+        "timestamp": 1792108800
+      },
+      "name": "KOSEF 10yr KTB",
+      "rawSha256": "e23ed4957d33284add8989763cbb43a98747091b1db3e4746ed998fee3d6f8f2",
+      "retrievedAt": "2026-10-19T00:01:48.032619+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/148070.KS?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "273130.KS": {
+      "baseline": {
+        "adjustedClose": 110130.0,
+        "close": 110130.0,
+        "date": "2026-07-31",
+        "timestamp": 1785456000
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 111405.0,
+        "close": 111405.0,
+        "date": "2026-10-16",
+        "timestamp": 1792108800
+      },
+      "name": "KODEX Active Bond",
+      "rawSha256": "ba72dec4ff11d9ccef404eee7dd9f93bab9c78fd151220e67e5fd1f49b5799f1",
+      "retrievedAt": "2026-10-19T00:01:48.145835+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/273130.KS?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "357870.KS": {
+      "baseline": {
+        "adjustedClose": 57845.0,
+        "close": 57845.0,
+        "date": "2026-07-31",
+        "timestamp": 1785456000
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 58230.0,
+        "close": 58230.0,
+        "date": "2026-10-16",
+        "timestamp": 1792108800
+      },
+      "name": "Mirae Asset Maps Management - Tiger CD Rate Investment (Synth) ETF",
+      "rawSha256": "70774cac69a721f70032c9e55da9f86847c756e611cc631e5551f51ebc17bece",
+      "retrievedAt": "2026-10-19T00:01:48.256480+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/357870.KS?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "ACWI": {
+      "baseline": {
+        "adjustedClose": 156.42999267578125,
+        "close": 156.42999267578125,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 157.74000549316406,
+        "close": 157.74000549316406,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "iShares MSCI ACWI ETF",
+      "rawSha256": "dfd7c90a92d1f17e5bbee1303a60e4e0c0d3b8e0031cddab5d06beecf919383e",
+      "retrievedAt": "2026-10-19T00:01:47.434363+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/ACWI?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "AGGG.L": {
+      "baseline": {
+        "adjustedClose": 4.285999774932861,
+        "close": 4.285999774932861,
+        "date": "2026-07-31",
+        "timestamp": 1785481200
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 4.238500118255615,
+        "close": 4.238500118255615,
+        "date": "2026-10-16",
+        "timestamp": 1792134000
+      },
+      "name": "iShares Core Global Aggregate Bond UCITS ETF USD (Dist)",
+      "rawSha256": "77d6b1216537ec9bbbad9afc1b31a7302b0c8886a19986b9bcb4c64045e34661",
+      "retrievedAt": "2026-10-19T00:01:48.522086+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/AGGG.L?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "BIL": {
+      "baseline": {
+        "adjustedClose": 90.86624908447266,
+        "close": 91.68000030517578,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 91.56999969482422,
+        "close": 91.56999969482422,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "State Street SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "rawSha256": "287a8f4065edd418c8fd45fbd49ec4e515a751354f0746aa813d7b91c6549629",
+      "retrievedAt": "2026-10-19T00:01:48.393148+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BIL?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "BNDW": {
+      "baseline": {
+        "adjustedClose": 66.85264587402344,
+        "close": 67.45999908447266,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 66.37000274658203,
+        "close": 66.37000274658203,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "Vanguard Total World Bond ETF",
+      "rawSha256": "0a15f3474fc7fb1acbb37cec1407c0484000c87e766c3f4bd7c13423215c5c24",
+      "retrievedAt": "2026-10-19T00:01:47.560649+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BNDW?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "IGF": {
+      "baseline": {
+        "adjustedClose": 66.80999755859375,
+        "close": 66.80999755859375,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 63.84000015258789,
+        "close": 63.84000015258789,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "iShares Global Infrastructure ETF",
+      "rawSha256": "a5c1d7d21483b1d89aebd937f5096a159a8e82be232a1c41aab7a66f02b8ba24",
+      "retrievedAt": "2026-10-19T00:01:48.916286+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/IGF?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "KRW=X": {
+      "baseline": {
+        "adjustedClose": 1420.5999755859375,
+        "close": 1420.5999755859375,
+        "date": "2026-07-31",
+        "timestamp": 1785452400
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 1340.949951171875,
+        "close": 1340.949951171875,
+        "date": "2026-10-16",
+        "timestamp": 1792105200
+      },
+      "name": "USD/KRW",
+      "rawSha256": "6c2789aa364a088f5ac34d448e48bad1784f553e5a001db932858b972d943e20",
+      "retrievedAt": "2026-10-19T00:01:47.670934+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "PSP": {
+      "baseline": {
+        "adjustedClose": 59.24848175048828,
+        "close": 59.65999984741211,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 55.720001220703125,
+        "close": 55.720001220703125,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "Invesco Global Listed Private Equity ETF",
+      "rawSha256": "747a380ce27eb58c6fcf6c8a6f682f04927836d4675b43339be628be1f949b32",
+      "retrievedAt": "2026-10-19T00:01:48.663030+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/PSP?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "REET": {
+      "baseline": {
+        "adjustedClose": 28.138736724853516,
+        "close": 28.3799991607666,
+        "date": "2026-07-31",
+        "timestamp": 1785504600
+      },
+      "currency": "USD",
+      "current": {
+        "adjustedClose": 25.8799991607666,
+        "close": 25.8799991607666,
+        "date": "2026-10-16",
+        "timestamp": 1792157400
+      },
+      "name": "iShares Global REIT ETF",
+      "rawSha256": "981b3b8fae36821cc986982b8b7b053304fffd94082e006dec371628b2000f66",
+      "retrievedAt": "2026-10-19T00:01:48.783916+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/REET?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    },
+    "^KS11": {
+      "baseline": {
+        "adjustedClose": 6595.4501953125,
+        "close": 6595.4501953125,
+        "date": "2026-07-31",
+        "timestamp": 1785456000
+      },
+      "currency": "KRW",
+      "current": {
+        "adjustedClose": 5668.0498046875,
+        "close": 5668.0498046875,
+        "date": "2026-10-16",
+        "timestamp": 1792108800
+      },
+      "name": "KOSPI Composite Index",
+      "rawSha256": "acdf7992bffeffcbd51466f60129f51968d393fe742c97eb58fc2208c652f326",
+      "retrievedAt": "2026-10-19T00:01:47.777597+00:00",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?period1=1782345600&period2=1792195200&interval=1d&events=div%2Csplits&includeAdjustedClose=true"
+    }
+  },
+  "validation": {
+    "snapshotVersion": "e93a82d9da4a54a8",
+    "marketDate": "2026-10-16",
+    "weight": 22.573519278787384,
+    "directCount": 546
+  },
+  "files": {
+    "red.txt": "b5e5c7d2b8980ea48b02dceab83cff5129b60c963cc54765d5605cd23fcaf3fe",
+    "green.txt": "dd662b76eb38c0d930f3da911be9db6b3ab567f86b724a38c302e03008d82b7d",
+    "monthly-future-red.txt": "1db1c80c5c751f745d8e3619bcf0370d506e0a59531b4831dd86f83f9d9536f8",
+    "offline-check.json": "c692d500773cbd26d0e5c49a3eb85bc7f1f7ac5ffcd70d2500a173f2838c4610",
+    "monthly-future-green.txt": "2c5b489f5cba65393c9318d993d4defa1151129f7170c4338efd0cdae7abb77c",
+    "live-collection.txt": "2f7f5f4bff3f2ad4795f2d75f6e7522a08fb37298fbc63fbc70a9ce69db3992e",
+    "monthly-balances-cells.txt": "0e4f34c49db18e37304e072eb759b02326a12de9ec9d43d197613b122a2f02ef",
+    "cashflows-july-cells.txt": "13f62094865592087ae5b3d5ed802f13b989a70be9c02427c06ff7d0742bd8be",
+    "core-raw/148070.KS.json": "e23ed4957d33284add8989763cbb43a98747091b1db3e4746ed998fee3d6f8f2",
+    "core-raw/KRW=X.json": "6c2789aa364a088f5ac34d448e48bad1784f553e5a001db932858b972d943e20",
+    "core-raw/357870.KS.json": "70774cac69a721f70032c9e55da9f86847c756e611cc631e5551f51ebc17bece",
+    "core-raw/^KS11.json": "acdf7992bffeffcbd51466f60129f51968d393fe742c97eb58fc2208c652f326",
+    "core-raw/ACWI.json": "dfd7c90a92d1f17e5bbee1303a60e4e0c0d3b8e0031cddab5d06beecf919383e",
+    "core-raw/273130.KS.json": "ba72dec4ff11d9ccef404eee7dd9f93bab9c78fd151220e67e5fd1f49b5799f1",
+    "core-raw/AGGG.L.json": "77d6b1216537ec9bbbad9afc1b31a7302b0c8886a19986b9bcb4c64045e34661",
+    "core-raw/PSP.json": "747a380ce27eb58c6fcf6c8a6f682f04927836d4675b43339be628be1f949b32",
+    "core-raw/IGF.json": "a5c1d7d21483b1d89aebd937f5096a159a8e82be232a1c41aab7a66f02b8ba24",
+    "core-raw/114260.KS.json": "6f8ed97b26e4fc9619b4d08b1147ca178040946121186d2007fc4745712b752f",
+    "core-raw/BNDW.json": "0a15f3474fc7fb1acbb37cec1407c0484000c87e766c3f4bd7c13423215c5c24",
+    "core-raw/REET.json": "981b3b8fae36821cc986982b8b7b053304fffd94082e006dec371628b2000f66",
+    "core-raw/BIL.json": "287a8f4065edd418c8fd45fbd49ec4e515a751354f0746aa813d7b91c6549629"
+  }
+}

@@ -140,7 +140,7 @@ def full_core(start='2026-07-31',end='2026-11-16'):
 
 
 def test_refresh_recomputes_elapsed_days_markets_and_residual_without_double_count():
-    c=config();c['filing']['positionCount']=1;c['filing']['reportedValueUsd']=100
+    c=config();c['inputs']['assetModel']=1;c['filing']['positionCount']=1;c['filing']['reportedValueUsd']=100
     rows=[{'cusip':'A','ticker':'A','issuer':'A','shares':1,'reportValueUSD':100,'valid':True,'flags':[],
            'baselineMarketValueUSD':1000000000,'currentTotalReturnValueUSD':1200000000,
            'currentMarketValueUSD':1190000000,'totalReturn':.2}]
@@ -158,7 +158,7 @@ def test_refresh_recomputes_elapsed_days_markets_and_residual_without_double_cou
 
 
 def test_refresh_rejects_13f_sleeve_above_total_foreign_equities():
-    c=config();c['filing']['positionCount']=1;c['filing']['reportedValueUsd']=100
+    c=config();c['inputs']['assetModel']=1;c['filing']['positionCount']=1;c['filing']['reportedValueUsd']=100
     rows=[{'cusip':'A','ticker':'A','reportValueUSD':100,'valid':True,
            'baselineMarketValueUSD':1e15,'currentTotalReturnValueUSD':1e15}]
     with pytest.raises(ValueError,match='double count'):
