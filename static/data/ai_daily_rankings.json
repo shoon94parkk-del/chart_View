@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-15T17:51:41+09:00",
+  "updated": "2026-10-20T17:28:35+09:00",
   "days": [
     {
       "tradeDate": "2026-09-14",
@@ -1327,6 +1327,80 @@
           "priceSourceUrls": [
             "https://markets.hankyung.com/stock/069500/public-announcement",
             "https://kr.investing.com/etfs/samsung-kodex-kospi-200-securities-historical-data"
+          ]
+        }
+      ]
+    },
+    {
+      "tradeDate": "2026-10-20",
+      "status": "사용자 확정 PICK — 2026-10-20 종가 기준",
+      "analysis": {
+        "sourceType": "user_final_selection",
+        "status": "complete",
+        "model": "GPT-6",
+        "candidateTradeDate": "2026-10-20",
+        "analyzedAt": "2026-10-20T17:28:35+09:00",
+        "candidateFile": "static/data/screener_top100.json",
+        "selectionRecordedDate": "2026-10-20",
+        "selectedOutsideTop10": true
+      },
+      "scorePolicy": {
+        "version": "etf-user-selection-no-stock-score",
+        "weights": {
+          "companyGrowth": 35,
+          "industry": 15,
+          "valuation": 10,
+          "catalystRisk": 10,
+          "technical": 30
+        }
+      },
+      "top3": [
+        {
+          "rank": 1,
+          "code": "475300",
+          "symbol": "475300.KS",
+          "name": "SOL 반도체전공정",
+          "assetType": "ETF",
+          "benchmark": "FnGuide 반도체 전공정 지수(PR)",
+          "issuer": "신한자산운용",
+          "close": 20710,
+          "previousClose": 22060,
+          "changePct": -6.12,
+          "totalScore": null,
+          "scores": {},
+          "scoreVerification": "사용자가 2026-10-20 직접 확정한 TOP10 외 ETF. 개별주식 35/15/10/10/30 스코어 사용 안 함.",
+          "reason": "사용자가 2026-10-20 SOL 반도체전공정(475300)을 단독 최종 PICK으로 확정. 전공정 장비·소재 업체를 통해 반도체 FAB CAPEX 회복과 미세공정 투자에 노출된다. 기존 개별 반도체 장비 PICK과 보유 섹터 중복, 업종 집중과 급락장 변동성, ETF NAV 괴리·추적오차를 유의한다.",
+          "monitoring": {
+            "summary": "SOL 반도체전공정 ETF는 FnGuide 반도체 전공정 지수(PR)를 추종하는 국내 상장 인덱스 ETF이다. 주성엔지니어링·원익IPS·HPSP·피에스케이·유진테크 등 전공정 장비·소재의 고객 CAPEX와 메모리 신규/전환 투자가 실적 성장으로 연결되는지를 본다.",
+            "thesisPillars": [
+              "국내 반도체 전공정 증착·열처리·식각/세정 등 장비·소재 가치사슬에 분산 노출",
+              "메모리 FAB 신규 CAPEX 및 공정 전환/고도화가 장비 발주와 소모품 수요를 늘릴 가능성",
+              "개별 장비사의 수주·고객 리스크를 ETF 바스켓으로 일부 분산하되 업종 집중은 감수"
+            ],
+            "invalidationCriteria": [
+              "국내외 메모리 FAB 투자 감소 또는 장기간 CAPEX 지연으로 전공정 장비사 실적 전망이 구조적으로 악화",
+              "주요 보유기업의 수주·수익성 동반 악화 또는 지수 리밸런싱 후 집중위험 증가",
+              "ETF NAV/iNAV와 시장가격 괴리, 추적오차, 유동성 또는 운용조건이 지속적으로 불리해짐"
+            ],
+            "catalysts": [
+              "DRAM/HBM·NAND 메모리 공정 투자와 전공정 장비 신규수주 확대",
+              "미세화/적층 공정 변화에 따른 증착·열처리·세정 장비 교체·증설",
+              "전공정 장비업체의 출하·검수 증가와 매출·영업이익 확대"
+            ],
+            "keyMetrics": [
+              "FnGuide 반도체 전공정 지수 대비 ETF 가격수익률",
+              "시가/NAV/iNAV 괴리율과 추적오차",
+              "ETF 상위10개 편입종목·업종 집중도 및 보수",
+              "주요 편입기업의 장비 신규수주·수주잔고·고객 CAPEX",
+              "분배금과 재투자 가정 총수익률"
+            ]
+          },
+          "grade": "사용자 확정(TOP10 외 ETF)",
+          "priceSource": "2026-10-20 KRX 정규장 종가 20,710원(-6.12%), 매일경제 마켓 및 알파스퀘어 교차확인; 일부 해외 데이터 제공처 값은 불일치",
+          "priceSourceUrls": [
+            "https://stock.mk.co.kr/domestic/dls",
+            "https://alphasquare.co.kr/home/stock-summary?code=475300",
+            "https://www.soletf.com/ko/fund/etf/211053"
           ]
         }
       ]
