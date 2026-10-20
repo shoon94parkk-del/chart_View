@@ -31,7 +31,7 @@ def dispatch(*, archive=None, shadow=None, check=False):
     if not check:
         subprocess.run(['gh','workflow','run','publish-intelligence.yml','--repo',
                         'shoon94parkk-del/chart_View','--ref','main','--json'],
-                       input=raw, text=True, check=True)
+                       input=raw, text=True, encoding='utf-8', check=True)
     return len(raw.encode('utf-8'))
 
 
