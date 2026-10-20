@@ -20,6 +20,36 @@ def publisher():
     return publish
 
 
+def test_ten_partial_context_reports_preserve_hold_and_wait_through_publication(tmp_path):
+    from debate_archive_service import public_archive, router
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    doc = sample()
+    row = doc['debates'][0]
+    row.update(status='PARTIAL', summary='계약 검증용 공개 요약. 독립 3인 토론은 미완료입니다.')
+    row['phases'] = [dict(row['phases'][0], stage='context', role='other', text='공개 계약 검증 fixture입니다.')]
+    doc['debates'] = [dict(row, id=f'research-fixture-{i}', ticker=f'TEST{i}',
+                          company=f'공개 연구 fixture {i}', verdict='HOLD' if i < 3 else 'WAIT')
+                      for i in range(10)]
+    assert len(public_archive(doc)['debates']) == 10
+    publisher()(archive=doc, output_dir=tmp_path)
+    filename = 'intelligence_debates_public.json'
+    projected = published_data._verified_payload(filename, (tmp_path / filename).read_bytes())
+    assert [row['verdict'] for row in projected['debates']].count('HOLD') == 3
+    assert [row['verdict'] for row in projected['debates']].count('WAIT') == 7
+    assert all(row['status'] == 'PARTIAL' and row['audit_verified'] is False for row in projected['debates'])
+    assert all([phase['stage'] for phase in row['phases']] == ['context'] for row in projected['debates'])
+    app = FastAPI()
+    app.include_router(router)
+    with patch.dict('os.environ', {'INTEL_DEBATE_FEED_PATH': str(tmp_path / filename)}), TestClient(app) as client:
+        response = client.get('/api/intelligence/debates')
+    assert response.status_code == 200
+    assert response.json() == projected
+    next(row for row in projected['debates'] if row['verdict'] == 'HOLD')['status'] = 'COMPLETED'
+    with pytest.raises(ValueError, match='completed research requires'):
+        public_archive(projected)
+
+
 def test_atomic_merge_preserves_other_reports_and_is_idempotent(tmp_path):
     publish = publisher()
     first = sample()

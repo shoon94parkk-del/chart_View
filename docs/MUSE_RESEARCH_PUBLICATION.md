@@ -44,7 +44,7 @@
 
 - 같은 종목의 현재 결과는 research-005930 같은 고정 id를 재사용하고 실제 date/updated_at으로 갱신한다. 의도한 별도 과거 기록만 새 id를 쓴다. private 원본 이력은 게시 아카이브와 분리해 유지한다.
 - id: 영문/숫자/밑줄/하이픈3–80자. ticker: 영대문자/숫자/점/하이픈/^1–18자. company1–100자, topic최대240자.
-- status: COMPLETED/PARTIAL/BLOCKED. verdict: BUY/WAIT/SELL/UNKNOWN. 현재 매매 지시가 아니라 해당 연구의 기록상 판단이다.
+- status: COMPLETED/PARTIAL/BLOCKED. verdict: BUY/HOLD/WAIT/SELL/UNKNOWN. HOLD는 연구의 유지 판단이며 WAIT와 구분한다. 현재 매매 지시가 아니라 해당 연구의 기록상 판단이다.
 - role: mer/nonggu/meng/other. stage: phase1/attack/rebuttal/final/audit/context.
 - phase: title1–160자, text1–16,000자. source_path는 records/debates 또는 records/shadow 아래 .md 경로이며 링크나 원문 다운로드 권한이 아니다. 새 게시물은 Toss와 동일한 ASCII 영문/숫자/밑줄/점/하이픈/슬래시,260자 미만, 연속된 .. 없음 규칙을 따른다.
 - 입력/누적 아카이브 최대30건, 종목당24phase, 전체4MiB. 초과 시 기존 결과를 삭제하지 않고 게시를 거절한다. 역사 보관/페이지 분리는 후속 작업이다.
