@@ -2,9 +2,7 @@
   "schema_version": 1,
   "kind": "debate_archive",
   "publication_status": "EXPLICITLY_APPROVED",
-  "generated_at": "2026-10-20T14:44:00+09:00",
-  "read_mode": "CURATED_PUBLIC_SUMMARIES",
-  "notice": "공개용 사실 요약이며 비공개 원본 전체 대화가 아닙니다. V4.7 기록은 자체 감사 결과로, 매수 권고가 아닙니다.",
+  "generated_at": "2026-10-20T09:01:17.214498+00:00",
   "debates": [
     {
       "id": "hanwha-272210-20261020-smoke",
@@ -64,6 +62,62 @@
           "title": "V4.7 4개 게이트 통과로 기록",
           "text": "RUN-20261020-shadow-smoke: 감사 JSON에 APPROVED, WAIT, PICK 미등록으로 기록. 이는 스모크 테스트 결과이며, 14일 예약 운영이 지속된 증거는 아니다.",
           "source_path": "records/shadow/2026-10-20-smoke/272210-final.md"
+        }
+      ],
+      "summary": "과거 스모크 검토의 판단은 WAIT예요. 세 에이전트의 독립 분석과 반박·최종 평가를 펼쳐 확인하세요.",
+      "updated_at": "2026-10-20T09:00:58.309405+00:00"
+    },
+    {
+      "id": "samsung-005930-20261020-p4",
+      "date": "2026-10-20",
+      "company": "삼성전자",
+      "ticker": "005930",
+      "topic": "3인 토론 수치 정정 · 정규장 218,000원과 애프터마켓 223,500원 구분",
+      "status": "COMPLETED",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "이벤트 반영과 가격 흐름",
+          "text": "실적 발표 이후 주가가 안착했다는 초기 주장을 상호 공격 후 철회하고, 발표 이후 하락 추세를 인정했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "실적 사이클과 재고 평가",
+          "text": "TTM PER 12.72 확인 등급을 재검토했고, 223,500원/22,442원은 9.96배라는 산술 오류를 인정했다. 재고 해석의 확신도를 낮췄다.",
+          "source_path": "records/debates/20261020-fullrun/005930-nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "EPS·PER 자기모순 발견",
+          "text": "Forward PER 2.96의 EPS 분모가 Fact Pack 내 근거와 맞지 않고, TTM PER도 역산 결과와 불일치함을 지적했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-meng-phase1.md"
+        },
+        {
+          "role": "other",
+          "stage": "attack",
+          "title": "상호 공격에서 숫자 오류 적발",
+          "text": "시장 반응 서술, PER의 분모, 부문별 영업이익률 비교 기준과 시나리오 확률의 자기모순을 지적했다. 초기 결론의 근거가 수정됐다.",
+          "source_path": "records/debates/20261020-fullrun/005930-meng-attack.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "최종 신규 진입 WAIT",
+          "text": "상호 반박과 재평가 후 세 에이전트 모두 신규 진입 WAIT 의견. 정규장 가격을 기준으로 EPS 22,442원 대비 9.71배로 다시 산술 확인했다.",
+          "source_path": "records/debates/20261020-fullrun/005930-final.md"
+        },
+        {
+          "role": "other",
+          "stage": "audit",
+          "title": "초기 BLOCKED → 별도 P4 감사 APPROVED 기록",
+          "text": "초기 장전 신선도 검증에 걸려 BLOCKED였으나, 시장 세션을 구분한 새 P4 Fact Pack으로 별도 감사에서 4개 게이트 통과 기록. 최초 차단 기록은 보존되어 있다.",
+          "source_path": "records/debates/20261020-fullrun/005930-final.md"
         }
       ]
     },
@@ -125,60 +179,6 @@
           "title": "기록상 V4.7 APPROVED, PICK 미등록",
           "text": "RUN-20261020-auto-p3 감사 JSON에 네 게이트 통과와 최종 WAIT가 기록돼 있다. 원장 검증과 예약 반복 실행은 별도 운영 확인 대상이다.",
           "source_path": "records/debates/20261020-auto/085910-final.md"
-        }
-      ]
-    },
-    {
-      "id": "samsung-005930-20261020-p4",
-      "date": "2026-10-20",
-      "company": "삼성전자",
-      "ticker": "005930",
-      "topic": "3인 토론 수치 정정 · 정규장 218,000원과 애프터마켓 223,500원 구분",
-      "status": "COMPLETED",
-      "verdict": "WAIT",
-      "audit_verified": false,
-      "phases": [
-        {
-          "role": "mer",
-          "stage": "phase1",
-          "title": "이벤트 반영과 가격 흐름",
-          "text": "실적 발표 이후 주가가 안착했다는 초기 주장을 상호 공격 후 철회하고, 발표 이후 하락 추세를 인정했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-mer-phase1.md"
-        },
-        {
-          "role": "nonggu",
-          "stage": "phase1",
-          "title": "실적 사이클과 재고 평가",
-          "text": "TTM PER 12.72 확인 등급을 재검토했고, 223,500원/22,442원은 9.96배라는 산술 오류를 인정했다. 재고 해석의 확신도를 낮췄다.",
-          "source_path": "records/debates/20261020-fullrun/005930-nonggu-phase1.md"
-        },
-        {
-          "role": "meng",
-          "stage": "phase1",
-          "title": "EPS·PER 자기모순 발견",
-          "text": "Forward PER 2.96의 EPS 분모가 Fact Pack 내 근거와 맞지 않고, TTM PER도 역산 결과와 불일치함을 지적했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-meng-phase1.md"
-        },
-        {
-          "role": "other",
-          "stage": "attack",
-          "title": "상호 공격에서 숫자 오류 적발",
-          "text": "시장 반응 서술, PER의 분모, 부문별 영업이익률 비교 기준과 시나리오 확률의 자기모순을 지적했다. 초기 결론의 근거가 수정됐다.",
-          "source_path": "records/debates/20261020-fullrun/005930-meng-attack.md"
-        },
-        {
-          "role": "other",
-          "stage": "final",
-          "title": "최종 신규 진입 WAIT",
-          "text": "상호 반박과 재평가 후 세 에이전트 모두 신규 진입 WAIT 의견. 정규장 가격을 기준으로 EPS 22,442원 대비 9.71배로 다시 산술 확인했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-final.md"
-        },
-        {
-          "role": "other",
-          "stage": "audit",
-          "title": "초기 BLOCKED → 별도 P4 감사 APPROVED 기록",
-          "text": "초기 장전 신선도 검증에 걸려 BLOCKED였으나, 시장 세션을 구분한 새 P4 Fact Pack으로 별도 감사에서 4개 게이트 통과 기록. 최초 차단 기록은 보존되어 있다.",
-          "source_path": "records/debates/20261020-fullrun/005930-final.md"
         }
       ]
     }
