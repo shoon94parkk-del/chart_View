@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-20T17:17:01+09:00",
+  "updated": "2026-10-20T17:28:35+09:00",
   "events": [
     {
       "eventType": "PICK_REGISTERED",
@@ -606,6 +606,14 @@
       "eventType": "PICK_REGISTERED",
       "pickId": "2026-10-15:069500",
       "at": "2026-10-15T17:52:56+09:00",
+      "status": "PENDING_REVIEW",
+      "assetType": "ETF",
+      "source": "ai_daily_rankings.json"
+    },
+    {
+      "eventType": "PICK_REGISTERED",
+      "pickId": "2026-10-20:475300",
+      "at": "2026-10-20T17:28:35+09:00",
       "status": "PENDING_REVIEW",
       "assetType": "ETF",
       "source": "ai_daily_rankings.json"
