@@ -21,7 +21,7 @@ MAX_ENTRIES = 30
 ALLOWED_STAGES = {"phase1", "attack", "rebuttal", "final", "audit", "context"}
 ALLOWED_ROLES = {"mer", "nonggu", "meng", "other"}
 ALLOWED_STATUSES = {"COMPLETED", "PARTIAL", "BLOCKED"}
-ALLOWED_VERDICTS = {"BUY", "WAIT", "SELL", "UNKNOWN"}
+ALLOWED_VERDICTS = {"BUY", "HOLD", "WAIT", "SELL", "UNKNOWN"}
 FORBIDDEN = ("api_key", "apikey", "password", "secret", "private_key", "token", "account", "db_path", "dsn",
              "holdings", "positions", "portfolio", "quantity", "avg_cost", "cost_basis", "user_id", "watchlist")
 TICKER = re.compile(r"^[A-Z0-9.\-^]{1,18}$")
