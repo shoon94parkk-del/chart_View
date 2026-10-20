@@ -3,6 +3,7 @@ name: Update Korean Stock Screener
 on:
   schedule:
     # GitHub cron is a backup path. External watchdog/Cloudflare can dispatch this workflow.
+    # On-demand run requested on 2026-10-20 after KRX close; push-path gate runs the full exact-date check.
     - cron: '0,20,40 7 * * 1-5'
     - cron: '0,20,40 8 * * 1-5'
   workflow_dispatch:
