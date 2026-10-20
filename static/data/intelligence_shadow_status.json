@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "shadow_status",
+  "publication_status": "EXPLICITLY_APPROVED",
+  "generated_at": "2026-10-20T14:44:00+09:00",
+  "state": "NOT_STARTED",
+  "period_started_at": null,
+  "last_execution_at": null,
+  "runs_total": 0,
+  "screenings_total": 0,
+  "debates_total": 0,
+  "audits_approved": 0,
+  "audits_blocked": 0,
+  "failures_total": 0,
+  "smoke_runs_total": 1,
+  "smoke_audits_approved": 1
+}

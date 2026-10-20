@@ -1,0 +1,81 @@
+name: Publish approved intelligence summaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      archive_json:
+        description: Reviewed public debate_archive JSON only (no private original)
+        required: false
+        default: ''
+      shadow_json:
+        description: Reviewed aggregate shadow_status JSON only
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: intelligence-publication
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install validator dependency
+        run: pip install 'fastapi>=0.104.0' 'starlette<1.0.0'
+      - name: Validate public projections and stage bounded input
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.publish_debate_archive import merge_archive
+          from debate_archive_service import public_shadow_status
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          inputs = event.get('inputs', {})
+          if len(json.dumps(inputs, ensure_ascii=False).encode()) > 60000:
+              raise SystemExit('Public dispatch exceeds 60KB')
+          supplied = False
+          for key, name, validate in (
+              ('archive_json','approved-archive.json',lambda doc: merge_archive(None,doc)),
+              ('shadow_json','approved-shadow.json',public_shadow_status),
+          ):
+              raw = inputs.get(key, '')
+              if raw:
+                  try:
+                      doc = json.loads(raw)
+                      validate(doc)
+                  except (ValueError, TypeError, KeyError):
+                      raise SystemExit('Public projection rejected') from None
+                  Path(os.environ['RUNNER_TEMP'], name).write_text(json.dumps(doc, ensure_ascii=False), encoding='utf-8')
+                  supplied = True
+          if not supplied:
+              raise SystemExit('No approved public projection supplied')
+          PY
+      - name: Merge and publish without overwriting concurrent data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          args=()
+          if [ -f "$RUNNER_TEMP/approved-archive.json" ]; then args+=(--archive "$RUNNER_TEMP/approved-archive.json"); fi
+          if [ -f "$RUNNER_TEMP/approved-shadow.json" ]; then args+=(--shadow "$RUNNER_TEMP/approved-shadow.json"); fi
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python -m scripts.publish_debate_archive "${args[@]}"
+            git add -- static/data/intelligence_debates_public.json static/data/intelligence_shadow_status.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'data: publish approved three-agent research'
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1

@@ -18,6 +18,35 @@ def fixture():
                         "source_path": "records/debates/20261013-picks/apr-phase2.md"}]}]}
 
 class TestDebateArchive(unittest.TestCase):
+    def extended(self):
+        doc = fixture()
+        row = doc['debates'][0]
+        row.update(summary='수요와 밸류에이션을 함께 재점검', updated_at=doc['generated_at'])
+        phase = row['phases'][0]
+        row['phases'] = [dict(phase, role=role, stage='phase1') for role in ('mer', 'nonggu', 'meng')]
+        row['phases'] += [dict(phase, stage=stage) for stage in ('attack', 'rebuttal', 'final')]
+        return doc
+    def test_new_public_summary_and_timestamp_are_projected(self):
+        doc = self.extended()
+        row = public_archive(doc)['debates'][0]
+        self.assertEqual(row['summary'], doc['debates'][0]['summary'])
+        self.assertEqual(row['updated_at'], doc['generated_at'])
+    def test_extended_completed_requires_three_independent_analyses_and_final_rounds(self):
+        for stage, role in [('phase1', 'mer'), ('attack', 'meng'), ('rebuttal', 'meng'), ('final', 'meng')]:
+            doc = self.extended()
+            doc['debates'][0]['phases'] = [p for p in doc['debates'][0]['phases'] if not (p['stage'] == stage and p['role'] == role)]
+            with self.subTest(stage=stage, role=role), self.assertRaises(ValueError): public_archive(doc)
+    def test_invalid_extension_does_not_silently_become_legacy(self):
+        for change in ({'summary':''}, {'summary':'a'*601}, {'updated_at':'2026-10-21'}, {'updated_at':None}):
+            doc = self.extended(); doc['debates'][0].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError): public_archive(doc)
+    def test_all_metadata_and_unknown_strings_are_scanned_for_private_data(self):
+        for field in ('company', 'topic', 'summary', 'extra'):
+            doc = self.extended(); doc['debates'][0][field] = '본인 보유 수량 300주'
+            with self.subTest(field=field), self.assertRaises(ValueError): public_archive(doc)
+        for field in ('holdings','positions','portfolio','quantity','avg_cost','cost_basis','account','user_id','watchlist'):
+            doc = self.extended(); doc['debates'][0][field] = 3
+            with self.subTest(field=field), self.assertRaises(ValueError): public_archive(doc)
     def test_valid(self):
         self.assertEqual(public_archive(fixture())["debates"][0]["verdict"], "WAIT")
     def test_must_explicitly_approve(self):
@@ -31,7 +60,9 @@ class TestDebateArchive(unittest.TestCase):
         with self.assertRaises(ValueError): public_archive(v)
     def test_refuses_private_prose_even_with_approval(self):
         for sample in ("연락처 010-1234-5678", "email: person@example.com",
-                       "현재 보유 1.12억원", "계정 ghp_abcdefghijklmnopqrstuvwxyz0123"):
+                       "현재 보유 1.12억원", "계정 ghp_abcdefghijklmnopqrstuvwxyz0123",
+                       "password=example-secret", "api_key=AIza-example", "계좌번호 123-456-789",
+                       "my portfolio has shares"):
             doc = fixture()
             doc["debates"][0]["phases"][0]["text"] = sample
             with self.subTest(sample=sample):

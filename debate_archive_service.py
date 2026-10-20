@@ -22,7 +22,8 @@ ALLOWED_STAGES = {"phase1", "attack", "rebuttal", "final", "audit", "context"}
 ALLOWED_ROLES = {"mer", "nonggu", "meng", "other"}
 ALLOWED_STATUSES = {"COMPLETED", "PARTIAL", "BLOCKED"}
 ALLOWED_VERDICTS = {"BUY", "WAIT", "SELL", "UNKNOWN"}
-FORBIDDEN = ("api_key", "apikey", "password", "secret", "private_key", "token", "account_id", "db_path", "dsn")
+FORBIDDEN = ("api_key", "apikey", "password", "secret", "private_key", "token", "account", "db_path", "dsn",
+             "holdings", "positions", "portfolio", "quantity", "avg_cost", "cost_basis", "user_id", "watchlist")
 TICKER = re.compile(r"^[A-Z0-9.\-^]{1,18}$")
 
 # Explicit owner approval does not replace a second conservative PII guard.
@@ -35,10 +36,18 @@ PRIVATE_TEXT = tuple(re.compile(p, re.I) for p in (
     r"sk-[a-z0-9_-]{20,}",                  # API secret
     r"AKIA[A-Z0-9]{16}",                    # AWS access key
     r"(?:내|본인|현재)\s*(?:보유|투자|계좌)\s*(?:금액|잔액|평가액)?",
+    r"보유\s*(?:수량|금액|비중|평단|평균단가)",
+    r"(?:api[_-]?key|password|passwd|secret|access[_-]?token|token)\s*[:=]\s*[\w/+.-]{4,}",
+    r"계좌(?:번호|잔액|평가액)|매입(?:수량|단가)|평균(?:매입|매수)단가|평단가",
+    r"\b(?:my|personal)\s+(?:portfolio|holdings|account)\b",
 ))
 def _safe_public_text(value: str) -> str:
-    if any(pattern.search(value) for pattern in PRIVATE_TEXT):
-        raise ValueError("possible private data in public debate text")
+    for index, pattern in enumerate(PRIVATE_TEXT):
+        # Avoid quadratic backtracking on long prose with no email delimiter.
+        if index == 1 and "@" not in value:
+            continue
+        if pattern.search(value):
+            raise ValueError("possible private data in public debate text")
     return value
 
 ID = re.compile(r"^[A-Za-z0-9_-]{3,80}$")
@@ -65,6 +74,8 @@ def _str(obj, key, maximum, *, required=True):
     return value
 
 def _no_sensitive_keys(item):
+    if isinstance(item, str):
+        _safe_public_text(item)
     if isinstance(item, list):
         for i in item:
             _no_sensitive_keys(i)
@@ -121,11 +132,23 @@ def public_archive(doc: dict) -> dict:
                 "text": _safe_public_text(_str(phase, "text", 16000)),
                 "source_path": src,
             })
+        extension = {}
+        if "summary" in entry or "updated_at" in entry:
+            summary = _str(entry, "summary", 600)
+            updated_at = _time(entry.get("updated_at"))
+            if datetime.fromisoformat(updated_at) > datetime.fromisoformat(generated):
+                raise ValueError("research update after publication")
+            if status == "COMPLETED":
+                participants = {p["role"] for p in cleaned_phases if p["stage"] == "phase1"}
+                stages = {p["stage"] for p in cleaned_phases}
+                if not {"mer", "nonggu", "meng"} <= participants or not {"attack", "rebuttal", "final"} <= stages:
+                    raise ValueError("completed research requires three agents and final rounds")
+            extension = {"summary": summary, "updated_at": updated_at}
         sanitized.append({
             "id": key, "date": date, "company": _str(entry, "company", 100),
             "ticker": ticker, "topic": _str(entry, "topic", 240, required=False),
             "status": status, "verdict": verdict, "audit_verified": False,
-            "phases": cleaned_phases,
+            "phases": cleaned_phases, **extension,
         })
     return {
         "schema_version": 1, "kind": "debate_archive",
