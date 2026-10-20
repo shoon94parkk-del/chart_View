@@ -2,6 +2,8 @@
 import copy
 import datetime as dt
 import importlib.util
+import json
+import math
 from pathlib import Path
 import pytest
 
@@ -294,3 +296,58 @@ def test_published_refresh_description_matches_retry_schedule_and_source_recalcu
     for clock in ('10:30','13:30','16:30'):assert clock in update['frequency']
     assert update['retryScheduleUTC']==['30 4 * * 2-6','30 7 * * 2-6']
     assert '같은 시장일' in update['sourceRefresh'] and '강제 재계산' in update['sourceRefresh']
+
+def test_offline_assumption_check_accepts_last_bit_result_roundoff(tmp_path):
+    summary,detail=snapshot()
+    for case in summary['sensitivity']['cases']:
+        for key in ('weight','gap','adjustment'):case[key]=math.nextafter(case[key],math.inf)
+    for key in ('lowWeight','highWeight','lowAdjustment','highAdjustment'):
+        summary['sensitivity'][key]=math.nextafter(summary['sensitivity'][key],math.inf)
+    nps.publish(summary,detail,tmp_path)
+    assert nps.check_publication(tmp_path)['snapshotVersion']==summary['snapshotVersion']
+
+@pytest.mark.parametrize('key',['weight','gap','adjustment','lowWeight','highWeight','lowAdjustment','highAdjustment'])
+def test_offline_assumption_check_rejects_material_numeric_drift(tmp_path,key):
+    summary,detail=snapshot()
+    target=summary['sensitivity']['cases'][0] if key in ('weight','gap','adjustment') else summary['sensitivity']
+    target[key]+=1e-5
+    nps.publish(summary,detail,tmp_path)
+    with pytest.raises(ValueError,match='assumption-case'):nps.check_publication(tmp_path)
+
+@pytest.mark.parametrize('value',[float('nan'),float('inf'),float('-inf'),True,'0'])
+def test_offline_assumption_check_rejects_nonfinite_or_nonnumeric_result(tmp_path,value):
+    summary,detail=snapshot();nps.publish(summary,detail,tmp_path)
+    summary['sensitivity']['cases'][0]['weight']=value
+    (tmp_path/'summary.json').write_text(json.dumps(summary))
+    with pytest.raises(ValueError,match='assumption-case'):nps.check_publication(tmp_path)
+
+@pytest.mark.parametrize('tamper',['missing-number','extra-number','renamed-number','id','label','kind','note',
+    'patch-last-bit','patch-key','patch-type','missing-case','case-order','cases-type','missing-sensitivity'])
+def test_offline_assumption_check_keeps_structure_and_economic_patch_exact(tmp_path,tamper):
+    summary,detail=snapshot();sensitivity=summary['sensitivity'];case=sensitivity['cases'][0]
+    if tamper=='missing-number':del case['weight']
+    elif tamper=='extra-number':case['unexpected']=0
+    elif tamper=='renamed-number':case['otherWeight']=case.pop('weight')
+    elif tamper=='id':case['id']='other-case'
+    elif tamper=='label':case['label']+=' changed'
+    elif tamper=='kind':sensitivity['kind']='confidence-interval'
+    elif tamper=='note':sensitivity['note']='changed assumptions'
+    elif tamper=='patch-last-bit':case['patch']['beta']=math.nextafter(case['patch']['beta'],math.inf)
+    elif tamper=='patch-key':case['patch']['netFlow']=0
+    elif tamper=='patch-type':case['patch']['beta']=str(case['patch']['beta'])
+    elif tamper=='missing-case':sensitivity['cases'].pop()
+    elif tamper=='case-order':sensitivity['cases'].reverse()
+    elif tamper=='cases-type':sensitivity['cases']={}
+    elif tamper=='missing-sensitivity':del summary['sensitivity']
+    nps.publish(summary,detail,tmp_path)
+    with pytest.raises(ValueError,match='assumption-case'):nps.check_publication(tmp_path)
+
+@pytest.mark.parametrize('tamper',['missing','id','label','reason','extra-field'])
+def test_offline_assumption_check_keeps_unavailable_comparison_metadata_exact(tmp_path,tamper):
+    core=core_prices();del core['AGGG.L']['points']['2026-10-16']
+    summary,detail=snapshot(core=core);unavailable=summary['sensitivity']['unavailable']
+    if tamper=='missing':del summary['sensitivity']['unavailable']
+    elif tamper=='extra-field':unavailable[0]['weight']=0
+    else:unavailable[0][tamper]='changed'
+    nps.publish(summary,detail,tmp_path)
+    with pytest.raises(ValueError,match='assumption-case'):nps.check_publication(tmp_path)

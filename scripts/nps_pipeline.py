@@ -379,7 +379,24 @@ def check_publication(directory):
             if not math.isclose(value,s['result']['cashBreakdown'][key],rel_tol=1e-10,abs_tol=1e-9):
                 raise ValueError(f'Published cash breakdown mismatch: {key}')
         expected_sensitivity=realism.assumption_cases(s['inputs'],s['assetBaseline'],s['realism'],calculate)
-        if canonical(expected_sensitivity)!=canonical(s['sensitivity']):
+        def matches_assumptions(expected, published, exact=False):
+            if isinstance(expected,dict):
+                return isinstance(published,dict) and expected.keys()==published.keys() and all(
+                    matches_assumptions(value,published[key],exact or key=='patch') for key,value in expected.items())
+            if isinstance(expected,list):
+                return isinstance(published,list) and len(expected)==len(published) and all(
+                    matches_assumptions(a,b,exact) for a,b in zip(expected,published))
+            if type(expected) in (int,float):
+                if type(published) not in (int,float):return False
+                try:
+                    if not math.isfinite(expected) or not math.isfinite(published):return False
+                    # Python 3.12 improves sum precision. Tolerate result roundoff,
+                    # while economic patch parameters retain exact values/types.
+                    return (type(expected)==type(published) and expected==published) if exact else math.isclose(
+                        expected,published,rel_tol=1e-10,abs_tol=1e-9)
+                except OverflowError:return False
+            return type(expected)==type(published) and expected==published
+        if not matches_assumptions(expected_sensitivity,s.get('sensitivity')):
             raise ValueError('Published assumption-case calculations mismatch')
     if s['baseline']['date']>=s['marketDate'] or s['market']['date']!=s['marketDate']:
         raise ValueError('Published market chronology invalid')

@@ -71,3 +71,19 @@ Final reviewed source SHA256:
 - `npsAllocationView.js`: `ace559035eac5d2c418bceee1b8991ba043da113ffaaf70f9aa5357d7d7e2566`
 - `nps_pipeline.py`: `43ea0c8b67f58cfde753e469e42f1bb78b4eb83a8b74082d901e93bdcb19fa23`
 - `realism.py`: `74c2903f6d06d2f03c24ad82ea5964de537fae5cd1d4614563d434907798d7b7`
+
+
+## Python 3.11/3.12 numeric compatibility follow-up
+
+Reviewed the exact CI failure log `/tmp/nps-backend-ci-failed-20261020.log` and deterministic numeric comparison `/tmp/nps-python311-numeric-diff.json`. The original publication check failed on exact canonical-JSON equality of assumption results, before the existing math-drift assertion mutated anything. Recomputed assumption case differences are limited to roughly **3.55e−15 percentage points** in weight/gap and **5.68e−14 trillion KRW** in adjustment. They are consistent with Python 3.12's improved floating-point summation. This is a validator portability defect, not a changed allocation or trade assumption.
+
+The narrow fix in `check_publication.matches_assumptions` preserves dictionary keys, list length/order, string metadata and unavailable-case records exactly; rejects booleans/strings/nonfinite values in numeric-result positions; uses the existing calculation tolerance `rel_tol=1e−10, abs_tol=1e−9` for result numbers only; and keeps numeric patch parameter values **and types** exact. Missing or extra metadata cannot pass via the tolerance path. No financial calculator, source selection, snapshot data, version, UI or provider behavior changes in this fix.
+
+Independently executed against the current patch:
+
+- Python **3.11.17**: actual `b28f01645e1db7eb` publication `--check` passed; `tests/test_nps_realism.py -k offline_assumption_check`: **32 passed, 40 deselected** in 0.98s.
+- Python **3.12.14**: the same actual publication `--check` passed; the same new checks: **32 passed, 40 deselected** in 1.49s.
+
+The 32 cases exercise accepted last-bit result roundoff and rejected material result changes, NaN/infinities, bool/string values, missing/renamed/extra result fields, changed IDs/labels/kind/note, one-ULP economic patch changes, patch type/key changes, case deletion/reordering, invalid collection types, missing sensitivity and unavailable metadata tampering. Deselected cases are simply outside this focused reviewer run; coordinator owns the full-suite and refreshed CI gates.
+
+No new P1/P2 found in the numeric compatibility fix. Final backend pipeline SHA256 after this fix: `84717d6b83d9cacd89e7fa4e7b7b53f63514077fe3c4c94848526bc34810ca9f`.
