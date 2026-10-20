@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20T17:17:00+09:00",
+  "updated": "2026-10-20T17:27:57+09:00",
   "recommendations": [
     {
       "recommendedDate": "2026-09-14",
@@ -874,7 +874,7 @@
       "bestReturnPct": 3.34,
       "lastUpdatedTradeDate": "2026-10-20",
       "assetType": "ETF",
-      "quoteStatus": "current",
+      "quoteStatus": "stale",
       "quoteSource": "yahoo_daily_unadjusted_close",
       "status": "tracking",
       "statusLabel": "성과 추적 중",
