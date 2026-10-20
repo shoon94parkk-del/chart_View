@@ -189,7 +189,7 @@ def public_shadow_status(doc: dict) -> dict:
         values[key] = val
     if values["audits_approved"] + values["audits_blocked"] > values["debates_total"]:
         raise ValueError("inconsistent audit totals")
-    if started_at and last_at and last_at < started_at:
+    if started_at and last_at and datetime.fromisoformat(last_at) < datetime.fromisoformat(started_at):
         raise ValueError("last execution before start")
     return {"schema_version": 1, "kind": "shadow_status",
             "publication_status": "EXPLICITLY_APPROVED",
