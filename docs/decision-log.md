@@ -643,3 +643,42 @@ Actual Toss live smoke exposed11–21s news API-relay duration beyond the existi
 Classification: new behavior. Add isolated scripts/nps_pipeline.py and reviewed scripts/nps/config.json, daily 13F share-basket repricing, complete common-session core market inputs, static/data/nps summary plus immutable holdings publication, and update-nps workflow. Existing API/cache/provider/Web UI remain untouched. Prices and dividend-adjusted returns use one date window; Yahoo daily USD/KRW is consistent at both endpoints, Korean bond ETFs proxy the 3y/10y sleeve, nonpublic flows remain explicit zero assumptions. 13F value is USD, never USD thousands; direct slice is inside official overseas equity and FX applies once. New SEC filing detection does not auto-certify CUSIP mapping; missing/new complex actions preserve prior publication and expose dated reviewed quantities. Schedule Tue–Sat01:30UTC (10:30KST), normal market publication and manually force-checked same-date publication share strict quality gates.
 
 Actual network check:552 symbols queried,546 direct, report-value coverage99.5353%, completed session2026-10-16, snapshot7621d9f7beb3eda2, weight22.553851592%, adjustment−27.9715597494trKRW. Difference from the independent site's prior22.78% seed reflects consistent Yahoo FX and bond proxy, not an unreported NPS trade. Offline17 tests and build_frontend_bundle.py --check passed; workflow execution/main integration and static-CDN readback are verified separately after push. See NPS_ALLOCATION_PIPELINE_2026-10-18.md.
+
+
+## 2026-10-19 — Audited intelligence feed v2 endpoint (separate PR)
+
+Added `GET /api/intelligence/feed/v2` in new module `intelligence_feed_v2_service.py`
+plus router registration in `main.py` (branch `muse/intelligence-feed-v2-20261019`).
+Serves intel-os feed v2 documents (`schema_version: 2`, `AUDITED_PICKS`) only:
+server re-validates the full contract (PASS-only picks, fact_pack_hash/audit_hash
+required, https evidence, forbidden private key-name scan refuses publication,
+unknown fields stripped, `source` stamped `three_agent_audited`), ETag/304 support,
+and `X-Feed-Stale: true` when the snapshot is older than 6h so stale data is never
+disguised as current analysis. Disabled by default (503) via
+`MARKET_INTELLIGENCE_FEED_V2_PATH`; ledger verification stays in the intel-os
+publisher (PR #11), this host never touches ledgers/DB. v1 endpoint untouched —
+separate module/env/route with mutual schema rejection (verified against PR #160
+branch in a temp worktree, read-only). Tests:
+`python -m unittest tests.test_intelligence_feed_v2 -v` (23 tests OK).
+No deploy, no live enablement.
+
+
+## 2026-10-19 — v2 extension fields allowlist (P5) + PR #160/#161 정리 방안 (P6)
+
+Classification: new behavior (contract extension), coordinated with intel-os PR #11.
+
+`intelligence_feed_v2_service.py`의 공개 projection allowlist에 선택 확장
+필드를 추가: `research_score`/`judgment_score`(유한 숫자, 0~100),
+`agent_claims`(mer/nonggu/meng, 1~500자), `performance`(유한
+return_pct/mdd_pct/excess_benchmark_pct, benchmark≤32자, tz-aware as_of).
+intel-os `integration/feed_v2.py::_build_extension`과 동일한 타입·범위
+검증 — 검증 실패 시 문서 전체 거부(503). 프런트는 점수·수익률을 임의
+생성하지 않으며, 서버도 검증되지 않은 값을 전달하지 않는다.
+`docs/INTELLIGENCE_FEED_V2_API.md`에 계약 명시. 테스트:
+`tests.test_intelligence_feed_v2::ExtensionFieldsTest` 6개 신규 (전체 29개 통과).
+
+PR #160(v1: `intelligence_feed_service.py`, `/api/intelligence/feed`) vs
+#161(v2): 의미적 중복 없음 — 파일 겹침은 `main.py`의 router 등록 1줄씩과
+`docs/decision-log.md`뿐. 순차 머지 시 main.py의 인접 hunk 2개를 수동
+해소 (각각의 include_router 줄 유지). 순서 무관, 직접 머지하지 않음.
+운영 플래그 미활성: `MARKET_INTELLIGENCE_FEED_V2_PATH` 미설정 시 기본 503.
