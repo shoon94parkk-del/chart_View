@@ -156,3 +156,65 @@ def intelligence_debates(request: Request):
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers=headers)
     return JSONResponse(content=doc, headers=headers)
+
+
+# Aggregate Shadow-mode metrics are OFF until separately approved.
+SHADOW_KEYS = ("runs_total", "screenings_total", "debates_total",
+               "audits_approved", "audits_blocked", "failures_total")
+SHADOW_STATES = {"NOT_STARTED", "RUNNING", "PAUSED", "STOPPED"}
+
+def public_shadow_status(doc: dict) -> dict:
+    if not isinstance(doc, dict) or doc.get("schema_version") != 1 or \
+       doc.get("kind") != "shadow_status" or \
+       doc.get("publication_status") != "EXPLICITLY_APPROVED":
+        raise ValueError("status not publicly approved")
+    _no_sensitive_keys(doc)
+    generated_at = _time(doc.get("generated_at"))
+    state = doc.get("state")
+    if state not in SHADOW_STATES:
+        raise ValueError("invalid state")
+    started_at = doc.get("period_started_at")
+    last_at = doc.get("last_execution_at")
+    if started_at is not None:
+        started_at = _time(started_at)
+    if last_at is not None:
+        last_at = _time(last_at)
+    if state == "RUNNING" and (started_at is None or last_at is None):
+        raise ValueError("RUNNING requires actual execution timestamps")
+    values = {}
+    for key in SHADOW_KEYS:
+        val = doc.get(key)
+        if isinstance(val, bool) or not isinstance(val, int) or val < 0 or val > 10000000:
+            raise ValueError("invalid aggregate value: "+key)
+        values[key] = val
+    if values["audits_approved"] + values["audits_blocked"] > values["debates_total"]:
+        raise ValueError("inconsistent audit totals")
+    if started_at and last_at and last_at < started_at:
+        raise ValueError("last execution before start")
+    return {"schema_version": 1, "kind": "shadow_status",
+            "publication_status": "EXPLICITLY_APPROVED",
+            "generated_at": generated_at, "state": state,
+            "period_started_at": started_at,
+            "last_execution_at": last_at, **values}
+
+
+@router.get("/api/intelligence/shadow/status")
+def intelligence_shadow_status(request: Request):
+    source = os.environ.get("INTEL_SHADOW_STATUS_PATH", "").strip()
+    if not source or not Path(source).is_absolute():
+        raise HTTPException(status_code=503, detail="Shadow status not configured")
+    try:
+        with Path(source).open("rb") as fh:
+            raw_content = fh.read(16385)
+        if len(raw_content) > 16384:
+            raise ValueError("status file exceeds 16KiB")
+        doc = public_shadow_status(json.loads(raw_content))
+        raw = json.dumps(doc, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        etag = '"' + hashlib.sha256(raw).hexdigest()[:32] + '"'
+    except (OSError, ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
+        raise HTTPException(status_code=503, detail="Approved Shadow status unavailable")
+    headers = {"ETag": etag, "Cache-Control": "public, max-age=60",
+               "X-Archive-Mode": "AGGREGATED_SHADOW_ONLY"}
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    return JSONResponse(content=doc, headers=headers)

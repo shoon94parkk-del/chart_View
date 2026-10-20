@@ -14,3 +14,8 @@ Contract:
 **Privacy critical:** Toss / Chart View API is public. Never read the private GitHub repo, personal records or VM database from public FastAPI requests. Only an owner-selected, manually reviewed archive projection may be placed on the API host. Repository debate files can contain prices/portfolio values or private text; raw archive publication is NOT authorized by code creation. Keep env unset and Toss feature flag off until the user approves the exact export. Review all content including free-form text; key scanning alone cannot detect private information inside prose.
 
 Integration: Toss PR #141 (stacked on #140), build-time VITE_DEBATE_DASHBOARD_ENABLED=1 *only after* real approved API data is validated and deployment separately authorized. No automatic trades, no extra LLM calls on page load.
+
+
+### Shadow progress API (optional)
+
+GET /api/intelligence/shadow/status reads a separate INTEL_SHADOW_STATUS_PATH file. Default disabled, HTTP 503. The public file requires EXPLICITLY_APPROVED and only returns state NOT_STARTED/RUNNING/PAUSED/STOPPED, generated_at, period_started_at, last_execution_at, runs_total, screenings_total, debates_total, audits_approved, audits_blocked, failures_total. All counts are bounded integers and only aggregated observations are exposed; no symbols, investment amounts, personal information or raw logs. This API does not start a Shadow cron job. The frontend shows the report as STALE after 36 hours without a refreshed feed.
