@@ -128,7 +128,7 @@ def _validate_pick_identity(pick: dict, by_symbol: dict[str, dict], by_name: dic
     # Validate it against a narrow allowlist rather than disabling the equity
     # identity checks that protect the track record from symbol collisions.
     if pick.get("assetType") == "ETF":
-        verified_etfs = {"069500.KS": ("069500", "kodex200")}
+        verified_etfs = {"069500.KS": ("069500", "kodex200"), "475300.KS": ("475300", "sol반도체전공정")}
         valid = verified_etfs.get(symbol)
         if valid is None or code != valid[0] or normalize_name(name) != valid[1]:
             raise ValueError(f"Unverified user-selected ETF identity: {name} ({symbol})")
