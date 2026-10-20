@@ -17,6 +17,7 @@ def test_dispatch_validates_before_gh_and_passes_json_stdin_without_shell(tmp_pa
     assert args[0] == ['gh','workflow','run','publish-intelligence.yml','--repo','shoon94parkk-del/chart_View','--ref','main','--json']
     assert json.loads(json.loads(kwargs['input'])['archive_json'])['debates'][0]['summary'] == doc['debates'][0]['summary']
     assert kwargs.get('shell', False) is False
+    assert kwargs['encoding'] == 'utf-8'
 
 
 def test_dispatch_rejects_private_and_oversized_payloads_without_launching_gh(tmp_path):

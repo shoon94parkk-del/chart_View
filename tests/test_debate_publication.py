@@ -75,6 +75,14 @@ def test_skewed_publisher_clock_cannot_reuse_a_publication_revision(tmp_path):
     assert datetime.fromisoformat(json.loads(target.read_bytes())['generated_at']) > datetime.fromisoformat(previous)
 
 
+@pytest.mark.parametrize('source', ['records/debates/한글.md', 'records/debates/foo..md', 'records/debates/'+'a'*241+'.md'])
+def test_new_publication_rejects_paths_that_the_toss_viewer_cannot_read(tmp_path, source):
+    publish = publisher()
+    doc = sample(); doc['debates'][0]['phases'][0]['source_path'] = source
+    with pytest.raises(ValueError): publish(archive=doc, output_dir=tmp_path)
+    assert not (tmp_path / 'intelligence_debates_public.json').exists()
+
+
 def test_research_reader_validates_new_publications_and_keeps_newest_remote(tmp_path):
     old = sample()
     old['generated_at'] = old['debates'][0]['updated_at'] = (datetime.now(timezone.utc)-timedelta(hours=2)).isoformat()

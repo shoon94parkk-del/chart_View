@@ -691,3 +691,7 @@ Classification: approved existing estimate extension and source-refresh reliabil
 ## 2026-10-20 — Muse 공개 종목 연구의 독립 게시
 
 Classification: new behavior. 기존 schema1 연구 아카이브를 감사 PICK v2와 분리한 채 `published_data` allowlist에 두 공개 projection을 연결한다. 모든 문자열/키를 보수적으로 검사하고 공개 allowlist만 반환한다. 새 자동 게시에는 summary/updated_at과 완료3인·반박·재반박·최종 단계 gate를 적용한다. 게시 CLI는 원자 파일 교체/id별 병합/오래된 수정 거절/상한 초과 거절을 수행한다. main 고정 workflow는60KB 이하의 이미 승인한 JSON만 받고 private repo/LLM/보유목록에 접근하지 않는다. 실제 분석 작성과 producer exporter 통합은 Muse가 맡는다. [계약·명령·남은 항목](MUSE_RESEARCH_PUBLICATION.md). 기존 세 공개 요약과 정기 로그 미연결 집계만 seed하며 새로운 결과를 발명하지 않는다.
+
+## 2026-10-20 — 공개 게시 CLI의 UTF-8와 Toss 경로 일치
+
+Windows를 포함한 비 UTF-8 로캘에서 gh JSON stdin이 다른 인코딩으로 전송되지 않도록 명시적 UTF-8를 사용한다. 새 공개 게시물의 source_path는 실제 Toss의 ASCII/260자 미만/no-.. 규칙을 사전 검증하여 서버만 승인하고 화면은 거절하는 자료를 게시하지 않는다. legacy reader의 경로 계약은 유지한다. 실제 구현된 Muse exporter 호환 PR16/한 명령 옵션, 고정 종목 id 재사용을 [인수인계](MUSE_RESEARCH_PUBLICATION.md)에 반영한다.

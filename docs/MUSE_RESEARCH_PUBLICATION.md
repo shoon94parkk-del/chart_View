@@ -5,10 +5,10 @@
 ## Muse가 해야 할 일
 
 1. 현재 분석 작업이 끝나면 세 에이전트의 **공개 가능한 주장·근거 요약**을 내보낸다. 비공개 원문, 내부 추론, 보유 목록이라는 표시, 수량·평단·계좌·개인 메모를 복사하지 않는다. 티커는 일반 종목 연구의 식별자로만 사용한다.
-2. 기존 `tools/export_debates.py`의 승인 manifest와 공개 projection을 사용한다. 이 exporter는 intel-os PR12에 있고, 현재 실행 브랜치에 아직 없으므로 Muse가 작업 브랜치에 통합해야 한다. `records/shadow` 경로 지원과 아래 새 선택 필드도 exporter에 추가해야 한다. 이 서버/앱은 private repo를 읽거나 다운로드하지 않는다.
+2. 기존 `tools/export_debates.py`의 승인 manifest와 공개 projection을 사용한다. 이 exporter는 intel-os PR12 기반이며 [호환 PR16](https://github.com/shoon94parkk-del/investment-intelligence-os/pull/16)에 새 선택 필드·3인 완료·안전한 records/shadow 경로·직접 게시 옵션을 구현했다. Muse는 두 기반을 현재 실행 브랜치에 통합해야 한다. 이 서버/앱은 private repo를 읽거나 다운로드하지 않는다.
 3. 종목별 `summary`와 `updated_at`을 채운다. 새 자동 게시에서는 두 필드가 필수다. 완료는 mer/nonggu/meng의 phase1 세 개와 attack/rebuttal/final을 모두 기록했을 때만 `COMPLETED`로 쓴다. 진행 중 공개 자료는 `PARTIAL`, 중단은 `BLOCKED`다. 완료·게시 검증이 감사 승인이나 PICK을 뜻하지 않아 `audit_verified`는 false다.
 4. 실제 분석 기준일은 `date`, 결과 수정 시각은 `updated_at`, 내보낸 시각은 `generated_at`으로 구분한다. 시간은 Z 또는 +09:00 같은 시간대를 포함하고 updated_at <= generated_at이어야 한다. 동일 id를 수정할 때 updated_at이 기존 결과보다 실제로 늦어야 한다.
-5. 아래 검증/게시 명령을 분석 완료 후 실행한다. GitHub 기존 `gh` 인증과 대상 workflow 실행 권한이 필요하다. 새 키를 채팅/문서/JSON에 넣지 않는다.
+5. 아래 검증/게시 명령을 분석 완료 후 실행한다. GitHub 기존 `gh` 인증과 대상 workflow 실행 권한이 필요하다. 새 키를 채팅/문서/JSON에 넣지 않는다. CLI는 시스템 로캘에 관계없이 JSON stdin을 UTF-8로 보낸다.
 
 ## JSON 계약
 
@@ -21,7 +21,7 @@
   "publication_status": "EXPLICITLY_APPROVED",
   "generated_at": "2026-10-20T16:00:00+09:00",
   "debates": [{
-    "id": "company-000000-20261020",
+    "id": "research-000000",
     "ticker": "000000",
     "company": "공개 연구 기업명",
     "date": "2026-10-20",
@@ -42,10 +42,11 @@
 }
 ```
 
+- 같은 종목의 현재 결과는 research-005930 같은 고정 id를 재사용하고 실제 date/updated_at으로 갱신한다. 의도한 별도 과거 기록만 새 id를 쓴다. private 원본 이력은 게시 아카이브와 분리해 유지한다.
 - id: 영문/숫자/밑줄/하이픈3–80자. ticker: 영대문자/숫자/점/하이픈/^1–18자. company1–100자, topic최대240자.
 - status: COMPLETED/PARTIAL/BLOCKED. verdict: BUY/WAIT/SELL/UNKNOWN. 현재 매매 지시가 아니라 해당 연구의 기록상 판단이다.
 - role: mer/nonggu/meng/other. stage: phase1/attack/rebuttal/final/audit/context.
-- phase: title1–160자, text1–16,000자. source_path는 records/debates 또는 records/shadow 아래 .md 경로이며 링크나 원문 다운로드 권한이 아니다.
+- phase: title1–160자, text1–16,000자. source_path는 records/debates 또는 records/shadow 아래 .md 경로이며 링크나 원문 다운로드 권한이 아니다. 새 게시물은 Toss와 동일한 ASCII 영문/숫자/밑줄/점/하이픈/슬래시,260자 미만, 연속된 .. 없음 규칙을 따른다.
 - 입력/누적 아카이브 최대30건, 종목당24phase, 전체4MiB. 초과 시 기존 결과를 삭제하지 않고 게시를 거절한다. 역사 보관/페이지 분리는 후속 작업이다.
 - 게시 전에 모든 문자열과 키의 개인정보/비밀 패턴을 검사하고 출력은 allowlist로 재구성한다. 패턴 검사는 의미상 개인정보를 완전히 판별하지 못하므로 공개용 작성·검토를 대체하지 않는다.
 
@@ -93,3 +94,15 @@ git push
 - 의존성이 없는 기본 Python으로 전체 검사를 시작한 첫 시도는43개 import 수집 오류였다. 테스트 의존성을 갖춘 uv Python3.11에서 다시 실행하여 **1,130개와43subtests 통과**, 기존 경고5개를 확인했다. 별도 Web Node21개와 생성 번들 최신성 검사도 통과했다.
 - 독립 검토의 대기열 누락·자유문 비밀/계좌 표시·clock-skew 동일 revision 문제를 수정했다. `queue: max`는 현재 GitHub 공식 문서에서 확인했으며 최대100개 대기 한도다. 게시 timestamp는 기존보다 최소1ms 증가한다.
 - 위는 구현 및 로컬 검증이며, main CI/실제 workflow/운영 배포 증거는 후속 기록에서 확정한다. 기존 공개 seed 외에 실제 새 종목 분석을 게시하지 않았다.
+
+## Muse 한 명령 게시 옵션
+
+PR12와 호환 PR16을 실행 브랜치에 통합하면 Backend clone 없이 다음을 호출할 수 있다. 기본 export는 로컬만 저장하며, 아래 선택 옵션이 있을 때만 공개 workflow를 요청한다. 실제 공개 요약/manifest 검토와 완료 후 호출은 Muse 쪽 작업이다.
+
+```bash
+python -m tools.export_debates --manifest /local/approved-manifest.json --out /local/public-debates.json --owner-approved --publish-chartview
+```
+
+Producer의 원격 검사는 계정 환경 제약으로 실행하지 못한 상태이며 상세는 비공개 PR16에 기록했다. 로컬24개 대상 검사와 전체1,011개 실행(기존 live E2E skip1개), 독립 검토는 확인했다. 활성 Muse 실행 환경이나 스케줄을 이 서버 작업이 바꾸지 않았다.
+
+추가 검증에서는 UTF-8 stdin과 Toss 비호환 경로의4건 실패를 먼저 재현했고, 수정 후 Python3.11 전체1,133개·43subtests가 통과했다. 생성 Web bundle 최신성과 독립 검토도 확인했다. main 통합·정확한 운영 revision은 별도로 대조한다.

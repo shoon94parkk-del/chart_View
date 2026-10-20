@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone, timedelta
@@ -40,6 +41,10 @@ def merge_archive(existing, incoming):
         # All new automatic publications use the completion and metadata gate.
         if 'summary' not in row or 'updated_at' not in row:
             raise ValueError('new publications require summary and updated_at')
+        for phase in row['phases']:
+            source = phase['source_path']
+            if len(source) >= 260 or '..' in source or not re.fullmatch(r'records/(?:debates|shadow)/[A-Za-z0-9_./-]+\.md', source):
+                raise ValueError('source path is incompatible with the public viewer')
         previous = rows.get(row['id'])
         if previous == row:
             continue
