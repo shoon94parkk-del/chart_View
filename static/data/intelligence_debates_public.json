@@ -2,8 +2,463 @@
   "schema_version": 1,
   "kind": "debate_archive",
   "publication_status": "EXPLICITLY_APPROVED",
-  "generated_at": "2026-10-20T09:01:17.214498+00:00",
+  "generated_at": "2026-10-20T14:30:49.084758+00:00",
   "debates": [
+    {
+      "id": "samsung-005930-20261020-p4",
+      "date": "2026-10-20",
+      "company": "삼성전자",
+      "ticker": "005930",
+      "topic": "기업 실적·가치·위험에 대한 3인 연구 기록",
+      "status": "PARTIAL",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "other",
+          "stage": "context",
+          "title": "자료 기준과 한계",
+          "text": "작성일은 2026-10-20입니다. 기존 토론은 2026-10-19 22:31 UTC 동결 입력 223,500원으로 작성됐습니다. 별도 정정 팩은 같은 10/19의 정규장 종가를 218,000원, 애프터마켓 가격을 223,500원으로 구분합니다. 이 공개본은 기존 논쟁과 WAIT 판정을 요약하며, 218,000원으로 새 3인 분석을 실행하거나 기존 배수를 일괄 재계산한 결과가 아닙니다. 시세 기준의 차이를 해소한 전체 재평가가 확인되지 않아 PARTIAL로 표시합니다. 아래 숫자와 예정 이벤트는 분석 당시 기록의 입력·가정이며 현재 조회값이 아닙니다.\n",
+          "source_path": "records/debates/research-005930/other-context.md"
+        },
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "메르 · 독립 분석 · 초안",
+          "text": "독립 초안은 WAIT였습니다. 이익 증가 자체와 신규 진입 시점을 구분했고, 제공 TTM PER 12.72배와 입력 가격·EPS로 계산한 9.96배의 불일치, 오래된 컨센서스를 한계로 적었습니다. 초안의 PER 상한·주가 안착 주장은 뒤의 답변에서 수정됩니다.\n",
+          "source_path": "records/debates/research-005930/mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "농구천재 · 독립 분석 · 초안",
+          "text": "독립 초안은 HOLD/WAIT였습니다. 연결 영업이익률 52.2%와 재고 증가 35.7%를 사이클 점검 대상으로 봤지만 경쟁사 공급·CAPEX·HBM 계약 수치가 없다고 기록했습니다. 초기의 PER 상한 초과와 부문·연결 마진 비교는 최종 근거로 유지되지 않습니다.\n",
+          "source_path": "records/debates/research-005930/nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "멍 · 독립 분석 · 초안",
+          "text": "독립 초안은 신규 진입 기준 WAIT였습니다. 실적 발표 후 가격 반응을 기대 선반영의 관측으로 보면서도 TTM·Forward PER 입력의 내부 불일치를 지적했습니다. 원초안의 시나리오 기대값과 일부 확률은 후속 반박에서 철회·수정됩니다.\n",
+          "source_path": "records/debates/research-005930/meng-phase1.md"
+        },
+        {
+          "role": "mer",
+          "stage": "attack",
+          "title": "메르 · 상호 공격",
+          "text": "공격 기록은 연결 마진과 사업부 마진을 직접 비교한 점, 재고 증가를 가격·물량으로 나누지 않은 점을 문제 삼았습니다. 세 초안이 같은 사이클 정점 가정에 기대는 공통 맹점을 지적하고, 수요 기업의 CAPEX 가이던스를 확인할 필요를 제기했습니다.\n",
+          "source_path": "records/debates/research-005930/mer-attack.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "attack",
+          "title": "농구천재 · 상호 공격",
+          "text": "공격 기록은 수요·금리 서사만으로 공급 규율을 설명할 수 있는지, 오래된 컨센서스와 근거 없는 시나리오 확률이 판단에 쓰였는지를 물었습니다. 실적 발표일의 가격 반응에 대한 초안 간 사실 충돌을 최종 평가 전에 정리하도록 요구했습니다.\n",
+          "source_path": "records/debates/research-005930/nonggu-attack.md"
+        },
+        {
+          "role": "meng",
+          "stage": "attack",
+          "title": "멍 · 상호 공격",
+          "text": "공격 기록은 가격을 EPS로 직접 나눈 값이 제공 PER과 다르다는 점, 이 입력 위에 세운 PER 10배 상한 주장을 점검했습니다. 규모가 계산되지 않은 거시 인과와 확인하지 못한 데이터를 결론의 근거로 사용한 부분을 구분하도록 요구했습니다.\n",
+          "source_path": "records/debates/research-005930/meng-attack.md"
+        },
+        {
+          "role": "mer",
+          "stage": "rebuttal",
+          "title": "메르 · 답변과 정정",
+          "text": "답변에서 실적 발표 후 주가가 안착했다는 초기 설명을 철회하고, 원기록의 하락 관측으로 정정했습니다. 금리에서 CAPEX 삭감으로 바로 연결한 인과도 약화했습니다. WAIT는 유지했지만 밸류에이션 근거는 조건부로 낮췄습니다.\n",
+          "source_path": "records/debates/research-005930/mer-rebuttal.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "rebuttal",
+          "title": "농구천재 · 답변과 정정",
+          "text": "답변은 223,500원 ÷ 22,442원 = 9.96배를 확인하고 PER 10배 상한 초과 주장을 철회했습니다. 부문·연결 마진 비교를 폐기하고 재고 증가의 의미도 확인 필요로 낮췄습니다. 최종은 조건부 WAIT, 확신도는 하향된 기록입니다.\n",
+          "source_path": "records/debates/research-005930/nonggu-rebuttal.md"
+        },
+        {
+          "role": "meng",
+          "stage": "rebuttal",
+          "title": "멍 · 답변과 정정",
+          "text": "답변은 근거가 불분명한 시나리오 입력과 기대값을 판단의 기둥에서 제외했습니다. WAIT를 유지하면서 데이터 품질·재고·수요 이벤트를 재검토 조건으로 남겼습니다. 이 공개 요약은 원래 입력 기준을 보존하며 정정 가격으로 새 결론을 계산하지 않았습니다.\n",
+          "source_path": "records/debates/research-005930/meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "종합 · 최종 평가",
+          "text": "원문 종합 판정은 신규 진입 기준 WAIT이며, 기존 투자에 대한 HOLD 언급도 별도로 있었습니다. 세 역할은 같은 WAIT에 도달했지만 근거의 위상에는 차이가 남았습니다. 원문은 TTM·Forward 지표 충돌과 오래된 컨센서스, 재고의 가격·물량 분해를 미해소로 남깁니다. 별도 시세 정정과 원토론 입력이 달라 재평가가 필요합니다.\n",
+          "source_path": "records/debates/research-005930/other-final.md"
+        }
+      ],
+      "summary": "WAIT. 기존 3인 토론을 재사용한 기록입니다. 정정 팩의 10/19 정규장 종가 218,000원과 원토론 입력 223,500원을 구분해야 하며, 같은 기준으로 전체 토론을 다시 실행한 결과는 확인되지 않았습니다.",
+      "updated_at": "2026-10-20T13:55:27.700158+00:00"
+    },
+    {
+      "id": "research-TSLA",
+      "date": "2026-10-20",
+      "company": "테슬라",
+      "ticker": "TSLA",
+      "topic": "기업 실적·가치·위험에 대한 3인 연구 기록",
+      "status": "PARTIAL",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "other",
+          "stage": "context",
+          "title": "자료 기준과 한계",
+          "text": "분석 기록은 2026-10-19 NASDAQ 정규장 종가 368.06달러와 10/20 동결 팩을 사용합니다. mer 공격·답변과 meng 답변의 디스크 본문에 잘림 표시가 있어 PARTIAL입니다. 빠진 공격을 복원하거나 모든 답변이 확인됐다고 주장하지 않습니다. 원기록의 Q3 발표 예정은 현지 10/21 장 마감 후, 한국 10/22 06:30 웹캐스트입니다. 이 공개본은 일정 확인이나 새 실적 수집을 다시 수행하지 않았습니다. EDGAR 원문 대조와 FY2027E 컨센서스도 미확인입니다. 모델 종합 확신도 0.55는 수익 확률이 아닙니다.\n",
+          "source_path": "records/debates/research-TSLA/other-context.md"
+        },
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "메르 · 독립 분석 · 초안",
+          "text": "독립 초안은 HOLD 0.45였습니다. 당시 입력 368.06달러를 확정 실적만으로 설명하기 어렵다고 보고, 신사업 기대와 매출로 확인된 성과를 구분했습니다. 실적 발표가 임박해 기다린다는 사유가 적극적 HOLD인지 여부는 뒤의 공격에서 쟁점이 됩니다.\n",
+          "source_path": "records/debates/research-TSLA/mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "농구천재 · 독립 분석 · 초안",
+          "text": "독립 초안은 SELL 0.62였습니다. 원기록의 Q2 영업이익률 1.41%와 TTM PER 340.8배의 괴리를 강조했습니다. 다만 EDGAR 원문·경쟁사·부문별 원인 자료가 없어 가격경쟁이라는 원인 단정을 할 수 없다는 한계도 같은 초안에 남겼습니다.\n",
+          "source_path": "records/debates/research-TSLA/nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "멍 · 독립 분석 · 초안",
+          "text": "독립 초안은 WAIT 0.65였습니다. 368.06달러 ÷ GAAP TTM EPS 1.08달러 = 약 340.8배를 채택하고, Q3 재무 실적이 나오기 전 방향성 결론을 유보했습니다. 초안의 기대값과 확신도 대상은 후속 답변에서 정정됩니다.\n",
+          "source_path": "records/debates/research-TSLA/meng-phase1.md"
+        },
+        {
+          "role": "mer",
+          "stage": "attack",
+          "title": "메르 · 상호 공격",
+          "text": "남아 있는 공격 기록은 원인을 분해할 수 없다고 하면서 구조적 가격경쟁을 SELL 이유로 단정한 점과, 팩 근거 없는 시나리오 확률·목표가의 정밀도를 지적합니다. 공격 후반은 원문이 잘려 있어 전체 항목을 공개본에서 재구성하지 않았습니다.\n",
+          "source_path": "records/debates/research-TSLA/mer-attack.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "attack",
+          "title": "농구천재 · 상호 공격",
+          "text": "공격 기록은 발표가 하루 앞이라는 일정 자체로 적극적 HOLD를 지지할 수 있는지를 물었습니다. 높은 필요 이익과 낮은 실제 마진을 적고도 유지 결론을 낸 논리, WAIT가 발표 후 가격 갭을 피할 수 없는 한계를 함께 지적했습니다.\n",
+          "source_path": "records/debates/research-TSLA/nonggu-attack.md"
+        },
+        {
+          "role": "meng",
+          "stage": "attack",
+          "title": "멍 · 상호 공격",
+          "text": "공격 기록은 산술로 이미 폐기한 제공 PER를 다시 미해소 결함으로 세어 확신도를 이중 감점한 점과, 현상 유지에도 발동하는 반증 조건을 점검했습니다. 가격·경쟁·수요의 인과 단정이 동결 자료의 범위를 넘는지도 문제 삼았습니다.\n",
+          "source_path": "records/debates/research-TSLA/meng-attack.md"
+        },
+        {
+          "role": "mer",
+          "stage": "rebuttal",
+          "title": "메르 · 답변과 정정",
+          "text": "남아 있는 답변은 초안 HOLD 0.45를 철회하고 WAIT 0.55로 바꿉니다. 발표 임박은 긍정적인 기업 판단보다 판단 유보의 이유라고 인정했습니다. 기존 하향 문턱은 Q2에도 이미 밑도는 구조였다고 수용했으나 답변 후반 원문은 잘려 있습니다.\n",
+          "source_path": "records/debates/research-TSLA/mer-rebuttal.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "rebuttal",
+          "title": "농구천재 · 답변과 정정",
+          "text": "답변은 마진 하락의 원인을 구조적 가격경쟁으로 단정한 설명과 인도량을 수요 천장으로 해석한 주장을 철회합니다. 원문 대조·원인 분해·2027년 추정치가 부족한 상태를 반영해 SELL 0.62에서 WAIT 0.55로 변경했습니다.\n",
+          "source_path": "records/debates/research-TSLA/nonggu-rebuttal.md"
+        },
+        {
+          "role": "meng",
+          "stage": "rebuttal",
+          "title": "멍 · 답변과 정정",
+          "text": "남아 있는 답변은 시나리오 기대값의 산술 오류를 수용하고 WAIT를 유지합니다. mer 공격 후반이 원문에 없어 해당 공격에 완전한 직접 답변을 할 수 없다고 고지했습니다. 답변 자체도 중간에서 잘렸으므로 후반을 복구한 것으로 표시하지 않습니다.\n",
+          "source_path": "records/debates/research-TSLA/meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "종합 · 최종 평가",
+          "text": "최종 문서의 종합 판정은 WAIT 0.55이며 세 역할이 WAIT로 수렴했습니다. 이익·마진 하락은 남지만 원인 분해와 FY2027E 이익 경로가 미확인이라 방향성 행동의 근거를 확정하지 않았습니다. 문서의 시나리오 기대값 정정은 산술 정정이며 입력 확률의 타당성을 증명하지 않습니다. Q3 실적 공개 후 재판정하는 기록입니다.\n",
+          "source_path": "records/debates/research-TSLA/other-final.md"
+        }
+      ],
+      "summary": "WAIT. 초기 HOLD·SELL 의견이 발표 전 판단 유보로 수렴했습니다. 기록의 Q2 영업이익률 1.41%와 GAAP TTM PER 340.8배를 대조하며 Q3 실적 이후 재판정합니다. 일부 공격·답변 기록이 잘려 있습니다.",
+      "updated_at": "2026-10-20T13:55:27.700158+00:00"
+    },
+    {
+      "id": "research-GOOGL",
+      "date": "2026-10-20",
+      "company": "알파벳A",
+      "ticker": "GOOGL",
+      "topic": "기업 실적·가치·위험에 대한 3인 연구 기록",
+      "status": "PARTIAL",
+      "verdict": "HOLD",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "메르 독립 분석 공개 요약",
+          "text": "초기 판정은 HOLD였어요. 2026년 2분기 Search 매출 증가율 17%와 Cloud 82%를 성장 근거로 보되, 10월 19일 종가 344.18달러에는 높은 성과가 요구되고 현금흐름 부담도 있다고 봤어요. 매출 성장만으로 수요의 질을 확정할 수 없다는 한계가 있어요.\n",
+          "source_path": "records/debates/research-GOOGL/mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "농구천재 독립 분석 공개 요약",
+          "text": "초기 판정은 HOLD였어요. 산업과 공급 측면에서 Cloud 성장, 설비투자 증가, 검색 규제 이행을 검토했어요. 경쟁사 자료 없이 업계 전체를 단정한 표현과 전망 EPS를 후행 정상화처럼 쓴 부분은 후속 토론에서 정정됐어요. 이 단계의 저장 원문은 일부 잘려 있어요.\n",
+          "source_path": "records/debates/research-GOOGL/nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "멍 독립 분석 공개 요약",
+          "text": "초기 판정은 HOLD였어요. 지분증권 평가이익이 보고 EPS를 높여 PER 17배를 저평가 근거로 쓰기 어렵다고 분석했어요. 정상화 PER 약 30배와 설비투자 부담을 제시했으나, 초기 EPS의 상한 표기와 현금흐름 가정은 반론 단계에서 정정됐어요.\n",
+          "source_path": "records/debates/research-GOOGL/meng-phase1.md"
+        },
+        {
+          "role": "mer",
+          "stage": "attack",
+          "title": "메르 공격 공개 요약",
+          "text": "정상화 EPS를 상한으로 단정하려면 누락된 2025년 하반기 평가손익을 알아야 한다고 지적했어요. 하반기 영업현금흐름을 상반기와 같게 놓은 가정과 전망 지표를 정상화 값처럼 쓰는 문제도 공격했어요. 같은 HOLD라도 근거와 확신 수준은 별도로 검증해야 한다는 입장이에요.\n",
+          "source_path": "records/debates/research-GOOGL/mer-attack.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "attack",
+          "title": "농구천재 공격 공개 요약",
+          "text": "Search 매출 증가율만으로 AI 검색 잠식이 없다고 볼 수 없고, 광고 비용과 클릭·단가 구성이 빠졌다고 지적했어요. 후행 정상화와 전망 숫자의 기준 차이도 따졌어요. 저장된 공격문 뒤쪽이 잘려 있어 확인 가능한 쟁점만 요약했어요.\n",
+          "source_path": "records/debates/research-GOOGL/nonggu-attack.md"
+        },
+        {
+          "role": "meng",
+          "stage": "attack",
+          "title": "멍 공격 공개 요약",
+          "text": "메르와 농구천재가 후행 정상화 EPS를 계산하지 않고 미래 전망 PER로 대체한 점을 핵심 문제로 제기했어요. 경쟁사 자료 없는 산업 비교와 근거 등급 과장도 지적했어요. 산술이 맞는 것과 투자 판단이 검증된 것은 다르다고 구분했어요.\n",
+          "source_path": "records/debates/research-GOOGL/meng-attack.md"
+        },
+        {
+          "role": "mer",
+          "stage": "rebuttal",
+          "title": "메르 반론·수정 공개 요약",
+          "text": "후행 정상화 EPS를 다시 계산하고 전망 지표와 구분했어요. 검색 매출 성장만으로 수요의 질을 확정한 표현, 일부 근거 등급과 추정 라벨을 낮췄어요. 최종 종합 문서는 메르가 HOLD를 유지하되 모델 확신도를 0.50으로 낮췄다고 기록해요.\n",
+          "source_path": "records/debates/research-GOOGL/mer-rebuttal.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "rebuttal",
+          "title": "농구천재 반론·수정 공개 요약",
+          "text": "미래 전망 PER을 후행 정상화처럼 제시한 것과 경쟁사 자료 없는 비교를 수용·정정했어요. 후행 정상화 값도 하반기 평가손익이 없는 조건부 계산이라고 제한했어요. 이 답변의 저장본 뒤쪽이 크게 잘려 있어, 최종 HOLD는 별도 최종 종합 문서에 기록된 결과로 구분해요.\n",
+          "source_path": "records/debates/research-GOOGL/nonggu-rebuttal.md"
+        },
+        {
+          "role": "meng",
+          "stage": "rebuttal",
+          "title": "멍 반론·수정 공개 요약",
+          "text": "팩에 명시된 주식수로 정상화 EPS를 11.28달러, PER을 약 30.5배로 정정했어요. 직전 하반기 영업현금흐름을 반복하는 가정에서도 연간 FCF는 -93억~-193억달러로 계산했어요. 이는 실적 확정값이 아닌 가정 계산이며, HOLD를 유지하고 모델 확신도는 낮췄어요.\n",
+          "source_path": "records/debates/research-GOOGL/meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "종합 최종 판단 공개 요약",
+          "text": "최종 종합은 HOLD예요. 정상화 PER 약 30.5배는 2025년 하반기 평가손익을 0으로 놓은 조건부 추정이에요. 사업 성장과 설비투자 회수 미증명을 함께 평가했고, 10월 28일 실적 발표 예정 후 재검토를 제시했어요. 농구천재의 일부 원문이 누락되어 기록 상태는 일부 결과로 표시해요.\n",
+          "source_path": "records/debates/research-GOOGL/other-final.md"
+        },
+        {
+          "role": "other",
+          "stage": "context",
+          "title": "종합 자료 한계 공개 요약",
+          "text": "기준가는 2026년 10월 19일 NASDAQ 정규장 종가 344.18달러이며 분석 기준일은 10월 20일이에요. 농구천재 독립 분석·공격·반론 저장본에 절단 표식이 있어 누락 내용을 재구성하지 않았어요. 팩의 컨센서스와 일부 법률 원문도 미확인이에요. 0.50~0.55는 문서의 모델 확신도이며 수익 확률이 아니에요.\n",
+          "source_path": "records/debates/research-GOOGL/other-context.md"
+        }
+      ],
+      "summary": "보고 PER 17배는 평가이익 영향이 커요. 조건부 정상화 PER은 약 30.5배이며, 설비투자 가이던스상 연간 FCF가 마이너스일 가능성을 분석했어요. HOLD 유지, 농구천재 토론 원문 일부 누락.",
+      "updated_at": "2026-10-20T13:55:27.700158+00:00"
+    },
+    {
+      "id": "research-006400",
+      "date": "2026-10-20",
+      "company": "삼성SDI",
+      "ticker": "006400",
+      "topic": "기업 실적·가치·위험에 대한 3인 연구 기록",
+      "status": "COMPLETED",
+      "verdict": "WAIT",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "other",
+          "stage": "context",
+          "title": "자료 기준과 한계",
+          "text": "분석 당시 입력은 2026-10-20 정규장 종가 556,000원입니다. 독립 분석·공격·답변·최종 평가 파일은 모두 확인됐으며 COMPLETED는 단계 기록의 완결을 뜻합니다. 재무 자료가 완전히 검증됐거나 매수 승인을 받았다는 뜻은 아닙니다. 관세 환급 약수와 증권사 추정치는 보도·추정으로 남고 DART 원문, 상반기 현금흐름·재고, Q2 AMPC 금액은 미확인입니다. 기록의 다음 확인일은 10/29입니다. 모델 종합 확신도 0.55는 수익 확률이 아닙니다.\n",
+          "source_path": "records/debates/research-006400/other-context.md"
+        },
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "메르 · 독립 분석 · 초안",
+          "text": "초안은 WAIT 0.60이었습니다. Q2 흑자전환에서 관세 환급·AMPC의 역할을 분리하고, 2027년 상단 회복 시나리오가 요구되는 가격인지 점검했습니다. DART 원문·상반기 현금흐름·재고·AMPC 금액을 미확인으로 남겼습니다.\n",
+          "source_path": "records/debates/research-006400/mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "농구천재 · 독립 분석 · 초안",
+          "text": "초안은 HOLD 0.55였습니다. 매출 회복과 부문 흑자를 사이클 저점 통과의 신호로 보되, 정책·일회성을 제외한 물량 기반 회복이 확인되지 않아 추가매수 근거가 부족하다고 적었습니다. 이 긍정 근거는 반박 후 철회됩니다.\n",
+          "source_path": "records/debates/research-006400/nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "멍 · 독립 분석 · 초안",
+          "text": "초안은 WAIT 0.55였습니다. Q2 영업이익 2,038억원 중 환급 약 1,900억원을 제외하고도 AMPC 금액이 미공개라 경상 이익의 부호를 정할 수 없다고 봤습니다. 2025년 이익 충돌과 현금흐름·재고 미확인도 남겼습니다.\n",
+          "source_path": "records/debates/research-006400/meng-phase1.md"
+        },
+        {
+          "role": "mer",
+          "stage": "attack",
+          "title": "메르 · 상호 공격",
+          "text": "공격 기록은 추정 매출·AMPC 포함 부문 흑자를 물량 회복의 확정 증거처럼 쓰는 점과, 원인이 미확인인데 HOLD를 긍정 확정하는 구조를 지적했습니다. 시나리오의 근거 없는 정밀 수치와 추정치 등급도 점검했습니다.\n",
+          "source_path": "records/debates/research-006400/mer-attack.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "attack",
+          "title": "농구천재 · 상호 공격",
+          "text": "공격 기록은 HOLD와 WAIT의 행동이 10/29까지 같다는 점을 들어 라벨 차이의 근거를 물었습니다. 무거운 미확인 항목과 모델 확신도 수치가 정합하는지, 미래 AMPC 정책 가정이 시나리오에 과도하게 반영됐는지도 지적했습니다.\n",
+          "source_path": "records/debates/research-006400/nonggu-attack.md"
+        },
+        {
+          "role": "meng",
+          "stage": "attack",
+          "title": "멍 · 상호 공격",
+          "text": "공격 기록은 증권사 보도·회사 발표를 DART 대조된 확정값처럼 높인 등급 처리와, PER를 못 쓴다고 한 뒤 Forward PER로 우회한 주장을 지적했습니다. 영업외 순수익 약 2,754억원이 기존 분해에서 빠진 점도 점검했습니다.\n",
+          "source_path": "records/debates/research-006400/meng-attack.md"
+        },
+        {
+          "role": "mer",
+          "stage": "rebuttal",
+          "title": "메르 · 답변과 정정",
+          "text": "답변은 HOLD와 WAIT가 당장 같은 행동이라도 긍정 확정과 판단 유보는 다르다고 설명했습니다. 약 1,900억원을 빼 만든 정밀 잔액 138억원을 구간 표현으로 바꾸고, AMPC 비공개 지속 자체를 매도 전환 조건으로 삼은 주장을 철회했습니다. WAIT의 모델 확신도는 0.55로 낮췄습니다.\n",
+          "source_path": "records/debates/research-006400/mer-rebuttal.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "rebuttal",
+          "title": "농구천재 · 답변과 정정",
+          "text": "답변은 일회성 제외 흑자·사이클 상향의 긍정 근거와 자료 등급 처리의 문제를 수용했습니다. 미공개 AMPC 때문에 경상 흑자를 확정할 수 없고 영업외이익 설명도 빠졌다는 점을 반영해 HOLD에서 WAIT 0.55로 변경했습니다.\n",
+          "source_path": "records/debates/research-006400/nonggu-rebuttal.md"
+        },
+        {
+          "role": "meng",
+          "stage": "rebuttal",
+          "title": "멍 · 답변과 정정",
+          "text": "답변은 핵심 이익 분해의 한계를 유지하면서 근거 없는 Bull 목표가와 기대값 문장을 철회했습니다. Bear는 배수 가정의 민감도 범위로 바꾸고, 향후 추정치와 현재 확인할 반증 조건을 분리했습니다. 최종 WAIT 0.55를 유지했습니다.\n",
+          "source_path": "records/debates/research-006400/meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "종합 · 최종 평가",
+          "text": "기록의 최종 판정은 세 역할 모두 WAIT 0.55입니다. 약 1,900억원 환급과 금액 미공개 AMPC를 분리하면 Q2 경상 이익의 부호를 확정할 수 없다는 것이 핵심입니다. 10/29 실적도 정산이익·환급 등을 제외한 기준으로 비교하며, 경상 이익·AMPC·현금흐름 확인 전까지 판단을 유보합니다.\n",
+          "source_path": "records/debates/research-006400/other-final.md"
+        }
+      ],
+      "summary": "WAIT. 기록의 Q2 영업이익 2,038억원 중 약 1,900억원은 관세 환급 보도에 근거한 일회성입니다. AMPC 금액이 확인되지 않아 경상 이익의 흑자·적자를 확정하지 못했고 세 역할이 WAIT로 수렴했습니다.",
+      "updated_at": "2026-10-20T13:55:27.700158+00:00"
+    },
+    {
+      "id": "research-000660",
+      "date": "2026-10-20",
+      "company": "SK하이닉스",
+      "ticker": "000660",
+      "topic": "기업 실적·가치·위험에 대한 3인 연구 기록",
+      "status": "PARTIAL",
+      "verdict": "HOLD",
+      "audit_verified": false,
+      "phases": [
+        {
+          "role": "other",
+          "stage": "context",
+          "title": "자료 기준과 한계",
+          "text": "분석 기록의 기준은 2026-10-20 정규장 종가 1,223,000원입니다. nonggu 공격 원문은 A10 도중 잘렸고 A11~A13 원문이 없어 해당 답변이 유보됐습니다. 없는 내용을 복원·추정하지 않았으며 PARTIAL로 표시합니다. DART 접수번호 원문 대조, 반기 재고·영업현금흐름, 연간 컨센서스가 미확인 또는 수집 불가로 남습니다. 모델이 기록한 종합 확신도 0.55는 수익 확률이 아닙니다.\n",
+          "source_path": "records/debates/research-000660/other-context.md"
+        },
+        {
+          "role": "mer",
+          "stage": "phase1",
+          "title": "메르 · 독립 분석 · 초안",
+          "text": "초안은 HOLD 0.55였습니다. 수요와 이익 증가를 인정하면서 가격이 높은 이익 수준의 지속을 전제한다고 봤습니다. 초안의 연간 영업이익 250조급 지속이라는 수치는 이후 차용 추정치였음이 확인되어 철회됩니다.\n",
+          "source_path": "records/debates/research-000660/mer-phase1.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "phase1",
+          "title": "농구천재 · 독립 분석 · 초안",
+          "text": "초안은 HOLD 0.55였습니다. 원기록의 2분기 영업이익률 76.3%가 사이클 정점인지 구조적 변화인지 판단할 가격·물량·경쟁사 공급 자료가 부족하다고 적었습니다. 반기 재고를 보지 못한 상태에서 하강 증거가 없다고 한 논거는 뒤에서 강등됩니다.\n",
+          "source_path": "records/debates/research-000660/nonggu-phase1.md"
+        },
+        {
+          "role": "meng",
+          "stage": "phase1",
+          "title": "멍 · 독립 분석 · 초안",
+          "text": "초안은 HOLD 0.60이었습니다. 영업외이익 약 62.2조원이 헤드라인 PER 분모를 높인다고 보고 경상 배수를 재산정했습니다. 초기의 단일 경상 PER·시나리오 기대값은 세율과 배수 가정에 의존해 최종 단계에서 구간·민감도로 바뀝니다.\n",
+          "source_path": "records/debates/research-000660/meng-phase1.md"
+        },
+        {
+          "role": "mer",
+          "stage": "attack",
+          "title": "메르 · 상호 공격",
+          "text": "공격 기록은 전체 분기의 평균 실효세율을 특정 영업외이익의 세율처럼 적용한 점을 지적했습니다. 또 확인하지 못한 최신 재고를 근거로 악화가 없다고 말할 수 있는지, 가정으로 만든 기대값을 확정값처럼 썼는지를 점검했습니다.\n",
+          "source_path": "records/debates/research-000660/mer-attack.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "attack",
+          "title": "농구천재 · 상호 공격",
+          "text": "남아 있는 공격 기록은 정점 영업이익에 낮은 배수를 적용해 저렴함을 주장한 구조와, 시나리오 확률·기대수익의 팩 근거가 없는 점을 지적합니다. 원문은 A10 도중 절단됐으므로 후반 공격 내용을 새로 만들거나 모두 답변됐다고 표시하지 않습니다.\n",
+          "source_path": "records/debates/research-000660/nonggu-attack.md"
+        },
+        {
+          "role": "meng",
+          "stage": "attack",
+          "title": "멍 · 상호 공격",
+          "text": "공격 기록은 EPS 출처 충돌을 생략한 점, 컨센서스 한 점에 묶인 하향 문턱, 실제 공개되지 않는 자료를 요구한 상향 조건을 문제 삼았습니다. 판단 조건은 추정치 범위와 관측 가능한 자료로 다시 만들도록 요구했습니다.\n",
+          "source_path": "records/debates/research-000660/meng-attack.md"
+        },
+        {
+          "role": "mer",
+          "stage": "rebuttal",
+          "title": "메르 · 답변과 정정",
+          "text": "답변은 연간 영업이익 250조급 지속 문장을 철회하고, 정점 이익이 높은 수준으로 유지된다는 가정을 가격이 요구한다는 설명으로 교체했습니다. HOLD 0.55는 유지하되 DART·반기 현금흐름·재고 공백을 해소한 것으로 취급하지 않았습니다.\n",
+          "source_path": "records/debates/research-000660/mer-rebuttal.md"
+        },
+        {
+          "role": "nonggu",
+          "stage": "rebuttal",
+          "title": "농구천재 · 답변과 정정",
+          "text": "답변은 재고 악화를 확인하지 못한 것을 악화 부재의 증거로 사용한 오류를 수용했습니다. 주지표를 세전·세후 혼합 대조에서 세율 가정에 따른 경상 PER 약 7.5~8.9배로 교체했고, 최종 HOLD의 모델 확신도를 0.50으로 낮췄습니다.\n",
+          "source_path": "records/debates/research-000660/nonggu-rebuttal.md"
+        },
+        {
+          "role": "meng",
+          "stage": "rebuttal",
+          "title": "멍 · 답변과 정정",
+          "text": "답변은 경상 PER의 확정값 표현과 근거 없는 기대수익 점추정을 철회했습니다. nonggu 공격 A11~A13은 원문이 없어 항목별 답변이 불가능하다고 고지했습니다. 최종 HOLD의 모델 확신도는 0.55로 낮췄고 세율 가정의 민감도를 남겼습니다.\n",
+          "source_path": "records/debates/research-000660/meng-rebuttal.md"
+        },
+        {
+          "role": "other",
+          "stage": "final",
+          "title": "종합 · 최종 평가",
+          "text": "기록의 종합 판정은 HOLD, 모델 확신도 0.55입니다. 헤드라인 PER 5.37배와 달리 동일 주식수 기준 재계산은 5.50배, 영업외이익 제거 뒤 경상 PER은 세율 가정에 따라 약 7.5~8.9배입니다. 10/28 실적과 재고·현금흐름 확인을 재판정 조건으로 적었습니다. 잘린 공격의 미답변 부분은 이 결론에 반영됐다고 주장하지 않습니다.\n",
+          "source_path": "records/debates/research-000660/other-final.md"
+        }
+      ],
+      "summary": "HOLD. 기록의 헤드라인 PER 5.37배는 일회성 영업외이익의 영향을 받습니다. 세율 가정에 따른 경상 PER 약 7.5~8.9배와 이익 지속성을 점검해야 하며, 일부 공격 원문이 잘려 있습니다.",
+      "updated_at": "2026-10-20T13:55:27.700158+00:00"
+    },
     {
       "id": "hanwha-272210-20261020-smoke",
       "date": "2026-10-20",
@@ -66,60 +521,6 @@
       ],
       "summary": "과거 스모크 검토의 판단은 WAIT예요. 세 에이전트의 독립 분석과 반박·최종 평가를 펼쳐 확인하세요.",
       "updated_at": "2026-10-20T09:00:58.309405+00:00"
-    },
-    {
-      "id": "samsung-005930-20261020-p4",
-      "date": "2026-10-20",
-      "company": "삼성전자",
-      "ticker": "005930",
-      "topic": "3인 토론 수치 정정 · 정규장 218,000원과 애프터마켓 223,500원 구분",
-      "status": "COMPLETED",
-      "verdict": "WAIT",
-      "audit_verified": false,
-      "phases": [
-        {
-          "role": "mer",
-          "stage": "phase1",
-          "title": "이벤트 반영과 가격 흐름",
-          "text": "실적 발표 이후 주가가 안착했다는 초기 주장을 상호 공격 후 철회하고, 발표 이후 하락 추세를 인정했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-mer-phase1.md"
-        },
-        {
-          "role": "nonggu",
-          "stage": "phase1",
-          "title": "실적 사이클과 재고 평가",
-          "text": "TTM PER 12.72 확인 등급을 재검토했고, 223,500원/22,442원은 9.96배라는 산술 오류를 인정했다. 재고 해석의 확신도를 낮췄다.",
-          "source_path": "records/debates/20261020-fullrun/005930-nonggu-phase1.md"
-        },
-        {
-          "role": "meng",
-          "stage": "phase1",
-          "title": "EPS·PER 자기모순 발견",
-          "text": "Forward PER 2.96의 EPS 분모가 Fact Pack 내 근거와 맞지 않고, TTM PER도 역산 결과와 불일치함을 지적했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-meng-phase1.md"
-        },
-        {
-          "role": "other",
-          "stage": "attack",
-          "title": "상호 공격에서 숫자 오류 적발",
-          "text": "시장 반응 서술, PER의 분모, 부문별 영업이익률 비교 기준과 시나리오 확률의 자기모순을 지적했다. 초기 결론의 근거가 수정됐다.",
-          "source_path": "records/debates/20261020-fullrun/005930-meng-attack.md"
-        },
-        {
-          "role": "other",
-          "stage": "final",
-          "title": "최종 신규 진입 WAIT",
-          "text": "상호 반박과 재평가 후 세 에이전트 모두 신규 진입 WAIT 의견. 정규장 가격을 기준으로 EPS 22,442원 대비 9.71배로 다시 산술 확인했다.",
-          "source_path": "records/debates/20261020-fullrun/005930-final.md"
-        },
-        {
-          "role": "other",
-          "stage": "audit",
-          "title": "초기 BLOCKED → 별도 P4 감사 APPROVED 기록",
-          "text": "초기 장전 신선도 검증에 걸려 BLOCKED였으나, 시장 세션을 구분한 새 P4 Fact Pack으로 별도 감사에서 4개 게이트 통과 기록. 최초 차단 기록은 보존되어 있다.",
-          "source_path": "records/debates/20261020-fullrun/005930-final.md"
-        }
-      ]
     },
     {
       "id": "neotis-085910-20261020-auto",
