@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-15T17:51:57+09:00",
+  "updated": "2026-10-20T17:28:35+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -2114,6 +2114,29 @@
         }
       ],
       "note": "2026-10-15 신규 TOP10 추천 순위는 유지. 사용자 최종 선정 KODEX 200 ETF(069500)는 TOP10 외 사용자 확정 PICK으로 별도 기록하며 TOP10 평균 수익률에 포함하지 않음."
+    },
+    {
+      "tradeDate": "2026-10-20",
+      "coverage": "partial",
+      "source": "user_final_etf_selection_2026-10-20",
+      "scoreType": "selection_only_no_fabricated_top10_scores",
+      "top10": [],
+      "selectedPicks": [
+        {
+          "code": "475300",
+          "symbol": "475300.KS",
+          "name": "SOL 반도체전공정",
+          "assetType": "ETF",
+          "status": "user_confirmed",
+          "selectionDate": "2026-10-20",
+          "selectedOutsideTop10": true,
+          "recommendationClose": 20710,
+          "priceBasis": "2026-10-20 정규장 종가 20,710원, MK Market/AlphaSquare 확인",
+          "benchmark": "FnGuide 반도체 전공정 지수(PR)",
+          "performanceNote": "ETF 시장가격 기준 가격수익률. 분배금·총수익률 별도 계산; KODEX200 및 일반 PICK과 별도 추적."
+        }
+      ],
+      "note": "2026-10-20 신규 TOP10은 대화에서 조사 후보로 제시됐지만 전체 최종 점수 검증·히스토리 원장이 없어 임의로 재구성하지 않음. 사용자 최종 SOL 반도체전공정 ETF(475300)는 TOP10 외 PICK으로 별도 등록하며 TOP10 평균 수익률에서 제외."
     }
   ],
   "performancePolicy": {
