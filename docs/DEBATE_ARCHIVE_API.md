@@ -19,3 +19,5 @@ Integration: Toss PR #141 (stacked on #140), build-time VITE_DEBATE_DASHBOARD_EN
 ### Shadow progress API (optional)
 
 GET /api/intelligence/shadow/status reads a separate INTEL_SHADOW_STATUS_PATH file. Default disabled, HTTP 503. The public file requires EXPLICITLY_APPROVED and only returns state NOT_STARTED/RUNNING/PAUSED/STOPPED, generated_at, period_started_at, last_execution_at, runs_total, screenings_total, debates_total, audits_approved, audits_blocked, failures_total. All counts are bounded integers and only aggregated observations are exposed; no symbols, investment amounts, personal information or raw logs. This API does not start a Shadow cron job. The frontend shows the report as STALE after 36 hours without a refreshed feed.
+
+Historical smoke proof fields smoke_runs_total and smoke_audits_approved are counted separately from regular cron runs. They never change state to RUNNING and never start the fourteen-day period.

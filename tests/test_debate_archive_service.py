@@ -67,7 +67,8 @@ class TestShadowStatus(unittest.TestCase):
                 "generated_at":stamp,"state":"RUNNING",
                 "period_started_at":stamp,"last_execution_at":stamp,
                 "runs_total":2,"screenings_total":1,"debates_total":1,
-                "audits_approved":0,"audits_blocked":1,"failures_total":0}
+                "audits_approved":0,"audits_blocked":1,"failures_total":0,
+                "smoke_runs_total":1,"smoke_audits_approved":1}
 
     def test_real_status_counts(self):
         result=public_shadow_status(self.sample())
@@ -81,6 +82,19 @@ class TestShadowStatus(unittest.TestCase):
     def test_sensitive_extra_rejected(self):
         value=self.sample()
         value["password"]="private"
+        with self.assertRaises(ValueError):public_shadow_status(value)
+
+    def test_archived_smoke_remains_separate(self):
+        value=self.sample()
+        value["state"]="NOT_STARTED"
+        value["last_execution_at"]=None
+        value["period_started_at"]=None
+        value["runs_total"]=0
+        value["screenings_total"]=0
+        value["debates_total"]=0
+        value["audits_blocked"]=0
+        self.assertEqual(public_shadow_status(value)["smoke_runs_total"],1)
+        value["smoke_audits_approved"]=2
         with self.assertRaises(ValueError):public_shadow_status(value)
 
     def test_audits_cannot_exceed_debates(self):

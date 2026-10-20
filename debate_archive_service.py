@@ -160,7 +160,8 @@ def intelligence_debates(request: Request):
 
 # Aggregate Shadow-mode metrics are OFF until separately approved.
 SHADOW_KEYS = ("runs_total", "screenings_total", "debates_total",
-               "audits_approved", "audits_blocked", "failures_total")
+               "audits_approved", "audits_blocked", "failures_total",
+               "smoke_runs_total", "smoke_audits_approved")
 SHADOW_STATES = {"NOT_STARTED", "RUNNING", "PAUSED", "STOPPED"}
 
 def public_shadow_status(doc: dict) -> dict:
@@ -189,6 +190,8 @@ def public_shadow_status(doc: dict) -> dict:
         values[key] = val
     if values["audits_approved"] + values["audits_blocked"] > values["debates_total"]:
         raise ValueError("inconsistent audit totals")
+    if values["smoke_audits_approved"] > values["smoke_runs_total"]:
+        raise ValueError("inconsistent smoke totals")
     if started_at and last_at and datetime.fromisoformat(last_at) < datetime.fromisoformat(started_at):
         raise ValueError("last execution before start")
     return {"schema_version": 1, "kind": "shadow_status",
