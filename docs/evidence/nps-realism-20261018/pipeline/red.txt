@@ -1,0 +1,132 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+__ test_new_core_requires_credit_cash_unhedged_bonds_and_alternative_proxies ___
+
+    def test_new_core_requires_credit_cash_unhedged_bonds_and_alternative_proxies():
+>       assert {s:nps.CORE[s] for s in ['273130.KS','357870.KS','BIL','AGGG.L','PSP','REET','IGF']}==dict(zip(['273130.KS','357870.KS','BIL','AGGG.L','PSP','REET','IGF'],['KRW','KRW','USD','USD','USD','USD','USD']))
+                  ^^^^^^^^^^^
+E       KeyError: '273130.KS'
+
+tests/test_nps_realism.py:23: KeyError
+_ test_realism_uses_totalreturn_credit_bonds_no_second_yield_or_alternative_carry _
+
+    def test_realism_uses_totalreturn_credit_bonds_no_second_yield_or_alternative_carry():
+>       s,d=snapshot()
+            ^^^^^^^^^^
+
+tests/test_nps_realism.py:26:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+c = {'baseline': {'date': '2026-07-31', 'publishedAt': '2026-09-29', 'total': 1684.1732, 'domestic': 418.5577, ...}, 'inpu...er': 'National Pension Service', 'cik': '0001608046', 'accession': '0001193125-26-347818', 'form': '13F-HR', ...}, ...}
+
+    def snapshot(c=None):
+        c=c or config();c=copy.deepcopy(c);c['filing'].update(positionCount=1,reportedValueUsd=100)
+        core={s:{'currency':currency,'name':s,'sourceUrl':'https://example.org/quote','retrievedAt':'2026-10-18','rawSha256':'a',
+          'points':{'2026-07-31':{'close':100.,'adjustedClose':100.},'2026-10-16':{'close':101.,'adjustedClose':101.}}} for s,currency in nps.CORE.items()}
+>       core['273130.KS']['points']['2026-10-16']['adjustedClose']=98.
+        ^^^^^^^^^^^^^^^^^
+E       KeyError: '273130.KS'
+
+tests/test_nps_realism.py:17: KeyError
+_____ test_external_flow_excludes_investment_income_and_uses_elapsed_days ______
+
+    def test_external_flow_excludes_investment_income_and_uses_elapsed_days():
+>       s,_=snapshot()
+            ^^^^^^^^^^
+
+tests/test_nps_realism.py:37:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+c = {'baseline': {'date': '2026-07-31', 'publishedAt': '2026-09-29', 'total': 1684.1732, 'domestic': 418.5577, ...}, 'inpu...er': 'National Pension Service', 'cik': '0001608046', 'accession': '0001193125-26-347818', 'form': '13F-HR', ...}, ...}
+
+    def snapshot(c=None):
+        c=c or config();c=copy.deepcopy(c);c['filing'].update(positionCount=1,reportedValueUsd=100)
+        core={s:{'currency':currency,'name':s,'sourceUrl':'https://example.org/quote','retrievedAt':'2026-10-18','rawSha256':'a',
+          'points':{'2026-07-31':{'close':100.,'adjustedClose':100.},'2026-10-16':{'close':101.,'adjustedClose':101.}}} for s,currency in nps.CORE.items()}
+>       core['273130.KS']['points']['2026-10-16']['adjustedClose']=98.
+        ^^^^^^^^^^^^^^^^^
+E       KeyError: '273130.KS'
+
+tests/test_nps_realism.py:17: KeyError
+_ test_cash_group_only_deposit_receives_interest_and_scenarios_recompute_hedge_flow _
+
+    def test_cash_group_only_deposit_receives_interest_and_scenarios_recompute_hedge_flow():
+        c=config();s=copy.deepcopy(c['inputs']);s.update(cashIncomeReturn=2,hedgeCarryReturn=-1,hedgeRatio=15,netFlow=3,otherReturn=0)
+>       r=nps.calculate(s,c['assetBaseline']);b=r['cashBreakdown']
+                                                ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'cashBreakdown'
+
+tests/test_nps_realism.py:46: KeyError
+__ test_model_sensitive_metadata_changes_version_even_with_same_market_inputs __
+
+    def test_model_sensitive_metadata_changes_version_even_with_same_market_inputs():
+>       c=config();first,_=snapshot(c);c['assetBaseline'][3]['foreignShare']-=.01;second,_=snapshot(c)
+                           ^^^^^^^^^^^
+
+tests/test_nps_realism.py:59:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+c = {'baseline': {'date': '2026-07-31', 'publishedAt': '2026-09-29', 'total': 1684.1732, 'domestic': 418.5577, ...}, 'inpu...er': 'National Pension Service', 'cik': '0001608046', 'accession': '0001193125-26-347818', 'form': '13F-HR', ...}, ...}
+
+    def snapshot(c=None):
+        c=c or config();c=copy.deepcopy(c);c['filing'].update(positionCount=1,reportedValueUsd=100)
+        core={s:{'currency':currency,'name':s,'sourceUrl':'https://example.org/quote','retrievedAt':'2026-10-18','rawSha256':'a',
+          'points':{'2026-07-31':{'close':100.,'adjustedClose':100.},'2026-10-16':{'close':101.,'adjustedClose':101.}}} for s,currency in nps.CORE.items()}
+>       core['273130.KS']['points']['2026-10-16']['adjustedClose']=98.
+        ^^^^^^^^^^^^^^^^^
+E       KeyError: '273130.KS'
+
+tests/test_nps_realism.py:17: KeyError
+_ test_sensitivity_cases_are_explicit_one_factor_assumptions_and_not_confidence_interval _
+
+    def test_sensitivity_cases_are_explicit_one_factor_assumptions_and_not_confidence_interval():
+>       s,_=snapshot();sense=s['sensitivity'];assert sense['kind']=='assumption-cases'
+            ^^^^^^^^^^
+
+tests/test_nps_realism.py:65:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+c = {'baseline': {'date': '2026-07-31', 'publishedAt': '2026-09-29', 'total': 1684.1732, 'domestic': 418.5577, ...}, 'inpu...er': 'National Pension Service', 'cik': '0001608046', 'accession': '0001193125-26-347818', 'form': '13F-HR', ...}, ...}
+
+    def snapshot(c=None):
+        c=c or config();c=copy.deepcopy(c);c['filing'].update(positionCount=1,reportedValueUsd=100)
+        core={s:{'currency':currency,'name':s,'sourceUrl':'https://example.org/quote','retrievedAt':'2026-10-18','rawSha256':'a',
+          'points':{'2026-07-31':{'close':100.,'adjustedClose':100.},'2026-10-16':{'close':101.,'adjustedClose':101.}}} for s,currency in nps.CORE.items()}
+>       core['273130.KS']['points']['2026-10-16']['adjustedClose']=98.
+        ^^^^^^^^^^^^^^^^^
+E       KeyError: '273130.KS'
+
+tests/test_nps_realism.py:17: KeyError
+_ test_monthly_parser_only_reads_monthly_portfolio_notice_not_later_other_notices _
+
+    def test_monthly_parser_only_reads_monthly_portfolio_notice_not_later_other_notices():
+        html='<div>2026년 10월 말 기준</div><span>자산군별 포트폴리오 운용 현황 및 수익률(2026.7월)</span><span>2026/09/29</span>'
+>       assert nps.realism.monthly_report_date(html)=='2026-07-31'
+               ^^^^^^^^^^^
+E       AttributeError: module 'nps_realism_pipeline' has no attribute 'realism'
+
+tests/test_nps_realism.py:75: AttributeError
+_ test_official_check_new_month_is_review_required_and_network_failure_explicit _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5c25aea1b0>
+
+    def test_official_check_new_month_is_review_required_and_network_failure_explicit(monkeypatch):
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*a):pass
+            def read(self,*a):return '자산군별 포트폴리오 운용 현황 및 수익률(2026.8월)'.encode()
+>       monkeypatch.setattr(nps.realism.urllib.request,'urlopen',lambda *a,**k:Response())
+                            ^^^^^^^^^^^
+E       AttributeError: module 'nps_realism_pipeline' has no attribute 'realism'
+
+tests/test_nps_realism.py:84: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_nps_realism.py::test_new_core_requires_credit_cash_unhedged_bonds_and_alternative_proxies
+FAILED tests/test_nps_realism.py::test_realism_uses_totalreturn_credit_bonds_no_second_yield_or_alternative_carry
+FAILED tests/test_nps_realism.py::test_external_flow_excludes_investment_income_and_uses_elapsed_days
+FAILED tests/test_nps_realism.py::test_cash_group_only_deposit_receives_interest_and_scenarios_recompute_hedge_flow
+FAILED tests/test_nps_realism.py::test_model_sensitive_metadata_changes_version_even_with_same_market_inputs
+FAILED tests/test_nps_realism.py::test_sensitivity_cases_are_explicit_one_factor_assumptions_and_not_confidence_interval
+FAILED tests/test_nps_realism.py::test_monthly_parser_only_reads_monthly_portfolio_notice_not_later_other_notices
+FAILED tests/test_nps_realism.py::test_official_check_new_month_is_review_required_and_network_failure_explicit
+8 failed in 0.10s

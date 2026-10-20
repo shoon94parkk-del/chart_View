@@ -337,3 +337,8 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 Task1 review hardening: optional malformed/deep/duplicate-field JSON cannot interrupt saved macro delivery; evidence URLs reject all query strings. Saved official publication metadata is required for comparisons, including historical rows; preserve a valid archived forecast when actual evidence is missing. Cross-array valid receipts must share expectation/provenance or both are quarantined.
 
 2026-10-16 news retry: public `/api/personalized-news?force=true` means retry cached provider errors only. Reuse fresh successful/no_news symbol groups during partial recovery. Default requests still respect the300s cache and cached error hits perform no provider work. Preserve existing internal `_cached_fetch(force=True)` full bypass for relationship evidence; the public endpoint forwards `retry_errors_only=True` instead.
+
+
+### 2026-10-20 NPS assetModel2
+
+Preserve same-date model/source refresh and primary10:30KST plus13:30/16:30retry. Groupedcash is not entirely deposits; cashincome/carry/projectednetflow interest are separately disclosed and recompute with scenarios. No duplicate bondcoupon/durationloss or arbitrary6%privatecarry. Central local NAV0 is an unobserved assumption, economic mark separate. AGGG optional comparison must have same-date positiveUSDclose/adjclose or explicitnull+excludedcase; no olddayfill. Main BNDW/currentmarket stays valid independently, other requiredseries remain failclosed. Review notices never autocertify balance/CUSIPmapping. See NPS_REALISM_MODEL_2026-10-18.md.

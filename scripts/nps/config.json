@@ -24,10 +24,15 @@
     "equityReturn": 1.4147782715666772,
     "bondReturn": -0.7207233916394662,
     "domesticBondReturn": 1.031389726027396,
-    "alternativeReturn": 1.6194479925492034,
-    "cashReturn": 0.6328767123287671,
+    "alternativeReturn": 0,
+    "cashReturn": 0,
     "hedgeRatio": 15,
-    "assetModel": 1
+    "assetModel": 2,
+    "cashWeight": 0.6538353863381858,
+    "cashNonFinancialWeight": 0.1254326580474397,
+    "cashIncomeReturn": 0,
+    "hedgeCarryReturn": 0,
+    "flowIncomeFraction": 0.5
   },
   "assetBaseline": [
     {
@@ -44,7 +49,7 @@
       "base": 282.9436,
       "returnKey": "domesticBondReturn",
       "foreignShare": 0,
-      "method": "3년·10년 금리 변화 + 이자수익 추정"
+      "method": "KODEX 종합채권 AA−이상 액티브 조정종가 수익률 대용치"
     },
     {
       "id": "bond",
@@ -52,23 +57,23 @@
       "base": 102.3775,
       "returnKey": "bondReturn",
       "foreignShare": 1,
-      "method": "BNDW 분배금 포함 수익률 + 환율"
+      "method": "BNDW 조정종가 수익률 + 환율; 통화 헤지 차이는 별도 시나리오"
     },
     {
       "id": "alternative",
       "name": "대체투자",
       "base": 248.7498,
       "returnKey": "alternativeReturn",
-      "foreignShare": 0.8976891639711871,
-      "method": "연 6% 수익 누적 + 주식 민감도 0.25 가정"
+      "foreignShare": 0.8950514649196241,
+      "method": "공시 이후 현지통화 NAV 변동 미관측(0 가정) + 환율; 경제가치 시나리오 별도"
     },
     {
       "id": "cash",
-      "name": "단기·기타 잔여자산",
+      "name": "단기·비금융·조정 잔액",
       "base": 7.858399999999904,
       "returnKey": "cashReturn",
       "foreignShare": 0,
-      "method": "잔여액에 연 3% 수익 누적 가정"
+      "method": "실제 단기자금만 CD 대용수익 적용 + 환헤지 캐리·외부 순유입 이자 추정"
     }
   ],
   "filing": {
@@ -5906,5 +5911,149 @@
         }
       ]
     }
-  ]
+  ],
+  "realism": {
+    "revision": 2,
+    "verifiedAt": "2026-10-18",
+    "monthlySourceUrl": "https://fund.nps.or.kr/main.do",
+    "domesticBonds": {
+      "proxySymbol": "273130.KS",
+      "proxyName": "KODEX 종합채권 AA−이상 액티브",
+      "method": "국채·특수채·금융채·회사채 등을 포함한 종합채권 총수익률 대용치. 금리 상승 가격 손실과 이자 포함; 금리 손실을 다시 차감하지 않음.",
+      "compositionDate": "2026-06-30",
+      "compositionBasis": "공식 종류별 분류 비중; ETF 보유 구성과의 정확한 복제 아님",
+      "composition": [
+        {
+          "name": "국채",
+          "weightPct": 41.2
+        },
+        {
+          "name": "특수채",
+          "weightPct": 17.1
+        },
+        {
+          "name": "금융채",
+          "weightPct": 17.8
+        },
+        {
+          "name": "회사채",
+          "weightPct": 10.7
+        },
+        {
+          "name": "ABS",
+          "weightPct": 4.9
+        },
+        {
+          "name": "지방채",
+          "weightPct": 4.6
+        },
+        {
+          "name": "통안채",
+          "weightPct": 3.7
+        }
+      ],
+      "compositionSourceUrl": "https://fund.nps.or.kr/oprtprcn/ivsmprcn/getOHED0004M0.do?menuId=MN24000617",
+      "proxyDuration": 5.21,
+      "proxyYieldToMaturityPct": 4.54,
+      "proxyMetricsDate": "2026-09-30",
+      "proxyMetricsNote": "ETF 수치이며 국민연금 실제 듀레이션·만기수익률은 미확인",
+      "sourceUrl": "https://www.samsungfund.com/sheet/20261002/2ETF88_20260930.pdf",
+      "productUrl": "https://www.samsungfund.com/etf/product/view.do?id=2ETF88"
+    },
+    "cash": {
+      "groupBase": 7.8584,
+      "shortTermBase": 5.1381,
+      "nonFinancialBase": 0.9857,
+      "reconciliationBase": 1.7346,
+      "baselineDate": "2026-07-31",
+      "components": [
+        {
+          "name": "단기자금",
+          "base": 5.1381
+        },
+        {
+          "name": "복지부문",
+          "base": 0.2224
+        },
+        {
+          "name": "기타부문",
+          "base": 0.7633
+        },
+        {
+          "name": "금융부문 조정 잔액",
+          "base": 1.7346
+        }
+      ],
+      "method": "단기자금만 357870.KS CD금리 ETF 조정종가 수익률 적용. 복지·기타·금융 조정 잔액에 예금이자 미부여. 실제 투자종목 미공개.",
+      "hedgeCarryMethod": "기초 외화노출 원금 × 가정 헤지율 × ((1+KRW 단기 총수익률)/(1+USD BIL 총수익률)−1). 실제 선물환·스왑 포인트·통화베이시스·담보비용이 아님.",
+      "hedgeAccountingNote": "조정 잔액은 예금잔액이 아니며 추정 헤지캐리·유입이자를 함께 표시하는 정합성 항목이다. 환율 노출 축소는 자산별 (1−헤지율) 근사로 한 번만 적용.",
+      "sourceUrl": "https://fund.nps.or.kr/fileDown.do?atchFileId=FL26003560&atchFileSn=1",
+      "incomeProxySymbol": "357870.KS",
+      "usdIncomeProxySymbol": "BIL",
+      "usdIncomeSourceUrl": "https://www.ssga.com/us/en/individual/etfs/spdr-bloomberg-1-3-month-t-bill-etf-bil"
+    },
+    "externalFlows": {
+      "observedFrom": "2026-01-01",
+      "observedThrough": "2026-07-31",
+      "observedDays": 212,
+      "contributionsBillion": 39493.03145481,
+      "subsidiesBillion": 10.2624,
+      "expendituresBillion": 32461.746821756,
+      "method": "연금보험료 + 국고보조금 − 총지출의 212일 일평균을 기준일 이후 경과일에 외삽. 운용수익은 제외하여 시장수익과 중복하지 않음. 순유입은 국내주식 외 잔액에 남는 가정.",
+      "timingMethod": "기간 중 균등 유입을 가정하여 0.5 × 순유입 × KRW 단기 총수익률을 별도 추정. 실제 월별 유입·내부 자산 배분 미관측.",
+      "sourceUrl": "https://fund.nps.or.kr/fileDown.do?atchFileId=FL26003559&atchFileSn=1"
+    },
+    "alternatives": {
+      "localNavReturnPct": 0,
+      "localNavStatus": "unobserved",
+      "method": "기준일 이후 현지통화 NAV 신규 평가·실현배당·분배금·매매는 미관측으로 0 가정. 외화 부분에는 환율 변화를 적용. 실제 평가손익 0이라는 관측이 아님.",
+      "valuationPolicy": "입수 가능 시점의 공정가치 반영. 2025년 보고서는 국내 연말·해외 3분기말 평가를 설명하지만 일률적 90일 시차를 입증하지 않음.",
+      "foreignShare": 0.8950514649196241,
+      "foreignShareDate": "2025-12-31",
+      "foreignShareNote": "2025년 말 공시 지역 비중을 대용. 2026년 7월 실제 해외비중은 미확인.",
+      "compositionDate": "2025-12-31",
+      "composition": [
+        {
+          "id": "privateEquityVenture",
+          "name": "사모·벤처",
+          "weightPct": 43.68569572341761,
+          "proxySymbol": "PSP"
+        },
+        {
+          "id": "realEstate",
+          "name": "부동산",
+          "weightPct": 28.3154875462161,
+          "proxySymbol": "REET"
+        },
+        {
+          "id": "infrastructure",
+          "name": "인프라",
+          "weightPct": 26.3881167395246,
+          "proxySymbol": "IGF"
+        },
+        {
+          "id": "otherMultiasset",
+          "name": "멀티에셋",
+          "weightPct": 1.6106999908416995,
+          "proxySymbol": "ACWI"
+        }
+      ],
+      "economicMethod": "상장 대용지표 PSP·REET·IGF·ACWI의 동일 기간 총수익률을 2025년 공시 비중으로 가중. 실제 사모 NAV와 다르며 메인 평가액에 합산하지 않는 경제가치 시나리오. 별도 연간 수익을 중복 가산하지 않음.",
+      "sourceUrl": "https://fund.nps.or.kr/impa/pbtydata/getOHEF0022M0.do?pstId=ZZ202600000000001086&hmpgBbsCd=BS20240196&menuId=MN24000639",
+      "monthlySourceUrl": "https://fund.nps.or.kr/fileDown.do?atchFileId=FL26003560&atchFileSn=1"
+    },
+    "overseasBonds": {
+      "centralProxySymbol": "BNDW",
+      "alternativeProxySymbol": "AGGG.L",
+      "method": "BNDW 달러헤지 글로벌채권 총수익률 대용. 국민연금 벤치마크는 기타통화→USD 부분헤지·USD→KRW 비헤지로 실제 집행 비중은 미확인.",
+      "scenarioNote": "AGGG USD 비헤지 ETF는 구성·가중치·수수료도 달라 차이를 순수 환헤지 손익으로 해석할 수 없음.",
+      "sourceUrl": "https://fund.nps.or.kr/impa/pbtydata/getOHEF0022M0.do?pstId=ZZ202600000000001086&hmpgBbsCd=BS20240196&menuId=MN24000639",
+      "alternativeSourceUrl": "https://www.ishares.com/uk/individual/en/products/291773/ishares-global-aggregate-bond-ucits-etf-usd-dist-fund"
+    },
+    "limitations": [
+      "국내주식 민감도 1 및 내부 순매매 0은 가정. 실제 보유 종목·KOSDAQ·배당·공시 이후 거래 미관측.",
+      "모든 외화를 USD로 근사; 실제 통화별 노출·환헤지 계약·파생상품·보수·원천세 미관측.",
+      "가정별 민감도 범위는 통계적 신뢰구간이나 실제 오차의 상하한이 아님. 대체·채권 대용치와 실제 계정의 차이는 남아 있음."
+    ]
+  }
 }

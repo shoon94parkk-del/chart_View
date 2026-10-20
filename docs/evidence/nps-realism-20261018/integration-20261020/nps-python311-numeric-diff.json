@@ -1,0 +1,57 @@
+{
+  "python": "3.11.17 (main, Oct  3 2026, 01:05:36) [Clang 22.1.3 ]",
+  "snapshotVersion": "b28f01645e1db7eb",
+  "checkPublication": {
+    "error": "Published assumption-case calculations mismatch"
+  },
+  "differences": [
+    {
+      "path": "sensitivity.cases[2].weight",
+      "recomputed": 23.039978300072022,
+      "published": 23.03997830007202,
+      "absoluteDelta": 3.552713678800501e-15,
+      "relativeDelta": 1.5419778753825455e-16,
+      "withinTolerance": true
+    },
+    {
+      "path": "sensitivity.cases[2].gap",
+      "recomputed": 2.2399783000720213,
+      "published": 2.2399783000720177,
+      "absoluteDelta": 3.552713678800501e-15,
+      "relativeDelta": 1.5860482571131479e-15,
+      "withinTolerance": true
+    },
+    {
+      "path": "sensitivity.cases[2].adjustment",
+      "recomputed": -35.5875947070063,
+      "published": -35.58759470700625,
+      "absoluteDelta": 5.684341886080802e-14,
+      "relativeDelta": 1.597281842979317e-15,
+      "withinTolerance": true
+    },
+    {
+      "path": "sensitivity.cases[3].weight",
+      "recomputed": 22.79097285371398,
+      "published": 22.790972853713985,
+      "absoluteDelta": 3.552713678800501e-15,
+      "relativeDelta": 1.5588249354706925e-16,
+      "withinTolerance": true
+    },
+    {
+      "path": "sensitivity.cases[3].gap",
+      "recomputed": 1.9909728537139806,
+      "published": 1.9909728537139841,
+      "absoluteDelta": 3.552713678800501e-15,
+      "relativeDelta": 1.7844109085531865e-15,
+      "withinTolerance": true
+    },
+    {
+      "path": "sensitivity.cases[3].adjustment",
+      "recomputed": -31.977121369130032,
+      "published": -31.97712136913009,
+      "absoluteDelta": 5.684341886080802e-14,
+      "relativeDelta": 1.777627767197432e-15,
+      "withinTolerance": true
+    }
+  ]
+}

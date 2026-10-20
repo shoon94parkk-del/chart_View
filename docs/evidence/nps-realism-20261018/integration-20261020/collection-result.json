@@ -1,0 +1,25 @@
+{
+  "snapshotVersion": "b28f01645e1db7eb",
+  "marketDate": "2026-10-19",
+  "generatedAt": "2026-10-20T07:07:49.008353+00:00",
+  "result": {
+    "adjustment": -33.78235803806814,
+    "domestic": 366.0470325872441,
+    "fixedOtherWeight": 22.397516720556062,
+    "fxGain": -49.98346470583614,
+    "gap": 2.1147991376008335,
+    "marketGain": 13.09006450691009,
+    "other": 1231.379287360717,
+    "otherBeforeFlows": 1228.722099801074,
+    "overlayGain": 0.0,
+    "saaKospi": 7104.027821911235,
+    "taaKospi": 7848.622386508672,
+    "targetKospi": 5095.878844663598,
+    "total": 1597.426319947961,
+    "weight": 22.914799137600834
+  },
+  "directCount": 546,
+  "rowCount": 552,
+  "AGGG": "unavailable",
+  "cases": 7
+}

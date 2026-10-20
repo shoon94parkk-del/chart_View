@@ -1,0 +1,57 @@
+Downloading numpy (16.1MiB)
+Downloading psycopg-binary (5.0MiB)
+Downloading pandas (10.6MiB)
+Downloading lxml (5.0MiB)
+Downloading pydantic-core (2.1MiB)
+ Downloaded pydantic-core
+ Downloaded lxml
+ Downloaded psycopg-binary
+ Downloaded pandas
+ Downloaded numpy
+Installed 48 packages in 172ms
+........................................................................ [  6%]
+.................................................................... [ 12%]
+........................................................................ [ 18%]
+........................................................................ [ 25%]
+........................................................................ [ 31%]
+........................................................................ [ 38%]
+........................................................................ [ 44%]
+........................................................................ [ 51%]
+.................................................................................................................................. [ 62%]
+........................................................................ [ 69%]
+........................................................................ [ 75%]
+........................................................................ [ 82%]
+........................................................................ [ 88%]
+........................................................................ [ 95%]
+......................................................                   [100%]
+=============================== warnings summary ===============================
+../../home/agent/.cache/uv/archive-v0/EnLUQkJk5cmVxhCK/lib/python3.11/site-packages/starlette/testclient.py:45
+  /home/agent/.cache/uv/archive-v0/EnLUQkJk5cmVxhCK/lib/python3.11/site-packages/starlette/testclient.py:45: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+main.py:573
+  /workspace/chart_View/main.py:573: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    @app.on_event("startup")
+
+../../home/agent/.cache/uv/archive-v0/EnLUQkJk5cmVxhCK/lib/python3.11/site-packages/fastapi/applications.py:4723
+  /home/agent/.cache/uv/archive-v0/EnLUQkJk5cmVxhCK/lib/python3.11/site-packages/fastapi/applications.py:4723: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests/test_app_regressions.py::test_local_assets_exist
+tests/test_app_regressions.py::test_versioned_assets_are_immutable_and_fonts_stay_local
+  /home/agent/.cache/uv/archive-v0/EnLUQkJk5cmVxhCK/lib/python3.11/site-packages/starlette/templating.py:162: DeprecationWarning: The `name` is not the first parameter anymore. The first parameter should be the `Request` instance.
+  Replace `TemplateResponse(name, {"request": request})` by `TemplateResponse(request, name)`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1116 passed, 5 warnings, 18 subtests passed in 40.61s

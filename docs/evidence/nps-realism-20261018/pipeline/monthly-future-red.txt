@@ -1,0 +1,28 @@
+F....                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_monthly_check_future_or_malformed_notice_is_unavailable_and_keeps_baseline[\uc790\uc0b0\uad70\ubcc4 \ud3ec\ud2b8\ud3f4\ub9ac\uc624 \uc6b4\uc6a9 \ud604\ud669 \ubc0f \uc218\uc775\ub960(2099.12\uc6d4)] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0271d19c10>
+notice = '자산군별 포트폴리오 운용 현황 및 수익률(2099.12월)'
+
+    @pytest.mark.parametrize('notice',['자산군별 포트폴리오 운용 현황 및 수익률(2099.12월)',
+        '자산군별 포트폴리오 운용 현황 및 수익률(2026.13월)', '',
+        '자산군별 포트폴리오 운용 현황 및 수익률(2026.월)',
+        '자산군별 포트폴리오 운용 현황 및 수익률(2026.7월 미확인)'])
+    def test_monthly_check_future_or_malformed_notice_is_unavailable_and_keeps_baseline(monkeypatch,notice):
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*a):pass
+            def read(self,*a):return notice.encode()
+        monkeypatch.setattr(nps.realism.urllib.request,'urlopen',lambda *a,**k:Response())
+        result=nps.realism.monthly_check(config(),float('inf'))
+>       assert result['status']=='unavailable'
+E       AssertionError: assert 'review-required' == 'unavailable'
+E
+E         - unavailable
+E         + review-required
+
+tests/test_nps_realism.py:156: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_nps_realism.py::test_monthly_check_future_or_malformed_notice_is_unavailable_and_keeps_baseline[\uc790\uc0b0\uad70\ubcc4 \ud3ec\ud2b8\ud3f4\ub9ac\uc624 \uc6b4\uc6a9 \ud604\ud669 \ubc0f \uc218\uc775\ub960(2099.12\uc6d4)]
+1 failed, 4 passed, 13 deselected in 0.12s

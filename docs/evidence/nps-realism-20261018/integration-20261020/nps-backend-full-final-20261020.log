@@ -1,0 +1,52 @@
+........................................................................ [  6%]
+.................................................................... [ 12%]
+........................................................................ [ 19%]
+........................................................................ [ 26%]
+........................................................................ [ 32%]
+........................................................................ [ 39%]
+........................................................................ [ 46%]
+........................................................................ [ 52%]
+.................................................................................................................................. [ 64%]
+........................................................................ [ 71%]
+........................................................................ [ 78%]
+........................................................................ [ 84%]
+........................................................................ [ 91%]
+........................................................................ [ 97%]
+......................                                                   [100%]
+=============================== warnings summary ===============================
+main.py:573
+  /workspace/chart_View/main.py:573: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    @app.on_event("startup")
+
+../../home/agent/.cache/uv/archive-v0/B1y4nsudpukGvDLB/lib/python3.12/site-packages/fastapi/applications.py:4681
+  /home/agent/.cache/uv/archive-v0/B1y4nsudpukGvDLB/lib/python3.12/site-packages/fastapi/applications.py:4681: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests/test_app_regressions.py::test_failed_refresh_keeps_quote_date_and_marks_stale
+tests/test_release_reading_api.py::test_home_snapshot_does_not_ship_optional_graph_history
+  /workspace/chart_View/main.py:2307: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+
+tests/test_app_regressions.py::test_local_assets_exist
+tests/test_app_regressions.py::test_versioned_assets_are_immutable_and_fonts_stay_local
+  /home/agent/.cache/uv/archive-v0/B1y4nsudpukGvDLB/lib/python3.12/site-packages/starlette/templating.py:162: DeprecationWarning: The `name` is not the first parameter anymore. The first parameter should be the `Request` instance.
+  Replace `TemplateResponse(name, {"request": request})` by `TemplateResponse(request, name)`.
+    warnings.warn(
+
+tests/test_home_quote_progress.py: 9 warnings
+tests/test_market_now_primary_ready.py: 64 warnings
+  /workspace/chart_View/main.py:1333: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now_kst = datetime.utcnow() + timedelta(hours=9)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1084 passed, 79 warnings, 18 subtests passed in 39.57s
