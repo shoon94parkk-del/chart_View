@@ -49,6 +49,7 @@ from valuation_band_service import fetch_valuation_bands
 from consensus_service import fetch_consensus
 from news_service_v37 import router as news_router_v37
 from intelligence_feed_v2_service import router as intelligence_feed_v2_router
+from intelligence_news_service import router as intelligence_news_router
 from debate_archive_service import router as debate_archive_router
 from news_summary_service import router as news_summary_router_v43
 from profile_sync_service import router as profile_sync_router
@@ -179,6 +180,7 @@ app = FastAPI(title="주식 비교 차트", version="1.0.0")
 # V37 personalized watchlist news router.
 app.include_router(news_router_v37)
 app.include_router(intelligence_feed_v2_router)
+app.include_router(intelligence_news_router)
 app.include_router(debate_archive_router)
 app.include_router(news_summary_router_v43)
 app.include_router(profile_sync_router)

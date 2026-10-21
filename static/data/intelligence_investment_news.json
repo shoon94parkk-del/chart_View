@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "investment-news.v1",
+  "generated_at": "2026-10-21T00:00:00Z",
+  "as_of_date": "2026-10-21",
+  "status": "NOT_STARTED",
+  "collection": {"status": "NOT_STARTED", "sources_total": 0, "sources_ok": 0, "last_success_at": null, "last_error_at": null},
+  "capabilities": {"ai_analysis": false, "telegram_delivery": false, "thesis_context": false, "performance": false},
+  "events": [],
+  "briefings": []
+}
