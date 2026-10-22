@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T07:19:46.139750+00:00",
+  "generatedAt": "2026-10-22T13:07:02.414627+00:00",
   "source": "github-actions-daily-change-v67",
   "heatmap": {
     "results": [
@@ -9,37 +9,37 @@
         "price": 214500.0,
         "change": -4.03,
         "marketCap": 1442390812393472.0,
-        "asOf": "2026-10-22T16:19:17+09:00",
+        "asOf": "2026-10-22T20:20:22+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "000660.KS",
         "name": "SK하이닉스",
-        "price": 1218000.0,
-        "change": -5.87,
+        "price": 1234000.0,
+        "change": -4.64,
         "marketCap": 932220437004288.0,
-        "asOf": "2026-10-22T16:19:21+09:00",
+        "asOf": "2026-10-22T20:20:24+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "207940.KS",
         "name": "삼성바이오로직스",
-        "price": 1362000.0,
-        "change": -3.88,
+        "price": 1361000.0,
+        "change": -3.95,
         "marketCap": 64802399453184.0,
-        "asOf": "2026-10-22T16:18:24+09:00",
+        "asOf": "2026-10-22T20:20:23+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "005380.KS",
         "name": "현대차",
-        "price": 300000.0,
-        "change": -3.07,
+        "price": 300500.0,
+        "change": -2.91,
         "marketCap": 79728476160000.0,
-        "asOf": "2026-10-22T16:18:24+09:00",
+        "asOf": "2026-10-22T20:20:25+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
@@ -49,37 +49,37 @@
         "price": 108400.0,
         "change": -1.9,
         "marketCap": 42441239429120.0,
-        "asOf": "2026-10-22T16:19:17+09:00",
+        "asOf": "2026-10-22T20:20:22+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "373220.KS",
         "name": "LG에너지솔루션",
-        "price": 390000.0,
-        "change": -5.22,
+        "price": 391500.0,
+        "change": -4.86,
         "marketCap": 93014999433216.0,
-        "asOf": "2026-10-22T16:19:19+09:00",
+        "asOf": "2026-10-22T20:20:20+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "035420.KS",
         "name": "NAVER",
-        "price": 175800.0,
-        "change": -2.06,
+        "price": 175500.0,
+        "change": -2.23,
         "marketCap": 26635210326016.0,
-        "asOf": "2026-10-22T16:19:16+09:00",
+        "asOf": "2026-10-22T20:20:20+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
       {
         "ticker": "068270.KS",
         "name": "셀트리온",
-        "price": 193400.0,
-        "change": -2.13,
+        "price": 193500.0,
+        "change": -2.07,
         "marketCap": 44419445161984.0,
-        "asOf": "2026-10-22T16:19:07+09:00",
+        "asOf": "2026-10-22T20:20:22+09:00",
         "source": "Naver Finance KRX/Koscom",
         "stale": false
       },
