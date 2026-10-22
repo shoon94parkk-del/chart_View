@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T16:05:20+09:00",
+  "generatedAt": "2026-10-22T22:10:27+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-10-20T17:28:35+09:00",
   "policy": {
@@ -2429,19 +2429,21 @@
       "technical": {
         "tradeDate": "2026-10-22",
         "scoreAtPick": 12.0,
-        "score": 6.0,
+        "score": 10.0,
         "previousTradeDate": "2026-10-21",
         "previousScore": 6.0,
-        "dayDelta": 0.0,
-        "deltaFromPick": -6.0,
+        "dayDelta": 4.0,
+        "deltaFromPick": -2.0,
         "rsi14": 36.9,
         "ret5": 1.08,
         "ret20": -20.1,
         "change1d": -1.05,
-        "signal": "TECH_NORMAL",
-        "signalLabel": "기술 중립",
-        "severity": "neutral",
-        "reasons": [],
+        "signal": "TECH_IMPROVING",
+        "signalLabel": "기술 흐름 개선",
+        "severity": "green",
+        "reasons": [
+          "기술점수 전일 대비 +4점 개선"
+        ],
         "advisoryOnly": true
       }
     },
