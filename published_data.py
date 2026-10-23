@@ -23,6 +23,7 @@ _ALLOWED = {
     "screener.json": "stocks",
     "intelligence_debates_public.json": "debates",
     "intelligence_shadow_status.json": "shadow",
+    "intelligence_investment_news.json": "events",
 }
 _LOCK = threading.RLock()
 _CACHE: dict[str, tuple[float, dict, str]] = {}
@@ -33,6 +34,11 @@ def _verified_payload(filename: str, content: bytes) -> dict:
     if len(content) > 12_000_000:
         raise ValueError("published data is too large")
     data = json.loads(content.decode("utf-8"))
+    if filename == "intelligence_investment_news.json":
+        from intelligence_news_service import public_news, MAX_BYTES
+        if len(content) > MAX_BYTES:
+            raise ValueError("news publication too large")
+        return public_news(data)
     if filename == "intelligence_debates_public.json":
         from debate_archive_service import public_archive, MAX_BYTES
         if len(content) > MAX_BYTES:

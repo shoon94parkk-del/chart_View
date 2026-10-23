@@ -699,3 +699,11 @@ Classification: new behavior. 기존 schema1 연구 아카이브를 감사 PICK 
 ## 2026-10-20 — 공개 게시 CLI의 UTF-8와 Toss 경로 일치
 
 Windows를 포함한 비 UTF-8 로캘에서 gh JSON stdin이 다른 인코딩으로 전송되지 않도록 명시적 UTF-8를 사용한다. 새 공개 게시물의 source_path는 실제 Toss의 ASCII/260자 미만/no-.. 규칙을 사전 검증하여 서버만 승인하고 화면은 거절하는 자료를 게시하지 않는다. legacy reader의 경로 계약은 유지한다. 실제 구현된 Muse exporter 호환 PR16/한 명령 옵션, 고정 종목 id 재사용을 [인수인계](MUSE_RESEARCH_PUBLICATION.md)에 반영한다.
+
+## 2026-10-21 — Additive public investment news
+
+Classification: new behavior. Add `/api/intelligence/news` and `intelligence_investment_news.json` to the existing validated publication reader, with a safe empty NOT_STARTED seed. Preserve actual UTC publication/KST as-of dates, source/fact links, revision/scoring fields, optional three-agent results, public thesis review receipts, observed performance, and daily briefing history. Private/raw material fails closed; publication reads never collect news, run models, send Telegram messages, or change existing PICK/BUY/WAIT/SELL data. Historical briefings may reference well-formed IDs outside the producer's current event retention window. Local verification and unresolved producer/deployment/native gates are recorded in the implementation report; exact production revision must be checked separately.
+
+## 2026-10-23 — Close public-news validation bypasses
+
+Classification: new bugs found in pre-release review. Reject unsupported percentage return aliases rather than infer their units or let them bypass canonical observation/provenance requirements. Validate scalar performance and thesis-review evidence URLs with the existing public-source guard. Require the actual UTC publication's KST date and disable both accepted Telegram input aliases. Invalid newer snapshots now retain the last validated publication through the existing reader. Regression tests first reproduced the bypasses, including the publication-cache effect; canonical actual producer data and the empty seed remain supported. No collector, model, notification, PICK, ledger, or frontend behavior is added here.
