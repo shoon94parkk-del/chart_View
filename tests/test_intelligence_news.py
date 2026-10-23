@@ -226,10 +226,22 @@ def test_long_official_numeric_receipts_are_kept_within_the_document_bound():
 
 
 def test_empty_not_started_seed_does_not_claim_collection_or_ai():
-    path = published_data._DATA_DIR / 'intelligence_investment_news.json'
-    out = project(json.loads(path.read_text(encoding='utf-8')))
+    doc = sample()
+    doc.update(status='NOT_STARTED', events=[], briefings=[],
+               collection={'status': 'NOT_STARTED', 'total_sources': 0, 'successful_sources': 0},
+               capabilities={'ai_configured': False, 'telegram_configured': False, 'telegram_input_enabled': False})
+    out = project(doc)
     assert out['status'] == 'NOT_STARTED' and out['events'] == [] and out['briefings'] == []
     assert not any(value is True for value in out['capabilities'].values())
+
+
+def test_committed_publication_remains_valid_as_the_collector_updates_it():
+    path = published_data._DATA_DIR / 'intelligence_investment_news.json'
+    out = project(json.loads(path.read_text(encoding='utf-8')))
+    assert out['schemaVersion'] == 'investment-news.v1'
+    if out['status'] == 'READY':
+        assert out['collection'].get('successful_sources', 0) > 0
+    assert all(event['trade_action'] == 'REVIEW_ONLY' for event in out['events'])
 
 
 def test_news_publication_validation_and_older_remote_retention(tmp_path):
