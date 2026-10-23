@@ -1226,9 +1226,9 @@
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
-      "partialRefresh": true,
-      "successfulReports": 12,
-      "failedReports": 1
+      "partialRefresh": false,
+      "successfulReports": 13,
+      "failedReports": 0
     },
     "000660": {
       "ticker": "000660.KS",
