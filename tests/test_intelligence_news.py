@@ -123,6 +123,56 @@ def test_invalid_return_numbers_and_reversed_observation_windows_are_refused(ret
     with pytest.raises(ValueError): project(doc)
 
 
+@pytest.mark.parametrize('field', ['return_pct', 'benchmark_return_pct', 'excess_return_pct', 'mdd_pct'])
+def test_unsupported_percentage_aliases_cannot_bypass_observed_return_evidence(field):
+    doc = sample()
+    doc['events'][0]['performance'] = [{'ticker': 'NVDA', field: 20.0}]
+    with pytest.raises(ValueError): project(doc)
+
+
+@pytest.mark.parametrize('field', ['source_url', 'benchmark_source_url'])
+@pytest.mark.parametrize('url', ['file:///srv/private/prices.csv', 'https://t.me/private/1', 'https://example.com/price?token=x'])
+def test_scalar_performance_sources_use_the_public_url_guard(field, url):
+    doc = sample()
+    doc['events'][0]['performance'] = [{'ticker': 'NVDA', field: url}]
+    with pytest.raises(ValueError): project(doc)
+
+
+def test_thesis_review_evidence_urls_use_the_public_url_guard():
+    doc = sample()
+    doc['events'][0]['thesis_reviews'] = [{'status': 'review_required', 'evidence_urls': ['file:///srv/private/thesis.md']}]
+    with pytest.raises(ValueError): project(doc)
+
+
+def test_safe_scalar_performance_and_thesis_sources_are_preserved():
+    doc = sample()
+    url = 'https://finance.yahoo.com/quote/NVDA/history/'
+    doc['events'][0]['performance'] = [{'ticker': 'NVDA', 'source_url': url, 'benchmark_source_url': url}]
+    doc['events'][0]['thesis_reviews'] = [{'status': 'review_required', 'evidence_urls': [url]}]
+    assert project(doc) == doc
+
+
+def test_publication_as_of_date_must_match_the_actual_kst_day():
+    doc = sample()
+    doc['generated_at'] = '2026-10-20T15:00:00Z'
+    doc['as_of_date'] = '2026-10-20'
+    with pytest.raises(ValueError): project(doc)
+
+
+@pytest.mark.parametrize('generated,as_of', [('2026-10-20T14:59:59Z', '2026-10-20'), ('2026-10-20T15:00:00Z', '2026-10-21')])
+def test_publication_as_of_date_preserves_both_sides_of_kst_midnight(generated, as_of):
+    doc = sample(); doc['generated_at'] = generated; doc['as_of_date'] = as_of
+    assert project(doc)['as_of_date'] == as_of
+
+
+@pytest.mark.parametrize('field', ['telegram_input', 'telegram_input_enabled'])
+def test_every_public_telegram_input_alias_remains_disabled(field):
+    doc = sample(); doc['capabilities'] = {field: True}
+    with pytest.raises(ValueError): project(doc)
+    doc['capabilities'][field] = False
+    assert project(doc)['capabilities'] == {field: False}
+
+
 @pytest.mark.parametrize('change', ['schema', 'score', 'action', 'future', 'date', 'duplicate', 'citation', 'telegram', 'credential_url'])
 def test_malformed_or_unsafe_news_is_refused(change):
     doc = sample(); event = doc['events'][0]
@@ -191,7 +241,10 @@ def test_news_publication_validation_and_older_remote_retention(tmp_path):
         with patch.object(published_data, 'urlopen', return_value=_Response(json.dumps(new).encode())):
             result, source = published_data.get_published_data(name)
         assert source == 'github-main' and result['events'][0]['summary'] == ['새 개정 요약']
-        for candidate in (old, {**new, 'schemaVersion': 'invalid'}):
+        wrong_day = {**new, 'generated_at': '2026-10-21T15:00:00Z', 'as_of_date': '2026-10-21'}
+        unsupported_return = copy.deepcopy(new)
+        unsupported_return['events'][0]['performance'] = [{'return_pct': 20.0}]
+        for candidate in (old, {**new, 'schemaVersion': 'invalid'}, wrong_day, unsupported_return):
             published_data._CACHE[name] = (0, result, source)
             with patch.object(published_data, 'urlopen', return_value=_Response(json.dumps(candidate).encode())):
                 result, source = published_data.get_published_data(name)

@@ -22,6 +22,8 @@ FILENAME = "intelligence_investment_news.json"
 MAX_BYTES = 4 * 1024 * 1024
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:\-]{1,120}$")
 _SYMBOL = re.compile(r"^[A-Z0-9.^=\-]{1,30}$")
+_KST = timezone(timedelta(hours=9))
+_UNSUPPORTED_RETURN_ALIASES = {"return_pct", "benchmark_return_pct", "excess_return_pct", "mdd_pct"}
 _EXTRA_PRIVATE = {"chat_id", "chatid", "raw_text", "raw_content", "raw_article", "raw_prompt", "system_prompt", "audit_trail", "chain_of_thought", "private_thesis", "personal_thesis"}
 # A company article slug such as sk-telecom-and-hana-... is not an API key.
 # Preserve classic contiguous and modern project/service-account key guards.
@@ -252,15 +254,25 @@ def _event(event):
     if analysis_status == "completed" and (set(safe_agents) != {"mer", "nonggu", "meng"} or any(not agent.get("summary") or not agent.get("evidence_ids") for agent in safe_agents.values())):
         raise ValueError("completed analysis requires three evidenced agents")
     reviews = [_metadata(review, {"ticker", "thesis_id", "symbol", "status", "summary", "reason", "reviewed_at", "event_id", "evidence_urls", "change", "previous_status", "current_status"}) for review in _list(event.get("thesis_reviews", []), 50)]
+    for review in reviews:
+        for url in _list(review.get("evidence_urls", []), 50):
+            _url(url)
     # Only evidence-backed outcomes supplied by the producer are public. Empty
     # outcomes remain empty; no response-time price/return is ever invented.
-    performance = [_metadata(item, {"ticker", "symbol", "market", "horizon", "status", "as_of", "as_of_date", "analysis_at", "baseline_at", "followup_at", "evaluated_at", "price_date", "benchmark", "stock_return", "benchmark_return", "excess_return", "return_pct", "benchmark_return_pct", "excess_return_pct", "mdd_pct", "baseline_price", "close_price", "source_urls", "source_url", "benchmark_source_url", "currency"}) for item in _list(event.get("performance", []), 30)]
+    performance = []
+    for item in _list(event.get("performance", []), 30):
+        if isinstance(item, dict) and _UNSUPPORTED_RETURN_ALIASES.intersection(item):
+            raise ValueError("news returns use canonical fractional fields")
+        performance.append(_metadata(item, {"ticker", "symbol", "market", "horizon", "status", "as_of", "as_of_date", "analysis_at", "baseline_at", "followup_at", "evaluated_at", "price_date", "benchmark", "stock_return", "benchmark_return", "excess_return", "baseline_price", "close_price", "source_urls", "source_url", "benchmark_source_url", "currency"}))
     for outcome in performance:
-        for key in ("stock_return", "benchmark_return", "excess_return", "return_pct", "benchmark_return_pct", "excess_return_pct", "mdd_pct", "baseline_price", "close_price"):
+        for key in ("stock_return", "benchmark_return", "excess_return", "baseline_price", "close_price"):
             if outcome.get(key) is not None:
                 outcome[key] = _number(outcome[key])
-        for url in outcome.get("source_urls", []):
+        for url in _list(outcome.get("source_urls", []), 50):
             _url(url)
+        for key in ("source_url", "benchmark_source_url"):
+            if outcome.get(key) is not None:
+                _url(outcome[key])
         if any(outcome.get(key) is not None for key in ("stock_return", "benchmark_return", "excess_return")) and (not outcome.get("baseline_at") or not outcome.get("followup_at") or not outcome.get("source_urls")):
             raise ValueError("returns require observed dates and sources")
         if outcome.get("baseline_at") and outcome.get("followup_at") and datetime.fromisoformat(outcome["followup_at"].replace("Z", "+00:00")) < datetime.fromisoformat(outcome["baseline_at"].replace("Z", "+00:00")):
@@ -287,6 +299,9 @@ def public_news(doc):
         raise ValueError("news publication too large")
     _scan(doc)
     generated = _time(doc.get("generated_at"), utc=True)
+    as_of = _date(doc.get("as_of_date"))
+    if datetime.fromisoformat(generated.replace("Z", "+00:00")).astimezone(_KST).date().isoformat() != as_of:
+        raise ValueError("news as-of date must match the KST publication day")
     events = [_event(event) for event in _list(doc.get("events"))]
     if len({event["event_id"] for event in events}) != len(events):
         raise ValueError("duplicate news event")
@@ -294,9 +309,9 @@ def public_news(doc):
         raise ValueError("not-started news cannot claim events")
     briefings = [_briefing(item) for item in _list(doc.get("briefings"), 100)]
     capabilities = _metadata(doc.get("capabilities"), CAPABILITY_FIELDS)
-    if any(not isinstance(value, bool) for value in capabilities.values()) or capabilities.get("telegram_input_enabled") is True:
+    if any(not isinstance(value, bool) for value in capabilities.values()) or any(capabilities.get(key) is True for key in ("telegram_input", "telegram_input_enabled")):
         raise ValueError("invalid news capabilities")
-    return {"schemaVersion": "investment-news.v1", "generated_at": generated, "as_of_date": _date(doc.get("as_of_date")),
+    return {"schemaVersion": "investment-news.v1", "generated_at": generated, "as_of_date": as_of,
             "status": doc["status"], "collection": _collection(doc.get("collection")),
             "capabilities": capabilities, "events": events, "briefings": briefings}
 

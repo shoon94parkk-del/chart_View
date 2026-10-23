@@ -349,3 +349,5 @@ New public research publications preflight the actual Toss source-path limits (A
 # Public investment news — 2026-10-21
 
 `intelligence_news_service.py` is the independent read-only `investment-news.v1` projection. `/api/intelligence/news` and the allowlisted published-data filename reuse existing bounded publication/latest-good behavior. Do not connect this path to PICK or decision writes. Keep REVIEW_ONLY, private-field refusal, source-linked facts, optional missing AI/return fields, actual source failures, UTC publication/KST date, and dated NOT_STARTED fallback. See [public API](INVESTMENT_NEWS_API.md). Producer collection, actual AI/Telegram delivery, publication, exact Render deployment, and native Toss verification remain separate evidence.
+
+2026-10-23 pre-release review: canonical fractional returns only; unsupported percentage aliases fail closed. Apply the same URL guard to scalar performance and thesis evidence links, require `as_of_date` to match publication KST, and keep both Telegram input aliases false. Malformed newer publications preserve the existing latest-good reader result.
