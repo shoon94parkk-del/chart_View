@@ -1,6 +1,6 @@
 {
   "schemaVersion": "investment-news.v1",
-  "generated_at": "2026-10-23T23:10:27.921296+00:00",
+  "generated_at": "2026-10-24T00:30:32.015485+00:00",
   "as_of_date": "2026-10-24",
   "status": "READY",
   "collection": {
@@ -8,15 +8,15 @@
     "source_count": 5,
     "successful_sources": 5,
     "failed_sources": 0,
-    "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-    "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+    "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+    "last_success_at": "2026-10-24T00:30:32.015485+00:00",
     "last_failure_at": null,
     "total_sources": 5,
     "sources": [
       {
         "source_id": "bls-cpi",
-        "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-        "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+        "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+        "last_success_at": "2026-10-24T00:30:32.015485+00:00",
         "last_failure_at": null,
         "last_error": null,
         "last_count": 12,
@@ -24,8 +24,8 @@
       },
       {
         "source_id": "fed",
-        "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-        "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+        "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+        "last_success_at": "2026-10-24T00:30:32.015485+00:00",
         "last_failure_at": null,
         "last_error": null,
         "last_count": 20,
@@ -33,8 +33,8 @@
       },
       {
         "source_id": "micron-sec",
-        "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-        "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+        "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+        "last_success_at": "2026-10-24T00:30:32.015485+00:00",
         "last_failure_at": null,
         "last_error": null,
         "last_count": 167,
@@ -42,8 +42,8 @@
       },
       {
         "source_id": "nvidia-sec",
-        "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-        "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+        "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+        "last_success_at": "2026-10-24T00:30:32.015485+00:00",
         "last_failure_at": null,
         "last_error": null,
         "last_count": 84,
@@ -51,8 +51,8 @@
       },
       {
         "source_id": "samsung",
-        "last_attempt_at": "2026-10-23T23:10:27.921296+00:00",
-        "last_success_at": "2026-10-23T23:10:27.921296+00:00",
+        "last_attempt_at": "2026-10-24T00:30:32.015485+00:00",
+        "last_success_at": "2026-10-24T00:30:32.015485+00:00",
         "last_failure_at": null,
         "last_error": null,
         "last_count": 50,
@@ -108,7 +108,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
           "published_at": "2026-10-14T11:50:31.200000+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -165,7 +165,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000023/mu-20260903.htm",
           "published_at": "2026-10-09T16:21:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -217,7 +217,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm",
           "published_at": "2026-10-09T14:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -275,7 +275,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-electronics-announces-earnings-guidance-for-third-quarter-2026",
           "published_at": "2026-10-08T07:49:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -327,7 +327,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20261002a.htm",
           "published_at": "2026-10-02T20:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -384,7 +384,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000018/mu-20260930.htm",
           "published_at": "2026-10-01T00:02:22+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -442,7 +442,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-to-invest-usd-1-billion-in-ai-infrastructure-company-helix",
           "published_at": "2026-09-29T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -495,7 +495,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916b.htm",
           "published_at": "2026-09-16T18:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -551,7 +551,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_09112026.htm",
           "published_at": "2026-09-11T11:50:40.968000+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -608,7 +608,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000075/nvda-20260726.htm",
           "published_at": "2026-08-27T00:36:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -665,7 +665,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000073/nvda-20260826.htm",
           "published_at": "2026-08-27T00:21:19+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -722,7 +722,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/nvda-20260817.htm",
           "published_at": "2026-08-17T16:41:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -778,7 +778,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_08122026.htm",
           "published_at": "2026-08-12T11:51:16.210000+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -833,7 +833,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_07142026.htm",
           "published_at": "2026-07-14T11:50:27.969000+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -890,7 +890,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000015/mu-20260528.htm",
           "published_at": "2026-06-25T02:59:46+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -947,7 +947,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000013/mu-20260624.htm",
           "published_at": "2026-06-25T00:02:01+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -1003,7 +1003,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_06102026.htm",
           "published_at": "2026-06-10T12:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1060,7 +1060,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000052/nvda-20260426.htm",
           "published_at": "2026-05-21T00:35:52+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1117,7 +1117,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000051/nvda-20260520.htm",
           "published_at": "2026-05-21T00:21:19+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1173,7 +1173,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_05122026.htm",
           "published_at": "2026-05-12T12:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1229,7 +1229,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_04102026.htm",
           "published_at": "2026-04-10T12:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1286,7 +1286,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000006/mu-20260226.htm",
           "published_at": "2026-03-19T03:00:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -1343,7 +1343,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000004/mu-20260318.htm",
           "published_at": "2026-03-19T00:02:14+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -1399,7 +1399,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_03112026.htm",
           "published_at": "2026-03-11T12:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1456,7 +1456,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
           "published_at": "2026-02-26T02:42:19+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1513,7 +1513,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000019/nvda-20260225.htm",
           "published_at": "2026-02-26T02:31:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1569,7 +1569,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_02132026.htm",
           "published_at": "2026-02-13T13:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1625,7 +1625,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_01132026.htm",
           "published_at": "2026-01-13T13:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1679,7 +1679,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_12182025.htm",
           "published_at": "2025-12-18T13:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -1736,7 +1736,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000046/mu-20251127.htm",
           "published_at": "2025-12-18T04:47:44+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -1793,7 +1793,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000044/mu-20251217.htm",
           "published_at": "2025-12-18T02:03:26+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -1850,7 +1850,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000230/nvda-20251026.htm",
           "published_at": "2025-11-20T02:36:17+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1907,7 +1907,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000228/nvda-20251119.htm",
           "published_at": "2025-11-20T02:20:44+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -1962,7 +1962,7 @@
           "name": "US Bureau of Labor Statistics — CPI",
           "url": "https://www.bls.gov/news.release/archives/cpi_10242025.htm",
           "published_at": "2025-10-24T12:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_atom",
           "independent_group": "us-bls"
         }
@@ -2019,7 +2019,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000028/mu-20250828.htm",
           "published_at": "2025-10-03T22:42:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2076,7 +2076,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000024/mu-20250923.htm",
           "published_at": "2025-09-24T00:02:28+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2133,7 +2133,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000209/nvda-20250727.htm",
           "published_at": "2025-08-28T00:52:07+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2190,7 +2190,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000207/nvda-20250827.htm",
           "published_at": "2025-08-28T00:22:14+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2247,7 +2247,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000021/mu-20250529.htm",
           "published_at": "2025-06-26T02:50:42+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2304,7 +2304,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000019/mu-20250625.htm",
           "published_at": "2025-06-26T00:03:10+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2361,7 +2361,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000116/nvda-20250427.htm",
           "published_at": "2025-05-29T00:32:57+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2418,7 +2418,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000115/nvda-20250528.htm",
           "published_at": "2025-05-29T00:21:30+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2475,7 +2475,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925041201/tm2513434d1_8k.htm",
           "published_at": "2025-04-30T00:04:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2532,7 +2532,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000009/mu-20250227.htm",
           "published_at": "2025-03-21T03:20:23+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2589,7 +2589,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000006/mu-20250320.htm",
           "published_at": "2025-03-21T00:00:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2646,7 +2646,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925022973/tm258936d1_8k.htm",
           "published_at": "2025-03-13T00:05:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2703,7 +2703,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000023/nvda-20250126.htm",
           "published_at": "2025-02-27T02:48:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2760,7 +2760,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000021/nvda-20250226.htm",
           "published_at": "2025-02-27T02:21:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -2817,7 +2817,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925004879/tm253757d1_8k.htm",
           "published_at": "2025-01-22T02:01:53+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2874,7 +2874,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925004100/tm2425615d5_8k.htm",
           "published_at": "2025-01-17T02:05:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2931,7 +2931,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000047/mu-20241128.htm",
           "published_at": "2024-12-19T04:52:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -2988,7 +2988,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000046/mu-20241218.htm",
           "published_at": "2024-12-19T02:00:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3045,7 +3045,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924127174/tm2430615d1_8k.htm",
           "published_at": "2024-12-11T02:05:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3102,7 +3102,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000316/nvda-20241027.htm",
           "published_at": "2024-11-21T02:31:22+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3159,7 +3159,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000315/nvda-20241120.htm",
           "published_at": "2024-11-21T02:21:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3216,7 +3216,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000027/mu-20240829.htm",
           "published_at": "2024-10-05T00:12:50+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3273,7 +3273,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000023/mu-20240925.htm",
           "published_at": "2024-09-26T00:00:27+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3330,7 +3330,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000264/nvda-20240728.htm",
           "published_at": "2024-08-29T01:05:08+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3387,7 +3387,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000262/nvda-20240828.htm",
           "published_at": "2024-08-29T00:21:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3444,7 +3444,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000019/mu-20240530.htm",
           "published_at": "2024-06-27T21:19:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3501,7 +3501,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000016/mu-20240626.htm",
           "published_at": "2024-06-27T00:00:36+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3558,7 +3558,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000124/nvda-20240428.htm",
           "published_at": "2024-05-30T00:36:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3615,7 +3615,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000113/nvda-20240522.htm",
           "published_at": "2024-05-23T00:21:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3672,7 +3672,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000007/mu-20240229.htm",
           "published_at": "2024-03-21T21:17:48+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3729,7 +3729,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312524000004/mu-20240320.htm",
           "published_at": "2024-03-21T00:00:45+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3786,7 +3786,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240128.htm",
           "published_at": "2024-02-22T02:36:57+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3843,7 +3843,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000028/nvda-20240221.htm",
           "published_at": "2024-02-22T02:22:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -3900,7 +3900,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924003666/tm243238d1_8k.htm",
           "published_at": "2024-01-13T02:01:56+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -3957,7 +3957,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000077/mu-20231130.htm",
           "published_at": "2023-12-21T23:05:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4014,7 +4014,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000071/mu-20231220.htm",
           "published_at": "2023-12-21T02:00:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4071,7 +4071,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000227/nvda-20231029.htm",
           "published_at": "2023-11-22T02:36:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4128,7 +4128,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000225/nvda-20231121.htm",
           "published_at": "2023-11-22T02:22:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4185,7 +4185,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000054/mu-20230831.htm",
           "published_at": "2023-10-07T00:01:37+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4242,7 +4242,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000051/mu-20230927.htm",
           "published_at": "2023-09-28T00:00:28+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4299,7 +4299,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000175/nvda-20230730.htm",
           "published_at": "2023-08-26T03:36:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4356,7 +4356,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000171/nvda-20230823.htm",
           "published_at": "2023-08-24T00:21:42+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4413,7 +4413,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000041/mu-20230601.htm",
           "published_at": "2023-06-29T23:34:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4470,7 +4470,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000038/mu-20230628.htm",
           "published_at": "2023-06-29T00:00:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4527,7 +4527,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000093/nvda-20230430.htm",
           "published_at": "2023-05-27T00:17:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4584,7 +4584,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000087/nvda-20230524.htm",
           "published_at": "2023-05-25T00:22:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4641,7 +4641,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000026/mu-20230411.htm",
           "published_at": "2023-04-12T01:19:30+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4698,7 +4698,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000022/mu-20230302.htm",
           "published_at": "2023-03-30T00:48:21+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4755,7 +4755,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000018/mu-20230328.htm",
           "published_at": "2023-03-29T00:01:45+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4812,7 +4812,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000017/nvda-20230129.htm",
           "published_at": "2023-02-25T03:23:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4869,7 +4869,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000014/nvda-20230222.htm",
           "published_at": "2023-02-23T02:52:26+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -4926,7 +4926,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000014/mu-20230209.htm",
           "published_at": "2023-02-10T03:13:02+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -4983,7 +4983,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000004/mu-20230105.htm",
           "published_at": "2023-01-06T02:15:42+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5040,7 +5040,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000072/mu-20221201.htm",
           "published_at": "2022-12-22T22:38:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5097,7 +5097,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000070/mu-20221221.htm",
           "published_at": "2022-12-22T02:00:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5154,7 +5154,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000166/nvda-20221030.htm",
           "published_at": "2022-11-19T02:35:31+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5211,7 +5211,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000163/nvda-20221116.htm",
           "published_at": "2022-11-17T02:21:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5268,7 +5268,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000053/mu-20221103.htm",
           "published_at": "2022-11-04T00:34:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5325,7 +5325,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000051/mu-20221031.htm",
           "published_at": "2022-11-01T00:12:30+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5382,7 +5382,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000048/mu-20220901.htm",
           "published_at": "2022-10-07T22:57:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5439,7 +5439,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000044/mu-20220929.htm",
           "published_at": "2022-09-30T00:00:31+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5496,7 +5496,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000147/nvda-20220731.htm",
           "published_at": "2022-09-01T01:01:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5553,7 +5553,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000136/nvda-20220824.htm",
           "published_at": "2022-08-25T00:24:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5610,7 +5610,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000133/nvda-20220808.htm",
           "published_at": "2022-08-08T17:16:50+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5667,7 +5667,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000036/mu-20220602.htm",
           "published_at": "2022-07-01T01:47:52+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5724,7 +5724,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000034/mu-20220630.htm",
           "published_at": "2022-07-01T00:00:27+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5781,7 +5781,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000079/nvda-20220501.htm",
           "published_at": "2022-05-28T00:21:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5838,7 +5838,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000073/nvda-20220525.htm",
           "published_at": "2022-05-26T00:22:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -5895,7 +5895,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000016/mu-20220303.htm",
           "published_at": "2022-03-30T23:47:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -5952,7 +5952,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000012/mu-20220329.htm",
           "published_at": "2022-03-30T00:00:37+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6009,7 +6009,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000036/nvda-20220130.htm",
           "published_at": "2022-03-18T04:33:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6066,7 +6066,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000008/nvda-20220216.htm",
           "published_at": "2022-02-17T02:21:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6123,7 +6123,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000005/nvda-20220208.htm",
           "published_at": "2022-02-08T18:09:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6180,7 +6180,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000004/mu-20211202.htm",
           "published_at": "2022-01-07T01:27:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6237,7 +6237,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000086/mu-20211220.htm",
           "published_at": "2021-12-21T02:00:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6294,7 +6294,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000163/nvda-20211031.htm",
           "published_at": "2021-11-20T07:16:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6351,7 +6351,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000160/nvda-20211117.htm",
           "published_at": "2021-11-18T02:20:59+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6408,7 +6408,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465921132377/tm2129643d4_8k.htm",
           "published_at": "2021-11-02T00:35:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6465,7 +6465,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000067/mu-20211018.htm",
           "published_at": "2021-10-20T00:53:59+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6522,7 +6522,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000065/mu-20210902.htm",
           "published_at": "2021-10-08T21:23:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6579,7 +6579,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000060/mu-20210928.htm",
           "published_at": "2021-09-29T00:01:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6636,7 +6636,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000131/nvda-20210801.htm",
           "published_at": "2021-08-21T00:32:40+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6693,7 +6693,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000128/nvda-20210818.htm",
           "published_at": "2021-08-19T00:21:07+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6750,7 +6750,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000052/mu-20210603.htm",
           "published_at": "2021-07-01T22:04:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6807,7 +6807,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000049/mu-20210630.htm",
           "published_at": "2021-07-01T00:00:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -6864,7 +6864,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000119312521192149/d80739d8k.htm",
           "published_at": "2021-06-17T00:27:01+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6921,7 +6921,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000064/nvda-20210502.htm",
           "published_at": "2021-05-27T00:35:56+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -6978,7 +6978,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000063/nvda-20210526.htm",
           "published_at": "2021-05-27T00:20:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -7035,7 +7035,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000040/mu-20210514.htm",
           "published_at": "2021-05-18T00:01:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7092,7 +7092,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000032/mu-20210304.htm",
           "published_at": "2021-04-01T21:49:08+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7149,7 +7149,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000028/mu-20210331.htm",
           "published_at": "2021-04-01T00:00:40+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7206,7 +7206,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000010/nvda-20210131.htm",
           "published_at": "2021-02-27T03:03:14+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -7263,7 +7263,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000007/nvda-20210224.htm",
           "published_at": "2021-02-25T02:22:27+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -7320,7 +7320,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000012/mu-20201203.htm",
           "published_at": "2021-01-08T22:49:12+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7377,7 +7377,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000009/mu-20210107.htm",
           "published_at": "2021-01-08T02:00:45+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7434,7 +7434,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581020000189/nvda-20201025.htm",
           "published_at": "2020-11-19T02:35:57+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -7491,7 +7491,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581020000187/nvda-20201118.htm",
           "published_at": "2020-11-19T02:21:51+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -7548,7 +7548,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000082/mu-20200903.htm",
           "published_at": "2020-10-19T22:36:42+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7605,7 +7605,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000079/mu-20200929.htm",
           "published_at": "2020-09-30T00:00:38+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7662,7 +7662,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000067/mu-20200528.htm",
           "published_at": "2020-06-30T20:12:44+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7719,7 +7719,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000063/mu-20200629.htm",
           "published_at": "2020-06-30T00:02:05+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7776,7 +7776,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465920050965/tm2016033-4_8k.htm",
           "published_at": "2020-04-25T00:00:47+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7833,7 +7833,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000034/mu-20200227.htm",
           "published_at": "2020-03-26T21:52:52+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7890,7 +7890,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000030/mu-20200325.htm",
           "published_at": "2020-03-26T00:00:49+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -7947,7 +7947,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000020/mu-20200309.htm",
           "published_at": "2020-03-13T01:25:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8004,7 +8004,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000174/mu-20191128.htm",
           "published_at": "2019-12-20T22:21:53+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8061,7 +8061,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000172/a2020q18-kearningsrele.htm",
           "published_at": "2019-12-19T02:00:40+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8118,7 +8118,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000146/a20198-kimftclosing.htm",
           "published_at": "2019-11-02T00:59:52+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8175,7 +8175,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000094/a2019q4.htm",
           "published_at": "2019-10-17T22:44:04+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8232,7 +8232,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000068/a2019q48-kearningsrelease.htm",
           "published_at": "2019-09-27T00:00:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8289,7 +8289,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465919040167/a19-12548_48k.htm",
           "published_at": "2019-07-13T00:01:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8346,7 +8346,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465919039711/a19-12603_18k.htm",
           "published_at": "2019-07-10T00:16:20+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8403,7 +8403,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000035/a2019q3.htm",
           "published_at": "2019-06-27T00:00:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8460,7 +8460,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000032/a2019q38-kearningsrelease.htm",
           "published_at": "2019-06-26T00:01:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8517,7 +8517,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000014/a2019q2.htm",
           "published_at": "2019-03-21T23:11:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8574,7 +8574,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000012/a2019q2-kearningsrelease.htm",
           "published_at": "2019-03-21T00:00:37+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8631,7 +8631,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465919006069/a18-36862_48k.htm",
           "published_at": "2019-02-07T02:00:57+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8688,7 +8688,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000156/a2019q1.htm",
           "published_at": "2018-12-19T20:49:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8745,7 +8745,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000152/a2019q18-kearningsrelease.htm",
           "published_at": "2018-12-19T02:00:39+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8802,7 +8802,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000092/a2018q4.htm",
           "published_at": "2018-10-15T22:40:51+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8859,7 +8859,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000085/a2018q48-kearningsrelease.htm",
           "published_at": "2018-09-21T00:00:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8916,7 +8916,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000072/a20188-k07032018.htm",
           "published_at": "2018-07-04T00:44:36+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -8973,7 +8973,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000065/a2018q3.htm",
           "published_at": "2018-06-22T19:39:04+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9030,7 +9030,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000061/a2018q38-kearningsrelease.htm",
           "published_at": "2018-06-21T00:06:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9087,7 +9087,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000036/a2018q2.htm",
           "published_at": "2018-03-23T22:52:31+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9144,7 +9144,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000031/a2018q28-kearningsrelease.htm",
           "published_at": "2018-03-23T00:01:31+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9201,7 +9201,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312517000166/a2018q1.htm",
           "published_at": "2017-12-21T00:56:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9258,7 +9258,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312517000162/a2018q18-kearningsrelease.htm",
           "published_at": "2017-12-20T02:01:11+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9315,7 +9315,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312517000131/a2017q4.htm",
           "published_at": "2017-10-26T20:51:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -9365,7 +9365,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261016a.htm",
           "published_at": "2026-10-16T15:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9421,7 +9421,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-health-makes-sleep-coaching-easier-to-start-and-tailors-weekly-guidance",
           "published_at": "2026-10-14T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -9471,7 +9471,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm",
           "published_at": "2026-10-08T20:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9521,7 +9521,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261005a.htm",
           "published_at": "2026-10-05T20:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9571,7 +9571,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261002a.htm",
           "published_at": "2026-10-02T20:45:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9621,7 +9621,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261002a.htm",
           "published_at": "2026-10-02T15:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9671,7 +9671,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260930a.htm",
           "published_at": "2026-09-30T13:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9721,7 +9721,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260925a.htm",
           "published_at": "2026-09-25T20:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9771,7 +9771,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260924a.htm",
           "published_at": "2026-09-24T18:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9821,7 +9821,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260924a.htm",
           "published_at": "2026-09-24T15:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9871,7 +9871,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260922a.htm",
           "published_at": "2026-09-22T20:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9921,7 +9921,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260918b.htm",
           "published_at": "2026-09-18T15:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -9971,7 +9971,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260918a.htm",
           "published_at": "2026-09-18T15:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10021,7 +10021,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
           "published_at": "2026-09-16T18:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10071,7 +10071,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260911a.htm",
           "published_at": "2026-09-11T14:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10129,7 +10129,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/inside-jbl-playback-gallery-80-years-of-sound-innovation",
           "published_at": "2026-10-23T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10188,7 +10188,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/discover-new-ways-to-live-smarter-samsung-electronics-launches-samsung-week-2026-in-63-countries",
           "published_at": "2026-10-21T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10246,7 +10246,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/infographic-80-years-of-jbl-from-studios-and-stages-to-everyday-life",
           "published_at": "2026-10-21T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10304,7 +10304,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/photo-inside-samsungs-design-is-an-act-of-love-exhibition-at-seoul-design-week-2026",
           "published_at": "2026-10-21T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10362,7 +10362,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-art-store-unveils-curated-collection-from-art-basel-paris-2026",
           "published_at": "2026-10-20T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10420,7 +10420,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-presents-design-is-an-act-of-love-at-seoul-design-week-2026",
           "published_at": "2026-10-15T10:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10478,7 +10478,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-hosts-silicon-valley-future-wireless-summit-2026",
           "published_at": "2026-10-15T06:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10533,7 +10533,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm",
           "published_at": "2026-10-13T18:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10587,7 +10587,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261007a.htm",
           "published_at": "2026-10-07T18:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10645,7 +10645,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-art-store-expands-its-collection-with-30-exclusive-works-from-the-british-museum",
           "published_at": "2026-10-06T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10704,7 +10704,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-galaxy-smarttag3-makes-it-easier-to-keep-track-of-what-matters",
           "published_at": "2026-09-30T21:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10763,7 +10763,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-introduces-galaxy-tab-s12-series-the-ultimate-productivity-powerhouse-built-for-growth",
           "published_at": "2026-09-30T21:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10815,7 +10815,7 @@
           "name": "Federal Reserve Board",
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260929a.htm",
           "published_at": "2026-09-29T20:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "federal-reserve"
         }
@@ -10873,7 +10873,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-sk-telecom-and-hana-financial-group-buildkoreas-first-private-5g-smart-office-in-the-financial-sector",
           "published_at": "2026-09-28T08:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10931,7 +10931,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/bringing-fantasy-characters-to-life-samsung-spatial-signage-transforms-tokyo-game-show-2026",
           "published_at": "2026-09-23T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -10989,7 +10989,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-begins-official-rollout-of-one-ui-9-bringing-the-latest-galaxy-experiences-to-more-devices",
           "published_at": "2026-09-16T21:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11048,7 +11048,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/from-253-grams-to-201-grams-the-engineering-behind-the-worlds-lightest-fold",
           "published_at": "2026-09-09T01:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11106,7 +11106,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/immaculate-engineering-meets-artistic-imagination-highlights-from-design-miami-seoul-2026",
           "published_at": "2026-09-07T14:53:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11165,7 +11165,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-medison-expands-womens-health-diagnostic-portfolio-with-launch-of-premium-ultrasound-hera-z10",
           "published_at": "2026-09-07T09:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11224,7 +11224,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/meet-the-generation17-young-leaders-the-story-of-soumya-dabriwal",
           "published_at": "2026-09-04T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11282,7 +11282,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/gamescom-2026-samsung-odyssey-breaks-boundaries-supporting-every-way-you-play",
           "published_at": "2026-09-04T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11339,7 +11339,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000078/nvda-20260902.htm",
           "published_at": "2026-09-03T16:03:56+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -11397,7 +11397,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-showcases-new-washers-with-flat-design-at-ifa-2026",
           "published_at": "2026-09-03T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11457,7 +11457,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-redefines-laundry-with-new-a-70-and-13-kg-bespoke-ai-washers-at-ifa-2026",
           "published_at": "2026-09-02T15:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11515,7 +11515,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-presents-design-is-an-act-of-love-at-design-miami-seoul-2026",
           "published_at": "2026-09-01T10:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11574,7 +11574,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-expands-the-galaxy-book6-lineup-making-galaxy-book-more-accessible",
           "published_at": "2026-09-01T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11632,7 +11632,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-hosts-playgalaxy-cup-world-final-at-gamescom-2026",
           "published_at": "2026-08-31T10:02:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11691,7 +11691,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-galaxy-s26-fe-delivering-the-latest-flagship-experience-focused-on-what-matters-most",
           "published_at": "2026-08-27T21:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11749,7 +11749,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-introduces-new-odyssey-lineup-for-fast-paced-gaming-at-gamescom-2026",
           "published_at": "2026-08-27T17:30:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11808,7 +11808,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/video-no-unfolding-needed-a-day-with-galaxy-z-flip8s-flexwindow",
           "published_at": "2026-08-27T08:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -11865,7 +11865,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465926101067/tm2624017d1_8k.htm",
           "published_at": "2026-08-26T16:06:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -11923,7 +11923,7 @@
           "name": "Samsung Global Newsroom",
           "url": "https://news.samsung.com/global/samsung-showcases-p9-and-p7-ssds-featuring-usb4-at-gamescom-2026",
           "published_at": "2026-08-26T16:00:00+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_rss",
           "independent_group": "samsung"
         }
@@ -12038,7 +12038,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000060/nvda-20260628.htm",
           "published_at": "2026-07-02T17:23:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12095,7 +12095,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000056/nvda-20260624.htm",
           "published_at": "2026-07-01T00:27:26+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12152,7 +12152,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000119312526275783/d48176d8k.htm",
           "published_at": "2026-06-19T00:00:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12209,7 +12209,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465926071845/tm2617112d1_8k.htm",
           "published_at": "2026-06-10T00:13:47+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12266,7 +12266,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000028/nvda-20260507.htm",
           "published_at": "2026-05-09T00:35:07+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12323,7 +12323,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000026/nvda-20260424.htm",
           "published_at": "2026-04-28T00:10:30+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12380,7 +12380,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465926038249/tm2610810d1_8k.htm",
           "published_at": "2026-04-01T16:33:36+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12437,7 +12437,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465926034174/tm269755d1_8k.htm",
           "published_at": "2026-03-25T16:26:22+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12494,7 +12494,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000024/nvda-20260302.htm",
           "published_at": "2026-03-07T02:11:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12551,7 +12551,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000003/nvda-20260120.htm",
           "published_at": "2026-01-24T03:01:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12608,7 +12608,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465926005366/tm263707d1_8k.htm",
           "published_at": "2026-01-22T02:05:37+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12665,7 +12665,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925101237/tm2529116d1_8k.htm",
           "published_at": "2025-10-22T00:09:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12722,7 +12722,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925075940/tm2522933d1_8k.htm",
           "published_at": "2025-08-11T16:05:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12779,7 +12779,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000197/nvda-20250731.htm",
           "published_at": "2025-08-06T00:31:08+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12836,7 +12836,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925069019/tm2521153d1_8k.htm",
           "published_at": "2025-07-19T00:05:39+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -12893,7 +12893,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000179/nvda-20250625.htm",
           "published_at": "2025-07-01T02:35:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -12950,7 +12950,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925058741/tm2517778d1_8k.htm",
           "published_at": "2025-06-12T16:40:40+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13007,7 +13007,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000082/nvda-20250409.htm",
           "published_at": "2025-04-16T01:22:59+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13064,7 +13064,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000039/nvda-20250303.htm",
           "published_at": "2025-03-08T03:09:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13121,7 +13121,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465925020878/tm258327d1_8k.htm",
           "published_at": "2025-03-06T02:10:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13178,7 +13178,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000007/nvda-20250113.htm",
           "published_at": "2025-01-18T02:59:50+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13235,7 +13235,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000300/nvda-20241107.htm",
           "published_at": "2024-11-08T02:35:26+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13292,7 +13292,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924112626/tm2425615d2_8k.htm",
           "published_at": "2024-10-31T00:22:02+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13349,7 +13349,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924086571/tm2420905d1_8k.htm",
           "published_at": "2024-08-07T16:45:51+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13406,7 +13406,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924081160/tm2419510d1_8k.htm",
           "published_at": "2024-07-20T00:05:25+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13463,7 +13463,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000206/nvda-20240626.htm",
           "published_at": "2024-07-03T00:47:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13520,7 +13520,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000144/nvda-20240607.htm",
           "published_at": "2024-06-08T00:19:34+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13577,7 +13577,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924049030/tm2412269d1_8k.htm",
           "published_at": "2024-04-19T14:07:10+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13634,7 +13634,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924045952/tm2411566d1_8k.htm",
           "published_at": "2024-04-11T05:06:30+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13691,7 +13691,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000069/nvda-20240308.htm",
           "published_at": "2024-03-15T00:30:50+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13748,7 +13748,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924033011/tm248305d1_8k.htm",
           "published_at": "2024-03-12T00:29:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13805,7 +13805,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465924005219/tm243636d1_8k.htm",
           "published_at": "2024-01-20T02:14:12+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13862,7 +13862,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465923121460/tm2331627d1_8k.htm",
           "published_at": "2023-11-28T19:00:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -13919,7 +13919,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000221/nvda-20231023.htm",
           "published_at": "2023-10-24T17:00:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -13976,7 +13976,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000217/nvda-20231017.htm",
           "published_at": "2023-10-18T01:27:14+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14033,7 +14033,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000048/mu-20230821.htm",
           "published_at": "2023-08-21T16:41:32+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14090,7 +14090,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000164/nvda-20230724.htm",
           "published_at": "2023-07-25T00:35:01+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14147,7 +14147,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000146/nvda-20230622.htm",
           "published_at": "2023-06-28T01:11:03+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14204,7 +14204,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000034/mu-20230616.htm",
           "published_at": "2023-06-16T17:30:58+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14261,7 +14261,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000028/mu-20230522.htm",
           "published_at": "2023-05-22T14:13:08+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14318,7 +14318,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581023000039/nvda-20230302.htm",
           "published_at": "2023-03-09T02:12:15+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14375,7 +14375,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000011/mu-20230205.htm",
           "published_at": "2023-02-10T02:40:46+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14432,7 +14432,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312523000007/mu-20230112.htm",
           "published_at": "2023-01-14T02:25:40+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14489,7 +14489,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000056/mu-20221116.htm",
           "published_at": "2022-11-16T18:55:33+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14546,7 +14546,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000151/nvda-20220831.htm",
           "published_at": "2022-09-01T15:05:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14603,7 +14603,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000146/nvda-20220826.htm",
           "published_at": "2022-09-01T01:00:22+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14660,7 +14660,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000039/mu-20220809.htm",
           "published_at": "2022-08-09T14:04:10+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14717,7 +14717,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000088/nvda-20220602.htm",
           "published_at": "2022-06-07T01:29:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14774,7 +14774,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000025/mu-20220512.htm",
           "published_at": "2022-05-12T22:09:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14831,7 +14831,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000020/mu-20220408.htm",
           "published_at": "2022-04-09T00:40:01+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -14888,7 +14888,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581022000023/nvda-20220303.htm",
           "published_at": "2022-03-10T02:17:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -14945,7 +14945,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312522000008/mu-20220113.htm",
           "published_at": "2022-01-18T18:02:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15002,7 +15002,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465922002742/tm222248d1_8k.htm",
           "published_at": "2022-01-11T02:23:55+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15059,7 +15059,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000056/mu-20210802.htm",
           "published_at": "2021-08-03T00:07:38+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15116,7 +15116,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000117/nvda-20210628.htm",
           "published_at": "2021-06-29T01:25:47+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15173,7 +15173,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000075/nvda-20210603.htm",
           "published_at": "2021-06-05T02:50:36+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15230,7 +15230,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000056/nvda-20210521.htm",
           "published_at": "2021-05-21T17:02:17+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15287,7 +15287,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000047/nvda-20210412.htm",
           "published_at": "2021-04-12T22:08:45+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15344,7 +15344,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581021000034/nvda-20210315.htm",
           "published_at": "2021-03-19T03:30:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15401,7 +15401,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000024/mu-20210316.htm",
           "published_at": "2021-03-17T00:43:04+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15458,7 +15458,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000021/mu-20210303.htm",
           "published_at": "2021-03-03T19:05:06+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15515,7 +15515,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000018/mu-20210215.htm",
           "published_at": "2021-02-17T02:28:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15572,7 +15572,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312521000015/mu-20210113.htm",
           "published_at": "2021-01-16T02:01:03+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15629,7 +15629,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000097/mu-20201201.htm",
           "published_at": "2020-12-02T02:31:24+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15686,7 +15686,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000094/mu-20201201.htm",
           "published_at": "2020-12-01T19:00:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15743,7 +15743,7 @@
           "name": "NVIDIA SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581020000181/nvda-20201109.htm",
           "published_at": "2020-11-10T02:32:03+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-nvda"
         }
@@ -15800,7 +15800,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000074/mu-20200921.htm",
           "published_at": "2020-09-22T00:44:09+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15857,7 +15857,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465920090285/tm2026510-1_8k.htm",
           "published_at": "2020-08-05T00:10:29+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15914,7 +15914,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000053/mu-20200527.htm",
           "published_at": "2020-05-27T21:24:59+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -15971,7 +15971,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000050/mu-20200522.htm",
           "published_at": "2020-05-22T21:45:59+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16028,7 +16028,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000047/mu-20200513.htm",
           "published_at": "2020-05-14T22:05:02+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16085,7 +16085,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000041/mu-20200512.htm",
           "published_at": "2020-05-12T15:50:03+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16142,7 +16142,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000022/mu-20200312.htm",
           "published_at": "2020-03-14T01:02:57+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16199,7 +16199,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000012/mu-20200116.htm",
           "published_at": "2020-01-24T02:06:19+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16256,7 +16256,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312520000007/mu-20200115.htm",
           "published_at": "2020-01-23T03:45:16+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16313,7 +16313,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000165/a20198-kbyrneresignati.htm",
           "published_at": "2019-12-11T22:57:07+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16370,7 +16370,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000091/a20208-kmarosvaricao.htm",
           "published_at": "2019-10-17T19:16:13+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16427,7 +16427,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000110465919041113/a19-13014_18k.htm",
           "published_at": "2019-07-20T00:39:04+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16484,7 +16484,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000037/a20198-kwrightbodappointme.htm",
           "published_at": "2019-07-02T01:20:11+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16541,7 +16541,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000023/a20198-kimftclosingdate.htm",
           "published_at": "2019-05-07T17:00:41+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16598,7 +16598,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000020/a20198-k10b5x1tradingplana.htm",
           "published_at": "2019-04-13T00:44:35+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16655,7 +16655,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000007/a20198-k10b5x1tradingpland.htm",
           "published_at": "2019-02-02T03:02:38+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16712,7 +16712,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000005/a8-k2018votingresultsandam.htm",
           "published_at": "2019-01-23T02:43:43+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16769,7 +16769,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312519000003/a20188-k01142019.htm",
           "published_at": "2019-01-15T02:51:18+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16826,7 +16826,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000145/a20188-k1262018.htm",
           "published_at": "2018-12-06T21:59:22+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16883,7 +16883,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000137/a20188-k11282018.htm",
           "published_at": "2018-11-29T02:44:23+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16940,7 +16940,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000135/a20188-k1192018.htm",
           "published_at": "2018-11-15T02:53:47+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -16997,7 +16997,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000115/a20188-k10182018.htm",
           "published_at": "2018-10-19T00:42:27+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -17054,7 +17054,7 @@
           "name": "Micron SEC filings",
           "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312518000100/a20188-k10172018.htm",
           "published_at": "2018-10-18T01:06:02+00:00",
-          "retrieved_at": "2026-10-23T23:10:27.921296+00:00",
+          "retrieved_at": "2026-10-24T00:30:32.015485+00:00",
           "kind": "official_sec_submissions",
           "independent_group": "sec-mu"
         }
@@ -17072,7 +17072,7 @@
   "briefings": [
     {
       "date": "2026-10-24",
-      "generated_at": "2026-10-23T23:10:27.921296+00:00",
+      "generated_at": "2026-10-24T00:30:32.015485+00:00",
       "event_ids": [],
       "newly_confirmed": [],
       "coverage_note": "기준일에 발행된 중요 정보 0건 선정. 5건 미만이면 확인된 자료만 표시합니다.",
