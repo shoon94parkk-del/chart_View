@@ -707,3 +707,12 @@ Classification: new behavior. Add `/api/intelligence/news` and `intelligence_inv
 ## 2026-10-23 — Close public-news validation bypasses
 
 Classification: new bugs found in pre-release review. Reject unsupported percentage return aliases rather than infer their units or let them bypass canonical observation/provenance requirements. Validate scalar performance and thesis-review evidence URLs with the existing public-source guard. Require the actual UTC publication's KST date and disable both accepted Telegram input aliases. Invalid newer snapshots now retain the last validated publication through the existing reader. Regression tests first reproduced the bypasses, including the publication-cache effect; canonical actual producer data and the empty seed remain supported. No collector, model, notification, PICK, ledger, or frontend behavior is added here.
+
+
+## 2026-10-25 — Smaller Home projection, progressive news, lazy dataframe imports
+
+Classification: approved performance improvements based on separate Home/Watch/news live measurements. Add `/api/home-screener-summary` using the existing validated publication reader, returning exact entire-universe volumeRatio>=2 count and original date/source/status fields without stock rows. No provider collection, separate cache, or full-screener fallback. Invalid sources fail503.
+
+`/api/personalized-news?delivery=first_available` returns completed groups plus explicit pendingSymbols/complete:false with no-store while the same shielded owners continue. Omitted delivery retains the established complete contract, balanced ranking,300s TTL,4-provider concurrency,64-owner bound and7s response budget. Public force still retries only errors; internal refresh generations remain unchanged.
+
+Move pandas imports to actual KRX HTML/DART parser uses. Three fresh-process before/after samples show median RSS122884–125404KiB vs70456–71680KiB (about50MiB lower); this is startup import evidence, not a production steady-state or leak claim. Existing MultiIndex/HTML output fixtures remain unchanged. Local full Python:1207 passed,43 subtests,80 existing deprecation warnings; bundle check passed. Paired Toss integration, runtime measurements and exact deployment verification are recorded in `docs/LOADING_PERFORMANCE_2026-10-25.md` in the Toss repository. Deploy backend before the client which consumes the new summary endpoint.

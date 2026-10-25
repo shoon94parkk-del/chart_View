@@ -22,7 +22,10 @@ import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
 from fastapi import APIRouter, HTTPException, Query
-import pandas as pd
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 import requests
 import redis
 
@@ -204,6 +207,7 @@ def _number(value):
 
 
 def _flatten_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    import pandas as pd
     copy = frame.copy()
     if isinstance(copy.columns, pd.MultiIndex):
         cols = []
@@ -878,6 +882,7 @@ def extract_revenue_mix(html_documents: list[str], report_year: int | None = Non
         if not html or ("매출" not in html and "영업수익" not in html):
             continue
         try:
+            import pandas as pd
             tables = pd.read_html(StringIO(html))
         except Exception:
             continue

@@ -21,9 +21,11 @@ import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlparse
+from typing import Literal
 
 import requests
 from fastapi import APIRouter, Query
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -443,9 +445,11 @@ async def personalized_news(
     tickers: str = Query(max_length=520),
     names: str = Query(default="", max_length=1400),
     force: bool = False,
+    delivery: Literal["complete", "first_available"] = "complete",
 ):
     loop = asyncio.get_running_loop()
     deadline = loop.time() + NEWS_RESPONSE_BUDGET
+    progressive = delivery == "first_available"
     raw_symbols = [part.strip().upper() for part in tickers.split(",") if part.strip()]
     symbols: list[str] = []
     for symbol in raw_symbols:
@@ -456,11 +460,14 @@ async def personalized_news(
     name_map = {symbol: (raw_names[i] if i < len(raw_names) else symbol) for i, symbol in enumerate(symbols)}
 
     if not symbols:
-        return {
+        payload = {
             "items": [], "groups": [], "errors": [], "requestedCount": 0,
             "providers": {"kr": "NAVER API HUB", "us": "Finnhub"},
             "displayPolicy": "headline-source-time-link-summary-seed",
         }
+        if progressive:
+            payload.update(pendingSymbols=[], complete=True)
+        return payload
 
     fetched: list[dict | None] = [None] * len(symbols)
     waiters: dict[int, asyncio.Future] = {}
@@ -473,11 +480,17 @@ async def personalized_news(
                 waiters[index] = asyncio.shield(asyncio.wrap_future(result))
             else:
                 fetched[index] = result
-        if waiters:
-            await asyncio.wait(waiters.values(), timeout=max(0.0, deadline - loop.time()))
+        if waiters and (not progressive or not any(result is not None for result in fetched)):
+            await asyncio.wait(
+                waiters.values(), timeout=max(0.0, deadline - loop.time()),
+                return_when=asyncio.FIRST_COMPLETED if progressive else asyncio.ALL_COMPLETED,
+            )
+        deadline_reached = loop.time() >= deadline
         for index, waiter in waiters.items():
-            fetched[index] = (deepcopy(waiter.result()) if waiter.done() and not waiter.cancelled()
-                              else _news_error(symbols[index], "news_timeout"))
+            if waiter.done() and not waiter.cancelled():
+                fetched[index] = deepcopy(waiter.result())
+            elif not progressive or deadline_reached:
+                fetched[index] = _news_error(symbols[index], "news_timeout")
     finally:
         for waiter in waiters.values():
             if not waiter.done():
@@ -486,7 +499,20 @@ async def personalized_news(
     groups: list[dict] = []
     errors: list[dict] = []
     all_items: list[dict] = []
+    pending_symbols: list[str] = []
     for symbol, result in zip(symbols, fetched):
+        if result is None:
+            # Pending is subscriber metadata only; the actual owner still runs
+            # and will publish its genuine receipt to the canonical cache.
+            pending_symbols.append(symbol)
+            groups.append({
+                "symbol": symbol, "name": name_map[symbol],
+                "market": "KR" if _is_kr(symbol) else "US",
+                "items": [], "status": "pending",
+                "provider": "naver-api-hub" if _is_kr(symbol) else "finnhub",
+                "cache": None,
+            })
+            continue
         if isinstance(result, Exception):
             result = {"items": [], "error": f"internal_error:{type(result).__name__}", "provider": "unknown"}
         rows = result.get("items") or []
@@ -506,7 +532,7 @@ async def personalized_news(
             errors.append({"symbol": symbol, "provider": result.get("provider"), "code": error})
 
     highlights = _balanced_highlights(all_items, 12)
-    return {
+    payload = {
         "items": highlights,
         "groups": groups,
         "errors": errors,
@@ -518,3 +544,8 @@ async def personalized_news(
         "selectionPolicy": "investor-first-diverse-v41.6",
         "notice": "기사 본문·이미지는 저장하거나 재게시하지 않으며, 화면 요약은 원문을 일시적으로 읽어 한국어 요약만 생성합니다.",
     }
+    if progressive:
+        payload.update(pendingSymbols=pending_symbols, complete=not pending_symbols)
+        if pending_symbols:
+            return JSONResponse(payload, headers={"Cache-Control": "no-store"})
+    return payload
