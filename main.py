@@ -4,6 +4,7 @@ FastAPI 서버 (토스 가이드라인 준수)
 """
 
 from fastapi import FastAPI, Request, HTTPException, Query
+from home_screener_service import router as home_screener_router
 from fastapi.responses import JSONResponse, HTMLResponse
 from html import escape as html_escape
 from urllib.parse import quote as url_quote
@@ -15,7 +16,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import requests
-import pandas as pd
 import io
 import time
 import base64
@@ -178,6 +178,7 @@ async def _warm_default_valuation_bands():
 app = FastAPI(title="주식 비교 차트", version="1.0.0")
 
 # V37 personalized watchlist news router.
+app.include_router(home_screener_router)
 app.include_router(news_router_v37)
 app.include_router(intelligence_feed_v2_router)
 app.include_router(intelligence_news_router)
@@ -676,6 +677,7 @@ def load_krx_stock_list():
             params = {"method": "download", "marketType": market_type}
             try:
                 res = requests.get(url, params=params, headers=headers, timeout=10)
+                import pandas as pd
                 df = pd.read_html(io.StringIO(res.text))[0]
                 for _, row in df.iterrows():
                     code = str(row["종목코드"]).zfill(6)
