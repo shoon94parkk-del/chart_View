@@ -1,25 +1,26 @@
 {
   "schemaVersion": "earnings-events-v1",
-  "generatedAt": "2026-10-26T00:18:27.860213Z",
+  "generatedAt": "2026-10-27T01:28:01.118021Z",
   "sources": {
     "AAPL": {
       "status": "ok",
-      "checkedAt": "2026-10-26T00:18:27.860213Z",
-      "attemptedAt": "2026-10-26T00:18:27.860213Z",
+      "checkedAt": "2026-10-27T01:28:01.118021Z",
+      "attemptedAt": "2026-10-27T01:28:01.118021Z",
       "sourceUrl": "https://investor.apple.com/investor-relations/default.aspx",
       "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1"
     },
     "005930.KS": {
       "status": "ok",
-      "checkedAt": "2026-10-26T00:18:27.860213Z",
-      "attemptedAt": "2026-10-26T00:18:27.860213Z",
+      "checkedAt": "2026-10-27T01:28:01.118021Z",
+      "attemptedAt": "2026-10-27T01:28:01.118021Z",
       "sourceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
       "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/"
     },
     "NVDA": {
-      "status": "ok",
+      "status": "error",
       "checkedAt": "2026-10-26T00:18:27.860213Z",
-      "attemptedAt": "2026-10-26T00:18:27.860213Z",
+      "attemptedAt": "2026-10-27T01:28:01.118021Z",
+      "errorCode": "ValueError",
       "sourceUrl": "https://investor.nvidia.com/events-and-presentations/events-and-presentations/default.aspx",
       "evidenceUrl": "https://investor.nvidia.com/rss/Event.aspx?LanguageId=1"
     },
@@ -46,7 +47,7 @@
         "url": "https://investor.apple.com/investor-relations/default.aspx",
         "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1",
         "publishedAt": "2026-10-06T21:09:11Z",
-        "checkedAt": "2026-10-26T00:18:27.860213Z",
+        "checkedAt": "2026-10-27T01:28:01.118021Z",
         "contentSha256": "3f4c922c263432dc7f901fb4c7340bf013acc26349931f7dfffe9707532a22a0"
       }
     },
@@ -65,8 +66,8 @@
         "url": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
         "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
         "publishedAt": null,
-        "checkedAt": "2026-10-26T00:18:27.860213Z",
-        "contentSha256": "47426a29b2d99f0d618eb7b1cccf28a05203716b80601d29547c0230f489804c"
+        "checkedAt": "2026-10-27T01:28:01.118021Z",
+        "contentSha256": "432f4aa5d0d19b5acbcf22487760b2861c99aa18955af139e35c38e80272ddc8"
       }
     }
   ]
