@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-10-20T17:28:35+09:00",
+  "updated": "2026-10-27T23:00:00+09:00",
   "description": "실제 대화에서 제시한 일자별 TOP10 추천 원장. 전체 원문이 없던 초기 날짜는 partial로 표시하며 누락 순위를 추정하지 않는다.",
   "policy": {
     "noFabrication": true,
@@ -2137,6 +2137,250 @@
         }
       ],
       "note": "2026-10-20 신규 TOP10은 대화에서 조사 후보로 제시됐지만 전체 최종 점수 검증·히스토리 원장이 없어 임의로 재구성하지 않음. 사용자 최종 SOL 반도체전공정 ETF(475300)는 TOP10 외 PICK으로 별도 등록하며 TOP10 평균 수익률에서 제외."
+    },
+    {
+      "tradeDate": "2026-10-27",
+      "coverage": "complete",
+      "source": "2026-10-27_2300kst_manual_gpt6_screener_research",
+      "scoreType": "analyst_provisional_fundamentals70_technical30",
+      "priceQuality": {
+        "verified": 3,
+        "mismatch": 7
+      },
+      "top10": [
+        {
+          "rank": 1,
+          "code": "068270",
+          "name": "셀트리온",
+          "symbol": "068270.KS",
+          "market": "KOSPI",
+          "score": 90,
+          "scores": {
+            "companyGrowth": 35,
+            "industry": 15,
+            "valuation": 7,
+            "catalystRisk": 8,
+            "technical": 25
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 188600,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -0.74,
+          "reason": "3Q 매출 +53.1%, 영업이익 +74.3%; 고마진 신규 바이오시밀러 매출 확대",
+          "risk": "영업외손익 악화 가능성과 미국 시장 채널·약가 경쟁"
+        },
+        {
+          "rank": 2,
+          "code": "144960",
+          "name": "뉴파워프라즈마",
+          "symbol": "144960.KQ",
+          "market": "KOSDAQ",
+          "score": 87,
+          "scores": {
+            "companyGrowth": 32,
+            "industry": 14,
+            "valuation": 7,
+            "catalystRisk": 6,
+            "technical": 28
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 14580,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": 10.29,
+          "reason": "2Q 매출 +27.8%, 영업이익 +123.6%; 원격 플라즈마 전원/방산 종속사 사업 성장",
+          "risk": "반도체 매출과 방산 매출 혼동 주의, 60일 급등 및 52주 신고가 근접"
+        },
+        {
+          "rank": 3,
+          "code": "425420",
+          "name": "티에프이",
+          "symbol": "425420.KQ",
+          "market": "KOSDAQ",
+          "score": 86,
+          "scores": {
+            "companyGrowth": 34,
+            "industry": 15,
+            "valuation": 6,
+            "catalystRisk": 5,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": 76200,
+          "indicativeScreenerClose": 76200,
+          "priceBasis": "2026-10-27: 2-source matched KRX close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 23.9,
+          "reason": "테스트 보드·소켓·COK 통합 공급, SOCAMM2 신규 수요 및 2026년 상반기 실적 성장",
+          "risk": "당일 +23.9% 급등, 60일 +147.8%: 추격매수 손실 위험"
+        },
+        {
+          "rank": 4,
+          "code": "207940",
+          "name": "삼성바이오로직스",
+          "symbol": "207940.KS",
+          "market": "KOSPI",
+          "score": 85,
+          "scores": {
+            "companyGrowth": 32,
+            "industry": 15,
+            "valuation": 7,
+            "catalystRisk": 8,
+            "technical": 23
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 1374000,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -5.37,
+          "reason": "2026 3Q 매출 1.4903조원(+19%), 5공장 램프업·미국 록빌 생산 확대",
+          "risk": "동 분기 영업이익 증가 +1%에 그침; 노사·해외 CAPEX·인수집행"
+        },
+        {
+          "rank": 5,
+          "code": "018260",
+          "name": "삼성에스디에스",
+          "symbol": "018260.KS",
+          "market": "KOSPI",
+          "score": 84,
+          "scores": {
+            "companyGrowth": 31,
+            "industry": 14,
+            "valuation": 8,
+            "catalystRisk": 7,
+            "technical": 24
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 215000,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": 0.94,
+          "reason": "GPUaaS·클라우드 CSP/MSP 및 외부 고객 확대, 2027년 EPS 증가 전망",
+          "risk": "AI 클라우드 고성장에 비해 전사 영업이익 회복 지연"
+        },
+        {
+          "rank": 6,
+          "code": "036460",
+          "name": "한국가스공사",
+          "symbol": "036460.KS",
+          "market": "KOSPI",
+          "score": 81,
+          "scores": {
+            "companyGrowth": 25,
+            "industry": 11,
+            "valuation": 9,
+            "catalystRisk": 7,
+            "technical": 29
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": 36600,
+          "indicativeScreenerClose": 36600,
+          "priceBasis": "2026-10-27: 2-source matched KRX close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": 1.53,
+          "reason": "천연가스 수입·공급 안정적인 현금창출 기반, 낮은 PBR 및 단기 기술 강세",
+          "risk": "민수용 미수금·요금 규제·에너지 수입단가 리스크"
+        },
+        {
+          "rank": 7,
+          "code": "078350",
+          "name": "한양디지텍",
+          "symbol": "078350.KQ",
+          "market": "KOSDAQ",
+          "score": 79,
+          "scores": {
+            "companyGrowth": 30,
+            "industry": 14,
+            "valuation": 5,
+            "catalystRisk": 4,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 37450,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": 17.03,
+          "reason": "서버·DRAM 테스트/메모리 모듈 사업 관련 수요 확대 가능성, 우상향 기술 추세",
+          "risk": "당일 +17% 급등 및 60일 +115.9% 선반영, 신규 고객 공급 확인 필수"
+        },
+        {
+          "rank": 8,
+          "code": "134380",
+          "name": "미원화학",
+          "symbol": "134380.KS",
+          "market": "KOSPI",
+          "score": 78,
+          "scores": {
+            "companyGrowth": 23,
+            "industry": 9,
+            "valuation": 9,
+            "catalystRisk": 8,
+            "technical": 29
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": 11110,
+          "indicativeScreenerClose": 11110,
+          "priceBasis": "2026-10-27: 2-source matched KRX close",
+          "priceValidation": "verified",
+          "changePctAtRecommendation": -1.94,
+          "reason": "3년 ROE 평균 16%·부채비율 약 12.8%·현금전환율 약 126%인 재무 우량 화학소재 기업",
+          "risk": "성장률 제한과 거래량 부족으로 진입/청산 가격 충격 가능"
+        },
+        {
+          "rank": 9,
+          "code": "033780",
+          "name": "케이티앤지",
+          "symbol": "033780.KS",
+          "market": "KOSPI",
+          "score": 77,
+          "scores": {
+            "companyGrowth": 26,
+            "industry": 10,
+            "valuation": 9,
+            "catalystRisk": 6,
+            "technical": 26
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 186700,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": -1.16,
+          "reason": "배당·자사주 등 주주환원과 현금흐름 기반의 방어적 이익 구조, 장기 상승 추세",
+          "risk": "주력 담배시장 규제·성장성 제한·해외 제품 믹스 확인"
+        },
+        {
+          "rank": 10,
+          "code": "089890",
+          "name": "코세스",
+          "symbol": "089890.KQ",
+          "market": "KOSDAQ",
+          "score": 75,
+          "scores": {
+            "companyGrowth": 25,
+            "industry": 15,
+            "valuation": 4,
+            "catalystRisk": 2,
+            "technical": 29
+          },
+          "scoresStatus": "analyst_provisional_fundamental_70; screener_technical_30; price_validation_explicit",
+          "recommendedPrice": null,
+          "indicativeScreenerClose": 36250,
+          "priceBasis": "2026-10-27: screener reference close only; independent source mismatch, not confirmed",
+          "priceValidation": "mismatch",
+          "changePctAtRecommendation": 10.86,
+          "reason": "반도체 패키징 공정 자동화·레이저 공정 확장 기대, 강한 기술 모멘텀",
+          "risk": "상반기 매출 -13.1%·영업이익 -33.5%로 아직 펀더멘털 회복 미확인"
+        }
+      ],
+      "selectedPicks": [],
+      "note": "10월 27일 검증 완료 후보 155개(가격 교차검증 21/155, 불일치 134/155)를 기반으로 성장성 중심 재평가한 잠정 TOP10. 총점 중 70점은 공개 실적/산업 전망을 반영한 분석 추정, 기술 30점은 스크리너 원점수. 가격 불일치 종목은 indicativeScreenerClose만 제공하고 추천 기준가(recommendedPrice)는 null; 종가 검증 후 PICK 성과 기준가 확정. 사용자 신규 PICK은 미확정이며 TOP10 외 이전 PICK과 구분."
     }
   ],
   "performancePolicy": {
