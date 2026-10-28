@@ -1,25 +1,25 @@
 {
   "schemaVersion": "earnings-events-v1",
-  "generatedAt": "2026-10-27T01:28:01.118021Z",
+  "generatedAt": "2026-10-28T01:18:18.649204Z",
   "sources": {
     "AAPL": {
       "status": "ok",
-      "checkedAt": "2026-10-27T01:28:01.118021Z",
-      "attemptedAt": "2026-10-27T01:28:01.118021Z",
+      "checkedAt": "2026-10-28T01:18:18.649204Z",
+      "attemptedAt": "2026-10-28T01:18:18.649204Z",
       "sourceUrl": "https://investor.apple.com/investor-relations/default.aspx",
       "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1"
     },
     "005930.KS": {
       "status": "ok",
-      "checkedAt": "2026-10-27T01:28:01.118021Z",
-      "attemptedAt": "2026-10-27T01:28:01.118021Z",
+      "checkedAt": "2026-10-28T01:18:18.649204Z",
+      "attemptedAt": "2026-10-28T01:18:18.649204Z",
       "sourceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
       "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/"
     },
     "NVDA": {
       "status": "error",
       "checkedAt": "2026-10-26T00:18:27.860213Z",
-      "attemptedAt": "2026-10-27T01:28:01.118021Z",
+      "attemptedAt": "2026-10-28T01:18:18.649204Z",
       "errorCode": "ValueError",
       "sourceUrl": "https://investor.nvidia.com/events-and-presentations/events-and-presentations/default.aspx",
       "evidenceUrl": "https://investor.nvidia.com/rss/Event.aspx?LanguageId=1"
@@ -47,7 +47,7 @@
         "url": "https://investor.apple.com/investor-relations/default.aspx",
         "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1",
         "publishedAt": "2026-10-06T21:09:11Z",
-        "checkedAt": "2026-10-27T01:28:01.118021Z",
+        "checkedAt": "2026-10-28T01:18:18.649204Z",
         "contentSha256": "3f4c922c263432dc7f901fb4c7340bf013acc26349931f7dfffe9707532a22a0"
       }
     },
@@ -66,8 +66,8 @@
         "url": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
         "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
         "publishedAt": null,
-        "checkedAt": "2026-10-27T01:28:01.118021Z",
-        "contentSha256": "432f4aa5d0d19b5acbcf22487760b2861c99aa18955af139e35c38e80272ddc8"
+        "checkedAt": "2026-10-28T01:18:18.649204Z",
+        "contentSha256": "64cce322b453b53d9a44da31b62ac043d8acf68a2f4c61bcc80d81cb55817ef7"
       }
     }
   ]
