@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-30T16:04:40+09:00",
+  "generatedAt": "2026-10-30T23:31:43+09:00",
   "source": "static/data/ai_daily_rankings.json",
   "sourceUpdated": "2026-10-20T17:28:35+09:00",
   "policy": {
@@ -504,10 +504,10 @@
       "technical": {
         "tradeDate": "2026-10-30",
         "scoreAtPick": null,
-        "score": 12.0,
+        "score": 14.0,
         "previousTradeDate": "2026-10-29",
         "previousScore": 26.0,
-        "dayDelta": -14.0,
+        "dayDelta": -12.0,
         "deltaFromPick": null,
         "rsi14": 52.7,
         "ret5": 4.42,
@@ -517,7 +517,7 @@
         "signalLabel": "단기 과열 경계",
         "severity": "orange",
         "reasons": [
-          "기술점수 전일 대비 -14점"
+          "기술점수 전일 대비 -12점"
         ],
         "advisoryOnly": true
       }
@@ -933,21 +933,19 @@
       "technical": {
         "tradeDate": "2026-10-30",
         "scoreAtPick": null,
-        "score": 14.0,
+        "score": 15.0,
         "previousTradeDate": "2026-10-29",
         "previousScore": 17.0,
-        "dayDelta": -3.0,
+        "dayDelta": -2.0,
         "deltaFromPick": null,
         "rsi14": 44.0,
         "ret5": 4.41,
         "ret20": -16.2,
         "change1d": -3.02,
-        "signal": "TECH_CAUTION",
-        "signalLabel": "단기 과열 경계",
-        "severity": "orange",
-        "reasons": [
-          "기술점수 전일 대비 -3점"
-        ],
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
         "advisoryOnly": true
       }
     },
@@ -1337,21 +1335,19 @@
       "technical": {
         "tradeDate": "2026-10-30",
         "scoreAtPick": 25.0,
-        "score": 12.0,
+        "score": 13.0,
         "previousTradeDate": "2026-10-29",
         "previousScore": 15.0,
-        "dayDelta": -3.0,
-        "deltaFromPick": -13.0,
+        "dayDelta": -2.0,
+        "deltaFromPick": -12.0,
         "rsi14": 42.0,
         "ret5": 6.6,
         "ret20": -20.95,
         "change1d": -7.5,
-        "signal": "TECH_CAUTION",
-        "signalLabel": "단기 과열 경계",
-        "severity": "orange",
-        "reasons": [
-          "기술점수 전일 대비 -3점"
-        ],
+        "signal": "TECH_NORMAL",
+        "signalLabel": "기술 중립",
+        "severity": "neutral",
+        "reasons": [],
         "advisoryOnly": true
       }
     },
