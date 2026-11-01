@@ -53,6 +53,7 @@ from intelligence_news_service import router as intelligence_news_router
 from debate_archive_service import router as debate_archive_router
 from news_summary_service import router as news_summary_router_v43
 from profile_sync_service import router as profile_sync_router
+from learning_service import router as learning_router
 from dart_business_service import router as dart_business_router
 from dart_financial_service import router as dart_financial_router
 from guru_service import router as guru_router
@@ -185,6 +186,7 @@ app.include_router(intelligence_news_router)
 app.include_router(debate_archive_router)
 app.include_router(news_summary_router_v43)
 app.include_router(profile_sync_router)
+app.include_router(learning_router)
 app.include_router(dart_business_router)
 app.include_router(dart_financial_router)
 app.include_router(guru_router)

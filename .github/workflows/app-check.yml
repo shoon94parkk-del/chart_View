@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'main.py'
+      - 'learning_*.py'
       - 'guru*.py'
       - 'heatmap*.py'
       - 'market_service.py'
@@ -37,7 +38,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +47,7 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: |
-          python -m py_compile main.py market_service.py market_service/__init__.py realtime_korea.py sitecustomize.py consensus_service.py valuation_band_service.py dart_business_service.py relationship_evidence_service.py news_service_v37.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
+          python -m py_compile main.py learning_content.py learning_store.py learning_service.py market_service.py market_service/__init__.py realtime_korea.py sitecustomize.py consensus_service.py valuation_band_service.py dart_business_service.py relationship_evidence_service.py news_service_v37.py scripts/generate_macro_cache.py scripts/generate_screener.py scripts/generate_valuation_cache.py scripts/generate_consensus_cache.py
       - name: Frontend JavaScript syntax
         run: |
           for f in static/js/*.js; do
@@ -154,7 +155,7 @@ jobs:
       fail-fast: false
       matrix:
         suite: [mobile_smoke, app_release_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42, cross_device_sync_v64, share_deeplink_v68]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -190,7 +191,7 @@ jobs:
       max-parallel: 1
       matrix:
         suite: [production_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

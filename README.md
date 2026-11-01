@@ -71,3 +71,8 @@ uvicorn main:app --host 0.0.0.0 --port 8080
 Public Beta 단계입니다. 모바일에서 깨지는 화면, 데이터가 이상한 종목, 비교할 때 불편한 점을 발견하면 GitHub Issue로 알려주세요. 실제 사용 피드백을 우선해 개선합니다.
 
 운영 구조와 다음 작업은 `docs/handover.md`, 필드 정의는 `docs/data-definitions.md`, 변경 이력은 `CHANGELOG.md`에서 확인할 수 있습니다.
+
+
+### 기업 공부 API
+
+The Toss client now has a separate authenticated Investment Learning module backed by this service. Configure durable PostgreSQL before enabling cloud study records; see [setup, recovery, grading and backups](docs/INVESTMENT_LEARNING.md). Existing market APIs do not depend on learning storage.
