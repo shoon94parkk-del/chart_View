@@ -38,7 +38,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
@@ -155,7 +155,7 @@ jobs:
       fail-fast: false
       matrix:
         suite: [mobile_smoke, app_release_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42, cross_device_sync_v64, share_deeplink_v68]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -191,7 +191,7 @@ jobs:
       max-parallel: 1
       matrix:
         suite: [production_stage12, v41_my_hub, news_summary_expand_v48, prelaunch_v42]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
