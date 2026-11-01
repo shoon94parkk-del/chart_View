@@ -731,3 +731,6 @@ Verification: baseline 1207 Python tests and 43 subtests; final exact feature ve
 
 ### 2026-11-01 — Pin browser CI to supported Ubuntu
 The first learning PR CI selected Ubuntu26.04.1 via ubuntu-latest; every Playwright1.55 mobile job failed at dependency installation with `Cannot install dependencies for ubuntu26.04-x64`, before application startup. Keep the pinned browser/assertions and use Ubuntu24.04 for app regression jobs, which upstream1.55 nativeDeps explicitly supports. This is a runner setup fix, not a test waiver; the new head must run all checks.
+
+
+Post-merge verification found the separate workflow_run `Production Mobile Verification` still using ubuntu-latest in production-audit.yml. Run41318077851 failed at browser dependency installation onUbuntu26.04 before revision/UI checks. Pin that automatic production verifier to supportedUbuntu24.04 as well. No application source or assertion changes. The unrelated legacy live-news workflow was not invoked by this feature and is not changed.
