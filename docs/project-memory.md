@@ -1,5 +1,11 @@
 # Chart View project memory
 
+### 2026-11-01 — Private investment learning
+- `/api/learning` is an additive authenticated module for the Toss 기업 공부 screen. See [storage, recovery and import guide](INVESTMENT_LEARNING.md). Existing local research and public market APIs remain separate.
+- Durable PostgreSQL only in production (`LEARNING_DATABASE_URL`, then `DATABASE_URL`); no memory/Render-disk fallback. Keep recovery/session hashes private, validate identity before private request bodies, pin grading definitions, retain revisions and use transactional version/idempotency checks.
+- Manual completion, native server grading, imported scores and judgment self-assessment remain distinct. Backups omit auth/answer keys and preserve provenance on restore.
+- Chart View Render workspace confirmed. Existing free PostgreSQL expired on October21; production connection/cost selection remains a user setup requirement, not a monthly capacity reset.
+
 ### 2026-10-13 — Home readiness uses the existing cache and owner
 - Do not add another quote/provider cache, increase TTL/pool concurrency, or restamp source asOf to fix Home wait. Existing Home/market caches publish verified individual rows before gather completion.
 - Ordinary cold market readiness is primary terminal or2s; partial/empty pending no-store and null completed age. Fresh/full quote contracts still wait completion. Cancellation and late older values cannot damage the shared owner/newer data.

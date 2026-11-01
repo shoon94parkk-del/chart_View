@@ -1,0 +1,42 @@
+name: Learning PostgreSQL contract
+
+on:
+  pull_request:
+    paths: ['learning_*.py', 'tests/test_learning*.py', 'requirements.txt', '.github/workflows/learning-postgres.yml']
+  push:
+    branches: [main]
+    paths: ['learning_*.py', 'tests/test_learning*.py', 'requirements.txt', '.github/workflows/learning-postgres.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  learning-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: learning_test
+          POSTGRES_USER: chartview_test
+          POSTGRES_PASSWORD: learning_ci_only
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U chartview_test -d learning_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the existing API test dependencies
+        run: pip install -q -r requirements.txt pytest httpx
+      - name: Test actual transactions, isolation, grading, import and persistence
+        env:
+          LEARNING_TEST_DATABASE_URL: postgresql://chartview_test:learning_ci_only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/learning_test
+        run: python -m pytest tests/test_learning_content.py tests/test_learning_service.py -q
