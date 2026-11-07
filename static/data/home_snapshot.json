@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-06T21:59:00.898310+00:00",
+  "generatedAt": "2026-11-07T01:48:15.487647+00:00",
   "source": "github-actions-daily-change-v67",
   "heatmap": {
     "results": [
@@ -147,7 +147,7 @@
         "ticker": "META",
         "name": "Meta Platforms, Inc.",
         "price": 610.15,
-        "change": 0.8379,
+        "change": -3.1508,
         "marketCap": 1547088560128.0,
         "asOf": "2026-11-06T21:00:01+00:00",
         "source": "Yahoo daily close",
