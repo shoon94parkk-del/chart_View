@@ -51,6 +51,7 @@ def test_failed_fetch_uses_retry_cooldown(monkeypatch):
         raise RuntimeError("blocked")
 
     monkeypatch.setattr(service, "_fetch_latest_sync", fail)
+    monkeypatch.setattr(service, "_read_publication", lambda: (_ for _ in ()).throw(FileNotFoundError()))
     service._cache["payload"] = None
     service._cache["timestamp"] = 0.0
 
@@ -103,3 +104,84 @@ def test_catalog_marks_non_public_hbm_mcp_prices_without_fabricating_values():
     assert "mcp" in unavailable
     assert "emmc-ufs" in unavailable
     assert all("가격" in reason or "수치" in reason for reason in unavailable.values())
+
+
+def test_gddr_label_whitespace_keeps_chip_density_and_matches_public_row():
+    html = '''<div>Last Update 2026-11-10 18:10 (GMT+8)</div><table>
+    <tr><td>GDDR6  8Gb</td><td>13</td><td>11</td><td>13</td><td>11</td><td>12</td><td>0%</td></tr>
+    <tr><td>GDDR6 8GB</td><td>99</td><td>99</td><td>99</td><td>99</td><td>99</td><td>0%</td></tr>
+    </table>'''
+    group = _parse_public_page(html, service.DRAM_SOURCE_URL)["groups"][0]
+    assert [(row["key"], row["average"]) for row in group["items"]] == [("gddr6-8gb", 12)]
+
+
+def test_scheduled_publication_bypasses_provider_and_six_hour_cache(monkeypatch):
+    payload = {**_merge_group_results([], {}), "generatedAt": "2026-11-10T10:35:00Z", "history": []}
+    monkeypatch.setattr(service, "_read_publication", lambda: (payload, "github-main"))
+    monkeypatch.setattr(service, "_cache", {"payload": {"generatedAt": "2026-11-09T10:35:00Z"}, "timestamp": service.time.time()})
+    monkeypatch.setattr(service, "_fetch_latest_sync", lambda: (_ for _ in ()).throw(AssertionError("visitor must not scrape")))
+    result, hit = asyncio.run(service._latest_payload())
+    assert result["generatedAt"] == "2026-11-10T10:35:00Z"
+    assert result["publicationSource"] == "github-main"
+    assert result["collectionMode"] == "scheduled"
+    assert hit is False
+    _, hit = asyncio.run(service._latest_payload())
+    assert hit is True
+
+
+def test_restart_restores_full_published_history_without_redis(monkeypatch):
+    async def no_redis():
+        return None
+    monkeypatch.setattr(service, "_get_redis", no_redis)
+    monkeypatch.setattr(service, "_memory_history", [])
+    latest = {"groups": [], "history": [{"date": "2026-11-09", "values": {"ddr5-16gb": 0.0}}]}
+    history, storage = asyncio.run(service._load_history(latest))
+    assert next(row for row in history if row["date"] == "2026-11-09")["values"]["ddr5-16gb"] == 0.0
+    assert storage == "github-publication+memory"
+
+
+def test_empty_redis_restores_all_published_dates(monkeypatch):
+    class Redis:
+        saved = None
+        async def get(self, _key):
+            return None
+        async def set(self, _key, value, **_kwargs):
+            self.saved = service.json.loads(value)
+    redis = Redis()
+    async def get_redis():
+        return redis
+    monkeypatch.setattr(service, "_get_redis", get_redis)
+    latest = {"groups": [], "history": [
+        {"date": "2026-11-06", "values": {"ddr5-16gb": 60.0}},
+        {"date": "2026-11-09", "values": {"ddr5-16gb": 61.0}},
+    ]}
+    history, storage = asyncio.run(service._load_history(latest))
+    assert {"2026-11-06", "2026-11-09"} <= {row["date"] for row in history}
+    assert redis.saved == history
+    assert storage == "github-publication+render-key-value"
+
+
+def test_both_api_aliases_serve_scheduled_history_without_scraping(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    payload = {**_merge_group_results([], {}), "generatedAt": "2026-11-10T10:35:00Z",
+               "history": [{"date": "2026-11-09", "values": {"ddr5-16gb": 60.0}}]}
+    monkeypatch.setattr(service, "_read_publication", lambda: (payload, "github-main"))
+    monkeypatch.setattr(service, "_fetch_latest_sync", lambda: (_ for _ in ()).throw(AssertionError("visitor must not scrape")))
+    async def no_redis():
+        return None
+    monkeypatch.setattr(service, "_get_redis", no_redis)
+    monkeypatch.setattr(service, "_memory_history", [])
+    app = FastAPI()
+    app.include_router(service.router)
+    with TestClient(app) as client:
+        for route in ["/api/memory-prices", "/api/memory-spot"]:
+            response = client.get(route)
+            data = response.json()
+            assert response.status_code == 200
+            assert data["schemaVersion"] == 2
+            assert len(data["groups"]) == 5
+            assert len(data["items"]) == 3
+            assert data["collectionMode"] == "scheduled"
+            assert any(row["date"] == "2026-11-09" for row in data["history"])
+            assert "max-age=60" in response.headers["cache-control"]

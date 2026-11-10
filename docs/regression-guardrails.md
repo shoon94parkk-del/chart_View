@@ -401,3 +401,8 @@ The first Home deadline/progress production fix passed actualdata5/5 but burst s
 ### Public news collection ownership (2026-10-16)
 
 Fresh cached groups must bypass the shared executor. One public7s collection budget returns every completed group and explicit timeout/busy errors; never cache placeholders or label failed work no_news. At most64 real queued/running public owners, per normalizedsymbol/name, survive waiter cancellation/deadline until worker completion. Publicforce retries only cached errors; internalforce retains own fetched receipt even when canonical writes are generation ordered. Held-worker/cross-loop/partial/cancellation/internalforce identity tests in test_news_response_budget.py enforce this contract.
+## 2026-11-10 — Memory collection ownership
+
+- Daily memory collection belongs to `update-memory-prices.yml` and the existing TrendForce public parser. Normal price API requests read the saved publication, including its entire source-date history; they must not scrape when a valid publication exists.
+- Keep same-date idempotence, finite real prices including zero, actual group source dates and separate UTC collection times. Partial failures/regressions retain prior groups; all-source failure must not replace the stored file.
+- Preserve published history across restart/empty Redis and reject older cached/CDN publication rollback. Daily data commits skip Render; do not require a visit or daily backend deploy to collect or publish.

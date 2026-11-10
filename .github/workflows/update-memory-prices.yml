@@ -1,0 +1,67 @@
+name: Update Memory Prices
+
+on:
+  schedule:
+    # 19:35 and 20:35 KST. GitHub schedules can be delayed or omitted.
+    - cron: '35 10,11 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: memory-price-publication
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public parser and offline test dependencies
+        run: |
+          python -m pip install requests beautifulsoup4 lxml 'fastapi>=0.104.0' 'starlette<1.0.0' pytest
+      - name: Validate collector contracts without provider requests
+        run: |
+          python -m pytest -q tests/test_memory_price_publication.py tests/test_collect_memory_prices.py
+      - name: Collect public latest directly and validate durable history
+        run: |
+          python scripts/collect_memory_prices.py
+          python scripts/collect_memory_prices.py --check
+      - name: Commit and publish validated history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/data/memory_prices.json
+          if git diff --cached --quiet; then
+            echo "No memory price publication changes"
+            exit 0
+          fi
+          git commit -m "data: collect public latest memory prices [skip render]"
+          # Other data jobs may update main. Never force-push or retry forever.
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main; then
+              python scripts/collect_memory_prices.py --check
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+            else
+              git rebase --abort || true
+            fi
+          done
+          echo "Memory publication push failed after three attempts" >&2
+          exit 1
+      - name: Record collection limits
+        if: always()
+        run: |
+          echo 'Memory prices use the two existing public latest pages; provider source dates key the retained history.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Partial failures retain previous valid groups; all-source failure preserves the saved file and fails this job.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'GitHub may delay or omit schedules. Collection is independent of visits, Redis, and Render redeployment.' >> "$GITHUB_STEP_SUMMARY"
