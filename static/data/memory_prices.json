@@ -1,6 +1,6 @@
 {
-  "collectedAt": "2026-11-10T10:03:13Z",
-  "generatedAt": "2026-11-10T10:03:13Z",
+  "collectedAt": "2026-11-10T18:13:14Z",
+  "generatedAt": "2026-11-10T18:13:14Z",
   "groups": [
     {
       "family": "DRAM",
@@ -57,7 +57,7 @@
       "sourceDate": "2026-11-10",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-10T14:40:00+08:00"
+      "updatedAt": "2026-11-10T18:10:00+08:00"
     },
     {
       "family": "DRAM",
@@ -673,5 +673,5 @@
       "reason": "공개 페이지에 품목명은 있으나 현재 숫자형 현물/계약 가격이 공개되지 않음"
     }
   ],
-  "updatedAt": "2026-11-10T14:40:00+08:00"
+  "updatedAt": "2026-11-10T18:10:00+08:00"
 }
