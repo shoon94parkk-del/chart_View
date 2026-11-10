@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'main.py'
+      - 'memory_*.py'
+      - 'published_data.py'
       - 'learning_*.py'
       - 'guru*.py'
       - 'heatmap*.py'
@@ -56,6 +58,7 @@ jobs:
       - name: API and frontend regressions
         run: |
           pip install -q -r requirements.txt pytest httpx yfinance
+          python scripts/collect_memory_prices.py --check
           python -m pytest -q
           node --test tests/frontend.test.cjs
           node --test tests/live_quotes_v56_contract.cjs

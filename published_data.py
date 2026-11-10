@@ -1,4 +1,4 @@
-"""Read published screener/PICK JSON from the latest GitHub main branch.
+"""Read validated published datasets from the latest GitHub main branch.
 
 The stock screener writes validated JSON to GitHub Actions, but Render's static
 files are baked into a deployment. This bounded remote reader makes published
@@ -24,6 +24,7 @@ _ALLOWED = {
     "intelligence_debates_public.json": "debates",
     "intelligence_shadow_status.json": "shadow",
     "intelligence_investment_news.json": "events",
+    "memory_prices.json": "history",
 }
 _LOCK = threading.RLock()
 _CACHE: dict[str, tuple[float, dict, str]] = {}
@@ -34,6 +35,9 @@ def _verified_payload(filename: str, content: bytes) -> dict:
     if len(content) > 12_000_000:
         raise ValueError("published data is too large")
     data = json.loads(content.decode("utf-8"))
+    if filename == "memory_prices.json":
+        from memory_price_publication import validate_publication
+        return validate_publication(data)
     if filename == "intelligence_investment_news.json":
         from intelligence_news_service import public_news, MAX_BYTES
         if len(content) > MAX_BYTES:
@@ -56,8 +60,9 @@ def _verified_payload(filename: str, content: bytes) -> dict:
 
 
 def _publication_time(doc: dict, filename: str):
-    if filename.startswith("intelligence_"):
-        return datetime.fromisoformat(doc["generated_at"].replace("Z", "+00:00")).timestamp()
+    if filename.startswith("intelligence_") or filename == "memory_prices.json":
+        field = "generatedAt" if filename == "memory_prices.json" else "generated_at"
+        return datetime.fromisoformat(doc[field].replace("Z", "+00:00")).timestamp()
     return str(doc.get("updated") or doc.get("generatedAt") or "")
 
 
@@ -100,11 +105,12 @@ def get_published_data(filename: str) -> tuple[dict, str]:
 
     # A valid but older CDN response is also a fallback condition. Research
     # already observed in this process must not disappear on the next poll.
-    if filename.startswith("intelligence_") and existing and _publication_time(existing[1], filename) > _publication_time(selected, filename):
+    monotonic_publication = filename.startswith("intelligence_") or filename == "memory_prices.json"
+    if monotonic_publication and existing and _publication_time(existing[1], filename) > _publication_time(selected, filename):
         selected, source = existing[1], "cached-published-fallback"
 
     with _LOCK:
-        if filename.startswith("intelligence_"):
+        if monotonic_publication:
             latest = _CACHE.get(filename)
             if latest and _publication_time(latest[1], filename) > _publication_time(selected, filename):
                 selected, source = latest[1], "cached-published-fallback"

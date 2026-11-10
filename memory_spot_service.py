@@ -191,7 +191,7 @@ def _parse_public_page(html: str, source_url: str) -> dict[str, Any]:
         cells = [cell.get_text(" ", strip=True) for cell in tr.select("th,td")]
         if len(cells) < 7:
             continue
-        item_key = LABEL_TO_KEY.get(cells[0])
+        item_key = LABEL_TO_KEY.get(" ".join(cells[0].split()))
         if not item_key:
             continue
         meta = ITEM_META[item_key]
@@ -443,25 +443,45 @@ def _merge_history(history: list[dict[str, Any]], latest: dict[str, Any] | None)
 
 async def _load_history(latest: dict[str, Any] | None) -> tuple[list[dict[str, Any]], str]:
     global _memory_history
+    published_history = (latest or {}).get("history") or []
+    prefix = "github-publication+" if "history" in (latest or {}) else ""
     client = await _get_redis()
     if client is None:
-        _memory_history = _merge_history(_memory_history, latest)
-        return _memory_history, "memory"
+        _memory_history = _merge_history([*_memory_history, *published_history], latest)
+        return _memory_history, prefix + "memory"
 
     try:
         raw = await client.get(REDIS_KEY)
         stored = json.loads(raw) if raw else []
-        history = _merge_history(stored if isinstance(stored, list) else [], latest)
+        history = _merge_history([*(stored if isinstance(stored, list) else []), *published_history], latest)
         await client.set(REDIS_KEY, json.dumps(history, ensure_ascii=False), ex=60 * 60 * 24 * 400)
-        return history, "render-key-value"
+        return history, prefix + "render-key-value"
     except Exception:
-        _memory_history = _merge_history(_memory_history, latest)
-        return _memory_history, "memory"
+        _memory_history = _merge_history([*_memory_history, *published_history], latest)
+        return _memory_history, prefix + "memory"
+
+
+def _read_publication() -> tuple[dict[str, Any], str]:
+    # Reuse the bounded GitHub publication reader: a data commit becomes
+    # visible independently of site visits and Render deployments.
+    from published_data import get_published_data
+    return get_published_data("memory_prices.json")
 
 
 async def _latest_payload() -> tuple[dict[str, Any], bool]:
     now = time.time()
     cached = _cache.get("payload")
+    try:
+        published, source = await asyncio.to_thread(_read_publication)
+        payload = {**published, "collectionMode": "scheduled", "publicationSource": source}
+        cache_hit = bool(cached and cached.get("generatedAt") == payload.get("generatedAt"))
+        _cache["payload"] = payload
+        _cache["timestamp"] = now
+        return payload, cache_hit
+    except Exception:
+        # Keep the existing bounded on-demand fallback for installations which
+        # do not yet have a publication. Valid stored prices remain available.
+        pass
     if cached and now - float(_cache.get("timestamp") or 0) < CACHE_TTL_SEC:
         return cached, True
 
@@ -501,7 +521,7 @@ async def _memory_price_response():
     return JSONResponse(
         body,
         headers={
-            "Cache-Control": "public, max-age=900, stale-while-revalidate=21600",
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=3600" if latest.get("collectionMode") == "scheduled" else "public, max-age=900, stale-while-revalidate=21600",
             "X-ChartView-Source": "trendforce-public-latest",
         },
     )
