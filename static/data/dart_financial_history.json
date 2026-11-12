@@ -2085,18 +2085,18 @@
       "basis": "연결재무제표",
       "currency": "KRW",
       "interim": {
-        "operatingProfit": 1177178759130,
-        "priorOperatingProfit": 630311818493,
-        "priorRevenue": 6437202971239,
-        "quarter": 2,
-        "revenue": 8653111724948,
+        "operatingProfit": 1662868472202,
+        "priorOperatingProfit": 920071024943,
+        "priorRevenue": 9460560834373,
+        "quarter": 3,
+        "revenue": 12066982035045,
         "singleQuarter": {
-          "operatingProfit": 736113640397,
-          "revenue": 5443171479056
+          "operatingProfit": 485689713072,
+          "revenue": 3413870310097
         },
         "year": 2026
       },
-      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260812000829",
+      "interimSourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000263",
       "parserVersion": 3,
       "quality": {
         "annual": [
@@ -2201,87 +2201,87 @@
             "assets": {
               "accountId": "ifrs-full_Assets",
               "accountName": "자산총계",
-              "currentPeriod": "제 27 기 반기말",
+              "currentPeriod": "제 27 기 3분기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 26 기말",
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "BS"
             },
             "equity": {
               "accountId": "ifrs-full_Equity",
               "accountName": "자본총계",
-              "currentPeriod": "제 27 기 반기말",
+              "currentPeriod": "제 27 기 3분기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 26 기말",
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "BS"
             },
             "inventories": {
               "accountId": "ifrs-full_Inventories",
               "accountName": "재고자산",
-              "currentPeriod": "제 27 기 반기말",
+              "currentPeriod": "제 27 기 3분기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 26 기말",
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "BS"
             },
             "liabilities": {
               "accountId": "ifrs-full_Liabilities",
               "accountName": "부채총계",
-              "currentPeriod": "제 27 기 반기말",
+              "currentPeriod": "제 27 기 3분기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 26 기말",
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "BS"
             },
             "netIncome": {
               "accountId": "ifrs-full_ProfitLoss",
-              "accountName": "반기순이익",
-              "currentPeriod": "제 27 기 반기",
-              "previousInterimPeriod": "제 26 기 반기",
+              "accountName": "분기순이익",
+              "currentPeriod": "제 27 기 3분기",
+              "previousInterimPeriod": "제 26 기 3분기",
               "previousPeriod": null,
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "IS"
             },
             "operatingCashFlow": {
               "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
               "accountName": "영업활동으로 인한 현금흐름",
-              "currentPeriod": "제 27 기 반기",
-              "previousInterimPeriod": "제 26 기 반기",
+              "currentPeriod": "제 27 기 3분기",
+              "previousInterimPeriod": "제 26 기 3분기",
               "previousPeriod": null,
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "CF"
             },
             "receivables": {
               "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
               "accountName": "매출채권및기타채권",
-              "currentPeriod": "제 27 기 반기말",
+              "currentPeriod": "제 27 기 3분기말",
               "previousInterimPeriod": null,
               "previousPeriod": "제 26 기말",
-              "receiptNo": "20260812000829",
+              "receiptNo": "20261111000263",
               "statement": "BS"
             }
           },
           "balanceComparison": "previous_year_end",
           "current": {
-            "assets": 20146186796973,
-            "equity": 7528212288382,
-            "inventories": 1583621854746,
-            "liabilities": 12617974508591,
-            "netIncome": 1192625820025,
-            "operatingCashFlow": 1040210578474,
-            "receivables": 621607549365
+            "assets": 20374310770123,
+            "equity": 7432765255449,
+            "inventories": 1610709631953,
+            "liabilities": 12941545514674,
+            "netIncome": 1337680547857,
+            "operatingCashFlow": 672408573893,
+            "receivables": 738034720046
           },
           "previous": {
             "assets": 20140914014349,
             "equity": 6175006995811,
             "inventories": 3040398552060,
             "liabilities": 13965907018538,
-            "netIncome": 364202035432,
-            "operatingCashFlow": 847886487136,
+            "netIncome": 633589205196,
+            "operatingCashFlow": 507728565902,
             "receivables": 965182459216
           },
-          "quarter": 2,
+          "quarter": 3,
           "year": 2026
         }
       },
@@ -3207,6 +3207,6 @@
       "ticker": "373220.KS"
     }
   },
-  "generatedAt": "2026-10-10T10:09:08+09:00",
+  "generatedAt": "2026-11-12T11:27:47+09:00",
   "source": "OpenDART fnlttSinglAcntAll"
 }
