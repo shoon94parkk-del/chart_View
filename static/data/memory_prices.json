@@ -1,13 +1,13 @@
 {
-  "collectedAt": "2026-11-12T18:35:07Z",
-  "generatedAt": "2026-11-12T18:35:07Z",
+  "collectedAt": "2026-11-13T18:02:21Z",
+  "generatedAt": "2026-11-13T18:02:21Z",
   "groups": [
     {
       "family": "DRAM",
       "items": [
         {
-          "average": 60.233,
-          "changePct": 0.0,
+          "average": 60.267,
+          "changePct": 0.06,
           "dailyHigh": 72.5,
           "dailyLow": 45.5,
           "family": "DRAM",
@@ -21,8 +21,8 @@
           "unit": "USD"
         },
         {
-          "average": 79.75,
-          "changePct": -0.15,
+          "average": 79.5,
+          "changePct": -0.31,
           "dailyHigh": 114.0,
           "dailyLow": 45.0,
           "family": "DRAM",
@@ -36,7 +36,7 @@
           "unit": "USD"
         },
         {
-          "average": 44.714,
+          "average": 44.536,
           "changePct": -0.4,
           "dailyHigh": 82.0,
           "dailyLow": 24.8,
@@ -54,10 +54,10 @@
       "key": "dram-chip",
       "name": "DRAM 칩 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-12",
+      "sourceDate": "2026-11-13",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-12T18:10:00+08:00"
+      "updatedAt": "2026-11-13T18:10:00+08:00"
     },
     {
       "family": "DRAM",
@@ -625,13 +625,25 @@
         "ddr4-8gb": 44.714,
         "ddr5-16gb": 60.233
       }
+    },
+    {
+      "date": "2026-11-13",
+      "provider": "TrendForce",
+      "sourceUrls": [
+        "https://www.trendforce.com/price/dram/module_spot"
+      ],
+      "values": {
+        "ddr4-16gb": 79.5,
+        "ddr4-8gb": 44.536,
+        "ddr5-16gb": 60.267
+      }
     }
   ],
   "historyBasis": "Chart View accumulation of publicly visible latest prices; no paid historical backfill",
   "items": [
     {
-      "average": 60.233,
-      "changePct": 0.0,
+      "average": 60.267,
+      "changePct": 0.06,
       "dailyHigh": 72.5,
       "dailyLow": 45.5,
       "family": "DRAM",
@@ -645,8 +657,8 @@
       "unit": "USD"
     },
     {
-      "average": 79.75,
-      "changePct": -0.15,
+      "average": 79.5,
+      "changePct": -0.31,
       "dailyHigh": 114.0,
       "dailyLow": 45.0,
       "family": "DRAM",
@@ -660,7 +672,7 @@
       "unit": "USD"
     },
     {
-      "average": 44.714,
+      "average": 44.536,
       "changePct": -0.4,
       "dailyHigh": 82.0,
       "dailyLow": 24.8,
@@ -677,7 +689,7 @@
   ],
   "provider": "TrendForce",
   "schemaVersion": 2,
-  "sourceDate": "2026-11-12",
+  "sourceDate": "2026-11-13",
   "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
   "stale": false,
   "unavailablePriceSeries": [
@@ -697,5 +709,5 @@
       "reason": "공개 페이지에 품목명은 있으나 현재 숫자형 현물/계약 가격이 공개되지 않음"
     }
   ],
-  "updatedAt": "2026-11-12T18:10:00+08:00"
+  "updatedAt": "2026-11-13T18:10:00+08:00"
 }
