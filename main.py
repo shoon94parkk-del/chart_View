@@ -222,6 +222,9 @@ app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 async def cache_static_assets(request: Request, call_next):
     """Cache versioned code immutably while keeping mutable data refreshable."""
     response = await call_next(request)
+    # 보안 헤더: 응답 본문/캐시 동작을 바꾸지 않는 최소 범위만 추가한다.
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     if request.url.path.startswith("/static/"):
         if request.url.path.startswith("/static/data/"):
             response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=86400"
