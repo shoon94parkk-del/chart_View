@@ -82,7 +82,7 @@
         button.appendChild(basis);
       }
       const quote = quotes[symbol] || {};
-      const tradeDate = shortDate(quote.tradeDate);
+      const tradeDate = shortDate(quote.tradeDate || quote.quoteAsOf);
       const refreshed = quote.updatedAt ? new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(Number(quote.updatedAt))) : '';
       const text = [tradeDate ? `${tradeDate} 거래` : '기준일 확인 중', refreshed ? `${refreshed} KST 조회` : '', '1달'].filter(Boolean).join(' · ');
       if (basis.textContent !== text) basis.textContent = text;
