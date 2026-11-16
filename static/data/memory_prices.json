@@ -1,52 +1,52 @@
 {
-  "collectedAt": "2026-11-15T17:23:25Z",
-  "generatedAt": "2026-11-15T17:23:25Z",
+  "collectedAt": "2026-11-16T20:40:20Z",
+  "generatedAt": "2026-11-16T20:40:20Z",
   "groups": [
     {
       "family": "DRAM",
       "items": [
         {
-          "average": 60.267,
-          "changePct": 0.06,
-          "dailyHigh": 72.5,
-          "dailyLow": 45.5,
+          "average": 60.333,
+          "changePct": 0.11,
+          "dailyHigh": 72.0,
+          "dailyLow": 45.3,
           "family": "DRAM",
           "groupKey": "dram-chip",
           "groupName": "DRAM 칩 현물",
           "key": "ddr5-16gb",
           "name": "DDR5 16Gb (2Gx8) 4800/5600",
-          "sessionHigh": 72.5,
-          "sessionLow": 45.5,
+          "sessionHigh": 72.0,
+          "sessionLow": 45.3,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 79.5,
-          "changePct": -0.31,
-          "dailyHigh": 114.0,
-          "dailyLow": 45.0,
+          "average": 79.375,
+          "changePct": -0.16,
+          "dailyHigh": 112.0,
+          "dailyLow": 44.9,
           "family": "DRAM",
           "groupKey": "dram-chip",
           "groupName": "DRAM 칩 현물",
           "key": "ddr4-16gb",
           "name": "DDR4 16Gb (2Gx8) 3200",
-          "sessionHigh": 114.0,
-          "sessionLow": 45.0,
+          "sessionHigh": 112.0,
+          "sessionLow": 44.9,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 44.536,
+          "average": 44.357,
           "changePct": -0.4,
-          "dailyHigh": 82.0,
-          "dailyLow": 24.8,
+          "dailyHigh": 81.0,
+          "dailyLow": 24.7,
           "family": "DRAM",
           "groupKey": "dram-chip",
           "groupName": "DRAM 칩 현물",
           "key": "ddr4-8gb",
           "name": "DDR4 8Gb (1Gx8) 3200",
-          "sessionHigh": 82.0,
-          "sessionLow": 24.8,
+          "sessionHigh": 81.0,
+          "sessionLow": 24.7,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         }
@@ -54,47 +54,47 @@
       "key": "dram-chip",
       "name": "DRAM 칩 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-13",
+      "sourceDate": "2026-11-16",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-13T18:10:00+08:00"
+      "updatedAt": "2026-11-16T18:10:00+08:00"
     },
     {
       "family": "DRAM",
       "items": [
         {
-          "average": 243.333,
+          "average": 245.0,
           "changePct": 0.69,
           "dailyHigh": 278.0,
-          "dailyLow": 225.0,
+          "dailyLow": 228.0,
           "family": "DRAM",
           "groupKey": "dram-module",
           "groupName": "DRAM 모듈 현물",
           "key": "ddr5-udimm-16gb",
           "name": "DDR5 UDIMM 16GB 4800/5600",
           "sessionHigh": 278.0,
-          "sessionLow": 225.0,
+          "sessionLow": 228.0,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 2025.0,
-          "changePct": -6.47,
+          "average": 1950.0,
+          "changePct": -3.7,
           "dailyHigh": 2120.0,
-          "dailyLow": 1930.0,
+          "dailyLow": 1830.0,
           "family": "DRAM",
           "groupKey": "dram-module",
           "groupName": "DRAM 모듈 현물",
           "key": "ddr5-rdimm-32gb",
           "name": "DDR5 RDIMM 32GB 4800/5600",
           "sessionHigh": 2120.0,
-          "sessionLow": 1930.0,
+          "sessionLow": 1830.0,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 164.2,
-          "changePct": 0.0,
+          "average": 164.158,
+          "changePct": -0.03,
           "dailyHigh": 185.0,
           "dailyLow": 156.0,
           "family": "DRAM",
@@ -111,32 +111,32 @@
       "key": "dram-module",
       "name": "DRAM 모듈 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-02",
+      "sourceDate": "2026-11-09",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-02T14:40:00+08:00"
+      "updatedAt": "2026-11-09T14:40:00+08:00"
     },
     {
       "family": "DRAM",
       "items": [
         {
           "average": 12.336,
-          "changePct": 0.37,
+          "changePct": 0.0,
           "dailyHigh": 17.5,
-          "dailyLow": 10.2,
+          "dailyLow": 10.3,
           "family": "DRAM",
           "groupKey": "gddr",
           "groupName": "GDDR 현물",
           "key": "gddr5-8gb",
           "name": "GDDR5 8Gb",
           "sessionHigh": 17.5,
-          "sessionLow": 10.2,
+          "sessionLow": 10.3,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 12.515,
-          "changePct": 0.34,
+          "average": 12.538,
+          "changePct": 0.18,
           "dailyHigh": 18.0,
           "dailyLow": 10.3,
           "family": "DRAM",
@@ -153,71 +153,71 @@
       "key": "gddr",
       "name": "GDDR 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-02",
+      "sourceDate": "2026-11-09",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-02T14:40:00+08:00"
+      "updatedAt": "2026-11-09T14:40:00+08:00"
     },
     {
       "family": "NAND",
       "items": [
         {
-          "average": 4.455,
-          "changePct": 1.07,
-          "dailyHigh": 4.6,
-          "dailyLow": 4.3,
+          "average": 4.5,
+          "changePct": 1.01,
+          "dailyHigh": 4.7,
+          "dailyLow": 4.35,
           "family": "NAND",
           "groupKey": "nand-chip",
           "groupName": "NAND 칩 현물",
           "key": "nand-slc-2gb",
           "name": "SLC 2Gb 256MBx8",
-          "sessionHigh": 4.6,
-          "sessionLow": 4.3,
+          "sessionHigh": 4.7,
+          "sessionLow": 4.35,
           "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
           "unit": "USD"
         },
         {
-          "average": 3.288,
-          "changePct": -0.45,
-          "dailyHigh": 3.5,
+          "average": 3.325,
+          "changePct": 1.13,
+          "dailyHigh": 3.6,
           "dailyLow": 2.95,
           "family": "NAND",
           "groupKey": "nand-chip",
           "groupName": "NAND 칩 현물",
           "key": "nand-slc-1gb",
           "name": "SLC 1Gb 128MBx8",
-          "sessionHigh": 3.5,
+          "sessionHigh": 3.6,
           "sessionLow": 2.95,
           "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
           "unit": "USD"
         },
         {
-          "average": 43.989,
-          "changePct": 1.33,
+          "average": 44.174,
+          "changePct": 0.42,
           "dailyHigh": 56.0,
-          "dailyLow": 41.0,
+          "dailyLow": 41.5,
           "family": "NAND",
           "groupKey": "nand-chip",
           "groupName": "NAND 칩 현물",
           "key": "nand-mlc-64gb",
           "name": "MLC 64Gb 8GBx8",
           "sessionHigh": 56.0,
-          "sessionLow": 41.0,
+          "sessionLow": 41.5,
           "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
           "unit": "USD"
         },
         {
-          "average": 20.533,
-          "changePct": 1.31,
-          "dailyHigh": 22.5,
-          "dailyLow": 19.8,
+          "average": 20.583,
+          "changePct": 0.24,
+          "dailyHigh": 22.6,
+          "dailyLow": 20.0,
           "family": "NAND",
           "groupKey": "nand-chip",
           "groupName": "NAND 칩 현물",
           "key": "nand-mlc-32gb",
           "name": "MLC 32Gb 4GBx8",
-          "sessionHigh": 22.5,
-          "sessionLow": 19.8,
+          "sessionHigh": 22.6,
+          "sessionLow": 20.0,
           "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
           "unit": "USD"
         }
@@ -225,32 +225,32 @@
       "key": "nand-chip",
       "name": "NAND 칩 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-02",
+      "sourceDate": "2026-11-09",
       "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
       "stale": false,
-      "updatedAt": "2026-11-02T14:40:00+08:00"
+      "updatedAt": "2026-11-09T14:40:00+08:00"
     },
     {
       "family": "NAND",
       "items": [
         {
-          "average": 16.152,
-          "changePct": -4.33,
-          "dailyHigh": 21.0,
-          "dailyLow": 13.6,
+          "average": 14.267,
+          "changePct": -11.67,
+          "dailyHigh": 19.0,
+          "dailyLow": 12.0,
           "family": "NAND",
           "groupKey": "nand-wafer",
           "groupName": "NAND TLC 웨이퍼 현물",
           "key": "nand-tlc-512gb",
           "name": "512Gb TLC",
-          "sessionHigh": 21.0,
-          "sessionLow": 13.6,
+          "sessionHigh": 19.0,
+          "sessionLow": 12.0,
           "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
           "unit": "USD"
         },
         {
-          "average": 18.365,
-          "changePct": 0.0,
+          "average": 18.142,
+          "changePct": -1.21,
           "dailyHigh": 20.0,
           "dailyLow": 16.8,
           "family": "NAND",
@@ -282,10 +282,10 @@
       "key": "nand-wafer",
       "name": "NAND TLC 웨이퍼 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-02",
+      "sourceDate": "2026-11-09",
       "sourceUrl": "https://www.trendforce.com/price/flash/wafer_contract",
       "stale": false,
-      "updatedAt": "2026-11-02T14:40:00+08:00"
+      "updatedAt": "2026-11-09T14:40:00+08:00"
     }
   ],
   "history": [
@@ -582,12 +582,25 @@
       "date": "2026-11-09",
       "provider": "TrendForce",
       "sourceUrls": [
-        "https://www.trendforce.com/price/dram/module_spot"
+        "https://www.trendforce.com/price/dram/module_spot",
+        "https://www.trendforce.com/price/flash/wafer_contract"
       ],
       "values": {
         "ddr4-16gb": 80.236,
         "ddr4-8gb": 45.214,
-        "ddr5-16gb": 60.167
+        "ddr4-udimm-16gb": 164.158,
+        "ddr5-16gb": 60.167,
+        "ddr5-rdimm-32gb": 1950.0,
+        "ddr5-udimm-16gb": 245.0,
+        "gddr5-8gb": 12.336,
+        "gddr6-8gb": 12.538,
+        "nand-mlc-32gb": 20.583,
+        "nand-mlc-64gb": 44.174,
+        "nand-slc-1gb": 3.325,
+        "nand-slc-2gb": 4.5,
+        "nand-tlc-128gb": 9.967,
+        "nand-tlc-256gb": 18.142,
+        "nand-tlc-512gb": 14.267
       }
     },
     {
@@ -637,59 +650,71 @@
         "ddr4-8gb": 44.536,
         "ddr5-16gb": 60.267
       }
+    },
+    {
+      "date": "2026-11-16",
+      "provider": "TrendForce",
+      "sourceUrls": [
+        "https://www.trendforce.com/price/dram/module_spot"
+      ],
+      "values": {
+        "ddr4-16gb": 79.375,
+        "ddr4-8gb": 44.357,
+        "ddr5-16gb": 60.333
+      }
     }
   ],
   "historyBasis": "Chart View accumulation of publicly visible latest prices; no paid historical backfill",
   "items": [
     {
-      "average": 60.267,
-      "changePct": 0.06,
-      "dailyHigh": 72.5,
-      "dailyLow": 45.5,
+      "average": 60.333,
+      "changePct": 0.11,
+      "dailyHigh": 72.0,
+      "dailyLow": 45.3,
       "family": "DRAM",
       "groupKey": "dram-chip",
       "groupName": "DRAM 칩 현물",
       "key": "ddr5-16gb",
       "name": "DDR5 16Gb (2Gx8) 4800/5600",
-      "sessionHigh": 72.5,
-      "sessionLow": 45.5,
+      "sessionHigh": 72.0,
+      "sessionLow": 45.3,
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "unit": "USD"
     },
     {
-      "average": 79.5,
-      "changePct": -0.31,
-      "dailyHigh": 114.0,
-      "dailyLow": 45.0,
+      "average": 79.375,
+      "changePct": -0.16,
+      "dailyHigh": 112.0,
+      "dailyLow": 44.9,
       "family": "DRAM",
       "groupKey": "dram-chip",
       "groupName": "DRAM 칩 현물",
       "key": "ddr4-16gb",
       "name": "DDR4 16Gb (2Gx8) 3200",
-      "sessionHigh": 114.0,
-      "sessionLow": 45.0,
+      "sessionHigh": 112.0,
+      "sessionLow": 44.9,
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "unit": "USD"
     },
     {
-      "average": 44.536,
+      "average": 44.357,
       "changePct": -0.4,
-      "dailyHigh": 82.0,
-      "dailyLow": 24.8,
+      "dailyHigh": 81.0,
+      "dailyLow": 24.7,
       "family": "DRAM",
       "groupKey": "dram-chip",
       "groupName": "DRAM 칩 현물",
       "key": "ddr4-8gb",
       "name": "DDR4 8Gb (1Gx8) 3200",
-      "sessionHigh": 82.0,
-      "sessionLow": 24.8,
+      "sessionHigh": 81.0,
+      "sessionLow": 24.7,
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "unit": "USD"
     }
   ],
   "provider": "TrendForce",
   "schemaVersion": 2,
-  "sourceDate": "2026-11-13",
+  "sourceDate": "2026-11-16",
   "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
   "stale": false,
   "unavailablePriceSeries": [
@@ -709,5 +734,5 @@
       "reason": "공개 페이지에 품목명은 있으나 현재 숫자형 현물/계약 가격이 공개되지 않음"
     }
   ],
-  "updatedAt": "2026-11-13T18:10:00+08:00"
+  "updatedAt": "2026-11-16T18:10:00+08:00"
 }
