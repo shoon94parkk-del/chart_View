@@ -11,24 +11,6 @@
       "quarters": [
         {
           "year": 2024,
-          "quarter": 3,
-          "revenue": 26519877000000,
-          "operatingProfit": 2881280000000,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002124"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 25545392000000,
-          "revenueGrowth": 3.814719304366121,
-          "priorOperatingProfit": 2865097000000,
-          "profitGrowth": 0.5648325344656646,
-          "margin": 10.864605442928713
-        },
-        {
-          "year": 2024,
           "quarter": 4,
           "revenue": 27148117000000,
           "operatingProfit": 2716417000000,
@@ -154,14 +136,32 @@
           "priorOperatingProfit": 2764766000000,
           "profitGrowth": -4.926529044410987,
           "margin": 7.956396234470657
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 31597447000000,
+          "operatingProfit": 1818286000000,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001529"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 28686037000000,
+          "revenueGrowth": 10.149223470638336,
+          "priorOperatingProfit": 1462251000000,
+          "profitGrowth": 24.34841897868423,
+          "margin": 5.7545345356540984
         }
       ],
       "ttm": {
-        "revenue": 119312710000000,
-        "operatingProfit": 8138444000000,
-        "margin": 6.821103971236593,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 122224120000000,
+        "operatingProfit": 8494479000000,
+        "margin": 6.94992035941842,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -1222,12 +1222,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001529",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 94136383000000,
+          "operatingProfit": 6651936000000,
+          "priorRevenue": 86053182000000,
+          "priorOperatingProfit": 7235605000000,
+          "singleQuarter": {
+            "revenue": 31597447000000,
+            "operatingProfit": 1818286000000
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 5443487000000,
+              "operatingCashFlow": 7927699000000,
+              "inventories": 15076538000000,
+              "receivables": 3921737000000,
+              "assets": 99599498000000,
+              "liabilities": 37327996000000,
+              "equity": 62271502000000
+            },
+            "previous": {
+              "netIncome": 6083272000000,
+              "operatingCashFlow": 8629648000000,
+              "inventories": 14666201000000,
+              "receivables": 3551824000000,
+              "assets": 98979055000000,
+              "liabilities": 37788591000000,
+              "equity": 61190464000000
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "당기순이익",
+                "statement": "IS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 82 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 82 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기말",
+                "previousPeriod": "제 82 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기말",
+                "previousPeriod": "제 82 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기말",
+                "previousPeriod": "제 82 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기말",
+                "previousPeriod": "제 82 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001529",
+                "currentPeriod": "제 83 기 3분기말",
+                "previousPeriod": "제 82 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "000660": {
@@ -1238,24 +1341,6 @@
       "state": "ready",
       "available": true,
       "quarters": [
-        {
-          "year": 2024,
-          "quarter": 3,
-          "revenue": 17573069000000,
-          "operatingProfit": 7029958000000,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114001712"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 9066171000000,
-          "revenueGrowth": 93.83121055184156,
-          "priorOperatingProfit": -1791961000000,
-          "profitGrowth": null,
-          "margin": 40.004156359939174
-        },
         {
           "year": 2024,
           "quarter": 4,
@@ -1383,14 +1468,32 @@
           "priorOperatingProfit": 9212851000000,
           "profitGrowth": 557.1538821153191,
           "margin": 76.32824654086185
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 104615483000000,
+          "operatingProfit": 83333818000000,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001715"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 24448929000000,
+          "revenueGrowth": 327.893929423248,
+          "priorOperatingProfit": 11383390000000,
+          "profitGrowth": 632.0650351081707,
+          "margin": 79.65725111645281
         }
       ],
       "ttm": {
-        "revenue": 189170615000000,
-        "operatingProfit": 128705855000000,
-        "margin": 68.03691736161032,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 269337169000000,
+        "operatingProfit": 200656283000000,
+        "margin": 74.50003419320116,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -2451,12 +2554,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001715",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 236510516000000,
+          "operatingProfit": 181486709000000,
+          "priorRevenue": 64320022000000,
+          "priorOperatingProfit": 28036745000000,
+          "singleQuarter": {
+            "revenue": 104615483000000,
+            "operatingProfit": 83333818000000
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 174044095000000,
+              "operatingCashFlow": 145634314000000,
+              "inventories": 19355772000000,
+              "receivables": 59115844000000,
+              "assets": 391800038000000,
+              "liabilities": 82712457000000,
+              "equity": 309087581000000
+            },
+            "previous": {
+              "netIncome": 27701949000000,
+              "operatingCashFlow": 32511390000000,
+              "inventories": 14289390000000,
+              "receivables": 18199078000000,
+              "assets": 176107659000000,
+              "liabilities": 55440908000000,
+              "equity": 120666751000000
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "분기순이익",
+                "statement": "CIS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 78 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동 현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 78 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기말",
+                "previousPeriod": "제 78 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기말",
+                "previousPeriod": "제 78 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기말",
+                "previousPeriod": "제 78 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기말",
+                "previousPeriod": "제 78 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001715",
+                "currentPeriod": "제 79 기 3분기말",
+                "previousPeriod": "제 78 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "005380": {
@@ -2467,24 +2673,6 @@
       "state": "ready",
       "available": true,
       "quarters": [
-        {
-          "year": 2024,
-          "quarter": 3,
-          "revenue": 42928332000000,
-          "operatingProfit": 3580900000000,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002593"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 41002663000000,
-          "revenueGrowth": 4.696448618471449,
-          "priorOperatingProfit": 3821799000000,
-          "profitGrowth": -6.303288058843492,
-          "margin": 8.341577306101714
-        },
         {
           "year": 2024,
           "quarter": 4,
@@ -2612,14 +2800,32 @@
           "priorOperatingProfit": 3601597000000,
           "profitGrowth": -20.843781244820004,
           "margin": 5.792683125062176
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 45110247000000,
+          "operatingProfit": 2677232000000,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001437"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 46721448000000,
+          "revenueGrowth": -3.4485253967299956,
+          "priorOperatingProfit": 2537266000000,
+          "profitGrowth": 5.516410183244491,
+          "margin": 5.934864422267517
         }
       ],
       "ttm": {
-        "revenue": 188714248000000,
-        "operatingProfit": 9598219000000,
-        "margin": 5.086112522886984,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 187103047000000,
+        "operatingProfit": 9738185000000,
+        "margin": 5.204717483836594,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -3662,12 +3868,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001437",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 140264461000000,
+          "operatingProfit": 8042806000000,
+          "priorRevenue": 139415886000000,
+          "priorOperatingProfit": 9772472000000,
+          "singleQuarter": {
+            "revenue": 45110247000000,
+            "operatingProfit": 2677232000000
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 7404634000000,
+              "operatingCashFlow": 2711721000000,
+              "inventories": 20755721000000,
+              "receivables": 5835228000000,
+              "assets": 365409338000000,
+              "liabilities": 236613940000000,
+              "equity": 128795398000000
+            },
+            "previous": {
+              "netIncome": 9180747000000,
+              "operatingCashFlow": -3900860000000,
+              "inventories": 20661752000000,
+              "receivables": 8600419000000,
+              "assets": 368844849000000,
+              "liabilities": 241196612000000,
+              "equity": 127648237000000
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "연결분기순이익",
+                "statement": "IS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 58 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동으로 인한 현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 58 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기말",
+                "previousPeriod": "제 58 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기말",
+                "previousPeriod": "제 58 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기말",
+                "previousPeriod": "제 58 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기말",
+                "previousPeriod": "제 58 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001437",
+                "currentPeriod": "제 59 기 3분기말",
+                "previousPeriod": "제 58 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "005490": {
@@ -5012,24 +5321,6 @@
       "quarters": [
         {
           "year": 2024,
-          "quarter": 3,
-          "revenue": 79098731000000,
-          "operatingProfit": 9183371000000,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002642"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 67404652000000,
-          "revenueGrowth": 17.349068132567467,
-          "priorOperatingProfit": 2433534000000,
-          "profitGrowth": 277.3676883084436,
-          "margin": 11.61001053228022
-        },
-        {
-          "year": 2024,
           "quarter": 4,
           "revenue": 75788269000000,
           "operatingProfit": 6492703000000,
@@ -5155,14 +5446,32 @@
           "priorOperatingProfit": 4676057000000,
           "profitGrowth": 1813.8434796667361,
           "margin": 52.182325694650835
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 195253209000000,
+          "operatingProfit": 107440482000000,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001482"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 86061747000000,
+          "revenueGrowth": 126.87572098670041,
+          "priorOperatingProfit": 12166062000000,
+          "profitGrowth": 783.1163444670921,
+          "margin": 55.026231092570676
         }
       ],
       "ttm": {
-        "revenue": 485272032000000,
-        "operatingProfit": 178964931000000,
-        "margin": 36.87930051571569,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 594463494000000,
+        "operatingProfit": 274239351000000,
+        "margin": 46.13224424509404,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -6223,12 +6532,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001482",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 500626123000000,
+          "operatingProfit": 254165691000000,
+          "priorRevenue": 239768567000000,
+          "priorOperatingProfit": 23527391000000,
+          "singleQuarter": {
+            "revenue": 195253209000000,
+            "operatingProfit": 107440482000000
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 193985871000000,
+              "operatingCashFlow": 243942116000000,
+              "inventories": 71995171000000,
+              "receivables": 106097351000000,
+              "assets": 791841881000000,
+              "liabilities": 177730304000000,
+              "equity": 614111577000000
+            },
+            "previous": {
+              "netIncome": 25565060000000,
+              "operatingCashFlow": 56515496000000,
+              "inventories": 52636828000000,
+              "receivables": 51127642000000,
+              "assets": 566942110000000,
+              "liabilities": 130621773000000,
+              "equity": 436320337000000
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "분기순이익",
+                "statement": "IS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 57 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 57 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기말",
+                "previousPeriod": "제 57 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기말",
+                "previousPeriod": "제 57 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기말",
+                "previousPeriod": "제 57 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기말",
+                "previousPeriod": "제 57 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001482",
+                "currentPeriod": "제 58 기 3분기말",
+                "previousPeriod": "제 57 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "006400": {
@@ -6239,24 +6651,6 @@
       "state": "ready",
       "available": true,
       "quarters": [
-        {
-          "year": 2024,
-          "quarter": 3,
-          "revenue": 3935667456781,
-          "operatingProfit": 129909002460,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002265"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 5948108273682,
-          "revenueGrowth": -33.83329159970483,
-          "priorOperatingProfit": 496003670489,
-          "profitGrowth": -73.80886267798677,
-          "margin": 3.300812476830884
-        },
         {
           "year": 2024,
           "quarter": 4,
@@ -6384,14 +6778,32 @@
           "priorOperatingProfit": -397836794835,
           "profitGrowth": null,
           "margin": 5.406870779652186
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 4685585759008,
+          "operatingProfit": 407780328153,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116002248"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 3051820635180,
+          "revenueGrowth": 53.534113538479254,
+          "priorOperatingProfit": -591288808607,
+          "profitGrowth": null,
+          "margin": 8.702867669619442
         }
       ],
       "ttm": {
-        "revenue": 14255668189253,
-        "operatingProfit": -842261393300,
-        "margin": -5.908256155505642,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 15889433313081,
+        "operatingProfit": 156807743460,
+        "margin": 0.9868680674150146,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -7452,12 +7864,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116002248",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 12218884325283,
+          "operatingProfit": 455974141571,
+          "priorRevenue": 9603348591210,
+          "priorOperatingProfit": -1423194390649,
+          "singleQuarter": {
+            "revenue": 4685585759008,
+            "operatingProfit": 407780328153
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 1175719513780,
+              "operatingCashFlow": 772777281551,
+              "inventories": 3745280891857,
+              "receivables": 3378024803747,
+              "assets": 41506802303734,
+              "liabilities": 16581587990954,
+              "equity": 24925214312780
+            },
+            "previous": {
+              "netIncome": -377025924948,
+              "operatingCashFlow": 460211317221,
+              "inventories": 2936331872805,
+              "receivables": 3078592799490,
+              "assets": 42255338580919,
+              "liabilities": 18685225421089,
+              "equity": 23570113159830
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "분기순손익",
+                "statement": "CIS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 56 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 56 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기말",
+                "previousPeriod": "제 56 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+                "accountName": "매출채권및기타채권",
+                "statement": "BS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기말",
+                "previousPeriod": "제 56 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자 산 총 계",
+                "statement": "BS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기말",
+                "previousPeriod": "제 56 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부 채 총 계",
+                "statement": "BS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기말",
+                "previousPeriod": "제 56 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116002248",
+                "currentPeriod": "제 57 기 3분기말",
+                "previousPeriod": "제 56 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "033500": {
@@ -12798,24 +13313,6 @@
       "quarters": [
         {
           "year": 2024,
-          "quarter": 3,
-          "revenue": 22176370000000,
-          "operatingProfit": 751880000000,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114001247"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 20709340000000,
-          "revenueGrowth": 7.08390513652295,
-          "priorOperatingProfit": 996660000000,
-          "profitGrowth": -24.560030501876263,
-          "margin": 3.390455696761914
-        },
-        {
-          "year": 2024,
           "quarter": 4,
           "revenue": 22761475000000,
           "operatingProfit": 135331000000,
@@ -12941,14 +13438,32 @@
           "priorOperatingProfit": 639404000000,
           "profitGrowth": 146.96154543919025,
           "margin": 6.627427951134007
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 23824080000000,
+          "operatingProfit": 781858000000,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116000748"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 21873774000000,
+          "revenueGrowth": 8.916184285345551,
+          "priorOperatingProfit": 688918000000,
+          "profitGrowth": 13.490720230854759,
+          "margin": 3.2817972404390856
         }
       ],
       "ttm": {
-        "revenue": 93279623000000,
-        "operatingProfit": 3832734000000,
-        "margin": 4.108865234157304,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 95229929000000,
+        "operatingProfit": 3925674000000,
+        "margin": 4.122311169632396,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -14009,12 +14524,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116000748",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 71377775000000,
+          "operatingProfit": 4034663000000,
+          "priorRevenue": 65348728000000,
+          "priorOperatingProfit": 2587381000000,
+          "singleQuarter": {
+            "revenue": 23824080000000,
+            "operatingProfit": 781858000000
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 2494817000000,
+              "operatingCashFlow": 4173366000000,
+              "inventories": 12449285000000,
+              "receivables": 12695656000000,
+              "assets": 70749071000000,
+              "liabilities": 41186627000000,
+              "equity": 29562444000000
+            },
+            "previous": {
+              "netIncome": 1946335000000,
+              "operatingCashFlow": 3670350000000,
+              "inventories": 11084962000000,
+              "receivables": 11160680000000,
+              "assets": 68620167000000,
+              "liabilities": 40068142000000,
+              "equity": 28552025000000
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "분기순이익(손실)",
+                "statement": "IS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 24 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동으로 인한 현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 24 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기말",
+                "previousPeriod": "제 24 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기말",
+                "previousPeriod": "제 24 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기말",
+                "previousPeriod": "제 24 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기말",
+                "previousPeriod": "제 24 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116000748",
+                "currentPeriod": "제 25 기 3분기말",
+                "previousPeriod": "제 24 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "068270": {
@@ -14025,24 +14643,6 @@
       "state": "ready",
       "available": true,
       "quarters": [
-        {
-          "year": 2024,
-          "quarter": 3,
-          "revenue": 881933317829,
-          "operatingProfit": 207686368229,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002862"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 672291586724,
-          "revenueGrowth": 31.183155530260343,
-          "priorOperatingProfit": 267629330730,
-          "profitGrowth": -22.397755260044327,
-          "margin": 23.54898766499133
-        },
         {
           "year": 2024,
           "quarter": 4,
@@ -14170,14 +14770,32 @@
           "priorOperatingProfit": 242466845608,
           "profitGrowth": 86.33128591461887,
           "margin": 32.416870703075986
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 1575548262974,
+          "operatingProfit": 525283251056,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001228"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 1028969076475,
+          "revenueGrowth": 53.11910717195201,
+          "priorOperatingProfit": 301411957351,
+          "profitGrowth": 74.27419126716914,
+          "margin": 33.33971185779336
         }
       ],
       "ttm": {
-        "revenue": 4897804797074,
-        "operatingProfit": 1550244921400,
-        "margin": 31.651831496553978,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 5444383983573,
+        "operatingProfit": 1774116215105,
+        "margin": 32.58616990384826,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -15238,12 +15856,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001228",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 4114226975876,
+          "operatingProfit": 1298944476809,
+          "priorRevenue": 2832338101184,
+          "priorOperatingProfit": 693299607299,
+          "singleQuarter": {
+            "revenue": 1575548262974,
+            "operatingProfit": 525283251056
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 799516119644,
+              "operatingCashFlow": 868407328668,
+              "inventories": 2694998132317,
+              "receivables": 2290818389702,
+              "assets": 22914706065797,
+              "liabilities": 5447037440810,
+              "equity": 17467668624987
+            },
+            "previous": {
+              "netIncome": 503555876965,
+              "operatingCashFlow": 506172476965,
+              "inventories": 2803460062651,
+              "receivables": 1790421768686,
+              "assets": 22334900189800,
+              "liabilities": 4982370370686,
+              "equity": 17352529819114
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "분기순이익",
+                "statement": "IS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 35 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동으로 인한 현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 35 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기말",
+                "previousPeriod": "제 35 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_CurrentTradeReceivables",
+                "accountName": "매출채권",
+                "statement": "BS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기말",
+                "previousPeriod": "제 35 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기말",
+                "previousPeriod": "제 35 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기말",
+                "previousPeriod": "제 35 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001228",
+                "currentPeriod": "제 36 기 3분기말",
+                "previousPeriod": "제 35 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "207940": {
@@ -15254,24 +15975,6 @@
       "state": "ready",
       "available": true,
       "quarters": [
-        {
-          "year": 2024,
-          "quarter": 3,
-          "revenue": 1187075475928,
-          "operatingProfit": 338578425778,
-          "available": true,
-          "sourceUrls": [
-            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241114002286"
-          ],
-          "method": "reported_three_months",
-          "currency": "KRW",
-          "basis": "CFS",
-          "priorRevenue": 1033973428953,
-          "revenueGrowth": 14.807154873412065,
-          "priorOperatingProfit": 318531252670,
-          "profitGrowth": 6.293628314320854,
-          "margin": 28.5220638993755
-        },
         {
           "year": 2024,
           "quarter": 4,
@@ -15399,14 +16102,32 @@
           "priorOperatingProfit": 475599675863,
           "profitGrowth": 23.30619045878608,
           "margin": 44.396927638001834
+        },
+        {
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 1490325390188,
+          "operatingProfit": 640091281684,
+          "available": true,
+          "sourceUrls": [
+            "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001659"
+          ],
+          "method": "reported_three_months",
+          "currency": "KRW",
+          "basis": "CFS",
+          "priorRevenue": 1660220823312,
+          "revenueGrowth": -10.233303349675682,
+          "priorOperatingProfit": 728848136440,
+          "profitGrowth": -12.177688371342443,
+          "margin": 42.949766936685855
         }
       ],
       "ttm": {
-        "revenue": 4546823380615,
-        "operatingProfit": 2274129289033,
-        "margin": 50.015782419184326,
-        "start": "2025 Q3",
-        "end": "2026 Q2",
+        "revenue": 4376927947491,
+        "operatingProfit": 2185372434277,
+        "margin": 49.929367366664735,
+        "start": "2025 Q4",
+        "end": "2026 Q3",
         "currency": "KRW",
         "basis": "CFS"
       },
@@ -16467,12 +17188,115 @@
             }
           },
           "basis": "CFS"
+        },
+        {
+          "currency": "KRW",
+          "rceptNo": "20261116001659",
+          "year": 2026,
+          "quarter": 3,
+          "revenue": 4068355446882,
+          "operatingProfit": 1807287704649,
+          "priorRevenue": 3271265917174,
+          "priorOperatingProfit": 1540970734909,
+          "singleQuarter": {
+            "revenue": 1490325390188,
+            "operatingProfit": 640091281684
+          },
+          "quality": {
+            "year": 2026,
+            "quarter": 3,
+            "current": {
+              "netIncome": 1291001835624,
+              "operatingCashFlow": 1801272318883,
+              "inventories": 2297426241315,
+              "receivables": 660442520129,
+              "assets": 12670150701530,
+              "liabilities": 3980873131485,
+              "equity": 8689277570045
+            },
+            "previous": {
+              "netIncome": 1274399414490,
+              "operatingCashFlow": 1825656399313,
+              "inventories": 2128164162722,
+              "receivables": 676466918976,
+              "assets": 11060741976837,
+              "liabilities": 3609631328852,
+              "equity": 7451110647985
+            },
+            "balanceComparison": "previous_year_end",
+            "accounts": {
+              "netIncome": {
+                "accountId": "ifrs-full_ProfitLoss",
+                "accountName": "당기순이익",
+                "statement": "CIS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 15 기 3분기"
+              },
+              "operatingCashFlow": {
+                "accountId": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+                "accountName": "영업활동으로 인한 현금흐름",
+                "statement": "CF",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기",
+                "previousPeriod": null,
+                "previousInterimPeriod": "제 15 기 3분기"
+              },
+              "inventories": {
+                "accountId": "ifrs-full_Inventories",
+                "accountName": "재고자산",
+                "statement": "BS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기말",
+                "previousPeriod": "제 15 기말",
+                "previousInterimPeriod": null
+              },
+              "receivables": {
+                "accountId": "ifrs-full_TradeAndOtherCurrentReceivables",
+                "accountName": "매출채권및기타채권",
+                "statement": "BS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기말",
+                "previousPeriod": "제 15 기말",
+                "previousInterimPeriod": null
+              },
+              "assets": {
+                "accountId": "ifrs-full_Assets",
+                "accountName": "자산총계",
+                "statement": "BS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기말",
+                "previousPeriod": "제 15 기말",
+                "previousInterimPeriod": null
+              },
+              "liabilities": {
+                "accountId": "ifrs-full_Liabilities",
+                "accountName": "부채총계",
+                "statement": "BS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기말",
+                "previousPeriod": "제 15 기말",
+                "previousInterimPeriod": null
+              },
+              "equity": {
+                "accountId": "ifrs-full_Equity",
+                "accountName": "자본총계",
+                "statement": "BS",
+                "receiptNo": "20261116001659",
+                "currentPeriod": "제 16 기 3분기말",
+                "previousPeriod": "제 15 기말",
+                "previousInterimPeriod": null
+              }
+            }
+          },
+          "basis": "CFS"
         }
       ],
       "basis": "연결재무제표",
       "refreshFailed": false,
       "partialRefresh": false,
-      "successfulReports": 12,
+      "successfulReports": 13,
       "failedReports": 0
     },
     "373220": {
