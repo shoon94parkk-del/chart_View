@@ -1,26 +1,25 @@
 {
   "schemaVersion": "earnings-events-v1",
-  "generatedAt": "2026-11-17T04:27:37.952118Z",
+  "generatedAt": "2026-11-18T03:42:20.899645Z",
   "sources": {
     "AAPL": {
       "status": "ok",
-      "checkedAt": "2026-11-17T04:27:37.952118Z",
-      "attemptedAt": "2026-11-17T04:27:37.952118Z",
+      "checkedAt": "2026-11-18T03:42:20.899645Z",
+      "attemptedAt": "2026-11-18T03:42:20.899645Z",
       "sourceUrl": "https://investor.apple.com/investor-relations/default.aspx",
       "evidenceUrl": "https://investor.apple.com/rss/Event.aspx?LanguageId=1"
     },
     "005930.KS": {
       "status": "ok",
-      "checkedAt": "2026-11-17T04:27:37.952118Z",
-      "attemptedAt": "2026-11-17T04:27:37.952118Z",
+      "checkedAt": "2026-11-18T03:42:20.899645Z",
+      "attemptedAt": "2026-11-18T03:42:20.899645Z",
       "sourceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/",
       "evidenceUrl": "https://www.samsung.com/global/ir/ir-events-presentations/events/"
     },
     "NVDA": {
-      "status": "error",
-      "checkedAt": "2026-10-26T00:18:27.860213Z",
-      "attemptedAt": "2026-11-17T04:27:37.952118Z",
-      "errorCode": "ValueError",
+      "status": "ok",
+      "checkedAt": "2026-11-18T03:42:20.899645Z",
+      "attemptedAt": "2026-11-18T03:42:20.899645Z",
       "sourceUrl": "https://investor.nvidia.com/events-and-presentations/events-and-presentations/default.aspx",
       "evidenceUrl": "https://investor.nvidia.com/rss/Event.aspx?LanguageId=1"
     },
