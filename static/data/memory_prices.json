@@ -1,13 +1,13 @@
 {
-  "collectedAt": "2026-11-19T19:09:31Z",
-  "generatedAt": "2026-11-19T19:09:31Z",
+  "collectedAt": "2026-11-20T18:48:24Z",
+  "generatedAt": "2026-11-20T18:48:24Z",
   "groups": [
     {
       "family": "DRAM",
       "items": [
         {
           "average": 60.667,
-          "changePct": 0.28,
+          "changePct": 0.0,
           "dailyHigh": 72.0,
           "dailyLow": 45.2,
           "family": "DRAM",
@@ -21,23 +21,23 @@
           "unit": "USD"
         },
         {
-          "average": 78.75,
-          "changePct": -0.25,
+          "average": 78.625,
+          "changePct": -0.16,
           "dailyHigh": 110.0,
-          "dailyLow": 44.5,
+          "dailyLow": 44.0,
           "family": "DRAM",
           "groupKey": "dram-chip",
           "groupName": "DRAM 칩 현물",
           "key": "ddr4-16gb",
           "name": "DDR4 16Gb (2Gx8) 3200",
           "sessionHigh": 110.0,
-          "sessionLow": 44.5,
+          "sessionLow": 44.0,
           "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
           "unit": "USD"
         },
         {
-          "average": 43.921,
-          "changePct": -0.25,
+          "average": 43.75,
+          "changePct": -0.39,
           "dailyHigh": 80.0,
           "dailyLow": 24.5,
           "family": "DRAM",
@@ -54,10 +54,10 @@
       "key": "dram-chip",
       "name": "DRAM 칩 현물",
       "provider": "TrendForce",
-      "sourceDate": "2026-11-19",
+      "sourceDate": "2026-11-20",
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "stale": false,
-      "updatedAt": "2026-11-19T18:10:00+08:00"
+      "updatedAt": "2026-11-20T18:10:00+08:00"
     },
     {
       "family": "DRAM",
@@ -698,13 +698,25 @@
         "ddr4-8gb": 43.921,
         "ddr5-16gb": 60.667
       }
+    },
+    {
+      "date": "2026-11-20",
+      "provider": "TrendForce",
+      "sourceUrls": [
+        "https://www.trendforce.com/price/dram/module_spot"
+      ],
+      "values": {
+        "ddr4-16gb": 78.625,
+        "ddr4-8gb": 43.75,
+        "ddr5-16gb": 60.667
+      }
     }
   ],
   "historyBasis": "Chart View accumulation of publicly visible latest prices; no paid historical backfill",
   "items": [
     {
       "average": 60.667,
-      "changePct": 0.28,
+      "changePct": 0.0,
       "dailyHigh": 72.0,
       "dailyLow": 45.2,
       "family": "DRAM",
@@ -718,23 +730,23 @@
       "unit": "USD"
     },
     {
-      "average": 78.75,
-      "changePct": -0.25,
+      "average": 78.625,
+      "changePct": -0.16,
       "dailyHigh": 110.0,
-      "dailyLow": 44.5,
+      "dailyLow": 44.0,
       "family": "DRAM",
       "groupKey": "dram-chip",
       "groupName": "DRAM 칩 현물",
       "key": "ddr4-16gb",
       "name": "DDR4 16Gb (2Gx8) 3200",
       "sessionHigh": 110.0,
-      "sessionLow": 44.5,
+      "sessionLow": 44.0,
       "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
       "unit": "USD"
     },
     {
-      "average": 43.921,
-      "changePct": -0.25,
+      "average": 43.75,
+      "changePct": -0.39,
       "dailyHigh": 80.0,
       "dailyLow": 24.5,
       "family": "DRAM",
@@ -750,7 +762,7 @@
   ],
   "provider": "TrendForce",
   "schemaVersion": 2,
-  "sourceDate": "2026-11-19",
+  "sourceDate": "2026-11-20",
   "sourceUrl": "https://www.trendforce.com/price/dram/module_spot",
   "stale": false,
   "unavailablePriceSeries": [
@@ -770,5 +782,5 @@
       "reason": "공개 페이지에 품목명은 있으나 현재 숫자형 현물/계약 가격이 공개되지 않음"
     }
   ],
-  "updatedAt": "2026-11-19T18:10:00+08:00"
+  "updatedAt": "2026-11-20T18:10:00+08:00"
 }
